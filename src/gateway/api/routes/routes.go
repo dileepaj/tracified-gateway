@@ -1,6 +1,9 @@
-package main
+package routes
 
-import "net/http"
+import (
+	"gateway/api/businessfacades"
+	"net/http"
+)
 
 type Route struct {
 	Name        string
@@ -16,24 +19,24 @@ var routes = Routes{
 		"Index",
 		"GET",
 		"/",
-		Index,
+		businessfacades.Index,
 	},
 	Route{
 		"TodoIndex",
 		"GET",
 		"/todos",
-		TodoIndex,
+		businessfacades.TodoIndex,
 	},
 	Route{
 		"TodoCreate",
 		"POST",
 		"/todos",
-		TodoCreate,
+		businessfacades.TodoCreate,
 	},
 	Route{
 		"TodoShow",
 		"GET",
 		"/todos/{todoId}",
-		TodoShow,
+		businessfacades.TodoShow,
 	},
 }

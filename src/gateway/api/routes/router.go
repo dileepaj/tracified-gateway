@@ -1,6 +1,7 @@
-package main
+package routes
 
 import (
+	"gateway/api"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -13,7 +14,7 @@ func NewRouter() *mux.Router {
 		var handler http.Handler
 
 		handler = route.HandlerFunc
-		handler = Logger(handler, route.Name)
+		handler = api.Logger(handler, route.Name)
 
 		router.
 			Methods(route.Method).
