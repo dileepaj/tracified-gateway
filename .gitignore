@@ -1,7 +1,8 @@
 # bin and pkg folders
-*bin
 *pkg
-
+*src/github.com
+*src/golang.org
+bin/
 # Binaries for programs and plugins
 *.exe
 *.exe~
