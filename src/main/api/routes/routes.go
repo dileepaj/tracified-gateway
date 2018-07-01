@@ -16,6 +16,12 @@ type Routes []Route
 
 var routes = Routes{
 	Route{
+		"DataHash",
+		"POST",
+		"/data/{hash}/{secret}/{profileId}/{rootHash}",
+		businessfacades.SaveDataHash,
+	},
+	Route{
 		"Index",
 		"GET",
 		"/",

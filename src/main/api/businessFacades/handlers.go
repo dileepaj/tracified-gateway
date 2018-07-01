@@ -25,6 +25,34 @@ func TodoIndex(w http.ResponseWriter, r *http.Request) {
 	// }
 }
 
+func SaveDataHash(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// fmt.Println(vars["hash"], "hash!\n")
+	// fmt.Println(vars["secret"], "secret!\n")
+	// fmt.Println(vars["profileId"], "profileId!\n")
+	// fmt.Println(vars["rootHash"], "rootHash!\n")
+
+	result := stellarexecuter.InsertDataHash(vars["hash"], vars["secret"], vars["profileId"], vars["rootHash"])
+
+	if result != "" {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		if err := json.NewEncoder(w).Encode(result); err != nil {
+			panic(err)
+		}
+		return
+	}
+
+	// If we didn't find it, 404
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusNotFound)
+	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"}); err != nil {
+		panic(err)
+	}
+
+}
+
 func TodoShow(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var todoId int
