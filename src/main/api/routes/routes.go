@@ -21,4 +21,10 @@ var routes = Routes{
 		"/data/{hash}/{secret}/{profileId}/{rootHash}",
 		businessfacades.SaveDataHash,
 	},
+	Route{
+		"POC",
+		"GET",
+		"/poc/{rootHash}/{isValid}",
+		businessfacades.CheckPOC,
+	},
 }
