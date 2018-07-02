@@ -1,6 +1,6 @@
 package businessfacades
 
-type jsonErr struct {
-	Code int    `json:"code"`
-	Text string `json:"text"`
+type error struct {
+	Code    int
+	Message string
 }

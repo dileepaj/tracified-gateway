@@ -2,13 +2,24 @@ package stellarexecuter
 
 import (
 	"fmt"
+	. "main/model"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 )
 
-func InsertDataHash(hash string, secret string, profileId string, rootHash string) string {
+// type error1 struct {
+// 	Code    int
+// 	Message string
+// }
+// type rootTree struct {
+// 	Hash  string
+// 	Error error1
+// }
 
+func InsertDataHash(hash string, secret string, profileId string, rootHash string) RootTree {
+	result := RootTree{}
+	// type rootTree model.rootTre
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
@@ -19,23 +30,35 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
 	txe, err := tx.Sign(secret)
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	txeB64, err := txe.Base64()
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	// And finally, send it off to Stellar!
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	fmt.Println("Successful Transaction:")
@@ -46,8 +69,9 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 
 }
 
-func AppendToTree(current string, pre string, secret string) string {
+func AppendToTree(current string, pre string, secret string) RootTree {
 	// save data
+	result := RootTree{}
 	tx, err := build.Transaction()
 	if pre != "" {
 		tx, err = build.Transaction(
@@ -67,26 +91,40 @@ func AppendToTree(current string, pre string, secret string) string {
 	}
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
 	txe, err := tx.Sign(secret)
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	txeB64, err := txe.Base64()
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 
 	// And finally, send it off to Stellar!
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
 	if err != nil {
 		panic(err)
+		result.Error.Code = 1
+		result.Error.Message = "error"
+		return result
 	}
 	fmt.Println("Successful Transaction Tree Appended:")
 	fmt.Println("Ledger:", resp.Ledger)
 	fmt.Println("Hash:", resp.Hash)
-	return resp.Hash
+
+	result.Hash = resp.Hash
+	return result
 }
