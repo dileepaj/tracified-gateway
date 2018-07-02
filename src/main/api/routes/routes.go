@@ -21,28 +21,4 @@ var routes = Routes{
 		"/data/{hash}/{secret}/{profileId}/{rootHash}",
 		businessfacades.SaveDataHash,
 	},
-	Route{
-		"Index",
-		"GET",
-		"/",
-		businessfacades.Index,
-	},
-	Route{
-		"TodoIndex",
-		"GET",
-		"/todos",
-		businessfacades.TodoIndex,
-	},
-	Route{
-		"TodoCreate",
-		"POST",
-		"/todos",
-		businessfacades.TodoCreate,
-	},
-	Route{
-		"TodoShow",
-		"GET",
-		"/todos/{todoId}",
-		businessfacades.TodoShow,
-	},
 }

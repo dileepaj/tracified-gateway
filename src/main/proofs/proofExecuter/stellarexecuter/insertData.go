@@ -29,7 +29,7 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 	)
 
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -38,7 +38,7 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 	// Sign the transaction to prove you are actually the person sending it.
 	txe, err := tx.Sign(secret)
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -46,7 +46,7 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 
 	txeB64, err := txe.Base64()
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -55,7 +55,7 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 	// And finally, send it off to Stellar!
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -90,7 +90,7 @@ func AppendToTree(current string, pre string, secret string) RootTree {
 		)
 	}
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -99,7 +99,7 @@ func AppendToTree(current string, pre string, secret string) RootTree {
 	// Sign the transaction to prove you are actually the person sending it.
 	txe, err := tx.Sign(secret)
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -107,7 +107,7 @@ func AppendToTree(current string, pre string, secret string) RootTree {
 
 	txeB64, err := txe.Base64()
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
@@ -116,7 +116,7 @@ func AppendToTree(current string, pre string, secret string) RootTree {
 	// And finally, send it off to Stellar!
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
 	if err != nil {
-		panic(err)
+		// panic(err)
 		result.Error.Code = 1
 		result.Error.Message = "error"
 		return result
