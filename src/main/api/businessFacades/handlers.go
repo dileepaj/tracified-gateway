@@ -4,10 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/gorilla/mux"
 
+	"main/api/apiModel"
 	"main/proofs/builder"
 	"main/proofs/interpreter"
 )
@@ -34,13 +34,13 @@ func SaveDataHash(w http.ResponseWriter, r *http.Request) {
 		switch result.Error.Code {
 		case 0:
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "No root"})
+			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "No root"})
 		case 1:
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
 		default:
 			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
 		}
 
 	}
@@ -49,18 +49,11 @@ func SaveDataHash(w http.ResponseWriter, r *http.Request) {
 
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	isValid, err := strconv.ParseBool(vars["isValid"])
-	if err != nil {
-		fmt.Println("Error in the Boolean!")
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Error in the Boolean!"})
-		return
-	}
-	result := interpreter.InterpretPOC(vars["rootHash"], isValid)
+
+	result := interpreter.InterpretPOC(vars["rootHash"], vars["treeObj"])
 
 	//log the results
-	fmt.Println(result, "result!!!\n")
+	fmt.Println(result, "result!!!")
 
 	if result.Previous != "" && result.Current != "" {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -73,13 +66,45 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// 	switch result.Error.Code {
 	// 	case 0:
 	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "No PRE"})
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "No PRE"})
 	// 	case 1:
 	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
 	// 	default:
 	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+	// 	}
+
+	// }
+
+}
+
+func CheckPOE(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	result := interpreter.InterpretPOE(vars["hash"], vars["TDPId"], vars["rootHash"])
+
+	//log the results
+	fmt.Println(result, "result!!!")
+
+	if result.TxNHash != "" && result.RootHash != "" {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	// else {
+	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// 	switch result.Error.Code {
+	// 	case 0:
+	// 		w.WriteHeader(http.StatusNotFound)
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "No PRE"})
+	// 	case 1:
+	// 		w.WriteHeader(http.StatusNotFound)
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
+	// 	default:
+	// 		w.WriteHeader(http.StatusNotFound)
+	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
 	// 	}
 
 	// }

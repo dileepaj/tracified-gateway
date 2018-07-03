@@ -25,7 +25,13 @@ var routes = Routes{
 	Route{
 		"POC",
 		"GET",
-		"/poc/{rootHash}/{isValid}",
+		"/poc/{rootHash}/{treeObj}",
 		businessFacades.CheckPOC,
+	},
+	Route{
+		"POE",
+		"GET",
+		"/poc/{hash}/{TDPId}/{rootHash}",
+		businessFacades.CheckPOE,
 	},
 }
