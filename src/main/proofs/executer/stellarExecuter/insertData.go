@@ -1,13 +1,15 @@
-package stellarexecuter
+package stellarExecuter
 
 import (
 	"fmt"
-	. "main/model"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
+
+	"main/model"
 )
 
+//testing
 // type error1 struct {
 // 	Code    int
 // 	Message string
@@ -17,8 +19,8 @@ import (
 // 	Error error1
 // }
 
-func InsertDataHash(hash string, secret string, profileId string, rootHash string) RootTree {
-	result := RootTree{}
+func InsertDataHash(hash string, secret string, profileId string, rootHash string) model.RootTree {
+	result := model.RootTree{}
 	// type rootTree model.rootTre
 	// save data
 	tx, err := build.Transaction(
@@ -69,9 +71,9 @@ func InsertDataHash(hash string, secret string, profileId string, rootHash strin
 
 }
 
-func AppendToTree(current string, pre string, secret string) RootTree {
+func AppendToTree(current string, pre string, secret string) model.RootTree {
 	// save data
-	result := RootTree{}
+	result := model.RootTree{}
 	tx, err := build.Transaction()
 	if pre != "" {
 		tx, err = build.Transaction(

@@ -1,4 +1,4 @@
-package stellarexecuter
+package stellarExecuter
 
 import (
 	"log"

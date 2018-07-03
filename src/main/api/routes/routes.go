@@ -1,8 +1,9 @@
 package routes
 
 import (
-	"main/api/businessfacades"
 	"net/http"
+
+	"main/api/businessFacades"
 )
 
 type Route struct {
@@ -19,12 +20,12 @@ var routes = Routes{
 		"DataHash",
 		"POST",
 		"/data/{hash}/{secret}/{profileId}/{rootHash}",
-		businessfacades.SaveDataHash,
+		businessFacades.SaveDataHash,
 	},
 	Route{
 		"POC",
 		"GET",
 		"/poc/{rootHash}/{isValid}",
-		businessfacades.CheckPOC,
+		businessFacades.CheckPOC,
 	},
 }

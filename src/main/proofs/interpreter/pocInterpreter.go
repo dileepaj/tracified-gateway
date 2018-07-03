@@ -2,12 +2,12 @@ package interpreter
 
 import (
 	"fmt"
-	. "main/model"
 
-	stellarRetriever "main/proofs/retriever/stellarRetriever"
+	"main/model"
+	"main/proofs/retriever/stellarRetriever"
 )
 
-func InterpretPOC(rootHash string, isValid bool) Node {
+func InterpretPOC(rootHash string, isValid bool) model.Node {
 	result := stellarRetriever.RetrievePOC(rootHash, isValid)
 
 	if result.Previous == "" && result.Current == "" {

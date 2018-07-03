@@ -1,4 +1,4 @@
-package businessfacades
+package businessFacades
 
 type jsonErr struct {
 	Code int

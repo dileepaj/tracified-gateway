@@ -1,10 +1,11 @@
 package routes
 
 import (
-	"main/api"
 	"net/http"
 
 	"github.com/gorilla/mux"
+
+	"main/api"
 )
 
 func NewRouter() *mux.Router {
