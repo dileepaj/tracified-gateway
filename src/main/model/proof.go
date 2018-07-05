@@ -7,15 +7,15 @@ package model
 // }
 
 type Node struct {
-	Previous []Node
-	Current  Current
-	Sequence string
+	Previous []Node  `json:"Previous"`
+	Current  Current `json:"Current"`
 }
 
 type Current struct {
-	TDPID    string
-	DataHash string
-	TxNHash  string
+	TDPID    string `json:"TDPID"`
+	DataHash string `json:"DataHash"`
+	TxNHash  string `json:"TxNHash"`
+	Sequence string `json:"previous"`
 }
 
 //poc Success response
