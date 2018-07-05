@@ -1,6 +1,10 @@
 package main
 
 import (
+	"main/proofs/interpreter"
+	// "main/proofs/retriever/stellarRetriever"
+	// "main/proofs/interpreter"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -15,6 +19,22 @@ func main() {
 
 	// fmt.Println("Latest Root hash")
 	// fmt.Println(newRootHash)
+
+	// test
+	fmt.Println("Scenario 1 - Success")
+	interpreter.InterpretPOC("", "")
+	fmt.Println("Scenario 1 - Sequence Error ")
+	interpreter.InterpretPOCError("", "")
+	fmt.Println("Scenario 1 - Fake Tree Error ")
+	interpreter.InterpretPOCFakeTree("", "")
+	fmt.Println("Scenario 2 - Success")
+	interpreter.InterpretPOC2("", "")
+	fmt.Println("Scenario 2 - Sequence Error")
+	interpreter.InterpretPOC2Error("", "")
+	fmt.Println("Scenario 2 - Fake Tree Error")
+	interpreter.InterpretPOC2FakeTree("", "")
+	// lol:=
+	// fmt.Println()
 
 	log.Fatal(http.ListenAndServe(":8030", router))
 
