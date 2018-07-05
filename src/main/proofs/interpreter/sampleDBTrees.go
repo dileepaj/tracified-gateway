@@ -12,9 +12,12 @@ func dBTree() model.Node {
 
 	cur3 := model.Current{"003", "E3FC18CB4776193F8AD15A947402000", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
 
+	cur4 := model.Current{"004", "E3FC18CB4776193F8AD15A947402000", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
+
 	preArr1 := []model.Node{}
 	preArr2 := []model.Node{}
 	preArr3 := []model.Node{}
+	preArr4 := []model.Node{}
 
 	pre1 := model.Node{preArr1, cur1, "1000500"}
 	preArr2 = []model.Node{pre1}
@@ -23,8 +26,10 @@ func dBTree() model.Node {
 	preArr3 = []model.Node{pre2}
 
 	pre3 := model.Node{preArr3, cur3, "1000502"}
+	preArr4 = []model.Node{pre3}
 
-	return pre3
+	pre4 := model.Node{preArr4, cur4, "1000503"}
+	return pre4
 }
 
 func dBTreeFalse() model.Node {
@@ -34,9 +39,12 @@ func dBTreeFalse() model.Node {
 
 	cur3 := model.Current{"003", "E3FC18CB4776193F8AD15A947402000", "cda5c984ghjg5b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
 
+	cur4 := model.Current{"004", "E3FC18CB4776193F8AD15A947402000", "cda5c984ghjg5b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
+
 	preArr1 := []model.Node{}
 	preArr2 := []model.Node{}
 	preArr3 := []model.Node{}
+	preArr4 := []model.Node{}
 
 	pre1 := model.Node{preArr1, cur1, "1000500"}
 	preArr2 = []model.Node{pre1}
@@ -45,8 +53,10 @@ func dBTreeFalse() model.Node {
 	preArr3 = []model.Node{pre2}
 
 	pre3 := model.Node{preArr3, cur3, "1000502"}
+	preArr4 = []model.Node{pre3}
 
-	return pre3
+	pre4 := model.Node{preArr4, cur4, "1000503"}
+	return pre4
 }
 
 func dBTree2() model.Node {
@@ -56,9 +66,12 @@ func dBTree2() model.Node {
 
 	cur3 := model.Current{}
 
+	cur4 := model.Current{"003", "E3FC18CB4776193F8AD15A947402000", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
+
 	preArr1 := []model.Node{}
 	preArr2 := []model.Node{}
 	preArr3 := []model.Node{}
+	preArr4 := []model.Node{}
 
 	pre1 := model.Node{preArr1, cur1, "1000500"}
 	preArr2 = []model.Node{pre1}
@@ -68,7 +81,10 @@ func dBTree2() model.Node {
 
 	pre3 := model.Node{preArr3, cur3, "1000502"}
 
-	return pre3
+	preArr4 = []model.Node{pre3}
+
+	pre4 := model.Node{preArr4, cur4, "1000503"}	
+	return pre4
 }
 
 func dBTree2False() model.Node {
@@ -78,9 +94,12 @@ func dBTree2False() model.Node {
 
 	cur3 := model.Current{}
 
+	cur4 := model.Current{"003", "E3FC18CB4776193F8AD15A947402000", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
+
 	preArr1 := []model.Node{}
 	preArr2 := []model.Node{}
 	preArr3 := []model.Node{}
+	preArr4 := []model.Node{}
 
 	pre1 := model.Node{preArr1, cur1, "1000500"}
 	preArr2 = []model.Node{pre1}
@@ -90,5 +109,8 @@ func dBTree2False() model.Node {
 
 	pre3 := model.Node{preArr3, cur3, "1000502"}
 
-	return pre3
+	preArr4 = []model.Node{pre3}
+
+	pre4 := model.Node{preArr4, cur4, "1000503"}	
+	return pre4
 }

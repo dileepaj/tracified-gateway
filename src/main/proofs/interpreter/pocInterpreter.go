@@ -6,6 +6,7 @@ import (
 	"main/proofs/retriever/stellarRetriever"
 )
 
+//all splits and normal scenarios
 func InterpretPOC(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC(rootHash)
@@ -13,7 +14,7 @@ func InterpretPOC(rootHash string, treeObj string) model.PocSuccess {
 	dBTree := dBTree()
 
 	// isMapped := compare(dBTree, blockchainTree, "")
-	isMapped := testCompare(dBTree, blockchainTree, "1000503")
+	isMapped := testCompare(dBTree, blockchainTree, "1000504")
 	fmt.Println(isMapped)
 	var returnRes model.PocSuccess
 
@@ -24,6 +25,8 @@ func InterpretPOC(rootHash string, treeObj string) model.PocSuccess {
 	return returnRes
 }
 
+// Used to check for the unmatched transaction ids and datahashes
+//in normal and split scenarios
 func InterpretPOCFakeTree(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC(rootHash)
@@ -31,7 +34,7 @@ func InterpretPOCFakeTree(rootHash string, treeObj string) model.PocSuccess {
 	dBTree := dBTreeFalse()
 
 	// isMapped := compare(dBTree, blockchainTree, "")
-	isMapped := testCompare(dBTree, blockchainTree, "1000503")
+	isMapped := testCompare(dBTree, blockchainTree, "1000504")
 	fmt.Println(isMapped)
 	var returnRes model.PocSuccess
 
@@ -41,6 +44,9 @@ func InterpretPOCFakeTree(rootHash string, treeObj string) model.PocSuccess {
 
 	return returnRes
 }
+
+//used to check for error in Sequence Order of each transmission
+//in normal and split scenarios
 func InterpretPOCError(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC(rootHash)
@@ -59,6 +65,7 @@ func InterpretPOCError(rootHash string, treeObj string) model.PocSuccess {
 	return returnRes
 }
 
+//merge scenario
 func InterpretPOC2(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC2(rootHash)
@@ -67,7 +74,7 @@ func InterpretPOC2(rootHash string, treeObj string) model.PocSuccess {
 	dBTree := dBTree2()
 
 	// isMapped := compare(dBTree, blockchainTree, "")
-	isMapped := testCompare(dBTree, blockchainTree, "1000503")
+	isMapped := testCompare(dBTree, blockchainTree, "1000504")
 	fmt.Println(isMapped)
 	var returnRes model.PocSuccess
 
@@ -78,6 +85,8 @@ func InterpretPOC2(rootHash string, treeObj string) model.PocSuccess {
 	return returnRes
 }
 
+//Used to check for the unmatched transaction ids and datahashes
+//in merge scenario
 func InterpretPOC2FakeTree(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC2(rootHash)
@@ -86,7 +95,7 @@ func InterpretPOC2FakeTree(rootHash string, treeObj string) model.PocSuccess {
 	dBTree := dBTree2False()
 
 	// isMapped := compare(dBTree, blockchainTree, "")
-	isMapped := testCompare(dBTree, blockchainTree, "1000503")
+	isMapped := testCompare(dBTree, blockchainTree, "1000504")
 	fmt.Println(isMapped)
 	var returnRes model.PocSuccess
 
@@ -97,6 +106,8 @@ func InterpretPOC2FakeTree(rootHash string, treeObj string) model.PocSuccess {
 	return returnRes
 }
 
+//used to check for error in Sequence Order of each transmission
+//in merge scenario
 func InterpretPOC2Error(rootHash string, treeObj string) model.PocSuccess {
 	//
 	blockchainTree := stellarRetriever.RetrievePOC2(rootHash)
@@ -115,7 +126,6 @@ func InterpretPOC2Error(rootHash string, treeObj string) model.PocSuccess {
 
 	return returnRes
 }
-
 
 // func compare(db model.Node, bc model.Node, seq string) bool {
 
@@ -142,20 +152,25 @@ func InterpretPOC2Error(rootHash string, treeObj string) model.PocSuccess {
 
 func testCompare(db model.Node, bc model.Node, seq string) bool {
 	var isMatch bool
+	if seq == "" {
+		seq = bc.Sequence
+	}
 	fmt.Println(seq, ">", db.Sequence)
-	if db.Current != (model.Current{}) && db.Previous != nil && bc.Previous != nil {
-		// fmt.Println(len(db.Previous), len(bc.Previous))
-		// fmt.Println(db.Sequence)
+
+	//If current and previous are both present
+	//will be incase of all normal transactions and splits.
+	if bc.Current != (model.Current{}) && db.Previous != nil && bc.Previous != nil {
+
 		if db.Current.TDPID == bc.Current.TDPID && db.Current.DataHash == bc.Current.DataHash {
-			fmt.Println("Sequence ", db.Sequence, ": TDPID and DataHash Matched")
+			fmt.Println("Sequence ", bc.Sequence, ": TDPID and DataHash Matched")
 			isMatch = true
-			if db.Sequence == bc.Sequence && db.Sequence < seq {
+			if db.Sequence == bc.Sequence && bc.Sequence < seq {
 
 				matchArray := make([]bool, len(bc.Previous))
 
 				for i := 0; i < len(db.Previous); i++ {
 
-					matchArray[i] = testCompare(db.Previous[i], bc.Previous[i], db.Sequence)
+					matchArray[i] = testCompare(db.Previous[i], bc.Previous[i], bc.Sequence)
 				}
 				isMatch = checkBoolArray(matchArray)
 
@@ -166,30 +181,34 @@ func testCompare(db model.Node, bc model.Node, seq string) bool {
 
 			return isMatch
 		}
-			isMatch=false
-		
-		
-	}
+		fmt.Println("Sequence ", bc.Sequence, ": TDPID and DataHash UnMatched")
+		isMatch = false
 
-	if db.Current != (model.Current{}) && db.Previous == nil && bc.Previous == nil {
-		// fmt.Println(db.Sequence)
+	}
+	//if Only current is present...
+	//like at:- Genesis Block,
+	if bc.Current != (model.Current{}) && db.Previous == nil && bc.Previous == nil {
 		if db.Current.TDPID == bc.Current.TDPID && db.Current.DataHash == bc.Current.DataHash {
-			fmt.Println("Sequence ", db.Sequence, ": TDPID and DataHash Matched")
+			fmt.Println("Sequence ", bc.Sequence, ": TDPID and DataHash Matched")
 			isMatch = true
 			return isMatch
 		}
-			isMatch=false
-		
+		fmt.Println("Sequence ", bc.Sequence, ": TDPID and DataHash UnMatched")
+		isMatch = false
+
 	}
 
-	if db.Current == (model.Current{}) && db.Previous != nil && bc.Previous != nil {
-		// fmt.Println(db.Sequence)
+	//if no Current but multiple previous are present..
+	//in case of merge scenarios..
+	if bc.Current == (model.Current{}) && db.Previous != nil && bc.Previous != nil {
+		fmt.Println("Sequence ", bc.Sequence, ": No Current")
+
 		if db.Sequence == bc.Sequence && db.Sequence < seq {
 			matchArray := make([]bool, len(bc.Previous))
 
-			for i := 0; i < len(db.Previous); i++ {
+			for i := 0; i < len(bc.Previous); i++ {
 
-				matchArray[i] = testCompare(db.Previous[i], bc.Previous[i], db.Sequence)
+				matchArray[i] = testCompare(db.Previous[i], bc.Previous[i], bc.Sequence)
 			}
 			isMatch = checkBoolArray(matchArray)
 
@@ -202,11 +221,12 @@ func testCompare(db model.Node, bc model.Node, seq string) bool {
 	return isMatch
 }
 
+//checks the multiple boolean indexes in an array and returns the combined result.
 func checkBoolArray(array []bool) bool {
-	isMatch:=true
+	isMatch := true
 	for i := 0; i < len(array); i++ {
-		if array[i]==false {
-			isMatch=false
+		if array[i] == false {
+			isMatch = false
 			return isMatch
 		}
 	}
