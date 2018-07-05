@@ -152,9 +152,9 @@ func InterpretPOC2Error(rootHash string, treeObj string) model.PocSuccess {
 
 func testCompare(db model.Node, bc model.Node, seq string) bool {
 	var isMatch bool
-	if seq == "" {
-		seq = bc.Sequence
-	}
+	// if seq == "" {
+	// 	seq = bc.Sequence
+	// }
 	fmt.Println(seq, ">", db.Sequence)
 
 	//If current and previous are both present

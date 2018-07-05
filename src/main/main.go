@@ -21,6 +21,8 @@ func main() {
 	// fmt.Println(newRootHash)
 
 	// test
+	//Scenario 1 is regular transactions or splits
+	//Scenario 2 is merge
 	fmt.Println("Scenario 1 - Success")
 	interpreter.InterpretPOC("", "")
 	fmt.Println("Scenario 1 - Sequence Error ")
