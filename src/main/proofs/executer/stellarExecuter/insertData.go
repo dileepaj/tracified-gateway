@@ -9,16 +9,6 @@ import (
 	"main/model"
 )
 
-//testing
-// type error1 struct {
-// 	Code    int
-// 	Message string
-// }
-// type rootTree struct {
-// 	Hash  string
-// 	Error error1
-// }
-
 func InsertDataHash(hash string, secret string, profileId string, rootHash string) model.RootTree {
 	result := model.RootTree{}
 	// type rootTree model.rootTre
