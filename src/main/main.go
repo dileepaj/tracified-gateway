@@ -1,21 +1,27 @@
+// _Interfaces_ are named collections of method
+// signatures.
+
 package main
 
 import (
-	"log"
-	"net/http"
-
-	"main/api/routes"
+	"fmt"
+	"main/api/businessFacades"
 )
 
 func main() {
-	//create := executer.CreateAccount()
-	// newRootHash := executer.InsertDataHash("E3FC18CB4776193F8AD15A947406DBYE", "SDL26B3CQN4AQHPV3MDRMUB5BXNMCQLHY3HVAD7ZOP4QACX2OL7V2IOW", "001", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee13311ee6e")
+	// r := builder.Rect{3, 4}
+	// c := builder.Circle{5}
 
-	router := routes.NewRouter()
+	// // The `circle` and `rect` struct types both
+	// // implement the `geometry` interface so we can use
+	// // instances of
+	// // these structs as arguments to `measure`.
+	// businessFacades.Measure(r)
+	// businessFacades.Measure(c)
 
-	// fmt.Println("Latest Root hash")
-	// fmt.Println(newRootHash)
-
-	log.Fatal(http.ListenAndServe(":8030", router))
+	computer := businessFacades.NewComputerFacade()
+	// computer.Start(0)
+	fmt.Println("----------")
+	computer.End()
 
 }

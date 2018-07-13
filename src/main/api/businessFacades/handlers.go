@@ -55,12 +55,12 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	//log the results
 	fmt.Println(result, "result!!!")
 
-	if result.Previous != "" && result.Current != "" {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-		return
-	}
+	// if result.Previous != "" && result.Current != "" {
+	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// 	w.WriteHeader(http.StatusOK)
+	// 	json.NewEncoder(w).Encode(result)
+	// 	return
+	// }
 	// else {
 	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	// 	switch result.Error.Code {
