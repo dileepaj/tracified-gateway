@@ -4,15 +4,22 @@
 package main
 
 import (
-	"fmt"
-	"main/api/businessFacades"
+	"log"
+	"main/api/routes"
+	"net/http"
 )
 
 func main() {
 
-	computer := businessFacades.NewComputerFacade()
-	// computer.Start(0)
-	fmt.Println("----------")
-	computer.End()
+	router := routes.NewRouter()
+
+	log.Fatal(http.ListenAndServe(":8030", router))
+
+	// computer := businessFacades.NewComputerFacade()
+	// // computer.Start(0)
+	// fmt.Println("----------")
+	// computer.End()
+
+	// businessFacades.TestPOE()
 
 }

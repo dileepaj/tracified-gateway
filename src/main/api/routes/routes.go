@@ -31,7 +31,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/poc/{hash}/{TDPId}/{rootHash}",
+		"/poe/{Txn}/{PID}/{Hash}",
 		businessFacades.CheckPOE,
 	},
 }

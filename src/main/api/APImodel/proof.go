@@ -13,10 +13,15 @@ type PocFailure struct {
 }
 
 //poe Success response
+// type PoeSuccess struct {
+// 	DataHash string
+// 	TxNHash  string
+// 	Message  string
+// }
+
 type PoeSuccess struct {
-	DataHash string
-	TxNHash  string
-	Message  string
+	Message string
+	TxNHash string
 }
 
 //poe Failure response
