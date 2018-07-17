@@ -88,10 +88,9 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	display := &stellarRetriever.ConcretePOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
 	result, Txn := display.InterpretPOE(display)
 	fmt.Println(result)
-	fmt.Println("Success")
 	fmt.Println(Txn)
 
-	response := apiModel.PoeSuccess{Message: "Success", TxNHash: Txn}
+	response := apiModel.PoeSuccess{Message: result, TxNHash: Txn}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
