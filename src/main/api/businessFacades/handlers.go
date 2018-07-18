@@ -9,11 +9,12 @@ import (
 	"github.com/gorilla/mux"
 
 	"main/api/apiModel"
+	"main/model"
 	"main/proofs/builder"
-	"main/proofs/interpreter"
 	"main/proofs/retriever/stellarRetriever"
 )
 
+//To be implemented
 func SaveDataHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -32,67 +33,52 @@ func SaveDataHash(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		switch result.Error.Code {
-		case 0:
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "No root"})
-		case 1:
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
-		default:
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
-		}
+		// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		// switch result.Error.Code {
+		// case 0:
+		// 	w.WriteHeader(http.StatusNotFound)
+		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "No root"})
+		// case 1:
+		// 	w.WriteHeader(http.StatusNotFound)
+		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
+		// default:
+		// 	w.WriteHeader(http.StatusNotFound)
+		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
+		// }
 
 	}
 
 }
 
+//To be implemented
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
+	// vars := mux.Vars(r)
 
-	result := interpreter.InterpretPOC(vars["rootHash"], vars["treeObj"])
+	var response model.POC
 
-	//log the results
-	fmt.Println(result, "result!!!")
+	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: vars["dbTree"]}
+	response = display.InterpretPOC(display)
 
-	// if result.Previous != "" && result.Current != "" {
-	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// 	w.WriteHeader(http.StatusOK)
-	// 	json.NewEncoder(w).Encode(result)
-	// 	return
-	// }
-	// else {
-	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// 	switch result.Error.Code {
-	// 	case 0:
-	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "No PRE"})
-	// 	case 1:
-	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
-	// 	default:
-	// 		w.WriteHeader(http.StatusNotFound)
-	// 		json.NewEncoder(w).Encode(apiModel.JsonErr{Code: http.StatusNotFound, Text: "Not Found"})
-	// 	}
-
-	// }
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOC.Error.Code)
+	result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
+	json.NewEncoder(w).Encode(result)
+	return
 
 }
 
 func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	// display := &stellarRetriever.ConcretePOE{Txn: "e903f5ef813002295e97c0f08cf26d1fd411615e18384890395f6b0943ed83b5", ProfileID: "ProfileID001", Hash: "cf68e34967e10837d629b941bb8ec85d0ef016bc324340bd54e0ccae08a30b7a"}
-	display := &stellarRetriever.ConcretePOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
-	result, Txn := display.InterpretPOE(display)
-	fmt.Println(result)
-	fmt.Println(Txn)
+	var response model.POE
 
-	response := apiModel.PoeSuccess{Message: result, TxNHash: Txn}
+	display := &stellarRetriever.ConcretePOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
+	response = display.InterpretPOE(display)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	w.WriteHeader(response.RetrievePOE.Error.Code)
+	result := apiModel.PoeSuccess{Message: response.RetrievePOE.Error.Message, TxNHash: response.RetrievePOE.Txn}
+	json.NewEncoder(w).Encode(result)
+	return
 
 }

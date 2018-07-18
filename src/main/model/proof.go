@@ -1,11 +1,5 @@
 package model
 
-//proof of POC
-
-// type Root struct {
-// 	Previous []Node
-// }
-
 type Node struct {
 	Previous []Node
 	Current  Current
@@ -18,15 +12,26 @@ type Current struct {
 	TxNHash  string
 }
 
-//poc Success response
-type PocSuccess struct {
-	RootHash string
-	Error    Error1
+//proof of POE
+type RetrievePOE struct {
+	Txn    string `json:"txn"`
+	BCHash string `json:"bcHash"`
+	DBHash string `json:"dbHash"`
+	Error  Error  `json:"error"`
 }
 
-//proof of POE
 type POE struct {
-	TxNHash  string
-	RootHash string
-	Error    Error1
+	RetrievePOE RetrievePOE
+}
+
+//proof of POC
+type RetrievePOC struct {
+	Txn    string `json:"txn"`
+	BCHash string `json:"bcHash"`
+	DBHash string `json:"dbHash"`
+	Error  Error  `json:"error"`
+}
+
+type POC struct {
+	RetrievePOC RetrievePOC
 }

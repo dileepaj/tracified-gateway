@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"main/model"
 	"main/proofs/interpreter"
 )
 
@@ -26,35 +27,60 @@ type ConcretePOE struct {
 	Hash      string
 }
 
-func (db *ConcretePOE) RetrievePOETest() (string, string, string) {
+func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 	var bcHash string
-	response, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	var response model.RetrievePOE
+	var Rerr model.Error
+
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
 	if err != nil {
-		fmt.Printf("The HTTP request failed with error %s\n", err)
+		Rerr.Code = result.StatusCode
+		Rerr.Message = "The HTTP request failed for RetrievePOE"
+		response.Txn = db.Txn
+
+		response.Error = Rerr
+		return response
+
 	} else {
-		data, _ := ioutil.ReadAll(response.Body)
+		data, _ := ioutil.ReadAll(result.Body)
 
-		var raw map[string]interface{}
-		json.Unmarshal(data, &raw)
-		// raw["count"] = 2
-		out, _ := json.Marshal(raw["_embedded"])
+		if result.StatusCode == 200 {
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+			// raw["count"] = 2
+			out, _ := json.Marshal(raw["_embedded"])
 
-		var raw1 map[string]interface{}
-		json.Unmarshal(out, &raw1)
+			var raw1 map[string]interface{}
+			json.Unmarshal(out, &raw1)
 
-		out1, _ := json.Marshal(raw1["records"])
+			out1, _ := json.Marshal(raw1["records"])
 
-		keysBody := out1
-		keys := make([]PublicKey, 0)
-		json.Unmarshal(keysBody, &keys)
-		// fmt.Printf("%#v", keys[0].Name)
-		// fmt.Printf("%#v", keys[0].Value)
-		bcHash = Base64DecEnc("Decode", keys[0].Value)
-		// fmt.Println(bcHash)
+			keysBody := out1
+			keys := make([]PublicKey, 0)
+			json.Unmarshal(keysBody, &keys)
+			// fmt.Printf("%#v", keys[0].Name)
+			// fmt.Printf("%#v", keys[0].Value)
+			bcHash = Base64DecEnc("Decode", keys[0].Value)
+
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "Txn Hash retrieved from the blockchain."
+			response.Error = Rerr
+			response.Txn = db.Txn
+			response.DBHash = db.Hash
+			response.BCHash = bcHash
+
+		} else {
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "Txn Hash does not exist in the blockchain."
+			response.Txn = db.Txn
+
+			response.Error = Rerr
+			return response
+		}
 
 	}
-	return db.Txn, bcHash, db.Hash
 
+	return response
 }
 
 /**

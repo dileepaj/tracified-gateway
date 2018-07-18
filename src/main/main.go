@@ -15,11 +15,4 @@ func main() {
 
 	log.Fatal(http.ListenAndServe(":8030", router))
 
-	// computer := businessFacades.NewComputerFacade()
-	// // computer.Start(0)
-	// fmt.Println("----------")
-	// computer.End()
-
-	// businessFacades.TestPOE()
-
 }

@@ -25,7 +25,7 @@ var routes = Routes{
 	Route{
 		"POC",
 		"GET",
-		"/poc/{rootHash}/{treeObj}",
+		"/poc/{Txn}/{PID}/{dbTree}",
 		businessFacades.CheckPOC,
 	},
 	Route{

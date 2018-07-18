@@ -1,36 +1,40 @@
 package interpreter
 
 import (
-	"fmt"
+	"main/model"
+	"net/http"
 )
 
-
 type POEInterface interface {
-	RetrievePOETest() (string, string, string)
+	RetrievePOE() model.RetrievePOE
 }
 
 type AbstractPOE struct {
 }
 
-func (AP *AbstractPOE) InterpretPOE(POEInterface POEInterface) (string, string) {
-	Txn, bcHash, dbHash := POEInterface.RetrievePOETest()
-	result := MatchingHash(bcHash, dbHash)
-	if result == true {
-		return "success", Txn
+func (AP *AbstractPOE) InterpretPOE(POEInterface POEInterface) model.POE {
+	var poeObj model.POE
+
+	poeObj.RetrievePOE = POEInterface.RetrievePOE()
+
+	if poeObj.RetrievePOE.BCHash == "" {
+		return poeObj
 	} else {
-		return "Error", Txn
+		poeObj.RetrievePOE.Error = MatchingHash(poeObj.RetrievePOE.BCHash, poeObj.RetrievePOE.DBHash)
+		return poeObj
 	}
 }
 
-func MatchingHash(bcHash string, dbHash string) bool {
-	isTrue := false
+func MatchingHash(bcHash string, dbHash string) model.Error {
+	var Rerr model.Error
+
 	if bcHash == dbHash {
-		fmt.Println("Hash match!")
-		isTrue = true
-
+		Rerr.Code = http.StatusOK
+		Rerr.Message = "BC Hash & DB Hash match."
+		return Rerr
 	} else {
-		fmt.Println("Hash Din't match!")
-
+		Rerr.Code = http.StatusOK
+		Rerr.Message = "Error! BC Hash & DB Hash din't match."
+		return Rerr
 	}
-	return isTrue
 }

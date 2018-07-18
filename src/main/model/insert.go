@@ -2,5 +2,5 @@ package model
 
 type RootTree struct {
 	Hash  string
-	Error Error1
+	Error Error
 }

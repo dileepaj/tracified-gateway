@@ -1,30 +1,83 @@
 package stellarRetriever
 
 import (
-	"fmt"
-
+	"encoding/json"
+	"io/ioutil"
 	"main/model"
+	"main/proofs/interpreter"
+	"net/http"
 )
 
-func RetrievePOC(rootHash string) model.Node {
-	fmt.Println("retieve poc!")
-	poc := blockchainTree()
-	return poc
-
+type PublicKeyPOC struct {
+	Name  string
+	Value string
 }
 
-func blockchainTree() model.Node {
-	cur1 := model.Current{"001", "E3FC18CB4776193F8AD15A947406DBYE", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee13311etxn"}
+type KeysResponsePOC struct {
+	Collection []PublicKeyPOC
+}
 
-	cur2 := model.Current{"002", "E3FC18CB4776193F8AD15A947402000", "cda5c9845b218fdd8e8f04d2db3a82db6b59d1d78785a214cbce3ee132000txn"}
+type ConcretePOC struct {
+	*interpreter.AbstractPOC
+	Txn       string
+	ProfileID string
+	DBTree    string
+}
 
-	preArr1 := []model.Node{}
-	preArr2 := []model.Node{}
+func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
+	var bcHash string
+	// var Cerr error
+	var response model.RetrievePOC
+	var Rerr model.Error
 
-	pre1 := model.Node{preArr1, cur1, "1000500"}
-	preArr2[0] = pre1
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	//https://horizon-testnet.stellar.org/transactions/e903f5ef813002295e97c0f08cf26d1fd411615e18384890395f6b0943ed83b5/operations
+	if err != nil {
+		Rerr.Code = result.StatusCode
+		Rerr.Message = "The HTTP request failed for RetrievePOC"
+		response.Txn = db.Txn
 
-	pre2 := model.Node{preArr2, cur2, "1000501"}
+		response.Error = Rerr
+		return response
 
-	return pre2
+	} else {
+		data, _ := ioutil.ReadAll(result.Body)
+
+		if result.StatusCode == 200 {
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+			// raw["count"] = 2
+			out, _ := json.Marshal(raw["_embedded"])
+
+			var raw1 map[string]interface{}
+			json.Unmarshal(out, &raw1)
+
+			out1, _ := json.Marshal(raw1["records"])
+
+			keysBody := out1
+			keys := make([]PublicKeyPOC, 0)
+			json.Unmarshal(keysBody, &keys)
+			// fmt.Printf("%#v", keys[0].Name)
+			// fmt.Printf("%#v", keys[0].Value)
+			bcHash = Base64DecEnc("Decode", keys[0].Value)
+
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "Txn Hash retrieved from the blockchain."
+			response.Error = Rerr
+			response.Txn = db.Txn
+			response.DBHash = db.DBTree
+			response.BCHash = bcHash
+		} else {
+
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "Txn Hash does not exist in the blockchain."
+			response.Txn = db.Txn
+
+			response.Error = Rerr
+			return response
+		}
+
+	}
+
+	return response
 }
