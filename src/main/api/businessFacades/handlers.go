@@ -16,8 +16,13 @@ import (
 
 func SaveData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	response := model.InsertDataResponse{}
+	response = builder.TDPInsert(vars["hash"], vars["type"], vars["previousTDPID"], vars["profileId"])
 
-	result := builder.TDPInsert(vars["hash"], vars["type"], vars["previousTDPID"], vars["profileId"])
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.Error.Code)
+	result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.Txn, ProfileID: response.ProfileID, Type: response.TxnType}
+	json.NewEncoder(w).Encode(result)
 
 	return
 

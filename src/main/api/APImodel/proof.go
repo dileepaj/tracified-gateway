@@ -29,3 +29,10 @@ type PoeFailure struct {
 	RootHash string
 	Error    string
 }
+
+type InsertSuccess struct {
+	Message   string
+	TxNHash   string
+	ProfileID string
+	Type      string
+}
