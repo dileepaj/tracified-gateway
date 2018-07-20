@@ -2,13 +2,18 @@ package builder
 
 import (
 	"main/model"
-	"main/proofs/executer/stellarExecuter"
 )
 
 // type InsertData struct{}
+type TDPInsertInterface interface {
+	InsertDataHash() model.InsertDataResponse
+}
 
-func TDPInsert(hash string, insertType string, previousTDPID string, profileId string) model.InsertDataResponse {
-	result := stellarExecuter.InsertDataHash(hash, insertType, previousTDPID, profileId)
+type AbstractTDPInsert struct {
+}
+
+func (AP *AbstractTDPInsert) TDPInsert(TDPInsertInterface TDPInsertInterface) model.InsertDataResponse {
+	result := TDPInsertInterface.InsertDataHash()
 
 	return result
 }

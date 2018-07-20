@@ -36,3 +36,12 @@ type InsertSuccess struct {
 	ProfileID string
 	Type      string
 }
+
+type TransactionStruct struct {
+	TType             string   `json:"TType"`
+	ProfileID         []string `json:"ProfileID"`
+	PreviousTDPID     string   `json:"PreviousTDPID"`
+	Data              []string `json:"Data"`
+	Identifiers       []string `json:"Identifiers"`
+	PreviousProfileID string   `json:"PreviousProfileID"`
+}

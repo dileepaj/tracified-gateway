@@ -8,22 +8,33 @@ import (
 	"github.com/stellar/go/clients/horizon"
 
 	"main/model"
+	"main/proofs/builder"
 )
 
-func InsertDataHash(hash string, insertType string, previousTDPID string, profileId string) model.InsertDataResponse {
+type ConcreteInsertData struct {
+	*builder.AbstractTDPInsert
+	Hash          string
+	InsertType    string
+	PreviousTDPID string
+	ProfileId     string
+}
+
+func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
 	// publicKey := "GDDOJWKW5FCUBTQSOHJ72SMT7UIDS5U624HBYGS3UYNOVYQUZIPD7JMO"
 	secretKey := "SC42GGTKY5DBB266C2Q76HU3NE43M4JOYVSH6GBCBBBCCHSNVHLQRNH3"
 	var response model.InsertDataResponse
-	response.ProfileID = profileId
-	response.TxnType = insertType
+	response.ProfileID = cd.ProfileId
+	response.TxnType = cd.InsertType
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData(profileId, []byte(hash)),
+		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("TDPHash", []byte(cd.Hash)),
+		build.SetData("ProfileID", []byte(cd.ProfileId)),
 	)
 
 	if err != nil {

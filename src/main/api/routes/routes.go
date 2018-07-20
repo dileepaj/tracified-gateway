@@ -35,4 +35,10 @@ var routes = Routes{
 		"/poe/{Txn}/{PID}/{Hash}",
 		businessFacades.CheckPOE,
 	},
+	Route{
+		"Transactions",
+		"POST",
+		"/transaction/type/{TType}",
+		businessFacades.Transaction,
+	},
 }
