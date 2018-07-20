@@ -16,11 +16,12 @@ type Route struct {
 type Routes []Route
 
 var routes = Routes{
+
 	Route{
-		"DataHash",
-		"POST",
-		"/data/{hash}/{secret}/{profileId}/{rootHash}",
-		businessFacades.SaveDataHash,
+		"TDPInsert",
+		"GET",
+		"/TDPInsert/{hash}/{type}/{previousTDPID}/{profileId}",
+		businessFacades.SaveData,
 	},
 	Route{
 		"POC",

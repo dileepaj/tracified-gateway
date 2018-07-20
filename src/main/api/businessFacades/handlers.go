@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 
 	"net/http"
 
@@ -11,42 +10,16 @@ import (
 	"main/api/apiModel"
 	"main/model"
 	"main/proofs/builder"
+	// "main/proofs/builder"
 	"main/proofs/retriever/stellarRetriever"
 )
 
-//To be implemented
-func SaveDataHash(w http.ResponseWriter, r *http.Request) {
+func SaveData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	result := builder.InsertTDP(vars["hash"], vars["secret"], vars["profileId"], vars["rootHash"])
+	result := builder.TDPInsert(vars["hash"], vars["type"], vars["previousTDPID"], vars["profileId"])
 
-	//test case
-	// err1 := Error1{Code: 0, Message: "no root found"}
-	// result := RootTree{Hash: "", Error: err1}
-
-	//log the results
-	fmt.Println(result, "result!!!")
-
-	if result.Hash != "" {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-		return
-	} else {
-		// w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		// switch result.Error.Code {
-		// case 0:
-		// 	w.WriteHeader(http.StatusNotFound)
-		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "No root"})
-		// case 1:
-		// 	w.WriteHeader(http.StatusNotFound)
-		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
-		// default:
-		// 	w.WriteHeader(http.StatusNotFound)
-		// 	json.NewEncoder(w).Encode(apiModel.JsonErr{StatusCode: http.StatusNotFound, Error: "Not Found"})
-		// }
-
-	}
+	return
 
 }
 

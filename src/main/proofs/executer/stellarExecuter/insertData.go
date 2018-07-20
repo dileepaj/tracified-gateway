@@ -9,13 +9,16 @@ import (
 	"main/model"
 )
 
-func InsertDataHash(hash string, secret string, profileId string, rootHash string) model.RootTree {
+func InsertDataHash(hash string, insertType string, previousTDPID string, profileId string) model.RootTree {
+
+	publicKey := "GDDOJWKW5FCUBTQSOHJ72SMT7UIDS5U624HBYGS3UYNOVYQUZIPD7JMO"
+	secretKey := "SC42GGTKY5DBB266C2Q76HU3NE43M4JOYVSH6GBCBBBCCHSNVHLQRNH3"
 	result := model.RootTree{}
 	// type rootTree model.rootTre
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secret},
+		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData(profileId, []byte(hash)),
 	)
