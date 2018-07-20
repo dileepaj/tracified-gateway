@@ -52,7 +52,7 @@ func SaveDataHash(w http.ResponseWriter, r *http.Request) {
 
 //To be implemented
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
-	// vars := mux.Vars(r)
+	vars := mux.Vars(r)
 
 	var response model.POC
 
