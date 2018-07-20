@@ -21,7 +21,8 @@ type ConcretePOC struct {
 	*interpreter.AbstractPOC
 	Txn       string
 	ProfileID string
-	DBTree    string
+	DBTree    model.Node
+	BCTree    model.Node
 }
 
 func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
@@ -59,14 +60,34 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			json.Unmarshal(keysBody, &keys)
 			// fmt.Printf("%#v", keys[0].Name)
 			// fmt.Printf("%#v", keys[0].Value)
-			bcHash = Base64DecEnc("Decode", keys[0].Value)
+			bcCurrentHash := Base64DecEnc("Decode", keys[1].Value)
+			
+			cur1 := model.Current{bcCurrentHash}
+			preArr1 := []model.Node{}
+			pre1 := model.Node{preArr1, cur1}
 
+			bcPreHash := Base64DecEnc("Decode", keys[0].Value)
+			profile := Base64DecEnc("Decode", keys[2].Value)
+			db.Txn=bcPreHash
+			db.ProfileID=profile
+			db.BCTree=pre1
+
+			
+			display := ConcretePOC{Txn: db.Txn, ProfileID: db.ProfileID, DBTree: {},BCTree :{}}
+			response = display.InterpretPOC(display)
+			response=RetrievePOC()
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash retrieved from the blockchain."
 			response.Error = Rerr
 			response.Txn = db.Txn
 			response.DBHash = db.DBTree
-			response.BCHash = bcHash
+			response.BCHash = db.BCTree
+
+			if bcPreHash !=""{
+				
+				response=RetrievePOC()
+			}
+
 		} else {
 
 			Rerr.Code = http.StatusOK

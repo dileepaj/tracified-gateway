@@ -56,7 +56,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POC
 
-	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: vars["dbTree"]}
+	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: {},BCTree :{}}
 	response = display.InterpretPOC(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")

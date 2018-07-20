@@ -3,13 +3,11 @@ package model
 type Node struct {
 	Previous []Node
 	Current  Current
-	Sequence string
 }
 
 type Current struct {
 	TDPID    string
-	DataHash string
-	TxNHash  string
+
 }
 
 //proof of POE
@@ -27,8 +25,8 @@ type POE struct {
 //proof of POC
 type RetrievePOC struct {
 	Txn    string `json:"txn"`
-	BCHash string `json:"bcHash"`
-	DBHash string `json:"dbHash"`
+	BCHash Node `json:"bcHash"`
+	DBHash Node `json:"dbHash"`
 	Error  Error  `json:"error"`
 }
 
