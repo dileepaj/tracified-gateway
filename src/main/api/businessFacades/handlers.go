@@ -58,14 +58,14 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POC
 
-	output := make([]model.Current, 10)
+	output := []model.Current{}
 	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: output, BCTree: output}
 	response = display.InterpretPOC(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOC.Error.Code)
 	// result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
-	result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.BCHash}
 	json.NewEncoder(w).Encode(result)
 	return
 

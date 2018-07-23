@@ -1,11 +1,14 @@
 package apiModel
 
+import (
+	"main/model"
+)
+
 //poc Success response
 type PocSuccess struct {
-	RootHash string
-	Message  bool
+	Message string
+	TxNHash []model.Current
 }
-
 //poc Failure response
 type PocFailure struct {
 	RootHash string
