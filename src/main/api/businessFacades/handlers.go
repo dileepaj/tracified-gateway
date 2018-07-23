@@ -1,8 +1,10 @@
 package businessFacades
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"net/http"
 
@@ -55,15 +57,46 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var response model.POC
+	lol:= []model.Current{}
 
-	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: vars["dbTree"]}
+	TraceTree:=vars["dbTree"]
+	decoded, err := base64.StdEncoding.DecodeString(TraceTree)
+	if err != nil {
+		fmt.Println("decode error:", err)
+	}else{
+		var raw map[string]interface{}
+		json.Unmarshal(decoded, &raw)
+		// raw["count"] = 2
+		out, _ := json.Marshal(raw["Chain"])
+	
+		keysBody := out
+		keys := make([]model.Current, 0)
+		json.Unmarshal(keysBody, &keys)
+		// var lol
+		
+		for i:=0;i<len(keys);i++{
+			lo:=model.Current{keys[i].TDPID,keys[i].Hash}
+			lol= append(lol, lo)
+		}
+		fmt.Println(lol)
+
+	}
+
+	
+
+	output := []model.Current{}
+	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: lol, BCTree: output}
 	response = display.InterpretPOC(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOC.Error.Code)
-	result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
+	// result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
 	json.NewEncoder(w).Encode(result)
 	return
+
+	// json.NewEncoder(w).Encode("result")
+	// return
 
 }
 
@@ -81,4 +114,53 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 	return
 
+}
+
+func Base64DecEnc(typ string, msg string) string {
+	var text string
+
+	if typ == "Encode" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(msg))
+		text = (string(encoded))
+
+	} else if typ == "Decode" {
+		decoded, err := base64.StdEncoding.DecodeString(msg)
+		if err != nil {
+			fmt.Println("decode error:", err)
+		} else {
+			text = string(decoded)
+		}
+
+	} else {
+		text = "Typ has to be either Encode or Decode!"
+	}
+
+	return text
+}
+
+func doStuff(lol *http.Request) {
+	data, _ := ioutil.ReadAll(lol.Body)
+
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	// raw["count"] = 2
+	out, _ := json.Marshal(raw["_embedded"])
+
+	var raw1 map[string]interface{}
+	json.Unmarshal(out, &raw1)
+
+	out1, _ := json.Marshal(raw1["records"])
+
+	keysBody := out1
+	keys := make([]PublicKey, 0)
+	json.Unmarshal(keysBody, &keys)
+}
+
+type PublicKey struct {
+	Name  string
+	Value string
+}
+
+type KeysResponse struct {
+	Collection []PublicKey
 }
