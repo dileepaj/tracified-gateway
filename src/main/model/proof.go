@@ -7,7 +7,7 @@ type Node struct {
 
 type Current struct {
 	TDPID    string
-
+	Hash	string
 }
 
 //proof of POE
@@ -25,10 +25,12 @@ type POE struct {
 //proof of POC
 type RetrievePOC struct {
 	Txn    string `json:"txn"`
-	BCHash Node `json:"bcHash"`
-	DBHash Node `json:"dbHash"`
+	BCHash []Current `json:"bcHash"`
+	DBHash []Current `json:"dbHash"`
 	Error  Error  `json:"error"`
 }
+
+
 
 type POC struct {
 	RetrievePOC RetrievePOC

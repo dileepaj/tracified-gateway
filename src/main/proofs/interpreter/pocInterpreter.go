@@ -1,6 +1,9 @@
 package interpreter
 
 import (
+	"fmt"
+	// "github.com/stellar/go/support/http"
+	// "fmt"
 	"main/model"
 	// "main/api/apiModel"
 )
@@ -12,69 +15,45 @@ type POCInterface interface {
 type AbstractPOC struct {
 }
 
-func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.RetrievePOC {
+func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.POC {
 	var pocObj model.POC
 
 	pocObj.RetrievePOC = POCInterface.RetrievePOC()
+	fmt.Println(pocObj.RetrievePOC.BCHash)
+	// fmt.Println(pocObj.RetrievePOC.BCHash)
+	// fmt.Println(pocObj.RetrievePOC.BCHash.Previous)
+	// isMapped := testCompare(pocObj.RetrievePOC.BCHash, pocObj.RetrievePOC.BCHash)
+	isMapped := true
 
-	isMapped := testCompare(pocObj.RetrievePOC.DBHash, pocObj.RetrievePOC.BCHash)
-
-	var returnRes model.RetrievePOC
+	// var returnRes model.POC
 	if isMapped == true {
 		pocObj.RetrievePOC.Error.Message = "Chain Exists"
-		returnRes = pocObj.RetrievePOC
+		// pocObj.RetrievePOC.Txn= "Chain Exists"
+		pocObj.RetrievePOC.Error.Code = 200
+		// returnRes := pocObj.RetrievePOC
+	} else {
+		pocObj.RetrievePOC.Error.Message = "Chain Doesn't Exist"
+		// pocObj.RetrievePOC.Txn = "Chain Doesn't Exist"
+		pocObj.RetrievePOC.Error.Code = 200
 	}
 
-	return returnRes
+	return pocObj
 }
 
-func testCompare(db model.Node, bc model.Node) bool {
-	var isMatch bool
-	// if seq == "" {
-	// 	seq = bc.Sequence
-	// }
+func testCompare(db []model.Current, bc []model.Current) bool {
+	isMatch := []bool{true}
+	if db != nil && bc != nil {
 
-	//If current and previous are both present
-	//will be incase of all normal transactions and splits.
-	if bc.Current != (model.Current{}) && db.Previous != nil && bc.Previous != nil {
-
-		if db.Current.TDPID == bc.Current.TDPID {
-			isMatch = true
-			matchArray := make([]bool, len(bc.Previous))
-
-			for i := 0; i < len(db.Previous); i++ {
-
-				matchArray[i] = testCompare(db.Previous[i], bc.Previous[i])
+		for i := 0; i < len(bc); i++ {
+			if db[i].TDPID == bc[i].TDPID && db[i].Hash== bc[i].Hash {
+				isMatch = append(isMatch, true)
 			}
-			isMatch = checkBoolArray(matchArray)
-			return isMatch
+
 		}
 
 	}
-	//if Only current is present...
-	//like at:- Genesis Block,
-	if bc.Current != (model.Current{}) && db.Previous == nil && bc.Previous == nil {
-		if db.Current.TDPID == bc.Current.TDPID {
-			isMatch = true
-			return isMatch
-		}
-	}
 
-	//if no Current but multiple previous are present..
-	//in case of merge scenarios..
-	if bc.Current == (model.Current{}) && db.Previous != nil && bc.Previous != nil {
-
-		matchArray := make([]bool, len(bc.Previous))
-
-		for i := 0; i < len(bc.Previous); i++ {
-
-			matchArray[i] = testCompare(db.Previous[i], bc.Previous[i])
-		}
-		isMatch = checkBoolArray(matchArray)
-
-	}
-
-	return isMatch
+	return checkBoolArray(isMatch)
 }
 
 //checks the multiple boolean indexes in an array and returns the combined result.

@@ -1,8 +1,10 @@
 package businessFacades
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 
 	"net/http"
 
@@ -56,14 +58,19 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POC
 
-	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: {},BCTree :{}}
+	output := make([]model.Current, 10)
+	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: output, BCTree: output}
 	response = display.InterpretPOC(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOC.Error.Code)
+	// result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
 	result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
 	json.NewEncoder(w).Encode(result)
 	return
+
+	// json.NewEncoder(w).Encode("result")
+	// return
 
 }
 
@@ -81,4 +88,53 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 	return
 
+}
+
+func Base64DecEnc(typ string, msg string) string {
+	var text string
+
+	if typ == "Encode" {
+		encoded := base64.StdEncoding.EncodeToString([]byte(msg))
+		text = (string(encoded))
+
+	} else if typ == "Decode" {
+		decoded, err := base64.StdEncoding.DecodeString(msg)
+		if err != nil {
+			fmt.Println("decode error:", err)
+		} else {
+			text = string(decoded)
+		}
+
+	} else {
+		text = "Typ has to be either Encode or Decode!"
+	}
+
+	return text
+}
+
+func doStuff(lol *http.Request) {
+	data, _ := ioutil.ReadAll(lol.Body)
+
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	// raw["count"] = 2
+	out, _ := json.Marshal(raw["_embedded"])
+
+	var raw1 map[string]interface{}
+	json.Unmarshal(out, &raw1)
+
+	out1, _ := json.Marshal(raw1["records"])
+
+	keysBody := out1
+	keys := make([]PublicKey, 0)
+	json.Unmarshal(keysBody, &keys)
+}
+
+type PublicKey struct {
+	Name  string
+	Value string
+}
+
+type KeysResponse struct {
+	Collection []PublicKey
 }
