@@ -10,6 +10,7 @@ type Current struct {
 	Hash	string
 }
 
+
 //proof of POE
 type RetrievePOE struct {
 	Txn    string `json:"txn"`

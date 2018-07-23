@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	"fmt"
+	// "fmt"
 	// "github.com/stellar/go/support/http"
 	// "fmt"
 	"main/model"
@@ -19,7 +19,7 @@ func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.POC {
 	var pocObj model.POC
 
 	pocObj.RetrievePOC = POCInterface.RetrievePOC()
-	fmt.Println(pocObj.RetrievePOC.BCHash)
+	// fmt.Println(pocObj.RetrievePOC.BCHash)
 	// fmt.Println(pocObj.RetrievePOC.BCHash)
 	// fmt.Println(pocObj.RetrievePOC.BCHash.Previous)
 	isMapped := testCompare(pocObj.RetrievePOC.DBHash, pocObj.RetrievePOC.BCHash)

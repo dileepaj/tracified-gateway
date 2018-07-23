@@ -2,62 +2,83 @@ package stellarExecuter
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 
 	"main/model"
+	"main/proofs/builder"
 )
 
-func InsertDataHash(hash string, secret string, profileId string, rootHash string) model.RootTree {
-	result := model.RootTree{}
-	// type rootTree model.rootTre
+type ConcreteInsertData struct {
+	*builder.AbstractTDPInsert
+	Hash          string
+	InsertType    string
+	PreviousTDPID string
+	ProfileId     string
+}
+
+func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
+
+	// publicKey := "GDDOJWKW5FCUBTQSOHJ72SMT7UIDS5U624HBYGS3UYNOVYQUZIPD7JMO"
+	secretKey := "SC42GGTKY5DBB266C2Q76HU3NE43M4JOYVSH6GBCBBBCCHSNVHLQRNH3"
+	var response model.InsertDataResponse
+	response.ProfileID = cd.ProfileId
+	response.TxnType = cd.InsertType
+
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secret},
+		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData(profileId, []byte(hash)),
+		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("TDPHash", []byte(cd.Hash)),
+		build.SetData("ProfileID", []byte(cd.ProfileId)),
 	)
 
 	if err != nil {
 		// panic(err)
-		result.Error.Code = 1
-		result.Error.Message = "error"
-		return result
+		response.Error.Code = http.StatusNotFound
+		response.Error.Message = "The HTTP request failed for InsertDataHash "
+		return response
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(secret)
+	txe, err := tx.Sign(secretKey)
 	if err != nil {
 		// panic(err)
-		result.Error.Code = 1
-		result.Error.Message = "error"
-		return result
+		response.Error.Code = http.StatusNotFound
+		response.Error.Message = "signing request failed for the Transaction"
+		return response
 	}
 
 	txeB64, err := txe.Base64()
 	if err != nil {
 		// panic(err)
-		result.Error.Code = 1
-		result.Error.Message = "error"
-		return result
+		response.Error.Code = http.StatusNotFound
+		response.Error.Message = "Base64 conversion failed for the Transaction"
+		return response
 	}
 
 	// And finally, send it off to Stellar!
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
 	if err != nil {
 		// panic(err)
-		result.Error.Code = 1
-		result.Error.Message = "error"
-		return result
+		response.Error.Code = http.StatusNotFound
+		response.Error.Message = "Test net client crashed"
+		return response
 	}
 
 	fmt.Println("Successful Transaction:")
 	fmt.Println("Ledger:", resp.Ledger)
 	fmt.Println("Hash:", resp.Hash)
 
-	return AppendToTree(resp.Hash, rootHash, secret)
+	response.Error.Code = http.StatusOK
+	response.Error.Message = "Transaction performed in the blockchain."
+	response.Txn = resp.Hash
+
+	return response
 
 }
 

@@ -1,30 +1,19 @@
 package builder
 
 import (
-	"fmt"
-
 	"main/model"
-	"main/proofs/executer/stellarExecuter"
 )
 
-type InsertData struct{}
-
-func InsertTDP(hash string, secret string, profileId string, rootHash string) model.RootTree {
-	result := stellarExecuter.InsertDataHash(hash, secret, profileId, rootHash)
-
-	if result.Hash == "" {
-		fmt.Println("Error in Stellar Executer!")
-	}
-
-	return result
+// type InsertData struct{}
+type TDPInsertInterface interface {
+	InsertDataHash() model.InsertDataResponse
 }
 
-func (I *InsertData) TDPInsert(hash string, secret string, profileId string, rootHash string) model.RootTree {
-	result := stellarExecuter.InsertDataHash(hash, secret, profileId, rootHash)
+type AbstractTDPInsert struct {
+}
 
-	if result.Hash == "" {
-		fmt.Println("Error in Stellar Executer!")
-	}
+func (AP *AbstractTDPInsert) TDPInsert(TDPInsertInterface TDPInsertInterface) model.InsertDataResponse {
+	result := TDPInsertInterface.InsertDataHash()
 
 	return result
 }
