@@ -47,6 +47,8 @@ func testCompare(db []model.Current, bc []model.Current) bool {
 			for i := 0; i < len(db); i++ {
 				if db[i].TDPID == bc[i].TDPID && db[i].Hash == bc[i].Hash {
 					isMatch = append(isMatch, true)
+				}else{
+					isMatch = append(isMatch, false)
 				}
 
 			}
