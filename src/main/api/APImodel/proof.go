@@ -7,7 +7,7 @@ import (
 //poc Success response
 type PocSuccess struct {
 	Message string
-	TxNHash []model.Current
+	Chain []model.Current
 }
 //poc Failure response
 type PocFailure struct {

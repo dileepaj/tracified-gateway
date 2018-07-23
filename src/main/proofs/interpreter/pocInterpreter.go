@@ -22,18 +22,18 @@ func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.POC {
 	fmt.Println(pocObj.RetrievePOC.BCHash)
 	// fmt.Println(pocObj.RetrievePOC.BCHash)
 	// fmt.Println(pocObj.RetrievePOC.BCHash.Previous)
-	// isMapped := testCompare(pocObj.RetrievePOC.BCHash, pocObj.RetrievePOC.BCHash)
-	isMapped := true
+	isMapped := testCompare(pocObj.RetrievePOC.DBHash, pocObj.RetrievePOC.BCHash)
+	// isMapped := true
 
 	// var returnRes model.POC
 	if isMapped == true {
-		pocObj.RetrievePOC.Error.Message = "Chain Exists"
+		pocObj.RetrievePOC.Error.Message = "Chain Exists in the Blockchain"
 		// pocObj.RetrievePOC.Txn= "Chain Exists"
 		pocObj.RetrievePOC.Error.Code = 200
 		// returnRes := pocObj.RetrievePOC
 	} else {
-		pocObj.RetrievePOC.Error.Message = "Chain Doesn't Exist"
-		// pocObj.RetrievePOC.Txn = "Chain Doesn't Exist"
+		pocObj.RetrievePOC.Error.Message = "Chain Doesn't Exist in the Blockchain"
+		// pocObj.RetrievePOC.Current
 		pocObj.RetrievePOC.Error.Code = 200
 	}
 
@@ -41,14 +41,17 @@ func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.POC {
 }
 
 func testCompare(db []model.Current, bc []model.Current) bool {
-	isMatch := []bool{true}
+	isMatch := []bool{}
 	if db != nil && bc != nil {
+		if len(db) == len(bc) {
+			for i := 0; i < len(db); i++ {
+				if db[i].TDPID == bc[i].TDPID && db[i].Hash == bc[i].Hash {
+					isMatch = append(isMatch, true)
+				}
 
-		for i := 0; i < len(bc); i++ {
-			if db[i].TDPID == bc[i].TDPID && db[i].Hash== bc[i].Hash {
-				isMatch = append(isMatch, true)
 			}
-
+		}else{
+			isMatch = append(isMatch, false)
 		}
 
 	}
