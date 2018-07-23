@@ -30,6 +30,15 @@ type PoeFailure struct {
 	Error    string
 }
 
+type ProfileSuccess struct {
+	Message           string
+	TxNHash           string
+	PreviousTDPID     string
+	PreviousProfileID string
+	Identifiers       string
+	Type              string
+}
+
 type InsertSuccess struct {
 	Message   string
 	TxNHash   string
@@ -37,11 +46,28 @@ type InsertSuccess struct {
 	Type      string
 }
 
+type GenesisSuccess struct {
+	Message     string
+	TxnHash     string
+	GenesisTxn  string
+	Identifiers string
+	Type        string
+}
+
+type SplitSuccess struct {
+	Message       string
+	TxnHash       string
+	PreviousTDPID string
+	ProfileID     string
+	Identifiers   []string
+	Type          string
+}
+
 type TransactionStruct struct {
 	TType             string   `json:"TType"`
 	ProfileID         []string `json:"ProfileID"`
-	PreviousTDPID     string   `json:"PreviousTDPID"`
+	PreviousTDPID     []string `json:"PreviousTDPID"`
 	Data              []string `json:"Data"`
 	Identifiers       []string `json:"Identifiers"`
-	PreviousProfileID string   `json:"PreviousProfileID"`
+	PreviousProfileID []string `json:"PreviousProfileID"`
 }

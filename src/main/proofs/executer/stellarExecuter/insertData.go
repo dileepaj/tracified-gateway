@@ -21,8 +21,8 @@ type ConcreteInsertData struct {
 
 func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
-	// publicKey := "GDDOJWKW5FCUBTQSOHJ72SMT7UIDS5U624HBYGS3UYNOVYQUZIPD7JMO"
-	secretKey := "SC42GGTKY5DBB266C2Q76HU3NE43M4JOYVSH6GBCBBBCCHSNVHLQRNH3"
+	// publicKey := "GALRYOKBUJFH33OKLIQQWR2W466256XQRXK53YXFUF377T4MY7AZ6AXL"
+	secretKey := "SCXW23KAWO444ZKKW4UJDM43PEPPOOFWMTN75VUPAAYKOZFJMQ3T6J5D"
 	var response model.InsertDataResponse
 	response.ProfileID = cd.ProfileId
 	response.TxnType = cd.InsertType
