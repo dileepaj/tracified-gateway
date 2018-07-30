@@ -31,6 +31,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
+		build.SetData("PreviousTDPID", []byte("")),
 	)
 
 	if err != nil {

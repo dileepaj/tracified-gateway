@@ -20,8 +20,8 @@ type ConcreteProfile struct {
 
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 
-	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.InsertProfileResponse
 	response.PreviousTDPID = cd.PreviousTDPID
 	response.PreviousProfileID = cd.PreviousProfileID
@@ -31,7 +31,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secretKey},
+		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("PreviousProfileID", []byte(cd.PreviousProfileID)),
@@ -46,7 +46,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(secretKey)
+	txe, err := tx.Sign(publicKey)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
