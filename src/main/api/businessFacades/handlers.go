@@ -85,16 +85,15 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		switch TType {
 		case "0":
 			result := model.InsertGenesisResponse{}
-			response := model.InsertProfileResponse{}
 
 			display := &stellarExecuter.ConcreteGenesis{Identifiers: TObj.Identifiers[0], InsertType: TType}
 			result = display.GenesisInsert(display)
 
-			display2 := &stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: "", PreviousProfileID: result.GenesisTxn}
-			response = display2.ProfileInsert(display2)
+			// display2 := &stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: "", PreviousProfileID: result.GenesisTxn}
+			// response = display2.ProfileInsert(display2)
 
-			w.WriteHeader(response.Error.Code)
-			result2 := apiModel.GenesisSuccess{Message: response.Error.Message, TxnHash: response.Txn, GenesisTxn: result.GenesisTxn, Identifiers: response.Identifiers, Type: response.TxnType}
+			w.WriteHeader(result.Error.Code)
+			result2 := apiModel.GenesisSuccess{Message: result.Error.Message, TxnHash: result.Txn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
