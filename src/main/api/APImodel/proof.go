@@ -59,6 +59,7 @@ type SplitSuccess struct {
 	TxnHash       string
 	PreviousTDPID string
 	ProfileID     string
+	SplitProfiles []string
 	Identifiers   []string
 	Type          string
 }

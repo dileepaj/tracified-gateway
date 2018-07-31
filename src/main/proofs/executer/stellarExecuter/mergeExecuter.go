@@ -12,25 +12,25 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
-type ConcreteSplit struct {
-	*builder.AbstractSplitProfile
-	SplitProfiles string
+type ConcreteMerge struct {
+	*builder.AbstractMergeProfile
+	MergeProfiles string
 	PreviousTDPID string
 	Identifiers   string
 	InsertType    string
 	ProfileID     string
-	Assets		   string
-	Code		   string
+	Assets        string
+	Code          string
 }
 
-func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
+func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 
 	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 
-	var response model.SplitProfileResponse
+	var response model.MergeProfileResponse
 
-	data, _ := json.Marshal(&cd.SplitProfiles)
+	data, _ := json.Marshal(&cd.MergeProfiles)
 	sEnc := base64.StdEncoding.EncodeToString(data)
 	fmt.Println(string(sEnc))
 
@@ -40,7 +40,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
-		build.SetData("SplitProfiles", []byte(cd.SplitProfiles)),
+		build.SetData("MergeProfiles", []byte(cd.MergeProfiles)),
 		build.SetData("Assets", []byte(cd.Assets)),
 		build.SetData("Code", []byte(cd.Code)),
 	)
@@ -48,7 +48,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "The HTTP request failed for SplitProfile "
+		response.Error.Message = "The HTTP request failed for MergeProfile "
 		fmt.Println(err)
 		return response
 	}
@@ -91,11 +91,11 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
 }
 
-func (cd *ConcreteSplit) InsertProfile() model.SplitProfileResponse {
+func (cd *ConcreteMerge) InsertProfile() model.MergeProfileResponse {
 
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
-	var response model.SplitProfileResponse
+	var response model.MergeProfileResponse
 	response.PreviousTDPID = cd.PreviousTDPID
 	response.PreviousProfileID = cd.ProfileID
 	response.Identifiers = cd.Identifiers

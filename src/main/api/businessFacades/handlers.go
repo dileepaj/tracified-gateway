@@ -125,14 +125,26 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				SplitProfiles = append(SplitProfiles, response.Txn)
 			}
 
-			display2 := &stellarExecuter.ConcreteSplit{SplitProfiles: SplitProfiles, PreviousTDPID: TObj.PreviousTDPID[0]}
-			response2 := display2.ProfileSplit(display2)
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.SplitSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], SplitProfiles: SplitProfiles, Identifiers: TObj.Identifiers, Type: TType}
+			json.NewEncoder(w).Encode(result)
+		case "6":
+			var MergeProfiles []string
+			response := model.InsertProfileResponse{}
+
+			for i := 0; i < len(TObj.Identifiers); i++ {
+
+				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.ProfileID[0]}
+				response = display.ProfileInsert(display)
+				MergeProfiles = append(MergeProfiles, response.Txn)
+			}
+
+			display2 := &stellarExecuter.ConcreteMerge{MergeProfiles: MergeProfiles[0], PreviousTDPID: TObj.PreviousTDPID[0]}
+			response2 := display2.ProfileMerge(display2)
 
 			w.WriteHeader(response2.Error.Code)
 			result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, Type: TType}
 			json.NewEncoder(w).Encode(result)
-		case "6":
-
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Please send a valid Transaction Type")

@@ -30,6 +30,19 @@ type InsertGenesisResponse struct {
 }
 
 type SplitProfileResponse struct {
-	Txn   string
-	Error Error
+	Txn               string
+	PreviousProfileID string
+	PreviousTDPID     string
+	Identifiers       string
+	TxnType           string
+	Error             Error
+}
+
+type MergeProfileResponse struct {
+	Txn               string
+	PreviousProfileID string
+	PreviousTDPID     string
+	Identifiers       string
+	TxnType           string
+	Error             Error
 }
