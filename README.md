@@ -28,7 +28,7 @@ Steps to contribute:
 - Setting Environmental variables
 
 ```
-    set GOPATH=E:\GO\gateway
+    set GOPATH=E:\GO\
 ```
 
 - Install packages
