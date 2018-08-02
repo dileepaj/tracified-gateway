@@ -1,6 +1,9 @@
 package stellarExecuter
 
 import (
+	"github.com/joho/godotenv"
+	"log"
+	"os"
 	"fmt"
 	"github.com/Tracified-Gateway/model"
 	"github.com/Tracified-Gateway/proofs/builder"
@@ -20,8 +23,19 @@ type ConcreteProfile struct {
 
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 
-	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// // secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+
+	
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	// secretKey := os.Getenv("SECRET_KEY")
+	publicKey := os.Getenv("PUBLIC_KEY")
+
+
+
 	var response model.InsertProfileResponse
 	response.PreviousTDPID = cd.PreviousTDPID
 	response.PreviousProfileID = cd.PreviousProfileID
@@ -33,6 +47,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("PreviousProfileID", []byte(cd.PreviousProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),

@@ -1,6 +1,9 @@
 package stellarExecuter
 
 import (
+	"log"
+	"github.com/joho/godotenv"
+	"os"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -25,8 +28,16 @@ type ConcreteSplit struct {
 
 func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
-	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	// // publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+
+	
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	secretKey := os.Getenv("SECRET_KEY")
+	// publicKey := os.Getenv("PUBLIC_KEY")
 
 	var response model.SplitProfileResponse
 
@@ -39,6 +50,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("SplitProfiles", []byte(cd.SplitProfiles)),
 		build.SetData("Assets", []byte(cd.Assets)),

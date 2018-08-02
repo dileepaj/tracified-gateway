@@ -1,6 +1,9 @@
 package stellarExecuter
 
 import (
+	"github.com/joho/godotenv"
+	"log"
+	"os"
 	"fmt"
 	"net/http"
 
@@ -22,7 +25,16 @@ type ConcreteInsertData struct {
 func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
 	// publicKey := "GALRYOKBUJFH33OKLIQQWR2W466256XQRXK53YXFUF377T4MY7AZ6AXL"
-	secretKey := "SCXW23KAWO444ZKKW4UJDM43PEPPOOFWMTN75VUPAAYKOZFJMQ3T6J5D"
+	// secretKey := "SCXW23KAWO444ZKKW4UJDM43PEPPOOFWMTN75VUPAAYKOZFJMQ3T6J5D"
+
+	
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	secretKey := os.Getenv("SECRET_KEY")
+	// publicKey := os.Getenv("PUBLIC_KEY")
+
 	var response model.InsertDataResponse
 	response.ProfileID = cd.ProfileId
 	response.TxnType = cd.InsertType
@@ -32,6 +44,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("TDPHash", []byte(cd.Hash)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),

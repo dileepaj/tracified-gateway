@@ -2,9 +2,14 @@ package stellarExecuter
 
 import (
 	"fmt"
+	"log"
+	"net/http"
+
 	"github.com/Tracified-Gateway/model"
 	"github.com/Tracified-Gateway/proofs/builder"
-	"net/http"
+
+	"os"
+	"github.com/joho/godotenv"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -21,8 +26,16 @@ type ConcreteGenesis struct {
 
 func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 
-	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	secretKey := os.Getenv("SECRET_KEY")
+	publicKey := os.Getenv("PUBLIC_KEY")
+	
 	var response model.InsertGenesisResponse
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -32,7 +45,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertType)),
+		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 		build.SetData("PreviousTDPID", []byte("")),
 	)
