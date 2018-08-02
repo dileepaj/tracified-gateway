@@ -1,9 +1,12 @@
 package apiModel
 
+import (
+	"github.com/Tracified-Gateway/model"
+)
 //poc Success response
 type PocSuccess struct {
-	RootHash string
-	Message  string
+	Message string
+	Chain []model.Current
 }
 
 //poc Failure response
