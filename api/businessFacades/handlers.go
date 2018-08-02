@@ -8,10 +8,10 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"main/api/apiModel"
-	"main/model"
-	"main/proofs/builder"
-	"main/proofs/retriever/stellarRetriever"
+	"github.com/Tracified-Gateway/api/apiModel"
+	"github.com/Tracified-Gateway/model"
+	"github.com/Tracified-Gateway/proofs/builder"
+	"github.com/Tracified-Gateway/proofs/retriever/stellarRetriever"
 )
 
 //To be implemented

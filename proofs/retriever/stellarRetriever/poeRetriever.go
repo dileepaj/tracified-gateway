@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"main/model"
-	"main/proofs/interpreter"
+	"github.com/Tracified-Gateway/model"
+	"github.com/Tracified-Gateway/proofs/interpreter"
 )
 
 type PublicKey struct {

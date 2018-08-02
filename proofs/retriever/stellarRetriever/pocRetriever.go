@@ -3,8 +3,8 @@ package stellarRetriever
 import (
 	"encoding/json"
 	"io/ioutil"
-	"main/model"
-	"main/proofs/interpreter"
+	"github.com/Tracified-Gateway/model"
+	"github.com/Tracified-Gateway/proofs/interpreter"
 	"net/http"
 )
 

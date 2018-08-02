@@ -5,7 +5,7 @@ package main
 
 import (
 	"log"
-	"main/api/routes"
+	"github.com/Tracified-Gateway/api/routes"
 	"net/http"
 )
 

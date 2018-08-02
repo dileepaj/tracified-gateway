@@ -3,7 +3,7 @@ package routes
 import (
 	"net/http"
 
-	"main/api/businessFacades"
+	"github.com/Tracified-Gateway/api/businessFacades"
 )
 
 type Route struct {

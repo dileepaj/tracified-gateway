@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	"main/model"
+	"github.com/Tracified-Gateway/model"
 	"net/http"
 )
 

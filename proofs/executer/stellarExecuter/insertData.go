@@ -6,7 +6,7 @@ import (
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 
-	"main/model"
+	"github.com/Tracified-Gateway/model"
 )
 
 func InsertDataHash(hash string, secret string, profileId string, rootHash string) model.RootTree {

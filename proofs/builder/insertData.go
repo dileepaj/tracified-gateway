@@ -3,8 +3,8 @@ package builder
 import (
 	"fmt"
 
-	"main/model"
-	"main/proofs/executer/stellarExecuter"
+	"github.com/Tracified-Gateway/model"
+	"github.com/Tracified-Gateway/proofs/executer/stellarExecuter"
 )
 
 type InsertData struct{}
