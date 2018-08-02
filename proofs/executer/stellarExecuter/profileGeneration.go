@@ -31,8 +31,8 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	// secretKey := os.Getenv("SECRET_KEY")
-	publicKey := os.Getenv("PUBLIC_KEY")
+	secretKey := os.Getenv("TRAC_SECRET_KEY")
+	publicKey := os.Getenv("TRAC_PUBLIC_KEY")
 
 	var response model.InsertProfileResponse
 	response.PreviousTXNID = cd.PreviousTXNID
@@ -59,7 +59,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(publicKey)
+	txe, err := tx.Sign(secretKey)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound

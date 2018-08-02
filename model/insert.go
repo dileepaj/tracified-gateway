@@ -40,8 +40,8 @@ type SplitProfileResponse struct {
 
 type MergeProfileResponse struct {
 	Txn               string
-	PreviousProfileID string
-	PreviousTXNID     string
+	PreviousProfileID []string
+	PreviousTXNID     []string
 	Identifiers       string
 	TxnType           string
 	Error             Error

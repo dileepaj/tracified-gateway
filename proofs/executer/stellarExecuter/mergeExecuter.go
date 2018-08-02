@@ -1,7 +1,7 @@
 package stellarExecuter
 
 import (
-	"encoding/base64"
+	// "encoding/base64"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -18,9 +18,11 @@ import (
 
 type ConcreteMerge struct {
 	*builder.AbstractMergeProfile
-	MergeProfiles string
-	PreviousTXNID string
-	Identifiers   string
+	MergeProfiles []string
+	PreviousTXNID []string
+	MergeID string
+	Identifiers   []string
+	Identifier string
 	InsertType    string
 	ProfileID     string
 	Assets        string
@@ -41,9 +43,10 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 
 	var response model.MergeProfileResponse
 
-	data, _ := json.Marshal(&cd.MergeProfiles)
-	sEnc := base64.StdEncoding.EncodeToString(data)
-	fmt.Println(string(sEnc))
+	MergedProfiles, _ := json.Marshal(&cd.MergeProfiles)
+	PreviousTXNID, _ := json.Marshal(&cd.MergeProfiles)
+	// sEnc := base64.StdEncoding.EncodeToString(data)
+	// fmt.Println(string(sEnc))
 
 	// save data
 	tx, err := build.Transaction(
@@ -51,8 +54,10 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
-		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-		build.SetData("MergeProfiles", []byte(cd.MergeProfiles)),
+		build.SetData("PreviousProfiles", MergedProfiles),
+		build.SetData("PreviousTXNID", PreviousTXNID),
+		build.SetData("ProfileID", []byte(cd.ProfileID)),
+		build.SetData("Identifiers", []byte(cd.Identifier)),
 		build.SetData("Assets", []byte(cd.Assets)),
 		build.SetData("Code", []byte(cd.Code)),
 	)
@@ -98,19 +103,27 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
 	response.Txn = resp.Hash
-
+	cd.MergeID=resp.Hash
 	return response
 
 }
 
 func (cd *ConcreteMerge) InsertProfile() model.MergeProfileResponse {
 
-	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	// secretKey := os.Getenv("TRAC_SECRET_KEY")
+	publicKey := os.Getenv("TRAC_PUBLIC_KEY")
+
 	var response model.MergeProfileResponse
 	response.PreviousTXNID = cd.PreviousTXNID
-	response.PreviousProfileID = cd.ProfileID
-	response.Identifiers = cd.Identifiers
+	response.PreviousProfileID = cd.MergeProfiles
+	response.Identifiers = cd.Identifier
 	response.TxnType = cd.InsertType
 
 	// save data
@@ -118,9 +131,9 @@ func (cd *ConcreteMerge) InsertProfile() model.MergeProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
+		build.SetData("PreviousTXNID", []byte(cd.MergeID)),
 		build.SetData("ProfileID", []byte(cd.ProfileID)),
-		build.SetData("Identifiers", []byte(cd.Identifiers)),
+		build.SetData("Identifiers", []byte(cd.Identifier)),
 	)
 
 	if err != nil {

@@ -100,8 +100,15 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 
 func (cd *ConcreteGenesis) InsertProfile() model.InsertGenesisResponse {
 
-	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	secretKey := os.Getenv("TRAC_SECRET_KEY")
+	publicKey := os.Getenv("TRAC_PUBLIC_KEY")
+
+	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.InsertGenesisResponse
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType

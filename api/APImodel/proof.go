@@ -68,11 +68,21 @@ type SplitSuccess struct {
 	Type          string
 }
 
+type MergeSuccess struct {
+	Message       string
+	TxnHash       string
+	PreviousTXNID string
+	ProfileID     string
+	Identifier   string
+	Type          string
+}
+
 type TransactionStruct struct {
 	TType             string   `json:"TType"`
 	ProfileID         []string `json:"ProfileID"`
 	PreviousTXNID     []string `json:"PreviousTXNID"`
 	Data              []string `json:"Data"`
 	Identifiers       []string `json:"Identifiers"`
+	Identifier string
 	PreviousProfileID []string `json:"PreviousProfileID"`
 }
