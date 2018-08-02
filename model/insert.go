@@ -15,7 +15,7 @@ type InsertDataResponse struct {
 type InsertProfileResponse struct {
 	Txn               string
 	PreviousProfileID string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	Identifiers       string
 	TxnType           string
 	Error             Error
@@ -32,7 +32,7 @@ type InsertGenesisResponse struct {
 type SplitProfileResponse struct {
 	Txn               string
 	PreviousProfileID string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	Identifiers       string
 	TxnType           string
 	Error             Error
@@ -41,7 +41,7 @@ type SplitProfileResponse struct {
 type MergeProfileResponse struct {
 	Txn               string
 	PreviousProfileID string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	Identifiers       string
 	TxnType           string
 	Error             Error

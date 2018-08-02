@@ -1,15 +1,16 @@
 package stellarExecuter
 
 import (
-	"github.com/joho/godotenv"
-	"log"
-	"os"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/Tracified-Gateway/model"
 	"github.com/Tracified-Gateway/proofs/builder"
-	"net/http"
+	"github.com/joho/godotenv"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -18,7 +19,7 @@ import (
 type ConcreteMerge struct {
 	*builder.AbstractMergeProfile
 	MergeProfiles string
-	PreviousTDPID string
+	PreviousTXNID string
 	Identifiers   string
 	InsertType    string
 	ProfileID     string
@@ -30,7 +31,6 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 
 	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
-
 
 	err := godotenv.Load()
 	if err != nil {
@@ -51,7 +51,7 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("MergeProfiles", []byte(cd.MergeProfiles)),
 		build.SetData("Assets", []byte(cd.Assets)),
 		build.SetData("Code", []byte(cd.Code)),
@@ -108,7 +108,7 @@ func (cd *ConcreteMerge) InsertProfile() model.MergeProfileResponse {
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.MergeProfileResponse
-	response.PreviousTDPID = cd.PreviousTDPID
+	response.PreviousTXNID = cd.PreviousTXNID
 	response.PreviousProfileID = cd.ProfileID
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -118,7 +118,7 @@ func (cd *ConcreteMerge) InsertProfile() model.MergeProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.ProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 	)

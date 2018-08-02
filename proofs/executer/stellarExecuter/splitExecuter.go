@@ -1,15 +1,16 @@
 package stellarExecuter
 
 import (
-	"log"
-	"github.com/joho/godotenv"
-	"os"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"log"
+	"net/http"
+	"os"
+
 	"github.com/Tracified-Gateway/model"
 	"github.com/Tracified-Gateway/proofs/builder"
-	"net/http"
+	"github.com/joho/godotenv"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -18,12 +19,12 @@ import (
 type ConcreteSplit struct {
 	*builder.AbstractSplitProfile
 	SplitProfiles string
-	PreviousTDPID string
+	PreviousTXNID string
 	Identifiers   string
 	InsertType    string
 	ProfileID     string
-	Assets		   string
-	Code		   string
+	Assets        string
+	Code          string
 }
 
 func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
@@ -31,7 +32,6 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	// // publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 
-	
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
@@ -51,7 +51,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("SplitProfiles", []byte(cd.SplitProfiles)),
 		build.SetData("Assets", []byte(cd.Assets)),
 		build.SetData("Code", []byte(cd.Code)),
@@ -108,7 +108,7 @@ func (cd *ConcreteSplit) InsertProfile() model.SplitProfileResponse {
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.SplitProfileResponse
-	response.PreviousTDPID = cd.PreviousTDPID
+	response.PreviousTXNID = cd.PreviousTXNID
 	response.PreviousProfileID = cd.ProfileID
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -118,7 +118,7 @@ func (cd *ConcreteSplit) InsertProfile() model.SplitProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.ProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 	)

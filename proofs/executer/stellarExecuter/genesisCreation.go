@@ -9,6 +9,7 @@ import (
 	"github.com/Tracified-Gateway/proofs/builder"
 
 	"os"
+
 	"github.com/joho/godotenv"
 
 	"github.com/stellar/go/build"
@@ -19,7 +20,7 @@ type ConcreteGenesis struct {
 	*builder.AbstractGenesisInsert
 	Identifiers   string
 	InsertType    string
-	PreviousTDPID string
+	PreviousTXNID string
 }
 
 // var GenesisTxn string
@@ -35,7 +36,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	}
 	secretKey := os.Getenv("SECRET_KEY")
 	publicKey := os.Getenv("PUBLIC_KEY")
-	
+
 	var response model.InsertGenesisResponse
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -47,7 +48,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
-		build.SetData("PreviousTDPID", []byte("")),
+		build.SetData("PreviousTXNID", []byte("")),
 	)
 
 	if err != nil {
@@ -91,7 +92,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	response.Error.Message = "Transaction performed in the blockchain."
 	response.GenesisTxn = resp.Hash
 
-	cd.PreviousTDPID = resp.Hash
+	cd.PreviousTXNID = resp.Hash
 
 	return response
 
@@ -104,14 +105,14 @@ func (cd *ConcreteGenesis) InsertProfile() model.InsertGenesisResponse {
 	var response model.InsertGenesisResponse
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
-	response.GenesisTxn = cd.PreviousTDPID
+	response.GenesisTxn = cd.PreviousTXNID
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("PreviousProfileID", []byte("")),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 	)

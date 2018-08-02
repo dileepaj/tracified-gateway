@@ -19,7 +19,7 @@ func SaveData(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	response := model.InsertDataResponse{}
 
-	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"], PreviousTDPID: vars["previousTDPID"], ProfileId: vars["profileId"]}
+	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"], PreviousTXNID: vars["previousTDPID"], ProfileId: vars["profileId"]}
 	response = display.TDPInsert(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -117,7 +117,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			display := &stellarExecuter.ConcreteGenesis{Identifiers: TObj.Identifiers[0], InsertType: TType}
 			result = display.GenesisInsert(display)
 
-			// display2 := &stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: "", PreviousProfileID: result.GenesisTxn}
+			// display2 := &stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTXNID: "", PreviousProfileID: result.GenesisTxn}
 			// response = display2.ProfileInsert(display2)
 
 			w.WriteHeader(result.Error.Code)
@@ -127,16 +127,16 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		case "1":
 			response := model.InsertProfileResponse{}
 
-			display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
+			display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
 			response = display.ProfileInsert(display)
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTDPID: response.PreviousTDPID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
+			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			response := model.InsertDataResponse{}
 
-			display := &stellarExecuter.ConcreteInsertData{Hash: TObj.Data[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], ProfileId: TObj.ProfileID[0]}
+			display := &stellarExecuter.ConcreteInsertData{Hash: TObj.Data[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
 			response = display.TDPInsert(display)
 
 			w.WriteHeader(response.Error.Code)
@@ -148,13 +148,13 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			for i := 0; i < len(TObj.Identifiers); i++ {
 
-				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.ProfileID[0]}
+				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.ProfileID[0]}
 				response = display.ProfileInsert(display)
 				SplitProfiles = append(SplitProfiles, response.Txn)
 			}
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.SplitSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], SplitProfiles: SplitProfiles, Identifiers: TObj.Identifiers, Type: TType}
+			result := apiModel.SplitSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], SplitProfiles: SplitProfiles, Identifiers: TObj.Identifiers, Type: TType}
 			json.NewEncoder(w).Encode(result)
 		case "6":
 			var MergeProfiles []string
@@ -162,16 +162,16 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			for i := 0; i < len(TObj.Identifiers); i++ {
 
-				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.ProfileID[0]}
+				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.ProfileID[0]}
 				response = display.ProfileInsert(display)
 				MergeProfiles = append(MergeProfiles, response.Txn)
 			}
 
-			display2 := &stellarExecuter.ConcreteMerge{MergeProfiles: MergeProfiles[0], PreviousTDPID: TObj.PreviousTDPID[0]}
+			display2 := &stellarExecuter.ConcreteMerge{MergeProfiles: MergeProfiles[0], PreviousTXNID: TObj.PreviousTXNID[0]}
 			response2 := display2.ProfileMerge(display2)
 
 			w.WriteHeader(response2.Error.Code)
-			result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, Type: TType}
+			result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, Type: TType}
 			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)

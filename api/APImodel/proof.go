@@ -3,10 +3,11 @@ package apiModel
 import (
 	"github.com/Tracified-Gateway/model"
 )
+
 //poc Success response
 type PocSuccess struct {
 	Message string
-	Chain []model.Current
+	Chain   []model.Current
 }
 
 //poc Failure response
@@ -36,7 +37,7 @@ type PoeFailure struct {
 type ProfileSuccess struct {
 	Message           string
 	TxNHash           string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	PreviousProfileID string
 	Identifiers       string
 	Type              string
@@ -60,7 +61,7 @@ type GenesisSuccess struct {
 type SplitSuccess struct {
 	Message       string
 	TxnHash       string
-	PreviousTDPID string
+	PreviousTXNID string
 	ProfileID     string
 	SplitProfiles []string
 	Identifiers   []string
@@ -70,7 +71,7 @@ type SplitSuccess struct {
 type TransactionStruct struct {
 	TType             string   `json:"TType"`
 	ProfileID         []string `json:"ProfileID"`
-	PreviousTDPID     []string `json:"PreviousTDPID"`
+	PreviousTXNID     []string `json:"PreviousTXNID"`
 	Data              []string `json:"Data"`
 	Identifiers       []string `json:"Identifiers"`
 	PreviousProfileID []string `json:"PreviousProfileID"`

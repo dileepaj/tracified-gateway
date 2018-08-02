@@ -18,7 +18,7 @@ type ConcreteInsertData struct {
 	*builder.AbstractTDPInsert
 	Hash          string
 	InsertType    string
-	PreviousTDPID string
+	PreviousTXNID string
 	ProfileId     string
 }
 
@@ -45,7 +45,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("TDPHash", []byte(cd.Hash)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),
 	)
