@@ -20,7 +20,7 @@ func SaveData(w http.ResponseWriter, r *http.Request) {
 	response := model.InsertDataResponse{}
 
 	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"],
-		PreviousTXNID: vars["previousTDPID"], ProfileId: vars["profileId"]}
+		PreviousTXNID: vars["PreviousTXNID"], ProfileId: vars["profileId"]}
 	response = display.TDPInsert(display)
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -169,20 +169,25 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(result)
 		case "6":
 			// var MergeProfiles []string
-			response2 := model.MergeProfileResponse{}
+			// var MergeProfiles []string
+			response := model.InsertProfileResponse{}
 
-			display2 := &stellarExecuter.ConcreteMerge{MergeProfiles: TObj.PreviousProfileID, PreviousTXNID: TObj.PreviousTXNID,
-				Identifiers: TObj.Identifiers, Identifier: TObj.Identifier, InsertType: TObj.TType}
-			response2 = display2.ProfileMerge(display2)
 			// for i := 0; i < len(TObj.Identifiers); i++ {
 
-			// response = display2.InsertProfile(display2)
-			// MergeProfiles = append(MergeProfiles, response.Txn)
+				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], 
+					InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.ProfileID[0]}
+				response = display.ProfileInsert(display)
+				// MergeProfiles = append(MergeProfiles, response.Txn)
 			// }
 
+			display2 := &stellarExecuter.ConcreteMerge{ProfileID: response.Txn,InsertType: TType, 
+				PreviousTXNID: TObj.PreviousTXNID[0]}
+			response2 := display2.ProfileMerge(display2)
+
 			w.WriteHeader(response2.Error.Code)
-			result := apiModel.MergeSuccess{Message: response2.Error.Message, TxnHash: response2.Txn,
-				PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], Identifier: TObj.Identifier, Type: TType}
+			result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, 
+				PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, 
+				Type: TType}
 			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
