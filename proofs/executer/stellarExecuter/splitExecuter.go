@@ -37,7 +37,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		log.Fatal("Error loading .env file")
 	}
 	secretKey := os.Getenv("SECRET_KEY")
-	// publicKey := os.Getenv("PUBLIC_KEY")
+	publicKey := os.Getenv("PUBLIC_KEY")
 
 	var response model.SplitProfileResponse
 
@@ -48,7 +48,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secretKey},
+		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("TransactionType", []byte(cd.InsertType)),
 		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),

@@ -43,6 +43,8 @@ type MergeProfileResponse struct {
 	PreviousProfileID string
 	PreviousTXNID     string
 	Identifiers       string
+	PreviousIdentifiers []string
+	MergingTXNs []string
 	TxnType           string
 	Error             Error
 }

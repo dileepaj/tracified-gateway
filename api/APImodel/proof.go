@@ -74,6 +74,8 @@ type MergeSuccess struct {
 	PreviousTXNID string
 	ProfileID     string
 	Identifier   string
+	MergingTXNs []string
+	MergingIdentifiers []string
 	Type          string
 }
 
@@ -84,5 +86,39 @@ type TransactionStruct struct {
 	Data              []string `json:"Data"`
 	Identifiers       []string `json:"Identifiers"`
 	Identifier string
+	MergingTXNs []string
 	PreviousProfileID []string `json:"PreviousProfileID"`
 }
+
+type GenesisStruct struct{
+	TType string   `json:"TType"`
+
+}
+
+type ProfileStruct struct{
+	TType             string   `json:"TType"`
+
+}
+
+type MergeStruct struct{
+	TType             string   `json:"TType"`
+	ProfileID         []string `json:"ProfileID"`
+	PreviousTXNID     []string `json:"PreviousTXNID"`
+	Identifiers       []string `json:"Identifiers"`
+	Identifier string
+	MergingTXNs []string
+	PreviousProfileID []string `json:"PreviousProfileID"`
+
+}
+
+type SplitStruct struct{
+	TType             string   `json:"TType"`
+
+}
+
+type InsertStruct struct{
+	TType             string   `json:"TType"`
+
+}
+
+

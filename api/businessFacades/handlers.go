@@ -130,9 +130,12 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		case "1":
 			response := model.InsertProfileResponse{}
 
-			display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], InsertType: TType,
-				PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
-			response = display.ProfileInsert(display)
+			
+				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], InsertType: TObj.TType,
+					PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
+				response = display.ProfileInsert(display)
+			
+		
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn,
@@ -169,25 +172,19 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(result)
 		case "6":
 			// var MergeProfiles []string
-			// var MergeProfiles []string
-			response := model.InsertProfileResponse{}
+			response := model.MergeProfileResponse{}
 
-			// for i := 0; i < len(TObj.Identifiers); i++ {
+			display := &stellarExecuter.ConcreteMerge{Identifiers: TObj.Identifier, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0],
+				PreviousProfileID: TObj.ProfileID[0], MergingTXNs: TObj.MergingTXNs, ProfileID: TObj.ProfileID[0],MergingIdentifiers:TObj.Identifiers}
+			response = display.ProfileMerge(display)
+			// MergeProfiles = append(MergeProfiles, response.Txn)
 
-				display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[0], 
-					InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.ProfileID[0]}
-				response = display.ProfileInsert(display)
-				// MergeProfiles = append(MergeProfiles, response.Txn)
-			// }
+			// display2 := &stellarExecuter.ConcreteMerge{, PreviousTDPID: TObj.PreviousTDPID[0]}
+			// response2 := display2.ProfileMerge(display2)
 
-			display2 := &stellarExecuter.ConcreteMerge{ProfileID: response.Txn,InsertType: TType, 
-				PreviousTXNID: TObj.PreviousTXNID[0]}
-			response2 := display2.ProfileMerge(display2)
-
-			w.WriteHeader(response2.Error.Code)
-			result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, 
-				PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, 
-				Type: TType}
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.MergeSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTXNID: TObj.PreviousTXNID[0],
+				ProfileID: TObj.ProfileID[0], Identifier: TObj.Identifier, Type: TType,MergingIdentifiers:response.PreviousIdentifiers,MergingTXNs:response.MergingTXNs}
 			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
