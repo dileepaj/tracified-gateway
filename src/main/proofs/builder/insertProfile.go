@@ -18,6 +18,7 @@ type AbstractProfileInsert struct {
 }
 
 func (AP *AbstractProfileInsert) ProfileInsert() model.InsertProfileResponse {
+
 	object := stellarExecuter.ConcreteProfile{Identifiers: AP.Identifiers, InsertType: AP.InsertType, PreviousTDPID: AP.PreviousTDPID, PreviousProfileID: AP.PreviousProfileID}
 
 	result := object.InsertProfile()

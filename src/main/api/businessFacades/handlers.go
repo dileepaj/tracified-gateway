@@ -11,6 +11,7 @@ import (
 	"main/api/apiModel"
 	"main/model"
 	"main/proofs/builder"
+	"main/proofs/interpreter"
 )
 
 func SaveData(w http.ResponseWriter, r *http.Request) {
@@ -47,18 +48,18 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 }
 
 func CheckPOE(w http.ResponseWriter, r *http.Request) {
-	// 	vars := mux.Vars(r)
+	vars := mux.Vars(r)
 
-	// 	var response model.POE
+	var response model.POE
 
-	// 	display := &stellarRetriever.ConcretePOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
-	// 	response = display.InterpretPOE(display)
+	display := &interpreter.AbstractPOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
+	response = display.InterpretPOE()
 
-	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// 	w.WriteHeader(response.RetrievePOE.Error.Code)
-	// 	result := apiModel.PoeSuccess{Message: response.RetrievePOE.Error.Message, TxNHash: response.RetrievePOE.Txn}
-	// 	json.NewEncoder(w).Encode(result)
-	// 	return
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOE.Error.Code)
+	result := apiModel.PoeSuccess{Message: response.RetrievePOE.Error.Message, TxNHash: response.RetrievePOE.Txn}
+	json.NewEncoder(w).Encode(result)
+	return
 
 }
 
@@ -83,17 +84,14 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 		switch TType {
 		case "0":
-			// result := model.InsertGenesisResponse{}
+			result := model.InsertGenesisResponse{}
 
-			// display := &stellarExecuter.ConcreteGenesis{Identifiers: TObj.Identifiers[0], InsertType: TType}
-			// result = display.GenesisInsert(display)
+			display := &builder.AbstractGenesisInsert{Identifiers: TObj.Identifiers[0], InsertType: TType}
+			result = display.GenesisInsert()
 
-			// // display2 := &stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: "", PreviousProfileID: result.GenesisTxn}
-			// // response = display2.ProfileInsert(display2)
-
-			// w.WriteHeader(result.Error.Code)
-			// result2 := apiModel.GenesisSuccess{Message: result.Error.Message, TxnHash: result.Txn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
-			// json.NewEncoder(w).Encode(result2)
+			w.WriteHeader(result.Error.Code)
+			result2 := apiModel.GenesisSuccess{Message: result.Error.Message, TxnHash: result.Txn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
+			json.NewEncoder(w).Encode(result2)
 
 		case "1":
 			response := model.InsertProfileResponse{}
@@ -105,14 +103,14 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTDPID: response.PreviousTDPID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "2":
-			// response := model.InsertDataResponse{}
+			response := model.InsertDataResponse{}
 
-			// display := &stellarExecuter.ConcreteInsertData{Hash: TObj.Data[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], ProfileId: TObj.ProfileID[0]}
-			// response = display.TDPInsert(display)
+			display := &builder.AbstractTDPInsert{Hash: TObj.Data[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], ProfileId: TObj.ProfileID[0]}
+			response = display.TDPInsert()
 
-			// w.WriteHeader(response.Error.Code)
-			// result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.Txn, ProfileID: response.ProfileID, Type: response.TxnType}
-			// json.NewEncoder(w).Encode(result)
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.Txn, ProfileID: response.ProfileID, Type: response.TxnType}
+			json.NewEncoder(w).Encode(result)
 		case "5":
 			// var SplitProfiles []string
 			// response := model.InsertProfileResponse{}

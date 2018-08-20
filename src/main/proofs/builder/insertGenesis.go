@@ -2,29 +2,41 @@ package builder
 
 import (
 	"main/model"
+	"main/proofs/executer/stellarExecuter"
 )
 
-// type InsertProfile struct{}
 type GenesisInsertInterface interface {
 	InsertGenesis() model.InsertGenesisResponse
-	InsertProfile() model.InsertGenesisResponse
+	InsertProfile() model.InsertProfileResponse
 }
 
 type AbstractGenesisInsert struct {
+	Identifiers string
+	InsertType  string
+	// PreviousTDPID string
 }
 
-func (AP *AbstractGenesisInsert) GenesisInsert(GenesisInsertInterface GenesisInsertInterface) model.InsertGenesisResponse {
+func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 
-	result := GenesisInsertInterface.InsertGenesis()
+	object1 := stellarExecuter.ConcreteGenesis{Identifiers: AP.Identifiers, InsertType: AP.InsertType}
+
+	result := object1.InsertGenesis()
 
 	if result.GenesisTxn == "" {
 		return result
 	}
 
-	result2 := GenesisInsertInterface.InsertProfile()
-	if result2.Txn == "" {
-		return result2
-	}
+	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: result.GenesisTxn, PreviousProfileID: ""}
 
-	return result2
+	result2 := object2.InsertProfile()
+	if result2.Txn == "" {
+		result.Error.Message = result2.Error.Message
+		result.Error.Code = result2.Error.Code
+		return result
+	}
+	result.Error.Message = result2.Error.Message
+	result.Error.Code = result2.Error.Code
+	result.Txn = result2.Txn
+
+	return result
 }

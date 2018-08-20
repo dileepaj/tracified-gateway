@@ -8,7 +8,6 @@ import (
 	"net/http"
 
 	"main/model"
-	"main/proofs/interpreter"
 )
 
 type PublicKey struct {
@@ -21,7 +20,7 @@ type KeysResponse struct {
 }
 
 type ConcretePOE struct {
-	*interpreter.AbstractPOE
+	// *interpreter.AbstractPOE
 	Txn       string
 	ProfileID string
 	Hash      string

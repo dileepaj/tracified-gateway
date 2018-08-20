@@ -31,6 +31,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("TDPHash", []byte(cd.Hash)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),

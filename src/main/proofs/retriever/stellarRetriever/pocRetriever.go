@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"main/model"
-	"main/proofs/interpreter"
 	"net/http"
 )
 
@@ -18,7 +17,7 @@ type KeysResponsePOC struct {
 }
 
 type ConcretePOC struct {
-	*interpreter.AbstractPOC
+	// *interpreter.AbstractPOC
 	Txn       string
 	ProfileID string
 	DBTree    string

@@ -32,6 +32,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
 		build.SetData("PreviousProfileID", []byte(cd.PreviousProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),

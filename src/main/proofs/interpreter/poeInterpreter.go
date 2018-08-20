@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"main/model"
+	"main/proofs/retriever/stellarRetriever"
 	"net/http"
 )
 
@@ -10,12 +11,17 @@ type POEInterface interface {
 }
 
 type AbstractPOE struct {
+	Txn       string
+	ProfileID string
+	Hash      string
 }
 
-func (AP *AbstractPOE) InterpretPOE(POEInterface POEInterface) model.POE {
+func (AP *AbstractPOE) InterpretPOE() model.POE {
 	var poeObj model.POE
 
-	poeObj.RetrievePOE = POEInterface.RetrievePOE()
+	object := stellarRetriever.ConcretePOE{Txn: AP.Txn, ProfileID: AP.ProfileID, Hash: AP.Hash}
+
+	poeObj.RetrievePOE = object.RetrievePOE()
 
 	if poeObj.RetrievePOE.BCHash == "" {
 		return poeObj
