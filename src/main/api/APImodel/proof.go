@@ -62,9 +62,9 @@ type SplitSuccess struct {
 	Message       string
 	TxnHash       string
 	PreviousTXNID string
-	ProfileID     string
+	Identifier string
 	SplitProfiles []string
-	Identifiers   []string
+	SplitIdentifiers   []string
 	Type          string
 }
 

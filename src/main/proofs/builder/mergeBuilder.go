@@ -33,12 +33,21 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 	// if result.Txn == "" {
 	// 	return result
 	// }
-	object := stellarExecuter.ConcreteProfile{Identifiers: AP.Identifiers, InsertType: "1", PreviousTXNID: AP.PreviousTXNID, PreviousProfileID: AP.PreviousProfileID}
+	object := stellarExecuter.ConcreteProfile{
+		Identifiers: AP.Identifiers, 
+		InsertType: "1", 
+		PreviousTXNID: AP.PreviousTXNID, 
+		PreviousProfileID: AP.PreviousProfileID}
 
 	result := object.InsertProfile()
 
-	object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.Identifiers, InsertType: AP.InsertType, PreviousTXNID: result.Txn,
-		PreviousProfileID: AP.ProfileID, MergingTXNs: AP.MergingTXNs, ProfileID: result.Txn, MergingIdentifiers: AP.MergingIdentifiers}
+	object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.Identifiers, 
+		InsertType: AP.InsertType, 
+		PreviousTXNID: result.Txn,
+		PreviousProfileID: AP.ProfileID, 
+		MergingTXNs: AP.MergingTXNs, 
+		ProfileID: result.Txn, 
+		MergingIdentifiers: AP.MergingIdentifiers}
 	result1:=object1.InsertMerge()
 	return result1
 }

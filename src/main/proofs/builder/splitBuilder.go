@@ -12,9 +12,9 @@ type ProflieSplitInterface interface {
 }
 
 type AbstractSplitProfile struct {
-	SplitProfiles string
 	PreviousTXNID string
 	Identifiers   string
+	SplitIdentifiers []string
 	InsertType    string
 	ProfileID     string
 	Assets        string
@@ -24,23 +24,34 @@ type AbstractSplitProfile struct {
 
 func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 
-	object := stellarExecuter.ConcreteProfile{
-		Identifiers: AP.Identifiers, 
-		InsertType: AP.InsertType, 
-		PreviousTXNID: AP.PreviousTXNID, 
-		PreviousProfileID: AP.PreviousProfileID}
+	var splitProfileID []string
+	var result2 model.SplitProfileResponse
+	if len(AP.SplitIdentifiers)>=1{
+		for i:=0;i<len(AP.SplitIdentifiers);i++{
+			object := stellarExecuter.ConcreteProfile{
+				Identifiers: AP.SplitIdentifiers[i], 
+				InsertType: "1", 
+				PreviousTXNID: AP.PreviousTXNID, 
+				PreviousProfileID: AP.PreviousProfileID}
+			result := object.InsertProfile()
 
-	result := object.InsertProfile()
+			splitProfileID=append(splitProfileID,result.Txn)
 
-	object1:=stellarExecuter.ConcreteSplit{SplitProfiles:AP.SplitProfiles,
-		PreviousTXNID :AP.PreviousTXNID,
-		Identifiers :AP.Identifiers,
-		InsertType:AP.InsertType,
-		ProfileID:result.Txn ,
-		Assets:AP.Assets,
-		Code:AP.Code}
+			object1:=stellarExecuter.ConcreteSplit{
+				PreviousTXNID :result.Txn,
+				InsertType:AP.InsertType,
+				ProfileID:result.Txn ,
+				Assets:AP.Assets,
+				Code:AP.Code}
+		
+			result2=object1.InsertSplit()	
+		
+			AP.PreviousTXNID=result2.Txn
+		}
 
-	result2:=object1.InsertSplit()	
-
+	}
+	
+	result2.SplitProfiles=splitProfileID
+	
 	return result2
 }

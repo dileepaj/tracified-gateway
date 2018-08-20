@@ -34,18 +34,19 @@ type SplitProfileResponse struct {
 	PreviousProfileID string
 	PreviousTXNID     string
 	Identifiers       string
+	SplitProfiles []string
 	TxnType           string
 	Error             Error
 }
 
 type MergeProfileResponse struct {
-	Txn                 string
-	PreviousProfileID   string
-	PreviousTXNID       string
-	Identifiers         string
+	Txn               string
+	PreviousProfileID string
+	PreviousTXNID     string
+	Identifiers       string
 	PreviousIdentifiers []string
-	MergingTXNs         []string
-	TxnType             string
-	Error               Error
-	ProfileID           string
+	MergingTXNs []string
+	TxnType           string
+	Error             Error
+	ProfileID string
 }
