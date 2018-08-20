@@ -3,7 +3,6 @@ package stellarExecuter
 import (
 	"fmt"
 	"main/model"
-	"main/proofs/builder"
 	"net/http"
 
 	"github.com/stellar/go/build"
@@ -11,7 +10,7 @@ import (
 )
 
 type ConcreteProfile struct {
-	*builder.AbstractProfileInsert
+	// *builder.AbstractProfileInsert
 	Identifiers       string
 	InsertType        string
 	PreviousTDPID     string
@@ -21,7 +20,7 @@ type ConcreteProfile struct {
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.InsertProfileResponse
 	response.PreviousTDPID = cd.PreviousTDPID
 	response.PreviousProfileID = cd.PreviousProfileID
@@ -46,7 +45,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(publicKey)
+	txe, err := tx.Sign(secretKey)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound

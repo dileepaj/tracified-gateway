@@ -3,7 +3,6 @@ package stellarExecuter
 import (
 	"fmt"
 	"main/model"
-	"main/proofs/builder"
 	"net/http"
 
 	"github.com/stellar/go/build"
@@ -11,7 +10,7 @@ import (
 )
 
 type ConcreteGenesis struct {
-	*builder.AbstractGenesisInsert
+	// *builder.AbstractGenesisInsert
 	Identifiers   string
 	InsertType    string
 	PreviousTDPID string

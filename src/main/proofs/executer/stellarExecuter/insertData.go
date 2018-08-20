@@ -8,11 +8,10 @@ import (
 	"github.com/stellar/go/clients/horizon"
 
 	"main/model"
-	"main/proofs/builder"
 )
 
 type ConcreteInsertData struct {
-	*builder.AbstractTDPInsert
+	// *builder.AbstractTDPInsert
 	Hash          string
 	InsertType    string
 	PreviousTDPID string

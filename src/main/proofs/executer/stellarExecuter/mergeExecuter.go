@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"main/model"
-	"main/proofs/builder"
 	"net/http"
 
 	"github.com/stellar/go/build"
@@ -13,7 +12,7 @@ import (
 )
 
 type ConcreteMerge struct {
-	*builder.AbstractMergeProfile
+	// *builder.AbstractMergeProfile
 	MergeProfiles string
 	PreviousTDPID string
 	Identifiers   string

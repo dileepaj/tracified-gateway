@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"main/model"
-	"main/proofs/builder"
 	"net/http"
 
 	"github.com/stellar/go/build"
@@ -13,14 +12,14 @@ import (
 )
 
 type ConcreteSplit struct {
-	*builder.AbstractSplitProfile
+	// *builder.AbstractSplitProfile
 	SplitProfiles string
 	PreviousTDPID string
 	Identifiers   string
 	InsertType    string
 	ProfileID     string
-	Assets		   string
-	Code		   string
+	Assets        string
+	Code          string
 }
 
 func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
