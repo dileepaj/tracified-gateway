@@ -13,7 +13,7 @@ type GenesisInsertInterface interface {
 type AbstractGenesisInsert struct {
 	Identifiers string
 	InsertType  string
-	// PreviousTDPID string
+	// PreviousTXNID string
 }
 
 func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
@@ -26,7 +26,7 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 		return result
 	}
 
-	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTDPID: result.GenesisTxn, PreviousProfileID: ""}
+	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTXNID: result.GenesisTxn, PreviousProfileID: ""}
 
 	result2 := object2.InsertProfile()
 	if result2.Txn == "" {

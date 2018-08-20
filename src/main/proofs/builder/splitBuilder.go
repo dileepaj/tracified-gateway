@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/proofs/executer/stellarExecuter"
 	"main/model"
 )
 
@@ -11,18 +12,35 @@ type ProflieSplitInterface interface {
 }
 
 type AbstractSplitProfile struct {
+	SplitProfiles string
+	PreviousTXNID string
+	Identifiers   string
+	InsertType    string
+	ProfileID     string
+	Assets        string
+	Code          string
+	PreviousProfileID string
 }
 
-func (AP *AbstractSplitProfile) ProfileSplit(ProflieSplitInterface ProflieSplitInterface) model.SplitProfileResponse {
-	result2 := ProflieSplitInterface.InsertProfile()
-	if result2.Txn == "" {
-		return result2
-	}
+func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 
-	result := ProflieSplitInterface.InsertSplit()
-	if result.Txn == "" {
-		return result
-	}
+	object := stellarExecuter.ConcreteProfile{
+		Identifiers: AP.Identifiers, 
+		InsertType: AP.InsertType, 
+		PreviousTXNID: AP.PreviousTXNID, 
+		PreviousProfileID: AP.PreviousProfileID}
 
-	return result
+	result := object.InsertProfile()
+
+	object1:=stellarExecuter.ConcreteSplit{SplitProfiles:AP.SplitProfiles,
+		PreviousTXNID :AP.PreviousTXNID,
+		Identifiers :AP.Identifiers,
+		InsertType:AP.InsertType,
+		ProfileID:result.Txn ,
+		Assets:AP.Assets,
+		Code:AP.Code}
+
+	result2:=object1.InsertSplit()	
+
+	return result2
 }

@@ -20,7 +20,7 @@ var routes = Routes{
 	Route{
 		"TDPInsert",
 		"GET",
-		"/TDPInsert/{hash}/{type}/{previousTDPID}/{profileId}",
+		"/TDPInsert/{hash}/{type}/{PreviousTXNID}/{profileId}",
 		businessFacades.SaveData,
 	},
 	Route{

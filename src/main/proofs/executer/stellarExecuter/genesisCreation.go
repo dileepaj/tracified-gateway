@@ -13,7 +13,7 @@ type ConcreteGenesis struct {
 	// *builder.AbstractGenesisInsert
 	Identifiers string
 	InsertType  string
-	// PreviousTDPID string
+	// PreviousTXNID string
 }
 
 // var GenesisTxn string
@@ -33,7 +33,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
-		build.SetData("PreviousTDPID", []byte("")),
+		build.SetData("PreviousTXNID", []byte("")),
 	)
 
 	if err != nil {
@@ -77,7 +77,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	response.Error.Message = "Transaction performed in the blockchain."
 	response.GenesisTxn = resp.Hash
 
-	// cd.PreviousTDPID = resp.Hash
+	// cd.PreviousTXNID = resp.Hash
 
 	return response
 

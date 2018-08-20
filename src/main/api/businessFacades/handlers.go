@@ -18,7 +18,7 @@ func SaveData(w http.ResponseWriter, r *http.Request) {
 	// 	vars := mux.Vars(r)
 	// 	response := model.InsertDataResponse{}
 
-	// 	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"], PreviousTDPID: vars["previousTDPID"], ProfileId: vars["profileId"]}
+	// 	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"], PreviousTXNID: vars["PreviousTXNID"], ProfileId: vars["profileId"]}
 	// 	response = display.TDPInsert(display)
 
 	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -96,16 +96,16 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		case "1":
 			response := model.InsertProfileResponse{}
 
-			display := &builder.AbstractProfileInsert{Identifiers: TObj.Identifiers[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
+			display := &builder.AbstractProfileInsert{Identifiers: TObj.Identifiers[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
 			response = display.ProfileInsert()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTDPID: response.PreviousTDPID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
+			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			response := model.InsertDataResponse{}
 
-			display := &builder.AbstractTDPInsert{Hash: TObj.Data[0], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], ProfileId: TObj.ProfileID[0]}
+			display := &builder.AbstractTDPInsert{Hash: TObj.Data[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
 			response = display.TDPInsert()
 
 			w.WriteHeader(response.Error.Code)
@@ -117,31 +117,27 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			// for i := 0; i < len(TObj.Identifiers); i++ {
 
-			// 	display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.ProfileID[0]}
+			// 	display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.ProfileID[0]}
 			// 	response = display.ProfileInsert(display)
 			// 	SplitProfiles = append(SplitProfiles, response.Txn)
 			// }
 
 			// w.WriteHeader(response.Error.Code)
-			// result := apiModel.SplitSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], SplitProfiles: SplitProfiles, Identifiers: TObj.Identifiers, Type: TType}
+			// result := apiModel.SplitSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTXNID: TObj.PreviousTXNID[0], ProfileID: TObj.ProfileID[0], SplitProfiles: SplitProfiles, Identifiers: TObj.Identifiers, Type: TType}
 			// json.NewEncoder(w).Encode(result)
 		case "6":
-			// var MergeProfiles []string
-			// response := model.InsertProfileResponse{}
+			
 
-			// for i := 0; i < len(TObj.Identifiers); i++ {
+			response := model.MergeProfileResponse{}
 
-			// 	display := &stellarExecuter.ConcreteProfile{Identifiers: TObj.Identifiers[i], InsertType: TType, PreviousTDPID: TObj.PreviousTDPID[0], PreviousProfileID: TObj.ProfileID[0]}
-			// 	response = display.ProfileInsert(display)
-			// 	MergeProfiles = append(MergeProfiles, response.Txn)
-			// }
-
-			// display2 := &stellarExecuter.ConcreteMerge{MergeProfiles: MergeProfiles[0], PreviousTDPID: TObj.PreviousTDPID[0]}
-			// response2 := display2.ProfileMerge(display2)
-
-			// w.WriteHeader(response2.Error.Code)
-			// result := apiModel.SplitSuccess{Message: response2.Error.Message, TxnHash: response2.Txn, PreviousTDPID: TObj.PreviousTDPID[0], ProfileID: TObj.ProfileID[0], Identifiers: TObj.Identifiers, Type: TType}
-			// json.NewEncoder(w).Encode(result)
+			display := &builder.AbstractMergeProfile{Identifiers: TObj.Identifier, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0],
+				PreviousProfileID: TObj.ProfileID[0], MergingTXNs: TObj.MergingTXNs, ProfileID: TObj.ProfileID[0], MergingIdentifiers: TObj.Identifiers}
+			response = display.ProfileMerge()
+			
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.MergeSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTXNID: response.PreviousTXNID,
+				ProfileID: response.ProfileID, Identifier: TObj.Identifier, Type: TType, MergingIdentifiers: response.PreviousIdentifiers, MergingTXNs: response.MergingTXNs}
+			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Please send a valid Transaction Type")

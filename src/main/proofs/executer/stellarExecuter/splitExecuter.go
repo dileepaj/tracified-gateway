@@ -14,7 +14,7 @@ import (
 type ConcreteSplit struct {
 	// *builder.AbstractSplitProfile
 	SplitProfiles string
-	PreviousTDPID string
+	PreviousTXNID string
 	Identifiers   string
 	InsertType    string
 	ProfileID     string
@@ -38,7 +38,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("SplitProfiles", []byte(cd.SplitProfiles)),
 		build.SetData("Assets", []byte(cd.Assets)),
 		build.SetData("Code", []byte(cd.Code)),
@@ -95,7 +95,7 @@ func (cd *ConcreteSplit) InsertProfile() model.SplitProfileResponse {
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	// secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.SplitProfileResponse
-	response.PreviousTDPID = cd.PreviousTDPID
+	response.PreviousTXNID = cd.PreviousTXNID
 	response.PreviousProfileID = cd.ProfileID
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -105,7 +105,7 @@ func (cd *ConcreteSplit) InsertProfile() model.SplitProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.ProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 	)

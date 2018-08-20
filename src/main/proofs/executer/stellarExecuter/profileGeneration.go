@@ -13,7 +13,7 @@ type ConcreteProfile struct {
 	// *builder.AbstractProfileInsert
 	Identifiers       string
 	InsertType        string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	PreviousProfileID string
 }
 
@@ -22,7 +22,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.InsertProfileResponse
-	response.PreviousTDPID = cd.PreviousTDPID
+	response.PreviousTXNID = cd.PreviousTXNID
 	response.PreviousProfileID = cd.PreviousProfileID
 	response.Identifiers = cd.Identifiers
 	response.TxnType = cd.InsertType
@@ -33,7 +33,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("Transaction Type", []byte(cd.InsertType)),
-		build.SetData("PreviousTDPID", []byte(cd.PreviousTDPID)),
+		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("PreviousProfileID", []byte(cd.PreviousProfileID)),
 		build.SetData("Identifiers", []byte(cd.Identifiers)),
 	)

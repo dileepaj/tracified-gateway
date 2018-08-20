@@ -13,13 +13,13 @@ type ProflieInsertInterface interface {
 type AbstractProfileInsert struct {
 	Identifiers       string
 	InsertType        string
-	PreviousTDPID     string
+	PreviousTXNID     string
 	PreviousProfileID string
 }
 
 func (AP *AbstractProfileInsert) ProfileInsert() model.InsertProfileResponse {
 
-	object := stellarExecuter.ConcreteProfile{Identifiers: AP.Identifiers, InsertType: AP.InsertType, PreviousTDPID: AP.PreviousTDPID, PreviousProfileID: AP.PreviousProfileID}
+	object := stellarExecuter.ConcreteProfile{Identifiers: AP.Identifiers, InsertType: AP.InsertType, PreviousTXNID: AP.PreviousTXNID, PreviousProfileID: AP.PreviousProfileID}
 
 	result := object.InsertProfile()
 
