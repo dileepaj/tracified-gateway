@@ -19,8 +19,8 @@ type ConcreteProfile struct {
 
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 
-	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
+	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertProfileResponse
 	response.PreviousTXNID = cd.PreviousTXNID
 	response.PreviousProfileID = cd.PreviousProfileID

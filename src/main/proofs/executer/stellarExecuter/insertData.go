@@ -20,8 +20,8 @@ type ConcreteInsertData struct {
 
 func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
-	// publicKey := "GALRYOKBUJFH33OKLIQQWR2W466256XQRXK53YXFUF377T4MY7AZ6AXL"
-	secretKey := "SCXW23KAWO444ZKKW4UJDM43PEPPOOFWMTN75VUPAAYKOZFJMQ3T6J5D"
+	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
+	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertDataResponse
 	response.ProfileID = cd.ProfileId
 	response.TxnType = cd.InsertType
@@ -29,7 +29,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secretKey},
+		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),

@@ -26,7 +26,7 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 		return result
 	}
 
-	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: result.TxnType, PreviousTXNID: result.GenesisTxn, PreviousProfileID: ""}
+	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: "1", PreviousTXNID: result.GenesisTxn, PreviousProfileID: ""}
 
 	result2 := object2.InsertProfile()
 	if result2.Txn == "" {

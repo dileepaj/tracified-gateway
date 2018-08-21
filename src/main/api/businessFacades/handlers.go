@@ -47,6 +47,23 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func CheckPOG(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	var response model.POG
+
+	display := &interpreter.AbstractPOG{LastTxn: vars["LastTxn"], POGTxn: vars["POGTxn"], Identifier: vars["Identifier"]}
+	response = display.InterpretPOG()
+	fmt.Println("response.RetrievePOG.Error.Code")
+	fmt.Println(response.RetrievePOG.Error.Code)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOG.Error.Code)
+	result := apiModel.PoeSuccess{Message: response.RetrievePOG.Error.Message, TxNHash: response.RetrievePOG.CurTxn}
+	json.NewEncoder(w).Encode(result)
+	return
+
+}
+
 func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -115,12 +132,11 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			// var SplitProfiles []string
 			response := model.SplitProfileResponse{}
 
-			
 			// for i := 0; i < len(TObj.Identifiers); i++ {
 
 			display := &builder.AbstractSplitProfile{
 				Identifiers:       TObj.Identifier,
-				SplitIdentifiers:   TObj.Identifiers,
+				SplitIdentifiers:  TObj.Identifiers,
 				InsertType:        TType,
 				PreviousTXNID:     TObj.PreviousTXNID[0],
 				PreviousProfileID: TObj.ProfileID[0]}
@@ -130,13 +146,13 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.SplitSuccess{
-				Message: response.Error.Message, 
-				TxnHash: response.Txn,
-				PreviousTXNID: response.PreviousTXNID, 
-				SplitProfiles: response.SplitProfiles, 
-				Identifier: TObj.Identifier,
-				SplitIdentifiers:TObj.Identifiers, 
-				Type: TType}
+				Message:          response.Error.Message,
+				TxnHash:          response.Txn,
+				PreviousTXNID:    response.PreviousTXNID,
+				SplitProfiles:    response.SplitProfiles,
+				Identifier:       TObj.Identifier,
+				SplitIdentifiers: TObj.Identifiers,
+				Type:             TType}
 			json.NewEncoder(w).Encode(result)
 		case "6":
 

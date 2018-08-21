@@ -36,6 +36,12 @@ var routes = Routes{
 		businessFacades.CheckPOE,
 	},
 	Route{
+		"POG",
+		"GET",
+		"/pog/{LastTxn}/{POGTxn}/{Identifier}",
+		businessFacades.CheckPOG,
+	},
+	Route{
 		"Transactions",
 		"POST",
 		"/transaction/type/{TType}",
