@@ -1,6 +1,7 @@
 package interpreter
 
 import (
+	"fmt"
 	"main/model"
 	"main/proofs/retriever/stellarRetriever"
 	"net/http"
@@ -33,7 +34,8 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 
 func MatchingHash(bcHash string, dbHash string) model.Error {
 	var Rerr model.Error
-
+	fmt.Println("bcHash", "dbHash")
+	fmt.Println(bcHash, dbHash)
 	if bcHash == dbHash {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."

@@ -9,17 +9,7 @@ import (
 	"main/model"
 )
 
-// type PublicKey struct {
-// 	Name  string
-// 	Value string
-// }
-
-// type KeysResponse struct {
-// 	Collection []PublicKey
-// }
-
 type ConcretePOG struct {
-	// *interpreter.AbstractPOG
 	LastTxn string
 }
 
@@ -60,16 +50,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			// fmt.Printf("%#v", keys[0].Value)
 			fmt.Println("keys map => ", keys)
 			TxnType := Base64DecEnc("Decode", keys[0].Value)
-			if keys[1].Value != "" {
-				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
-			} else {
-				Rerr.Code = http.StatusOK
-				Rerr.Message = "previous Txn ID is Null."
-				response.Error = Rerr
 
-				return response
-
-			}
 			if keys[0].Name == "Transaction Type" && TxnType == "0" {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Txn Hash retrieved from the blockchain."
@@ -79,26 +60,29 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 				response.Identifier = Base64DecEnc("Decode", keys[2].Value)
 
 				return response
-			} else if PreviousTxn != "" {
+
+			} else if keys[1].Value != "" {
+				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
+
 				object := ConcretePOG{LastTxn: PreviousTxn}
 
 				response = object.RetrievePOG()
-			}
-			Rerr.Code = http.StatusOK
-			Rerr.Message = "Genesis Transaction not found."
-			response.Error = Rerr
+			} else {
+				Rerr.Code = http.StatusOK
+				Rerr.Message = "Genesis Transaction not found."
+				response.Error = Rerr
 
-			return response
+				return response
+			}
+
 		} else {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
 			response.CurTxn = CurrentTxn
-
 			response.Error = Rerr
+
 			return response
 		}
-		Rerr.Code = http.StatusOK
-		Rerr.Message = "Status Code is not 200!"
 
 	}
 

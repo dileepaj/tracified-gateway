@@ -3,6 +3,7 @@ package stellarRetriever
 import (
 	// "fmt"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"main/model"
 
@@ -57,48 +58,48 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			json.Unmarshal(keysBody, &keys)
 			var bcPreHash string
 			// var dataHash string
-			
+
 			var transactionType string
 			var TDPHash []string
 			if keys[0] != (PublicKeyPOC{}) {
-				transactionType= Base64DecEnc("Decode", keys[0].Value)
-				
+				transactionType = Base64DecEnc("Decode", keys[0].Value)
+				fmt.Println("transactionType")
+				fmt.Println(transactionType)
 			}
 
-			if transactionType=="2"{
-				if keys[3]!=(PublicKeyPOC{}){
-					TDPHash=append(TDPHash,Base64DecEnc("Decode", keys[3].Value))
+			if transactionType == "2" {
+				if keys[3] != (PublicKeyPOC{}) {
+					TDPHash = append(TDPHash, Base64DecEnc("Decode", keys[3].Value))
+					fmt.Println("TDPHash")
+					fmt.Println(TDPHash)
 				}
-				
-			}
 
-			
+			}
 
 			if keys[1] != (PublicKeyPOC{}) {
 				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
+				fmt.Println("bcPreHash")
+				fmt.Println(bcPreHash)
 			}
 
-			
-			temp := model.Current{TXNID:db.Txn, TType:transactionType,DataHash:TDPHash}
+			temp := model.Current{TXNID: db.Txn, TType: transactionType, DataHash: TDPHash}
 			db.BCTree = append(db.BCTree, temp)
-
 
 			Rerr.Code = result.StatusCode
 			Rerr.Message = "The Blockchain Tree Retrieved successfully"
 			response.Txn = db.Txn
-			response.BCHash =db.BCTree
+			response.BCHash = db.BCTree
 			response.DBHash = db.DBTree
 			response.Error = Rerr
-	
-			if keys[1].Value!=""{
-				object:=ConcretePOC{Txn:bcPreHash,BCTree:db.BCTree,DBTree:db.DBTree,ProfileID:db.ProfileID}
-				response=object.RetrievePOC()
+
+			if keys[1].Value != "" {
+				object := ConcretePOC{Txn: bcPreHash, BCTree: db.BCTree, DBTree: db.DBTree, ProfileID: db.ProfileID}
+				response = object.RetrievePOC()
 			}
-	
+
 			// fmt.Print(response)
 		}
-		
-		
+
 		return response
 	}
 
