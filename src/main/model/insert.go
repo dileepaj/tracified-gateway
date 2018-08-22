@@ -35,6 +35,7 @@ type SplitProfileResponse struct {
 	PreviousTXNID     string
 	Identifiers       string
 	SplitProfiles []string
+	SplitTXN []string
 	TxnType           string
 	Error             Error
 }
@@ -45,7 +46,7 @@ type MergeProfileResponse struct {
 	PreviousTXNID     string
 	Identifiers       string
 	PreviousIdentifiers []string
-	MergingTXNs []string
+	MergeTXNs []string
 	TxnType           string
 	Error             Error
 	ProfileID string

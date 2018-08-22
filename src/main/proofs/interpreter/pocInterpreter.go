@@ -1,25 +1,77 @@
 package interpreter
 
 import (
+	"fmt"
+	"main/proofs/retriever/stellarRetriever"
 	"main/model"
 )
 
-type POCInterface interface {
-	RetrievePOC() model.RetrievePOC
-}
+// type POCInterface interface {
+// 	RetrievePOC() model.RetrievePOC
+// }
 
 type AbstractPOC struct {
+	Txn       string
+	ProfileID string
+	DBTree    []model.Current
+	BCTree    []model.Current
 }
 
-func (AP *AbstractPOC) InterpretPOC(POCInterface POCInterface) model.POC {
+func (AP *AbstractPOC) InterpretPOC() model.POC {
 	var pocObj model.POC
 
-	pocObj.RetrievePOC = POCInterface.RetrievePOC()
+	 object:= stellarRetriever.ConcretePOC{
+		 Txn: AP.Txn, 
+		 ProfileID: AP.ProfileID, 
+		 DBTree: AP.DBTree}
+		 
+	 pocObj.RetrievePOC=object.RetrievePOC()
+	
+	 fmt.Println(pocObj.RetrievePOC.DBHash)
+	 fmt.Println(pocObj.RetrievePOC.BCHash)
 
-	if pocObj.RetrievePOC.BCHash == "" {
-		return pocObj
+	isMapped := testCompare(pocObj.RetrievePOC.DBHash, pocObj.RetrievePOC.BCHash)
+	
+	if isMapped == true {
+		pocObj.RetrievePOC.Error.Message = "Chain Exists in the Blockchain"
+		pocObj.RetrievePOC.Error.Code = 200
 	} else {
-		pocObj.RetrievePOC.Error = MatchingHash(pocObj.RetrievePOC.BCHash, pocObj.RetrievePOC.DBHash)
-		return pocObj
+		pocObj.RetrievePOC.Error.Message = "Chain Doesn't Exist in the Blockchain"
+		pocObj.RetrievePOC.Error.Code = 200
 	}
+
+	return pocObj
+}
+
+func testCompare(db []model.Current, bc []model.Current) bool {
+	isMatch := []bool{}
+	if db != nil && bc != nil {
+		if len(db) == len(bc) {
+			for i := 0; i < len(db); i++ {
+				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType {
+					isMatch = append(isMatch, true)
+				}else{
+					isMatch = append(isMatch, false)
+				}
+
+			}
+		}else{
+			isMatch = append(isMatch, false)
+		}
+
+	}
+
+	return checkBoolArray(isMatch)
+}
+
+//checks the multiple boolean indexes in an array and returns the combined result.
+func checkBoolArray(array []bool) bool {
+	isMatch := true
+	for i := 0; i < len(array); i++ {
+		if array[i] == false {
+			isMatch = false
+			return isMatch
+		}
+	}
+	return isMatch
 }

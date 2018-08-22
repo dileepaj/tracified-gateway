@@ -33,8 +33,9 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.SetData("Transaction Type", []byte(cd.InsertType)),
 		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-		build.SetData("TDPHash", []byte(cd.Hash)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),
+		build.SetData("TDPHash", []byte(cd.Hash)),
+
 	)
 
 	if err != nil {

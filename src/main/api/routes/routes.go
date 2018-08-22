@@ -25,8 +25,8 @@ var routes = Routes{
 	},
 	Route{
 		"POC",
-		"GET",
-		"/poc/{Txn}/{PID}/{dbTree}",
+		"POST",
+		"/poc/{Txn}/{PID}",
 		businessFacades.CheckPOC,
 	},
 	Route{

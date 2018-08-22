@@ -30,6 +30,8 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
 	var response model.MergeProfileResponse
 
+	var MergeTXN []string
+
 	if len(cd.MergingIdentifiers) >= 1 {
 
 		for i := 0; i < len(cd.MergingIdentifiers); i++ {
@@ -38,12 +40,12 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 				build.TestNetwork,
 				build.SourceAccount{secretKey},
 				build.AutoSequence{horizon.DefaultTestNetClient},
+				build.SetData("TransactionType", []byte(cd.InsertType)),
 				build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 				build.SetData("ProfileID", []byte(cd.ProfileID)),
 				build.SetData("MergingTXN", []byte(cd.MergingTXNs[i])),
 				build.SetData("Assets", []byte(cd.Assets)),
 				build.SetData("Code", []byte(cd.Code)),
-				build.SetData("TransactionType", []byte(cd.InsertType)),
 			)
 
 			if err != nil {
@@ -89,6 +91,8 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 			response.PreviousTXNID = cd.PreviousTXNID
 
 			cd.PreviousTXNID = resp.Hash
+			MergeTXN=append(MergeTXN,resp.Hash)
+
 		}
 
 	}
@@ -100,7 +104,7 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 	// save data
 	// response.PreviousProfileID=cd.PreviousProfileID
 
-	response.MergingTXNs = cd.MergingTXNs
+	response.MergeTXNs = MergeTXN
 	response.PreviousIdentifiers = cd.MergingIdentifiers
 	response.ProfileID = cd.ProfileID
 	return response

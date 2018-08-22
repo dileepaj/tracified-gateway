@@ -25,6 +25,7 @@ type AbstractSplitProfile struct {
 func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 
 	var splitProfileID []string
+	var splitTXN []string
 	var result2 model.SplitProfileResponse
 	if len(AP.SplitIdentifiers) >= 1 {
 		for i := 0; i < len(AP.SplitIdentifiers); i++ {
@@ -45,6 +46,7 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 				Code:          AP.Code}
 
 			result2 = object1.InsertSplit()
+			splitTXN=append(splitTXN,result2.Txn)
 
 			AP.PreviousTXNID = result2.Txn
 		}
@@ -52,6 +54,7 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 	}
 
 	result2.SplitProfiles = splitProfileID
+	result2.SplitTXN=splitTXN
 
 	return result2
 }

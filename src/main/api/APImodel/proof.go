@@ -64,6 +64,7 @@ type SplitSuccess struct {
 	PreviousTXNID string
 	Identifier string
 	SplitProfiles []string
+	SplitTXN []string
 	SplitIdentifiers   []string
 	Type          string
 }
@@ -74,7 +75,7 @@ type MergeSuccess struct {
 	PreviousTXNID      string
 	ProfileID          string
 	Identifier         string
-	MergingTXNs        []string
+	MergeTXNs        []string
 	MergingIdentifiers []string
 	Type               string
 }
@@ -89,3 +90,9 @@ type TransactionStruct struct {
 	MergingTXNs       []string
 	PreviousProfileID []string `json:"PreviousProfileID"`
 }
+
+type POCBody struct {
+	Chain []model.Current
+}
+
+

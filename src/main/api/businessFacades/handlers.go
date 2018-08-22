@@ -1,6 +1,10 @@
 package businessFacades
 
 import (
+	"io/ioutil"
+
+	// "encoding/base64"
+
 	"encoding/json"
 	"fmt"
 
@@ -32,19 +36,46 @@ func SaveData(w http.ResponseWriter, r *http.Request) {
 
 //To be implemented
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
-	// 	vars := mux.Vars(r)
+	vars := mux.Vars(r)
 
-	// 	var response model.POC
+	var response model.POC
+	var lol []model.Current
 
-	// 	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: vars["dbTree"]}
-	// 	response = display.InterpretPOC(display)
 
-	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// 	w.WriteHeader(response.RetrievePOC.Error.Code)
-	// 	result := apiModel.PoeSuccess{Message: response.RetrievePOC.Error.Message, TxNHash: response.RetrievePOC.Txn}
-	// 	json.NewEncoder(w).Encode(result)
-	// 	return
+	data, _ := ioutil.ReadAll(r.Body)
 
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	// raw["count"] = 2
+	out, _ := json.Marshal(raw["Chain"])
+
+	keysBody := out
+	keys := make([]model.Current, 0)
+	json.Unmarshal(keysBody, &keys)
+	// var lol
+
+	for i := 0; i < len(keys); i++ {
+		lo := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
+		lol = append(lol, lo)
+	}
+
+	fmt.Println(lol)
+
+	// output := []model.Current{}
+		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: lol}
+		response = display.InterpretPOC()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(response.RetrievePOC.Error.Code)
+		// w.WriteHeader(http.StatusBadRequest)
+
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+		result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+		json.NewEncoder(w).Encode(result)
+
+	
+
+	return
 }
 
 func CheckPOG(w http.ResponseWriter, r *http.Request) {
@@ -150,6 +181,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				TxnHash:          response.Txn,
 				PreviousTXNID:    response.PreviousTXNID,
 				SplitProfiles:    response.SplitProfiles,
+				SplitTXN: 		  response.SplitTXN,
 				Identifier:       TObj.Identifier,
 				SplitIdentifiers: TObj.Identifiers,
 				Type:             TType}
@@ -169,8 +201,15 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			response = display.ProfileMerge()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.MergeSuccess{Message: response.Error.Message, TxnHash: response.Txn, PreviousTXNID: response.PreviousTXNID,
-				ProfileID: response.ProfileID, Identifier: TObj.Identifier, Type: TType, MergingIdentifiers: response.PreviousIdentifiers, MergingTXNs: response.MergingTXNs}
+			result := apiModel.MergeSuccess{
+				Message: response.Error.Message, 
+				TxnHash: response.Txn,
+				PreviousTXNID: response.PreviousTXNID,
+				ProfileID: response.ProfileID, 
+				Identifier: TObj.Identifier, 
+				Type: TType, 
+				MergingIdentifiers: response.PreviousIdentifiers, 
+				MergeTXNs: response.MergeTXNs}
 			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)
