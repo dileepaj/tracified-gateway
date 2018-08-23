@@ -49,7 +49,21 @@ func testCompare(db []model.Current, bc []model.Current) bool {
 		if len(db) == len(bc) {
 			for i := 0; i < len(db); i++ {
 				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType {
-					isMatch = append(isMatch, true)
+					datamatch:=[]bool{}
+
+					if len(db[i].DataHash)== len(bc[i].DataHash)  {
+						for j:=0;j<len(db[i].DataHash);j++{
+							if db[i].DataHash[j]==bc[i].DataHash[j]{
+								datamatch=append(datamatch,true)
+							}else{
+								datamatch=append(datamatch,false)
+							}
+						}
+					}
+					// else{
+					// 	datamatch=append(datamatch,false)
+					// }
+					isMatch = append(isMatch, checkBoolArray(datamatch))
 				}else{
 					isMatch = append(isMatch, false)
 				}

@@ -39,7 +39,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var response model.POC
-	var lol []model.Current
+	var dbTree []model.Current
 
 
 	data, _ := ioutil.ReadAll(r.Body)
@@ -55,14 +55,14 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
-		lo := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
-		lol = append(lol, lo)
+		temp := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
+		dbTree = append(dbTree, temp)
 	}
 
-	fmt.Println(lol)
+	fmt.Println(dbTree)
 
 	// output := []model.Current{}
-		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: lol}
+		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
 		response = display.InterpretPOC()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")

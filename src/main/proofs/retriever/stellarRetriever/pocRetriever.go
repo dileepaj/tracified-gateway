@@ -76,6 +76,29 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			}
 
+			if transactionType == "6" {
+				if keys[3] != (PublicKeyPOC{}) {
+					result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+					if err != nil {
+						Rerr.Code = result.StatusCode
+						Rerr.Message = "The HTTP request failed for Merge ID"
+						response.Txn = db.Txn
+						response.Error = Rerr
+						return response
+					} else {
+
+						if result.StatusCode == 200 {
+							TDPHash = append(TDPHash, Base64DecEnc("Decode", keys[3].Value))
+							fmt.Println("TDPHash")
+							fmt.Println(TDPHash)
+						}
+					
+					}
+
+				}
+
+			}
+
 			if keys[1] != (PublicKeyPOC{}) {
 				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
 				fmt.Println("bcPreHash")
