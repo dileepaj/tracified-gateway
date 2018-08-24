@@ -1,7 +1,6 @@
 package stellarRetriever
 
 import (
-	// "fmt"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,24 +9,24 @@ import (
 	"net/http"
 )
 
-type PublicKeyPOC struct {
-	Name  string
-	Value string
-}
+// type PublicKeyPOC struct {
+// 	Name  string
+// 	Value string
+// }
 
-type KeysResponsePOC struct {
-	Collection []PublicKeyPOC
-}
+// type KeysResponsePOC struct {
+// 	Collection []PublicKeyPOC
+// }
 
-type ConcretePOC struct {
-	// *interpreter.AbstractPOC
-	Txn       string
-	ProfileID string
-	DBTree    []model.Current
-	BCTree    []model.Current
-}
+// type ConcretePOC struct {
+// 	// *interpreter.AbstractPOC
+// 	Txn       string
+// 	ProfileID string
+// 	DBTree    []model.Current
+// 	BCTree    []model.Current
+// }
 
-func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
+func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error
 	// output := make([]string, 20)
@@ -118,7 +117,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			if keys[1].Value != "" {
 				object := ConcretePOC{Txn: bcPreHash, BCTree: db.BCTree, DBTree: db.DBTree, ProfileID: db.ProfileID}
-				response = object.RetrievePOC()
+				response = object.RetrieveFullPOC()
 			}
 
 			// fmt.Print(response)

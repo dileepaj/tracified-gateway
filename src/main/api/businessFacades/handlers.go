@@ -34,7 +34,6 @@ func SaveData(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//To be implemented
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -64,6 +63,48 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// output := []model.Current{}
 		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
 		response = display.InterpretPOC()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(response.RetrievePOC.Error.Code)
+		// w.WriteHeader(http.StatusBadRequest)
+
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+		result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+		json.NewEncoder(w).Encode(result)
+
+	
+
+	return
+}
+
+func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	var response model.POC
+	var dbTree []model.Current
+
+	data, _ := ioutil.ReadAll(r.Body)
+
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	// raw["count"] = 2
+	out, _ := json.Marshal(raw["Chain"])
+
+	keysBody := out
+	keys := make([]model.Current, 0)
+	json.Unmarshal(keysBody, &keys)
+	// var lol
+
+	for i := 0; i < len(keys); i++ {
+		temp := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
+		dbTree = append(dbTree, temp)
+	}
+
+	fmt.Println(dbTree)
+
+	// output := []model.Current{}
+		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+		response = display.InterpretFullPOC()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(response.RetrievePOC.Error.Code)

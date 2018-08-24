@@ -30,6 +30,12 @@ var routes = Routes{
 		businessFacades.CheckPOC,
 	},
 	Route{
+		"POC",
+		"POST",
+		"/fullpoc/{Txn}/{PID}",
+		businessFacades.CheckFullPOC,
+	},
+	Route{
 		"POE",
 		"GET",
 		"/poe/{Txn}/{PID}/{Hash}",
