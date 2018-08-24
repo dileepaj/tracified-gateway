@@ -40,7 +40,6 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	var response model.POC
 	var dbTree []model.Current
 
-
 	data, _ := ioutil.ReadAll(r.Body)
 
 	var raw map[string]interface{}
@@ -54,25 +53,23 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
-		temp := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
+		temp := model.Current{TType: keys[i].TType, TXNID: keys[i].TXNID, DataHash: keys[i].DataHash}
 		dbTree = append(dbTree, temp)
 	}
 
 	fmt.Println(dbTree)
 
 	// output := []model.Current{}
-		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
-		response = display.InterpretPOC()
+	display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	response = display.InterpretPOC()
 
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(response.RetrievePOC.Error.Code)
-		// w.WriteHeader(http.StatusBadRequest)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOC.Error.Code)
+	// w.WriteHeader(http.StatusBadRequest)
 
-		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-		result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
-		json.NewEncoder(w).Encode(result)
-
-	
+	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+	json.NewEncoder(w).Encode(result)
 
 	return
 }
@@ -96,25 +93,23 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
-		temp := model.Current{TType: keys[i].TType,TXNID:keys[i].TXNID,DataHash:keys[i].DataHash}
+		temp := model.Current{TType: keys[i].TType, TXNID: keys[i].TXNID, DataHash: keys[i].DataHash, MergedID: keys[i].MergedID, MergedChain: keys[i].MergedChain}
 		dbTree = append(dbTree, temp)
 	}
 
 	fmt.Println(dbTree)
 
 	// output := []model.Current{}
-		display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
-		response = display.InterpretFullPOC()
+	display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	response = display.InterpretFullPOC()
 
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(response.RetrievePOC.Error.Code)
-		// w.WriteHeader(http.StatusBadRequest)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOC.Error.Code)
+	// w.WriteHeader(http.StatusBadRequest)
 
-		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-		result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
-		json.NewEncoder(w).Encode(result)
-
-	
+	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+	json.NewEncoder(w).Encode(result)
 
 	return
 }
@@ -222,7 +217,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				TxnHash:          response.Txn,
 				PreviousTXNID:    response.PreviousTXNID,
 				SplitProfiles:    response.SplitProfiles,
-				SplitTXN: 		  response.SplitTXN,
+				SplitTXN:         response.SplitTXN,
 				Identifier:       TObj.Identifier,
 				SplitIdentifiers: TObj.Identifiers,
 				Type:             TType}
@@ -243,14 +238,14 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.MergeSuccess{
-				Message: response.Error.Message, 
-				TxnHash: response.Txn,
-				PreviousTXNID: response.PreviousTXNID,
-				ProfileID: response.ProfileID, 
-				Identifier: TObj.Identifier, 
-				Type: TType, 
-				MergingIdentifiers: response.PreviousIdentifiers, 
-				MergeTXNs: response.MergeTXNs}
+				Message:            response.Error.Message,
+				TxnHash:            response.Txn,
+				PreviousTXNID:      response.PreviousTXNID,
+				ProfileID:          response.ProfileID,
+				Identifier:         TObj.Identifier,
+				Type:               TType,
+				MergingIdentifiers: response.PreviousIdentifiers,
+				MergeTXNs:          response.MergeTXNs}
 			json.NewEncoder(w).Encode(result)
 		default:
 			w.WriteHeader(http.StatusBadRequest)

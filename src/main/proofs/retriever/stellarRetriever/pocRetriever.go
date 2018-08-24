@@ -60,7 +60,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			// var dataHash string
 
 			var transactionType string
-			var TDPHash []string
+			var TDPHash string
 			if keys[0] != (PublicKeyPOC{}) {
 				transactionType = Base64DecEnc("Decode", keys[0].Value)
 				fmt.Println("transactionType")
@@ -69,7 +69,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			if transactionType == "2" {
 				if keys[3] != (PublicKeyPOC{}) {
-					TDPHash = append(TDPHash, Base64DecEnc("Decode", keys[3].Value))
+					TDPHash = Base64DecEnc("Decode", keys[3].Value)
 					fmt.Println("TDPHash")
 					fmt.Println(TDPHash)
 				}
@@ -89,7 +89,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 					} else {
 
 						if result.StatusCode == 200 {
-							TDPHash = append(TDPHash, Base64DecEnc("Decode", keys[3].Value))
+							TDPHash = Base64DecEnc("Decode", keys[3].Value)
 							fmt.Println("TDPHash")
 							fmt.Println(TDPHash)
 						}

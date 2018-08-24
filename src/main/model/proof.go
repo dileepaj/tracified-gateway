@@ -6,9 +6,16 @@ type Node struct {
 }
 
 type Current struct {
-	TType string
-	TXNID    string
-	DataHash	[]string
+	TType       string   `json:"TType"`
+	TXNID       string   `json:"TXNID"`
+	DataHash    string `json:"DataHash"`
+	MergedID    string   `json:"MergedID"`
+	Identifier string `json:"Identifier"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	ProfileID string `json:"ProfileID"`
+	Assets []string `json:"Assets"`
+	Time string `json:"Time"`
+	MergedChain []Current
 }
 
 //proof of POE
@@ -37,10 +44,10 @@ type POG struct {
 
 //proof of POC
 type RetrievePOC struct {
-	Txn    string `json:"txn"`
+	Txn    string    `json:"txn"`
 	BCHash []Current `json:"bcHash"`
 	DBHash []Current `json:"dbHash"`
-	Error  Error  `json:"error"`
+	Error  Error     `json:"error"`
 }
 
 type POC struct {

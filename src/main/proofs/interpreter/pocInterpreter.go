@@ -79,13 +79,13 @@ func testCompare(db []model.Current, bc []model.Current) bool {
 }
 
 //checks the multiple boolean indexes in an array and returns the combined result.
-func checkBoolArray(array []bool) bool {
-	isMatch := true
-	for i := 0; i < len(array); i++ {
-		if array[i] == false {
-			isMatch = false
-			return isMatch
-		}
-	}
-	return isMatch
-}
+// func checkBoolArray(array []bool) bool {
+// 	isMatch := true
+// 	for i := 0; i < len(array); i++ {
+// 		if array[i] == false {
+// 			isMatch = false
+// 			return isMatch
+// 		}
+// 	}
+// 	return isMatch
+// }
