@@ -57,9 +57,8 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			keysBody := out1
 			keys := make([]PublicKeyPOC, 0)
 			json.Unmarshal(keysBody, &keys)
+			
 			var bcPreHash string
-			// var dataHash string
-
 			var transactionType string
 			var TDPHash string
 			var Profile string
@@ -75,7 +74,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "1":
 				previousProfile:= Base64DecEnc("Decode", keys[2].Value)
 				identifier:= Base64DecEnc("Decode", keys[3].Value)
-				temp = model.Current{TXNID: db.Txn, TType: transactionType,Identifier:identifier,PreviousProfileID:previousProfile}
+				temp = model.Current{
+					TXNID: db.Txn, 
+					TType: transactionType,
+					Identifier:identifier,
+					PreviousProfileID:previousProfile}
 			case "2":
 
 				Profile= Base64DecEnc("Decode", keys[2].Value)
@@ -91,7 +94,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "5":
 				temp = model.Current{TXNID: db.Txn, TType: transactionType}
 			case "6":
-				if keys[3] != (PublicKeyPOC{}) {
+				
 					mergeID := Base64DecEnc("Decode", keys[3].Value)
 					Profile= Base64DecEnc("Decode", keys[2].Value)
 					result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
@@ -112,9 +115,14 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 
 					}
 
-				}
+				
 
-				temp = model.Current{TXNID: db.Txn, TType: transactionType, ProfileID:Profile, MergedChain: mergeTree, MergedID: keys[3].Value}
+				temp = model.Current{
+					TXNID: db.Txn, 
+					TType: transactionType, 
+					ProfileID:Profile, 
+					MergedChain: mergeTree, 
+					MergedID: mergeID}
 
 
 			default:
@@ -136,7 +144,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			response.Error = Rerr
 
 			if keys[1].Value != "" {
-				object := ConcretePOC{Txn: bcPreHash, BCTree: db.BCTree, DBTree: db.DBTree, ProfileID: db.ProfileID}
+				object := ConcretePOC{
+					Txn: bcPreHash, 
+					BCTree: db.BCTree, 
+					DBTree: db.DBTree, 
+					ProfileID: db.ProfileID}
 				response = object.RetrieveFullPOC()
 			}
 

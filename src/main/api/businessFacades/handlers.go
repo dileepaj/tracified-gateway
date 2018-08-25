@@ -53,7 +53,10 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
-		temp := model.Current{TType: keys[i].TType, TXNID: keys[i].TXNID, DataHash: keys[i].DataHash}
+		temp := model.Current{
+			TType:    keys[i].TType,
+			TXNID:    keys[i].TXNID,
+			DataHash: keys[i].DataHash}
 		dbTree = append(dbTree, temp)
 	}
 
@@ -93,14 +96,27 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
-		temp := model.Current{TType: keys[i].TType, TXNID: keys[i].TXNID, DataHash: keys[i].DataHash, MergedID: keys[i].MergedID, MergedChain: keys[i].MergedChain}
+		temp := model.Current{
+			TType:             keys[i].TType,
+			TXNID:             keys[i].TXNID,
+			DataHash:          keys[i].DataHash,
+			ProfileID:         keys[i].ProfileID,
+			PreviousProfileID: keys[i].PreviousProfileID,
+			MergedID:          keys[i].MergedID,
+			MergedChain:       keys[i].MergedChain,
+			Identifier:        keys[i].Identifier,
+			Assets:            keys[i].Assets,
+			Time:              keys[i].Time}
 		dbTree = append(dbTree, temp)
 	}
 
 	fmt.Println(dbTree)
 
 	// output := []model.Current{}
-	display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	display := &interpreter.AbstractPOC{
+		Txn:       vars["Txn"],
+		ProfileID: vars["PID"],
+		DBTree:    dbTree}
 	response = display.InterpretFullPOC()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -108,7 +124,9 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusBadRequest)
 
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+	result := apiModel.PocSuccess{
+		Message: response.RetrievePOC.Error.Message,
+		Chain:   response.RetrievePOC.DBHash}
 	json.NewEncoder(w).Encode(result)
 
 	return

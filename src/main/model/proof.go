@@ -6,16 +6,16 @@ type Node struct {
 }
 
 type Current struct {
-	TType       string   `json:"TType"`
-	TXNID       string   `json:"TXNID"`
-	DataHash    string `json:"DataHash"`
-	MergedID    string   `json:"MergedID"`
-	Identifier string `json:"Identifier"`
-	PreviousProfileID string `json:"PreviousProfileID"`
-	ProfileID string `json:"ProfileID"`
-	Assets []string `json:"Assets"`
-	Time string `json:"Time"`
-	MergedChain []Current
+	TType             string   `json:"TType"`
+	TXNID             string   `json:"TXNID"`
+	DataHash          string   `json:"DataHash"`
+	MergedID          string   `json:"MergedID"`
+	Identifier        string   `json:"Identifier"`
+	PreviousProfileID string   `json:"PreviousProfileID"`
+	ProfileID         string   `json:"ProfileID"`
+	Assets            []string `json:"Assets"`
+	Time              string   `json:"Time"`
+	MergedChain       []Current
 }
 
 //proof of POE

@@ -25,6 +25,8 @@ func (AP *AbstractPOC) InterpretFullPOC() model.POC {
 	pocObj.RetrievePOC = object.RetrieveFullPOC()
 
 	fmt.Println(pocObj.RetrievePOC.BCHash)
+	fmt.Println(AP.DBTree)
+
 
 	if pocObj.RetrievePOC.BCHash == nil {
 		return pocObj
@@ -51,8 +53,8 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 							return Rerr
 						} else {
 							Rerr.Code = http.StatusOK
-							Rerr.Message = "Success! BC Tree & DB Tree Genesis Identifiers matched."
-							return Rerr
+							Rerr.Message = "Success! BC Tree & DB Tree matched."
+							// return Rerr
 						}
 					case "1":
 						if db[i].Identifier != bc[i].Identifier && db[i].PreviousProfileID != bc[i].PreviousProfileID {
@@ -61,8 +63,8 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 							return Rerr
 						} else {
 							Rerr.Code = http.StatusOK
-							Rerr.Message = "Success! BC Tree & DB Tree profile Identifiers & previous profileID matched."
-							return Rerr
+							Rerr.Message = "Success! BC Tree & DB Tree matched."
+							// return Rerr
 						}
 
 					case "2":
@@ -73,7 +75,9 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 							Rerr.Message = "Error! BC Tree & DB Tree TDP DataHash & profileID din't match."
 							return Rerr
 						} else {
-
+							Rerr.Code = http.StatusOK
+							Rerr.Message = "Success! BC Tree & DB Tree matched."
+							// return Rerr
 						}
 					case "5":
 
@@ -96,6 +100,7 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 			return Rerr
 		}
 
+		return Rerr
 	}
 
 	Rerr.Code = http.StatusOK
