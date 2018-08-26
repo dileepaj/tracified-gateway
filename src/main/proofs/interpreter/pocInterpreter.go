@@ -2,8 +2,9 @@ package interpreter
 
 import (
 	"fmt"
-	"main/proofs/retriever/stellarRetriever"
 	"main/model"
+	"main/proofs/retriever/stellarRetriever"
+	"net/http"
 )
 
 // type POCInterface interface {
@@ -20,62 +21,53 @@ type AbstractPOC struct {
 func (AP *AbstractPOC) InterpretPOC() model.POC {
 	var pocObj model.POC
 
-	 object:= stellarRetriever.ConcretePOC{
-		 Txn: AP.Txn, 
-		 ProfileID: AP.ProfileID, 
-		 DBTree: AP.DBTree}
-		 
-	 pocObj.RetrievePOC=object.RetrievePOC()
-	
-	 fmt.Println(pocObj.RetrievePOC.DBHash)
-	 fmt.Println(pocObj.RetrievePOC.BCHash)
+	object := stellarRetriever.ConcretePOC{
+		Txn:       AP.Txn,
+		ProfileID: AP.ProfileID}
 
-	isMapped := testCompare(pocObj.RetrievePOC.DBHash, pocObj.RetrievePOC.BCHash)
-	
-	if isMapped == true {
-		pocObj.RetrievePOC.Error.Message = "Chain Exists in the Blockchain"
-		pocObj.RetrievePOC.Error.Code = 200
+	pocObj.RetrievePOC = object.RetrievePOC()
+
+	fmt.Println(AP.DBTree)
+	fmt.Println(pocObj.RetrievePOC.BCHash)
+
+	if pocObj.RetrievePOC.BCHash == nil {
+		return pocObj
 	} else {
-		pocObj.RetrievePOC.Error.Message = "Chain Doesn't Exist in the Blockchain"
-		pocObj.RetrievePOC.Error.Code = 200
+		pocObj.RetrievePOC.Error = testCompare(AP.DBTree, pocObj.RetrievePOC.BCHash)
+		return pocObj
 	}
 
-	return pocObj
+	// return pocObj
 }
 
-func testCompare(db []model.Current, bc []model.Current) bool {
-	isMatch := []bool{}
+func testCompare(db []model.Current, bc []model.Current) model.Error {
+	var Rerr model.Error
 	if db != nil && bc != nil {
 		if len(db) == len(bc) {
 			for i := 0; i < len(db); i++ {
-				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType {
-					datamatch:=[]bool{}
-
-					if len(db[i].DataHash)== len(bc[i].DataHash)  {
-						for j:=0;j<len(db[i].DataHash);j++{
-							if db[i].DataHash[j]==bc[i].DataHash[j]{
-								datamatch=append(datamatch,true)
-							}else{
-								datamatch=append(datamatch,false)
-							}
-						}
-					}
-					// else{
-					// 	datamatch=append(datamatch,false)
-					// }
-					isMatch = append(isMatch, checkBoolArray(datamatch))
-				}else{
-					isMatch = append(isMatch, false)
+				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType && db[i].DataHash == bc[i].DataHash {
+					Rerr.Code = http.StatusOK
+					Rerr.Message = "Success! The Tree exists in the Blockchain"
+					
+				} else {
+					Rerr.Code = http.StatusOK
+					Rerr.Message = "Error! TXN:"+db[i].TXNID+" is invalid."
+					return Rerr
 				}
-
 			}
-		}else{
-			isMatch = append(isMatch, false)
+		} else {
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "Error! BC Tree & DB Tree are of different length."
+			return Rerr
 		}
 
+	} else {
+		Rerr.Code = http.StatusOK
+		Rerr.Message = "Error! BC Tree & DB Tree are Non-existant."
+		return Rerr
 	}
 
-	return checkBoolArray(isMatch)
+	return Rerr
 }
 
 //checks the multiple boolean indexes in an array and returns the combined result.
