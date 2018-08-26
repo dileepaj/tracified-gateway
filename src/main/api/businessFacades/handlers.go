@@ -71,7 +71,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// w.WriteHeader(http.StatusBadRequest)
 
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.BCHash}
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: dbTree}
 	json.NewEncoder(w).Encode(result)
 
 	return
