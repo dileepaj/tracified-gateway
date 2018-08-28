@@ -52,5 +52,35 @@ var routes = Routes{
 		"POST",
 		"/transaction/type/{TType}",
 		businessFacades.Transaction,
+	}, Route{
+		"TrustLine",
+		"POST",
+		"/create/Trustline",
+		businessFacades.CreateTrust,
+	}, Route{
+		"SendAssestV2",
+		"POST",
+		"/send/asset",
+		businessFacades.SendAssests,
+	}, Route{
+		"lockAcc",
+		"POST",
+		"/lock/registrarAcc",
+		businessFacades.MultisigAccount,
+	}, Route{
+		"UnlockAcc",
+		"POST",
+		"/Appoint/Registrar",
+		businessFacades.AppointRegistrar,
+	}, Route{
+		"transformV2",
+		"POST",
+		"/transform/V2",
+		businessFacades.TransformV2,
+	}, Route{
+		"COC",
+		"POST",
+		"/COC/{code}/{limit}/{issuer}/{reciver}/{sender}",
+		businessFacades.COC,
 	},
 }

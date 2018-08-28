@@ -14,6 +14,7 @@ import (
 
 	"main/api/apiModel"
 	"main/model"
+
 	"main/proofs/builder"
 	"main/proofs/interpreter"
 )
@@ -53,10 +54,14 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// var lol
 
 	for i := 0; i < len(keys); i++ {
+<<<<<<< HEAD
 		temp := model.Current{
 			TType:    keys[i].TType,
 			TXNID:    keys[i].TXNID,
 			DataHash: keys[i].DataHash}
+=======
+		temp := model.Current{TType: keys[i].TType, TXNID: keys[i].TXNID, DataHash: keys[i].DataHash}
+>>>>>>> registrar
 		dbTree = append(dbTree, temp)
 	}
 
@@ -65,6 +70,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	// output := []model.Current{}
 	display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
 	response = display.InterpretPOC()
+<<<<<<< HEAD
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOC.Error.Code)
@@ -119,14 +125,21 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 		DBTree:    dbTree}
 	response = display.InterpretFullPOC()
 
+=======
+
+>>>>>>> registrar
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOC.Error.Code)
 	// w.WriteHeader(http.StatusBadRequest)
 
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+<<<<<<< HEAD
 	result := apiModel.PocSuccess{
 		Message: response.RetrievePOC.Error.Message,
 		Chain:   dbTree}
+=======
+	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: response.RetrievePOC.DBHash}
+>>>>>>> registrar
 	json.NewEncoder(w).Encode(result)
 
 	return
@@ -275,4 +288,184 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 	return
 
+}
+
+func CreateTrust(w http.ResponseWriter, r *http.Request) {
+
+	// var response model.POE
+	var TObj apiModel.CreateTrustLine
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+		display := &builder.AbstractTrustline{Code: TObj.Code, Limit: TObj.Limit, Issuerkey: TObj.Issuerkey, Signerkey: TObj.Signerkey}
+		result := display.Trustline()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
+}
+func SendAssests(w http.ResponseWriter, r *http.Request) {
+
+	// var response model.POE
+	var TObj apiModel.SendAssest
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+		display := &builder.AbstractAssetTransfer{Code: TObj.Code, Amount: TObj.Amount, Issuerkey: TObj.Issuerkey, Reciverkey: TObj.Reciverkey, Signer: TObj.Signer}
+		result := display.AssetTransfer()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+
+	return
+}
+
+func MultisigAccount(w http.ResponseWriter, r *http.Request) {
+
+	var TObj apiModel.RegistrarAccount
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+
+		// var response model.POE
+
+		display := &builder.AbstractCreateRegistrar{RegistrarAccount: TObj}
+		result := display.CreateRegistrarAcc()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
+
+}
+
+func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
+
+	var TObj apiModel.AppointRegistrar
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+
+		display := &builder.AbstractAppointRegistrar{AppointRegistrar: TObj}
+		result := display.AppointReg()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
+}
+func TransformV2(w http.ResponseWriter, r *http.Request) {
+	// vars := mux.Vars(r)
+
+	// var response model.POE
+	var TObj apiModel.AssestTransfer
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+		display := &builder.AbstractTransformAssets{AssestTransfer: TObj}
+		result := display.TransformAssets()
+		// display := &builder.AbstractTransformAssets{Code1: vars["code1"], Limit1: vars["limit1"], Code2: vars["code2"], Limit2: vars["limit2"], Code3: vars["code3"], Limit3: vars["limit3"], Code4: vars["code4"], Limit4: vars["limit4"]}
+		// display := &builder.AbstractTransformAssets{Code1: TObj.Asset[0].Code, Limit1: TObj.Asset[0].Limit, Code2: TObj.Asset[1].Code, Limit2: TObj.Asset[1].Limit, Code3: TObj.Asset[2].Code, Limit3: TObj.Asset[2].Limit, Code4: TObj.Asset[3].Code, Limit4: TObj.Asset[3].Limit}
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
+
+}
+
+func COC(w http.ResponseWriter, r *http.Request) {
+
+	// var response model.POE
+	var TObj apiModel.ChangeOfCustody
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+		display := &builder.AbstractCoCTransaction{Code: TObj.Code, Amount: TObj.Amount, IssuerKey: TObj.IssuerKey, Reciverkey: TObj.Reciverkey, Sender: TObj.Sender}
+		result := display.CoCTransaction()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
 }
