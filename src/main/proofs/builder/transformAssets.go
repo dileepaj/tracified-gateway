@@ -26,18 +26,11 @@ type AbstractTransformAssets struct {
 }
 
 func (AP *AbstractTransformAssets) TransformAssets() string {
+	object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.AssestTransfer.Identifier, InsertType: "1", PreviousTXNID: AP.AssestTransfer.PreviousTXNID, PreviousProfileID: AP.AssestTransfer.PreviousProfileID}
 
-	// object1 := stellarExecuter.ConcreteProfile{
-	// 	Identifiers:       AP.AssestTransfer.Identifiers,
-	// 	InsertType:        "1",
-	// 	PreviousTXNID:     AP.AssestTransfer.PreviousTXNID,
-	// 	PreviousProfileID: AP.AssestTransfer.PreviousProfileID}
+	result2 := object2.InsertProfile()
 
-	// result1 := object.InsertProfile()
-
-	// AP.AssestTransfer.PreviousProfileID = result1.Txn
-	// AP.AssestTransfer.PreviousTxnHash = result1.Txn
-	object := stellarExecuter.ConcreteTransform{AssestTransfer: AP.AssestTransfer}
+	object := stellarExecuter.ConcreteTransform{AssestTransfer: AP.AssestTransfer, ProfileID: result2.ProfileTxn}
 
 	result := object.TransformMerge()
 

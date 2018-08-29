@@ -2,6 +2,7 @@ package stellarExecuter
 
 import (
 	"log"
+	"main/api/apiModel"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -10,22 +11,24 @@ import (
 
 type ConcreteChangeOfCustody struct {
 	// *builder.AbstractTDPInsert
-	Code       string
-	Amount     string
-	IssuerKey  string
-	Reciverkey string
-	Sender     string
+	// Code       string
+	// Amount     string
+	// IssuerKey  string
+	// Reciverkey string
+	// Sender     string
+	COC       apiModel.ChangeOfCustody
+	ProfileId string
 }
 
 func (cd *ConcreteChangeOfCustody) ChangeOfCustody() string {
 
 	// Second, the issuing account actually sends a payment using the asset
 	//RA sign
-	signerSeed := cd.Sender
+	// signerSeed := cd.coc.Sender
 	// recipientSeed := reciverkey
 
 	// // Keys for accounts to issue and receive the new asset
-	sendserKey, err := keypair.Parse(signerSeed)
+	signerSeed, err := keypair.Parse(cd.COC.Sender)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,19 +38,22 @@ func (cd *ConcreteChangeOfCustody) ChangeOfCustody() string {
 	// }
 
 	paymentTx, err := build.Transaction(
-		build.SourceAccount{cd.Reciverkey},
+		build.SourceAccount{cd.COC.Reciverkey},
 		build.TestNetwork,
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
 		build.Payment(
-			build.SourceAccount{sendserKey.Address()},
-			build.Destination{AddressOrSeed: cd.Reciverkey},
-			build.CreditAmount{cd.Code, cd.IssuerKey, cd.Amount},
+			build.SourceAccount{signerSeed.Address()},
+			build.Destination{AddressOrSeed: cd.COC.Reciverkey},
+			build.CreditAmount{cd.COC.Code, cd.COC.IssuerKey, cd.COC.Amount},
 		),
+		build.SetData("PreviousTXNID", []byte(cd.COC.PreviousTXNID)),
+		build.SetData("ProfileID", []byte(cd.ProfileId)),
 	)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	paymentTxe, err := paymentTx.Sign(signerSeed)
+	paymentTxe, err := paymentTx.Sign(cd.COC.Sender)
 	if err != nil {
 		log.Fatal(err)
 	}

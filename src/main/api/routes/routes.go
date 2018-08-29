@@ -80,7 +80,12 @@ var routes = Routes{
 	}, Route{
 		"COC",
 		"POST",
-		"/COC/{code}/{limit}/{issuer}/{reciver}/{sender}",
+		"/COC/Transaction",
 		businessFacades.COC,
+	}, Route{
+		"COCLink",
+		"POST",
+		"/COCLink/Transaction",
+		businessFacades.COCLink,
 	},
 }

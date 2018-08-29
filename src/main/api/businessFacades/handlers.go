@@ -324,7 +324,7 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractAssetTransfer{Code: TObj.Code, Amount: TObj.Amount, Issuerkey: TObj.Issuerkey, Reciverkey: TObj.Reciverkey, Signer: TObj.Signer}
+		display := &builder.AbstractAssetTransfer{SendAssest: TObj}
 		result := display.AssetTransfer()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -447,12 +447,41 @@ func COC(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractCoCTransaction{Code: TObj.Code, Amount: TObj.Amount, IssuerKey: TObj.IssuerKey, Reciverkey: TObj.Reciverkey, Sender: TObj.Sender}
+		display := &builder.AbstractCoCTransaction{ChangeOfCustody: TObj}
 		result := display.CoCTransaction()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		json.NewEncoder(w).Encode(result2)
+		return
+	}
+	return
+}
+
+func COCLink(w http.ResponseWriter, r *http.Request) {
+
+	// var response model.POE
+	var TObj apiModel.ChangeOfCustodyLink
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
+		display := &builder.AbstractcocLink{ChangeOfCustodyLink: TObj}
+		result := display.CoCLink()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}

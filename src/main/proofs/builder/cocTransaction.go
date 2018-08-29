@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -10,16 +11,20 @@ type cocTransactionInterface interface {
 }
 
 type AbstractCoCTransaction struct {
-	Code       string
-	Amount     string
-	IssuerKey  string
-	Reciverkey string
-	Sender     string
+	// Code       string
+	// Amount     string
+	// IssuerKey  string
+	// Reciverkey string
+	// Sender     string
+	ChangeOfCustody apiModel.ChangeOfCustody
 }
 
 func (AP *AbstractCoCTransaction) CoCTransaction() string {
+	object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.ChangeOfCustody.Identifier, InsertType: "1", PreviousTXNID: AP.ChangeOfCustody.PreviousTXNID, PreviousProfileID: AP.ChangeOfCustody.PreviousProfileID}
 
-	object := stellarExecuter.ConcreteChangeOfCustody{Code: AP.Code, Amount: AP.Amount, IssuerKey: AP.IssuerKey, Reciverkey: AP.Reciverkey, Sender: AP.Sender}
+	result2 := object2.InsertProfile()
+
+	object := stellarExecuter.ConcreteChangeOfCustody{COC: AP.ChangeOfCustody, ProfileId: result2.ProfileTxn}
 
 	result := object.ChangeOfCustody()
 

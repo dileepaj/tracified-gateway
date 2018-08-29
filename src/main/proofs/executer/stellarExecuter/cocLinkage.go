@@ -9,25 +9,26 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-type ConcreteSendAssest struct {
+type ConcreteCoCLinkage struct {
 	// *builder.AbstractTDPInsert
 	// Code       string
 	// Amount     string
-	// Issuerkey  string
+	// IssuerKey  string
 	// Reciverkey string
-	// Signer     string
-	Assest apiModel.SendAssest
+	// Sender     string
+	ChangeOfCustodyLink apiModel.ChangeOfCustodyLink
+	ProfileId           string
 }
 
-func (cd *ConcreteSendAssest) SendAsset() string {
+func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 
 	// Second, the issuing account actually sends a payment using the asset
 	//RA sign
-	// signerSeed :=
-	// recipientSeed := cd.Reciverkey
+	// signerSeed := cd.coc.Sender
+	// recipientSeed := reciverkey
 
 	// // Keys for accounts to issue and receive the new asset
-	signerSeed, err := keypair.Parse(cd.Assest.Signer)
+	signerSeed, err := keypair.Parse(cd.ChangeOfCustodyLink.SignerKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -40,17 +41,16 @@ func (cd *ConcreteSendAssest) SendAsset() string {
 		build.SourceAccount{signerSeed.Address()},
 		build.TestNetwork,
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
-		build.Payment(
-			build.Destination{AddressOrSeed: cd.Assest.Reciverkey},
-			build.CreditAmount{cd.Assest.Code, cd.Assest.Issuerkey, cd.Assest.Amount},
-		),
-		build.SetData("PreviousTXNID", []byte(cd.Assest.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.Assest.ProfileID)),
+
+		build.SetData("PreviousTXNID", []byte(cd.ChangeOfCustodyLink.PreviousTXNID)),
+		build.SetData("ProfileID", []byte(cd.ProfileId)),
+		build.SetData("COCTxnID", []byte(cd.ChangeOfCustodyLink.COCTxn)),
 	)
+
 	if err != nil {
 		log.Fatal(err)
 	}
-	paymentTxe, err := paymentTx.Sign(cd.Assest.Signer)
+	paymentTxe, err := paymentTx.Sign(cd.ChangeOfCustodyLink.SignerKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,6 +58,7 @@ func (cd *ConcreteSendAssest) SendAsset() string {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(paymentTxeB64)
 	if err != nil {
 		log.Fatal(err)

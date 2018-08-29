@@ -74,6 +74,7 @@ import (
 
 type ConcreteTransform struct {
 	AssestTransfer apiModel.AssestTransfer
+	ProfileID      string
 	// Code1  string
 	// Limit1 string
 	// Code2  string
@@ -142,6 +143,14 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		}
 
 	}
+	opsTxn := []build.TransactionMutator{
+		build.SetData("PreviousTXNID", []byte(cd.AssestTransfer.PreviousTXNID)),
+	}
+	muts = append(muts, opsTxn...)
+	opsProfile := []build.TransactionMutator{
+		build.SetData("ProfileID", []byte(cd.ProfileID)),
+	}
+	muts = append(muts, opsProfile...)
 
 	tx, err := build.Transaction(muts...)
 

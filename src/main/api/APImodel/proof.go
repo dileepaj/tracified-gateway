@@ -98,11 +98,13 @@ type CreateTrustLine struct {
 	Signerkey string `json:"Signerkey"`
 }
 type SendAssest struct {
-	Code       string `json:"Code"`
-	Amount     string `json:"Amount"`
-	Issuerkey  string `json:"Issuerkey"`
-	Reciverkey string `json:"Reciverkey"`
-	Signer     string `json:"Signer"`
+	Code          string `json:"Code"`
+	Amount        string `json:"Amount"`
+	Issuerkey     string `json:"Issuerkey"`
+	Reciverkey    string `json:"Reciverkey"`
+	Signer        string `json:"Signer"`
+	PreviousTXNID string `json:"PreviousTXNID"`
+	ProfileID     string `json:"ProfileID"`
 }
 
 type AppointRegistrar struct {
@@ -123,27 +125,32 @@ type RegistrarAccount struct {
 }
 
 type ChangeOfCustody struct {
-	Code       string `json:"Code"`
-	Amount     string `json:"Amount"`
-	IssuerKey  string `json:"IssuerKey"`
-	Reciverkey string `json:"Reciverkey"`
-	Sender     string `json:"Sender"`
+	Code              string `json:"Code"`
+	Amount            string `json:"Amount"`
+	IssuerKey         string `json:"IssuerKey"`
+	Reciverkey        string `json:"Reciverkey"`
+	Sender            string `json:"Sender"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
 }
 
-// type AssestTransfer struct {
-// 	Code     string `json:"Code"`
-// 	Limit    string `json:"Amount"`
-// 	Reciver1 string `json:"Reciver1"`
-// 	Reciver2 string `json:"Reciver2"`
-// }
+type ChangeOfCustodyLink struct {
+	COCTxn            string `json:"COCTxn"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
+	SignerKey         string `json:"SignerKey"`
+}
 
 type AssestTransfer struct {
 	Asset             []model.Asset
 	Issuer            string `json:"Issuer"`
 	Sender            string `json:"Sender"`
 	Reciver           string `json:"Reciver"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
-	PreviousTxnHash   string `json:"PreviousTxnHash"`
+	Identifier        string `json:"Identifier"`
 }
 
 type POCBody struct {
