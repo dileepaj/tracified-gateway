@@ -1,8 +1,8 @@
 package builder
 
 import (
-	"main/proofs/executer/stellarExecuter"
 	"main/model"
+	"main/proofs/executer/stellarExecuter"
 )
 
 // type struct{}
@@ -35,22 +35,21 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 	// }
 
 	object := stellarExecuter.ConcreteProfile{
-		Identifiers: AP.Identifiers, 
-		InsertType: "1", 
-		PreviousTXNID: AP.PreviousTXNID, 
+		Identifiers:       AP.Identifiers,
+		InsertType:        "1",
+		PreviousTXNID:     AP.PreviousTXNID,
 		PreviousProfileID: AP.PreviousProfileID}
 
 	result := object.InsertProfile()
 
-	object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.Identifiers, 
-		InsertType: AP.InsertType, 
-		PreviousTXNID: result.Txn,
-		PreviousProfileID: AP.ProfileID, 
-		MergingTXNs: AP.MergingTXNs, 
-		ProfileID: result.Txn, 
+	object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.Identifiers,
+		InsertType:         AP.InsertType,
+		PreviousTXNID:      result.ProfileTxn,
+		PreviousProfileID:  AP.ProfileID,
+		MergingTXNs:        AP.MergingTXNs,
+		ProfileID:          result.ProfileTxn,
 		MergingIdentifiers: AP.MergingIdentifiers}
-	result1:=object1.InsertMerge()
-
+	result1 := object1.InsertMerge()
 
 	return result1
 }

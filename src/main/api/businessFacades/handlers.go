@@ -194,7 +194,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			result = display.GenesisInsert()
 
 			w.WriteHeader(result.Error.Code)
-			result2 := apiModel.GenesisSuccess{Message: result.Error.Message, TxnHash: result.Txn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
+			result2 := apiModel.GenesisSuccess{Message: result.Error.Message, ProfileTxn: result.ProfileTxn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
@@ -204,16 +204,16 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			response = display.ProfileInsert()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.ProfileSuccess{Message: response.Error.Message, TxNHash: response.Txn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
+			result := apiModel.ProfileSuccess{Message: response.Error.Message, ProfileTxn: response.ProfileTxn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			response := model.InsertDataResponse{}
 
-			display := &builder.AbstractTDPInsert{Hash: TObj.Data[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
+			display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
 			response = display.TDPInsert()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.Txn, ProfileID: response.ProfileID, Type: response.TxnType}
+			result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.TDPID, ProfileID: response.ProfileID, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "5":
 			// var SplitProfiles []string

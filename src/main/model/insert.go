@@ -6,14 +6,14 @@ type RootTree struct {
 }
 
 type InsertDataResponse struct {
-	Txn       string
+	TDPID     string
 	ProfileID string
 	TxnType   string
 	Error     Error
 }
 
 type InsertProfileResponse struct {
-	Txn               string
+	ProfileTxn        string
 	PreviousProfileID string
 	PreviousTXNID     string
 	Identifiers       string
@@ -22,7 +22,7 @@ type InsertProfileResponse struct {
 }
 
 type InsertGenesisResponse struct {
-	Txn         string
+	ProfileTxn  string
 	GenesisTxn  string
 	Identifiers string
 	TxnType     string
@@ -34,20 +34,20 @@ type SplitProfileResponse struct {
 	PreviousProfileID string
 	PreviousTXNID     string
 	Identifiers       string
-	SplitProfiles []string
-	SplitTXN []string
+	SplitProfiles     []string
+	SplitTXN          []string
 	TxnType           string
 	Error             Error
 }
 
 type MergeProfileResponse struct {
-	Txn               string
-	PreviousProfileID string
-	PreviousTXNID     string
-	Identifiers       string
+	Txn                 string
+	PreviousProfileID   string
+	PreviousTXNID       string
+	Identifiers         string
 	PreviousIdentifiers []string
-	MergeTXNs []string
-	TxnType           string
-	Error             Error
-	ProfileID string
+	MergeTXNs           []string
+	TxnType             string
+	Error               Error
+	ProfileID           string
 }

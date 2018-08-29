@@ -36,7 +36,7 @@ type PoeFailure struct {
 
 type ProfileSuccess struct {
 	Message           string
-	TxNHash           string
+	ProfileTxn        string
 	PreviousTXNID     string
 	PreviousProfileID string
 	Identifiers       string
@@ -52,7 +52,7 @@ type InsertSuccess struct {
 
 type GenesisSuccess struct {
 	Message     string
-	TxnHash     string
+	ProfileTxn  string
 	GenesisTxn  string
 	Identifiers string
 	Type        string
@@ -84,7 +84,7 @@ type TransactionStruct struct {
 	TType             string   `json:"TType"`
 	ProfileID         []string `json:"ProfileID"`
 	PreviousTXNID     []string `json:"PreviousTXNID"`
-	Data              []string `json:"Data"`
+	Data              string   `json:"Data"`
 	Identifiers       []string `json:"Identifiers"`
 	Identifier        string
 	MergingTXNs       []string
@@ -138,10 +138,12 @@ type ChangeOfCustody struct {
 // }
 
 type AssestTransfer struct {
-	Asset   []model.Asset
-	Issuer  string `json:"Issuer"`
-	Sender  string `json:"Sender"`
-	Reciver string `json:"Reciver"`
+	Asset             []model.Asset
+	Issuer            string `json:"Issuer"`
+	Sender            string `json:"Sender"`
+	Reciver           string `json:"Reciver"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	PreviousTxnHash   string `json:"PreviousTxnHash"`
 }
 
 type POCBody struct {

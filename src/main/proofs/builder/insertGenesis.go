@@ -29,14 +29,14 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: "1", PreviousTXNID: result.GenesisTxn, PreviousProfileID: ""}
 
 	result2 := object2.InsertProfile()
-	if result2.Txn == "" {
+	if result2.ProfileTxn == "" {
 		result.Error.Message = result2.Error.Message
 		result.Error.Code = result2.Error.Code
 		return result
 	}
 	result.Error.Message = result2.Error.Message
 	result.Error.Code = result2.Error.Code
-	result.Txn = result2.Txn
+	result.ProfileTxn = result2.ProfileTxn
 
 	return result
 }

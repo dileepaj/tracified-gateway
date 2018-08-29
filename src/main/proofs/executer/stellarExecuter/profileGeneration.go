@@ -77,7 +77,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.Txn = resp.Hash
+	response.ProfileTxn = resp.Hash
 
 	return response
 

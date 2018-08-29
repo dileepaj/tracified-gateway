@@ -35,7 +35,6 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),
 		build.SetData("TDPHash", []byte(cd.Hash)),
-
 	)
 
 	if err != nil {
@@ -77,7 +76,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.Txn = resp.Hash
+	response.TDPID = resp.Hash
 
 	return response
 
