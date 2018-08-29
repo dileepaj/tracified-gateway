@@ -57,7 +57,8 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 		temp := model.Current{
 			TType:    keys[i].TType,
 			TXNID:    keys[i].TXNID,
-			DataHash: keys[i].DataHash}
+			DataHash: keys[i].DataHash,
+			MergedID: keys[i].MergedID}
 		dbTree = append(dbTree, temp)
 	}
 

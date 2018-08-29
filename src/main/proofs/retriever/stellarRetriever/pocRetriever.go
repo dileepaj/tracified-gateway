@@ -61,6 +61,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			var transactionType string
 			var TDPHash string
+			var mergeID string
 			if keys[0] != (PublicKeyPOC{}) {
 				transactionType = Base64DecEnc("Decode", keys[0].Value)
 				fmt.Println("transactionType")
@@ -78,7 +79,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			if transactionType == "6" {
 				if keys[3] != (PublicKeyPOC{}) {
-					mergeID := Base64DecEnc("Decode", keys[3].Value)
+					mergeID = Base64DecEnc("Decode", keys[3].Value)
 					result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
 					if err != nil {
 						Rerr.Code = result.StatusCode
@@ -89,7 +90,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 					} else {
 
 						if result.StatusCode == 200 {
-							TDPHash = Base64DecEnc("Decode", keys[3].Value)
+							mergeID = Base64DecEnc("Decode", keys[3].Value)
 							fmt.Println("TDPHash")
 							fmt.Println(TDPHash)
 						}
@@ -106,7 +107,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 				fmt.Println(bcPreHash)
 			}
 
-			temp := model.Current{TXNID: db.Txn, TType: transactionType, DataHash: TDPHash}
+			temp := model.Current{TXNID: db.Txn, TType: transactionType, DataHash: TDPHash,MergedID:mergeID}
 			db.BCTree = append(db.BCTree, temp)
 
 			Rerr.Code = result.StatusCode

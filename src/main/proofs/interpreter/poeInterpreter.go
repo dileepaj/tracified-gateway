@@ -27,19 +27,31 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 	if poeObj.RetrievePOE.BCHash == "" {
 		return poeObj
 	} else {
-		poeObj.RetrievePOE.Error = MatchingHash(poeObj.RetrievePOE.BCHash, poeObj.RetrievePOE.DBHash)
+		poeObj.RetrievePOE.Error = MatchingHash(
+			poeObj.RetrievePOE.BCHash,
+			poeObj.RetrievePOE.DBHash,
+			AP.ProfileID,
+			poeObj.RetrievePOE.BCProfile)
 		return poeObj
 	}
 }
 
-func MatchingHash(bcHash string, dbHash string) model.Error {
+func MatchingHash(bcHash string, dbHash string, bcProfile string, dbProfile string) model.Error {
 	var Rerr model.Error
 	fmt.Println("bcHash", "dbHash")
 	fmt.Println(bcHash, dbHash)
 	if bcHash == dbHash {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."
+		if bcProfile == dbProfile {
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "DB and BC Hash and Profile match."
+		} else {
+			Rerr.Code = http.StatusOK
+			Rerr.Message = "BC Profile & DB Profile didn't match."
+		}
 		return Rerr
+
 	} else {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "Error! BC Hash & DB Hash din't match."

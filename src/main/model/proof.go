@@ -23,6 +23,7 @@ type RetrievePOE struct {
 	Txn    string `json:"txn"`
 	BCHash string `json:"bcHash"`
 	DBHash string `json:"dbHash"`
+	BCProfile string `json:"BCProfile"`
 	Error  Error  `json:"error"`
 }
 

@@ -60,6 +60,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			// fmt.Printf("%#v", keys[0].Name)
 			// fmt.Printf("%#v", keys[0].Value)
 			bcHash = Base64DecEnc("Decode", keys[3].Value)
+			profile:=Base64DecEnc("Decode", keys[2].Value)
 
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash retrieved from the blockchain."
@@ -67,6 +68,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			response.Txn = db.Txn
 			response.DBHash = db.Hash
 			response.BCHash = bcHash
+			response.BCProfile=profile
 
 		} else {
 			Rerr.Code = http.StatusOK

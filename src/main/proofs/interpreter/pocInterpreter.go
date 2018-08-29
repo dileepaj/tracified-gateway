@@ -45,13 +45,13 @@ func testCompare(db []model.Current, bc []model.Current) model.Error {
 	if db != nil && bc != nil {
 		if len(db) == len(bc) {
 			for i := 0; i < len(db); i++ {
-				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType && db[i].DataHash == bc[i].DataHash {
+				if db[i].TXNID == bc[i].TXNID && db[i].TType == bc[i].TType && db[i].DataHash == bc[i].DataHash && db[i].MergedID == bc[i].MergedID {
 					Rerr.Code = http.StatusOK
 					Rerr.Message = "Success! The Tree exists in the Blockchain"
-					
+
 				} else {
 					Rerr.Code = http.StatusOK
-					Rerr.Message = "Error! TXN:"+db[i].TXNID+" is invalid."
+					Rerr.Message = "Error! TXN:" + db[i].TXNID + " is invalid."
 					return Rerr
 				}
 			}
