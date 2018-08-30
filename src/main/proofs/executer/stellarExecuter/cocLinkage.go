@@ -41,8 +41,8 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 		build.SourceAccount{signerSeed.Address()},
 		build.TestNetwork,
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
-
-		build.SetData("PreviousTXNID", []byte(cd.ChangeOfCustodyLink.PreviousTXNID)),
+		build.SetData("Transaction Type", []byte(cd.ChangeOfCustodyLink.Type)),
+		build.SetData("PreviousTXNID", []byte(cd.ProfileId)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),
 		build.SetData("COCTxnID", []byte(cd.ChangeOfCustodyLink.COCTxn)),
 	)

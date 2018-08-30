@@ -325,15 +325,14 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		display := &builder.AbstractAssetTransfer{SendAssest: TObj}
-		result := display.AssetTransfer()
+		response := display.AssetTransfer()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
-		json.NewEncoder(w).Encode(result2)
+		w.WriteHeader(response.Error.Code)
+		result := apiModel.SendAssetRes{Message: response.Error.Message, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Code: response.Code, Amount: response.Amount, Txn: response.Txn, To: response.To, From: response.From}
+		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 	return
 }
 
@@ -361,7 +360,7 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
+		result2 := apiModel.PoeSuccess{Message: "Success", TxNHash: result}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}
@@ -391,7 +390,7 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		result2 := apiModel.RegSuccess{Message: "Success", Xdr: result}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}
@@ -422,7 +421,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		result2 := apiModel.RegSuccess{Message: "Success", Xdr: result}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}
@@ -448,11 +447,11 @@ func COC(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		display := &builder.AbstractCoCTransaction{ChangeOfCustody: TObj}
-		result := display.CoCTransaction()
+		response := display.CoCTransaction()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.RegSuccess{Message: "TrustLine Created", Xdr: result}
+		w.WriteHeader(response.Error.Code)
+		result2 := apiModel.COCRes{Message: response.Error.Message, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Code: response.Code, Amount: response.Amount, To: response.To, From: response.From, TxnXDR: response.TxnXDR}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}
@@ -481,7 +480,7 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
-		result2 := apiModel.PoeSuccess{Message: "TrustLine Created", TxNHash: result}
+		result2 := apiModel.PoeSuccess{Message: "Success", TxNHash: result}
 		json.NewEncoder(w).Encode(result2)
 		return
 	}

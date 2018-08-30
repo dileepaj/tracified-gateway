@@ -51,3 +51,25 @@ type MergeProfileResponse struct {
 	Error               Error
 	ProfileID           string
 }
+
+type SendAssetResponse struct {
+	Txn               string
+	To                string
+	From              string
+	Code              string
+	Amount            string
+	PreviousTXNID     string
+	PreviousProfileID string
+	Error             Error
+}
+
+type COCResponse struct {
+	TxnXDR            string
+	To                string
+	From              string
+	Code              string
+	Amount            string
+	PreviousTXNID     string
+	PreviousProfileID string
+	Error             Error
+}

@@ -67,9 +67,9 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 		build.SourceAccount{signerAcc.Address()},
 		build.AutoSequence{horizon.DefaultTestNetClient},
 		build.AddSigner(Registrar, weight),
-		build.SetHighThreshold(low),
-		build.SetLowThreshold(medium),
-		build.SetMediumThreshold(high),
+		build.SetHighThreshold(high),
+		build.SetLowThreshold(low),
+		build.SetMediumThreshold(medium),
 	)
 
 	if err != nil {

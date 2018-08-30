@@ -106,7 +106,8 @@ func (cd *ConcreteTransform) TransformMerge() string {
 	// }
 	recipient, err := keypair.Parse(recipientSeed)
 	if err != nil {
-		log.Fatal(err)
+		// log.Fatal(err)
+		return "Account not found"
 	}
 	// recipient2, err := keypair.Parse(recipientSeed2)
 	// if err != nil {
@@ -119,6 +120,19 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		build.TestNetwork,
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
 	}
+	opsType := []build.TransactionMutator{
+		build.SetData("Transaction Type", []byte(cd.AssestTransfer.Type)),
+	}
+	muts = append(muts, opsType...)
+	opsTxn := []build.TransactionMutator{
+		build.SetData("PreviousTXNID", []byte(cd.ProfileID)),
+	}
+	muts = append(muts, opsTxn...)
+	opsProfile := []build.TransactionMutator{
+		build.SetData("ProfileID", []byte(cd.ProfileID)),
+	}
+	muts = append(muts, opsProfile...)
+
 	arrSize := len(cd.AssestTransfer.Asset)
 	fmt.Println(arrSize)
 	for i := 0; i < arrSize; i++ {
@@ -143,29 +157,25 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		}
 
 	}
-	opsTxn := []build.TransactionMutator{
-		build.SetData("PreviousTXNID", []byte(cd.AssestTransfer.PreviousTXNID)),
-	}
-	muts = append(muts, opsTxn...)
-	opsProfile := []build.TransactionMutator{
-		build.SetData("ProfileID", []byte(cd.ProfileID)),
-	}
-	muts = append(muts, opsProfile...)
 
 	tx, err := build.Transaction(muts...)
 
 	if err != nil {
 		log.Fatal(err)
+		return "Transaction Build issue"
 	}
 
 	paymentTxe, err := tx.Sign(recipientSeed)
 
 	if err != nil {
 		log.Fatal(err)
+		return "Transaction Signed issue"
 	}
 	paymentTxeB64, err := paymentTxe.Base64()
 	if err != nil {
+
 		log.Fatal(err)
+		return "Transaction failed"
 	}
 	return paymentTxeB64
 	// fmt.Printf("tx base64: %s", paymentTxeB64)

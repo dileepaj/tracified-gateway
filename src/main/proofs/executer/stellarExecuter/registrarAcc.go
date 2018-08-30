@@ -37,10 +37,12 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 	registrar, err := keypair.Parse(cd.RegistrarAccount.SignerKey)
 	if err != nil {
 		log.Fatal(err)
+		return "Account not found"
 	}
 	// Make sure destination account exists
 	if _, err := horizon.DefaultTestNetClient.LoadAccount(destination); err != nil {
 		panic(err)
+		return "Account not found"
 	}
 
 	// passphrase := network.TestNetworkPassphrase
@@ -49,16 +51,19 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 	low := uint32(low32)
 	if err != nil {
 		fmt.Println(err)
+		return "value convertion error"
 	}
 	medium32, err := strconv.ParseUint(cd.RegistrarAccount.Medium, 10, 64)
 	medium := uint32(medium32)
 	if err != nil {
 		fmt.Println(err)
+		return "value convertion error"
 	}
 	high32, err := strconv.ParseUint(cd.RegistrarAccount.High, 10, 64)
 	high := uint32(high32)
 	if err != nil {
 		fmt.Println(err)
+		return "value convertion error"
 	}
 
 	// weight11, err := strconv.ParseUint(cd.RegistrarAccount.SignerKeys[0].Weight, 10, 64)
@@ -94,6 +99,7 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 		weight64 := uint32(weight)
 		if err != nil {
 			fmt.Println(err)
+			return "value convertion error"
 		}
 		ops := []build.TransactionMutator{
 
@@ -137,6 +143,7 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 
 	if err != nil {
 		log.Fatal(err)
+		return "value convertion error"
 	}
 
 	txe, err := tx.Sign(cd.RegistrarAccount.SignerKey)

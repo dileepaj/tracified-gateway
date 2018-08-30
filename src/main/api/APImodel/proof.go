@@ -105,6 +105,7 @@ type SendAssest struct {
 	Signer        string `json:"Signer"`
 	PreviousTXNID string `json:"PreviousTXNID"`
 	ProfileID     string `json:"ProfileID"`
+	Type          string `json:"Type"`
 }
 
 type AppointRegistrar struct {
@@ -133,6 +134,7 @@ type ChangeOfCustody struct {
 	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
 	Identifier        string `json:"Identifier"`
+	Type              string `json:"Type"`
 }
 
 type ChangeOfCustodyLink struct {
@@ -141,6 +143,7 @@ type ChangeOfCustodyLink struct {
 	PreviousProfileID string `json:"PreviousProfileID"`
 	Identifier        string `json:"Identifier"`
 	SignerKey         string `json:"SignerKey"`
+	Type              string `json:"Type"`
 }
 
 type AssestTransfer struct {
@@ -151,6 +154,7 @@ type AssestTransfer struct {
 	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
 	Identifier        string `json:"Identifier"`
+	Type              string `json:"Type"`
 }
 
 type POCBody struct {
@@ -160,4 +164,26 @@ type POCBody struct {
 type RegSuccess struct {
 	Message string
 	Xdr     string
+}
+
+type SendAssetRes struct {
+	Txn               string
+	To                string
+	From              string
+	Code              string
+	Amount            string
+	PreviousTXNID     string
+	PreviousProfileID string
+	Message           string
+}
+
+type COCRes struct {
+	TxnXDR            string
+	To                string
+	From              string
+	Code              string
+	Amount            string
+	PreviousTXNID     string
+	PreviousProfileID string
+	Message           string
 }

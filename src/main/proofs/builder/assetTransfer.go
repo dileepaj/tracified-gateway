@@ -7,7 +7,7 @@ import (
 )
 
 type assetTransferInterface interface {
-	CreateTrustline() model.InsertDataResponse
+	SendAsset() model.SendAssetResponse
 }
 
 type AbstractAssetTransfer struct {
@@ -19,7 +19,7 @@ type AbstractAssetTransfer struct {
 	SendAssest apiModel.SendAssest
 }
 
-func (AP *AbstractAssetTransfer) AssetTransfer() string {
+func (AP *AbstractAssetTransfer) AssetTransfer() model.SendAssetResponse {
 
 	object := stellarExecuter.ConcreteSendAssest{Assest: AP.SendAssest}
 

@@ -7,7 +7,7 @@ import (
 )
 
 type cocTransactionInterface interface {
-	CreateTrustline() model.InsertDataResponse
+	ChangeOfCustody() model.COCResponse
 }
 
 type AbstractCoCTransaction struct {
@@ -19,7 +19,7 @@ type AbstractCoCTransaction struct {
 	ChangeOfCustody apiModel.ChangeOfCustody
 }
 
-func (AP *AbstractCoCTransaction) CoCTransaction() string {
+func (AP *AbstractCoCTransaction) CoCTransaction() model.COCResponse {
 	object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.ChangeOfCustody.Identifier, InsertType: "1", PreviousTXNID: AP.ChangeOfCustody.PreviousTXNID, PreviousProfileID: AP.ChangeOfCustody.PreviousProfileID}
 
 	result2 := object2.InsertProfile()
