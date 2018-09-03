@@ -20,11 +20,11 @@ type AbstractCoCTransaction struct {
 }
 
 func (AP *AbstractCoCTransaction) CoCTransaction() model.COCResponse {
-	object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.ChangeOfCustody.Identifier, InsertType: "1", PreviousTXNID: AP.ChangeOfCustody.PreviousTXNID, PreviousProfileID: AP.ChangeOfCustody.PreviousProfileID}
+	// object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.ChangeOfCustody.Identifier, InsertType: "1", PreviousTXNID: AP.ChangeOfCustody.PreviousTXNID, PreviousProfileID: AP.ChangeOfCustody.PreviousProfileID}
 
-	result2 := object2.InsertProfile()
+	// result2 := object2.InsertProfile()
 
-	object := stellarExecuter.ConcreteChangeOfCustody{COC: AP.ChangeOfCustody, ProfileId: result2.ProfileTxn}
+	object := stellarExecuter.ConcreteChangeOfCustody{COC: AP.ChangeOfCustody}
 
 	result := object.ChangeOfCustody()
 
