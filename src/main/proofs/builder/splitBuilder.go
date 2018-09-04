@@ -17,7 +17,7 @@ type AbstractSplitProfile struct {
 	SplitIdentifiers  []string
 	InsertType        string
 	ProfileID         string
-	Assets            string
+	Assets            []string
 	Code              string
 	PreviousProfileID string
 }
@@ -47,7 +47,7 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 				PreviousTXNID: result.ProfileTxn,
 				InsertType:    AP.InsertType,
 				ProfileID:     result.ProfileTxn,
-				Assets:        AP.Assets,
+				Assets:        AP.Assets[i],
 				Code:          AP.Code,
 			}
 

@@ -89,6 +89,8 @@ type TransactionStruct struct {
 	Identifier        string
 	MergingTXNs       []string
 	PreviousProfileID []string `json:"PreviousProfileID"`
+	Assets []string
+	Code string
 }
 
 type CreateTrustLine struct {

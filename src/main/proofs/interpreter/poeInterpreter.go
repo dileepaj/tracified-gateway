@@ -45,7 +45,7 @@ func MatchingHash(bcHash string, dbHash string, bcProfile string, dbProfile stri
 		Rerr.Message = "BC Hash & DB Hash match."
 		if bcProfile == dbProfile {
 			Rerr.Code = http.StatusOK
-			Rerr.Message = "DB and BC Hash and Profile match."
+			Rerr.Message = "POE Success! DB & BC Hash and Profile match."
 		} else {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "BC Profile & DB Profile didn't match."

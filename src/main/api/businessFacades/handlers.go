@@ -18,7 +18,6 @@ import (
 	"main/proofs/builder"
 	"main/proofs/interpreter"
 	"main/proofs/retriever/stellarRetriever"
-
 )
 
 func SaveData(w http.ResponseWriter, r *http.Request) {
@@ -228,7 +227,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				SplitIdentifiers:  TObj.Identifiers,
 				InsertType:        TType,
 				PreviousTXNID:     TObj.PreviousTXNID[0],
-				PreviousProfileID: TObj.ProfileID[0]}
+				PreviousProfileID: TObj.ProfileID[0],
+				Assets:            TObj.Assets,
+				Code:              TObj.Code}
 			response = display.ProfileSplit()
 			// 	SplitProfiles = append(SplitProfiles, response.Txn)
 			// }
@@ -494,7 +495,7 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POC
 
-	display := &stellarRetriever.ConcretePOC{Txn:vars["Txn"]}
+	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"]}
 	response.RetrievePOC = display.RetrieveFullPOC()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -503,7 +504,7 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 	result := apiModel.PocSuccess{
-		Chain:   response.RetrievePOC.BCHash}
+		Chain: response.RetrievePOC.BCHash}
 	json.NewEncoder(w).Encode(result)
 
 	return
