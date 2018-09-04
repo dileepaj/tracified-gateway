@@ -17,6 +17,8 @@ import (
 
 	"main/proofs/builder"
 	"main/proofs/interpreter"
+	"main/proofs/retriever/stellarRetriever"
+
 )
 
 func SaveData(w http.ResponseWriter, r *http.Request) {
@@ -485,4 +487,25 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	return
+}
+
+func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	var response model.POC
+
+	display := &stellarRetriever.ConcretePOC{Txn:vars["Txn"]}
+	response.RetrievePOC = display.RetrieveFullPOC()
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(response.RetrievePOC.Error.Code)
+	// w.WriteHeader(http.StatusBadRequest)
+
+	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+	result := apiModel.PocSuccess{
+		Chain:   response.RetrievePOC.BCHash}
+	json.NewEncoder(w).Encode(result)
+
+	return
+
 }

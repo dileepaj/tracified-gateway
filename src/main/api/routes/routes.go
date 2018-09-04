@@ -87,5 +87,10 @@ var routes = Routes{
 		"POST",
 		"/COCLink/Transaction",
 		businessFacades.COCLink,
+	},Route{
+		"POCDeveloperRetriever",
+		"get",
+		"/pocbctree/{Txn}",
+		businessFacades.DeveloperRetriever,
 	},
 }
