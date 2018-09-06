@@ -121,7 +121,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
 	}
 	opsType := []build.TransactionMutator{
-		build.SetData("Transaction Type", []byte(cd.AssestTransfer.Type)),
+		build.SetData("Transaction Type", []byte(cd.AssestTransfer.InsertProfileStruct.Type)),
 	}
 	muts = append(muts, opsType...)
 	opsTxn := []build.TransactionMutator{

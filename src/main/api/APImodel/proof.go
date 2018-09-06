@@ -89,8 +89,8 @@ type TransactionStruct struct {
 	Identifier        string
 	MergingTXNs       []string
 	PreviousProfileID []string `json:"PreviousProfileID"`
-	Assets []string
-	Code string
+	Assets            []string
+	Code              string
 }
 
 type CreateTrustLine struct {
@@ -140,23 +140,17 @@ type ChangeOfCustody struct {
 }
 
 type ChangeOfCustodyLink struct {
-	COCTxn            string `json:"COCTxn"`
-	PreviousTXNID     string `json:"PreviousTXNID"`
-	PreviousProfileID string `json:"PreviousProfileID"`
-	Identifier        string `json:"Identifier"`
-	SignerKey         string `json:"SignerKey"`
-	Type              string `json:"Type"`
+	COCTxn              string `json:"COCTxn"`
+	SignerKey           string `json:"SignerKey"`
+	InsertProfileStruct InsertProfileStruct
 }
 
 type AssestTransfer struct {
-	Asset             []model.Asset
-	Issuer            string `json:"Issuer"`
-	Sender            string `json:"Sender"`
-	Reciver           string `json:"Reciver"`
-	PreviousTXNID     string `json:"PreviousTXNID"`
-	PreviousProfileID string `json:"PreviousProfileID"`
-	Identifier        string `json:"Identifier"`
-	Type              string `json:"Type"`
+	Asset               []model.Asset
+	Issuer              string `json:"Issuer"`
+	Sender              string `json:"Sender"`
+	Reciver             string `json:"Reciver"`
+	InsertProfileStruct InsertProfileStruct
 }
 
 type POCBody struct {
@@ -188,4 +182,65 @@ type COCRes struct {
 	PreviousTXNID     string
 	PreviousProfileID string
 	Message           string
+}
+
+type InsertTDP struct {
+	InsertType    string
+	PreviousTXNID string
+	ProfileID     string
+	Hash          string
+}
+
+type InsertGenesis struct {
+	InsertProfileStruct InsertProfileStruct
+}
+
+type InsertProfileStruct struct {
+	Type              string `json:"Type"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
+}
+
+type SplitProfileStruct struct {
+	SplitIdentifiers    []string
+	ProfileID           string
+	Assets              []string
+	Code                string
+	InsertProfileStruct InsertProfileStruct
+}
+
+type MergeProfileStruct struct {
+	MergingTXNs         []string
+	MergingIdentifiers  []string
+	ProfileID           string
+	Assets              string
+	Code                string
+	InsertProfileStruct InsertProfileStruct
+}
+
+type TrustlineStruct struct {
+	Code      string
+	Limit     string
+	Issuerkey string
+	Signerkey string
+}
+
+type POEStruct struct {
+	Txn       string
+	ProfileID string
+	Hash      string
+}
+
+type POCStruct struct {
+	Txn       string
+	ProfileID string
+	DBTree    []model.Current
+	BCTree    []model.Current
+}
+
+type POGStruct struct {
+	LastTxn    string
+	POGTxn     string
+	Identifier string
 }

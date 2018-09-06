@@ -7,29 +7,20 @@ import (
 	"net/http"
 )
 
-// type AbstractPOC struct {
-// 	Txn       string
-// 	ProfileID string
-// 	DBTree    []model.Current
-// 	BCTree    []model.Current
-// }
-
 func (AP *AbstractPOC) InterpretFullPOC() model.POC {
 	var pocObj model.POC
 
-	object := stellarRetriever.ConcretePOC{
-		Txn:       AP.Txn,
-		ProfileID: AP.ProfileID}
+	object := stellarRetriever.ConcretePOC{POCStruct: AP.POCStruct}
 
 	pocObj.RetrievePOC = object.RetrieveFullPOC()
 
 	fmt.Println(pocObj.RetrievePOC.BCHash)
-	fmt.Println(AP.DBTree)
+	fmt.Println(AP.POCStruct.DBTree)
 
 	if pocObj.RetrievePOC.BCHash == nil {
 		return pocObj
 	} else {
-		pocObj.RetrievePOC.Error = fullCompare(AP.DBTree, pocObj.RetrievePOC.BCHash)
+		pocObj.RetrievePOC.Error = fullCompare(AP.POCStruct.DBTree, pocObj.RetrievePOC.BCHash)
 		return pocObj
 	}
 

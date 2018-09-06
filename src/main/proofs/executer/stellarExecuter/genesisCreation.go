@@ -2,6 +2,7 @@ package stellarExecuter
 
 import (
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"net/http"
 
@@ -10,9 +11,9 @@ import (
 )
 
 type ConcreteGenesis struct {
-	// *builder.AbstractGenesisInsert
-	Identifiers string
-	InsertType  string
+	InsertProfileStruct apiModel.InsertProfileStruct
+	// Identifiers   string
+	// InsertType    string
 	// PreviousTXNID string
 }
 
@@ -23,17 +24,17 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertGenesisResponse
-	response.Identifiers = cd.Identifiers
-	response.TxnType = cd.InsertType
+	response.Identifiers = cd.InsertProfileStruct.Identifier
+	response.TxnType = cd.InsertProfileStruct.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertType)),
+		build.SetData("Transaction Type", []byte(cd.InsertProfileStruct.Type)),
 		build.SetData("PreviousTXNID", []byte("")),
-		build.SetData("Identifiers", []byte(cd.Identifiers)),
+		build.SetData("Identifiers", []byte(cd.InsertProfileStruct.Identifier)),
 	)
 
 	if err != nil {

@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"main/api/apiModel"
 	"main/model"
 
 	"net/http"
@@ -20,22 +21,22 @@ type KeysResponsePOC struct {
 }
 
 type ConcretePOC struct {
-	// *interpreter.AbstractPOC
-	Txn       string
-	ProfileID string
-	DBTree    []model.Current
-	BCTree    []model.Current
+	POCStruct apiModel.POCStruct
+	// Txn       string
+	// ProfileID string
+	// DBTree    []model.Current
+	// BCTree    []model.Current
 }
 
 func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
-		response.Txn = db.Txn
+		response.Txn = db.POCStruct.Txn
 		response.Error = Rerr
 		return response
 
@@ -84,7 +85,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 					if err != nil {
 						Rerr.Code = result.StatusCode
 						Rerr.Message = "The HTTP request failed for Merge ID"
-						response.Txn = db.Txn
+						response.Txn = db.POCStruct.Txn
 						response.Error = Rerr
 						return response
 					} else {
@@ -107,18 +108,20 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 				fmt.Println(bcPreHash)
 			}
 
-			temp := model.Current{TXNID: db.Txn, TType: transactionType, DataHash: TDPHash,MergedID:mergeID}
-			db.BCTree = append(db.BCTree, temp)
+			temp := model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, MergedID: mergeID}
+			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
 
 			Rerr.Code = result.StatusCode
 			Rerr.Message = "The Blockchain Tree Retrieved successfully"
-			response.Txn = db.Txn
-			response.BCHash = db.BCTree
-			response.DBHash = db.DBTree
+			response.Txn = db.POCStruct.Txn
+			response.BCHash = db.POCStruct.BCTree
+			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
 			if keys[1].Value != "" {
-				object := ConcretePOC{Txn: bcPreHash, BCTree: db.BCTree, DBTree: db.DBTree, ProfileID: db.ProfileID}
+				POCObject := apiModel.POCStruct{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
+				object := ConcretePOC{POCStruct: POCObject}
+				// object := ConcretePOC{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
 				response = object.RetrievePOC()
 			}
 

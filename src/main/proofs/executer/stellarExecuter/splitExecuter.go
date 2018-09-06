@@ -4,6 +4,7 @@ import (
 	// "encoding/base64"
 	// "encoding/json"
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"net/http"
 
@@ -12,14 +13,14 @@ import (
 )
 
 type ConcreteSplit struct {
-	// *builder.AbstractSplitProfile
-	PreviousProfileID string
-	PreviousTXNID string
-	Identifiers   string
-	InsertType    string
-	ProfileID     string
-	Assets        string
-	Code          string
+	SplitProfileStruct apiModel.SplitProfileStruct
+	// PreviousProfileID string
+	// PreviousTXNID string
+	// Identifier string
+	// InsertType    string
+	// ProfileID     string
+	CurAssets string
+	// Code          string
 }
 
 func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
@@ -29,17 +30,16 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
 	var response model.SplitProfileResponse
 
-
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("TransactionType", []byte(cd.InsertType)),
-		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.ProfileID)),
-		build.SetData("Assets", []byte(cd.Assets)),
-		build.SetData("Code", []byte(cd.Code)),
+		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.InsertProfileStruct.Type)),
+		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.InsertProfileStruct.PreviousTXNID)),
+		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
+		build.SetData("Assets", []byte(cd.CurAssets)),
+		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
 	)
 
 	if err != nil {
@@ -83,7 +83,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
 	response.Txn = resp.Hash
-	response.PreviousTXNID=cd.PreviousTXNID
+	response.PreviousTXNID = cd.SplitProfileStruct.InsertProfileStruct.PreviousTXNID
 
 	return response
 

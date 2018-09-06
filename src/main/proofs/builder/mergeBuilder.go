@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -12,15 +13,16 @@ type ProflieMergeInterface interface {
 }
 
 type AbstractMergeProfile struct {
-	MergingTXNs        []string
-	PreviousTXNID      string
-	PreviousProfileID  string
-	Identifiers        string
-	MergingIdentifiers []string
-	InsertType         string
-	ProfileID          string
-	Assets             string
-	Code               string
+	MergeProfileStruct apiModel.MergeProfileStruct
+	// MergingTXNs        []string
+	// PreviousTXNID      string
+	// PreviousProfileID  string
+	// Identifiers        string
+	// MergingIdentifiers []string
+	// InsertType         string
+	// ProfileID          string
+	// Assets             string
+	// Code               string
 }
 
 func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
@@ -34,21 +36,21 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 	// 	return result
 	// }
 
-	object := stellarExecuter.ConcreteProfile{
-		Identifiers:       AP.Identifiers,
-		InsertType:        "1",
-		PreviousTXNID:     AP.PreviousTXNID,
-		PreviousProfileID: AP.PreviousProfileID}
+	object := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.MergeProfileStruct.InsertProfileStruct}
 
 	result := object.InsertProfile()
 
-	object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.Identifiers,
-		InsertType:         AP.InsertType,
-		PreviousTXNID:      result.ProfileTxn,
-		PreviousProfileID:  AP.ProfileID,
-		MergingTXNs:        AP.MergingTXNs,
-		ProfileID:          result.ProfileTxn,
-		MergingIdentifiers: AP.MergingIdentifiers}
+	AP.MergeProfileStruct.InsertProfileStruct.PreviousTXNID = result.ProfileTxn
+	AP.MergeProfileStruct.ProfileID = result.ProfileTxn
+
+	object1 := stellarExecuter.ConcreteMerge{MergeProfileStruct: AP.MergeProfileStruct}
+	// object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.MergeProfileStruct.InsertProfileStruct.Identifier,
+	// 	InsertType:         AP.MergeProfileStruct.InsertProfileStruct.Type,
+	// 	PreviousTXNID:      result.ProfileTxn,
+	// 	PreviousProfileID:  AP.MergeProfileStruct.ProfileID,
+	// 	MergingTXNs:        AP.MergeProfileStruct.MergingTXNs,
+	// 	ProfileID:          result.ProfileTxn,
+	// 	MergingIdentifiers: AP.MergeProfileStruct.MergingIdentifiers}
 	result1 := object1.InsertMerge()
 
 	return result1

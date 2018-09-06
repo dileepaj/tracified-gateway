@@ -2,8 +2,7 @@ package businessFacades
 
 import (
 	"io/ioutil"
-
-	// "encoding/base64"
+	"main/proofs/retriever/stellarRetriever"
 
 	"encoding/json"
 	"fmt"
@@ -17,7 +16,6 @@ import (
 
 	"main/proofs/builder"
 	"main/proofs/interpreter"
-	"main/proofs/retriever/stellarRetriever"
 )
 
 func SaveData(w http.ResponseWriter, r *http.Request) {
@@ -65,8 +63,8 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(dbTree)
 
-	// output := []model.Current{}
-	display := &interpreter.AbstractPOC{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	pocStructObj := apiModel.POCStruct{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 	response = display.InterpretPOC()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -115,11 +113,8 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(dbTree)
 
-	// output := []model.Current{}
-	display := &interpreter.AbstractPOC{
-		Txn:       vars["Txn"],
-		ProfileID: vars["PID"],
-		DBTree:    dbTree}
+	pocStructObj := apiModel.POCStruct{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 	response = display.InterpretFullPOC()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -139,9 +134,10 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var response model.POG
-
-	display := &interpreter.AbstractPOG{LastTxn: vars["LastTxn"], POGTxn: vars["POGTxn"], Identifier: vars["Identifier"]}
+	pogStructObj := apiModel.POGStruct{LastTxn: vars["LastTxn"], POGTxn: vars["POGTxn"], Identifier: vars["Identifier"]}
+	display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
 	response = display.InterpretPOG()
+
 	fmt.Println("response.RetrievePOG.Error.Code")
 	fmt.Println(response.RetrievePOG.Error.Code)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -156,8 +152,8 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var response model.POE
-
-	display := &interpreter.AbstractPOE{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
+	poeStructObj := apiModel.POEStruct{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
+	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -171,27 +167,36 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 func Transaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	TType := (vars["TType"])
-	var TObj apiModel.TransactionStruct
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Please send a request body")
 		return
 	} else {
-		err := json.NewDecoder(r.Body).Decode(&TObj)
-		if err != nil {
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
-			return
-		}
-		fmt.Println(TObj)
+		var TObj apiModel.TransactionStruct
+		// err := json.NewDecoder(r.Body).Decode(&TObj)
+		// if err != nil {
+		// 	w.WriteHeader(http.StatusBadRequest)
+		// 	json.NewEncoder(w).Encode("Error while Decoding the body")
+		// 	fmt.Println(err)
+		// 	return
+		// }
+		// fmt.Println(TObj)
 
 		switch TType {
 		case "0":
+			var GObj apiModel.InsertProfileStruct
+			err := json.NewDecoder(r.Body).Decode(&GObj)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(GObj)
 			result := model.InsertGenesisResponse{}
 
-			display := &builder.AbstractGenesisInsert{Identifiers: TObj.Identifiers[0], InsertType: TType}
+			display := &builder.AbstractGenesisInsert{InsertProfileStruct: GObj}
 			result = display.GenesisInsert()
 
 			w.WriteHeader(result.Error.Code)
@@ -199,37 +204,57 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
+			var PObj apiModel.InsertProfileStruct
+			err := json.NewDecoder(r.Body).Decode(&PObj)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(PObj)
 			response := model.InsertProfileResponse{}
 
-			display := &builder.AbstractProfileInsert{Identifiers: TObj.Identifiers[0], InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], PreviousProfileID: TObj.PreviousProfileID[0]}
+			display := &builder.AbstractProfileInsert{InsertProfileStruct: PObj}
 			response = display.ProfileInsert()
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.ProfileSuccess{Message: response.Error.Message, ProfileTxn: response.ProfileTxn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "2":
+			var TDP apiModel.InsertTDP
+			err := json.NewDecoder(r.Body).Decode(&TDP)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(TDP)
 			response := model.InsertDataResponse{}
 
-			display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
+			// display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
+			display := &builder.AbstractTDPInsert{InsertTDP: TDP}
 			response = display.TDPInsert()
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.TDPID, ProfileID: response.ProfileID, Type: response.TxnType}
 			json.NewEncoder(w).Encode(result)
 		case "5":
-			// var SplitProfiles []string
+			var SplitObj apiModel.SplitProfileStruct
+			err := json.NewDecoder(r.Body).Decode(&SplitObj)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(SplitObj)
 			response := model.SplitProfileResponse{}
 
 			// for i := 0; i < len(TObj.Identifiers); i++ {
 
-			display := &builder.AbstractSplitProfile{
-				Identifiers:       TObj.Identifier,
-				SplitIdentifiers:  TObj.Identifiers,
-				InsertType:        TType,
-				PreviousTXNID:     TObj.PreviousTXNID[0],
-				PreviousProfileID: TObj.ProfileID[0],
-				Assets:            TObj.Assets,
-				Code:              TObj.Code}
+			display := &builder.AbstractSplitProfile{SplitProfileStruct: SplitObj}
 			response = display.ProfileSplit()
 			// 	SplitProfiles = append(SplitProfiles, response.Txn)
 			// }
@@ -246,17 +271,18 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Type:             TType}
 			json.NewEncoder(w).Encode(result)
 		case "6":
-
+			var MergeObj apiModel.MergeProfileStruct
+			err := json.NewDecoder(r.Body).Decode(&MergeObj)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(MergeObj)
 			response := model.MergeProfileResponse{}
 
-			display := &builder.AbstractMergeProfile{
-				Identifiers:        TObj.Identifier,
-				InsertType:         TType,
-				PreviousTXNID:      TObj.PreviousTXNID[0],
-				PreviousProfileID:  TObj.ProfileID[0],
-				MergingTXNs:        TObj.MergingTXNs,
-				ProfileID:          TObj.ProfileID[0],
-				MergingIdentifiers: TObj.Identifiers}
+			display := &builder.AbstractMergeProfile{MergeProfileStruct: MergeObj}
 			response = display.ProfileMerge()
 
 			w.WriteHeader(response.Error.Code)
@@ -285,7 +311,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 func CreateTrust(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
-	var TObj apiModel.CreateTrustLine
+	var TObj apiModel.TrustlineStruct
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -299,7 +325,7 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTrustline{Code: TObj.Code, Limit: TObj.Limit, Issuerkey: TObj.Issuerkey, Signerkey: TObj.Signerkey}
+		display := &builder.AbstractTrustline{TrustlineStruct: TObj}
 		result := display.Trustline()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -495,7 +521,9 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POC
 
-	display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"]}
+	pocStructObj := apiModel.POCStruct{Txn: vars["Txn"]}
+	display := &stellarRetriever.ConcretePOC{POCStruct: pocStructObj}
+	// display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"]}
 	response.RetrievePOC = display.RetrieveFullPOC()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")

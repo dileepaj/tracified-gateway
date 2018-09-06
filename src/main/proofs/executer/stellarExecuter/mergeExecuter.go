@@ -4,6 +4,7 @@ import (
 	// "encoding/base64"
 	// "encoding/json"
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"net/http"
 
@@ -12,16 +13,16 @@ import (
 )
 
 type ConcreteMerge struct {
-	// *builder.AbstractMergeProfile
-	MergingTXNs        []string
-	PreviousTXNID      string
-	PreviousProfileID  string
-	Identifiers        string
-	MergingIdentifiers []string
-	InsertType         string
-	ProfileID          string
-	Assets             string
-	Code               string
+	MergeProfileStruct apiModel.MergeProfileStruct
+	// MergingTXNs        []string
+	// PreviousTXNID      string
+	// PreviousProfileID  string
+	// Identifiers        string
+	// MergingIdentifiers []string
+	// InsertType         string
+	// ProfileID          string
+	// Assets             string
+	// Code               string
 }
 
 func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
@@ -32,20 +33,20 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 
 	var MergeTXN []string
 
-	if len(cd.MergingIdentifiers) >= 1 {
+	if len(cd.MergeProfileStruct.MergingIdentifiers) >= 1 {
 
-		for i := 0; i < len(cd.MergingIdentifiers); i++ {
+		for i := 0; i < len(cd.MergeProfileStruct.MergingIdentifiers); i++ {
 
 			tx, err := build.Transaction(
 				build.TestNetwork,
 				build.SourceAccount{secretKey},
 				build.AutoSequence{horizon.DefaultTestNetClient},
-				build.SetData("TransactionType", []byte(cd.InsertType)),
-				build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-				build.SetData("ProfileID", []byte(cd.ProfileID)),
-				build.SetData("MergingTXN", []byte(cd.MergingTXNs[i])),
-				build.SetData("Assets", []byte(cd.Assets)),
-				build.SetData("Code", []byte(cd.Code)),
+				build.SetData("TransactionType", []byte(cd.MergeProfileStruct.InsertProfileStruct.Type)),
+				build.SetData("PreviousTXNID", []byte(cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID)),
+				build.SetData("ProfileID", []byte(cd.MergeProfileStruct.ProfileID)),
+				build.SetData("MergingTXN", []byte(cd.MergeProfileStruct.MergingTXNs[i])),
+				build.SetData("Assets", []byte(cd.MergeProfileStruct.Assets)),
+				build.SetData("Code", []byte(cd.MergeProfileStruct.Code)),
 			)
 
 			if err != nil {
@@ -88,10 +89,10 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 			response.Error.Code = http.StatusOK
 			response.Error.Message = "Transaction performed in the blockchain."
 			response.Txn = resp.Hash
-			response.PreviousTXNID = cd.PreviousTXNID
+			response.PreviousTXNID = cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID
 
-			cd.PreviousTXNID = resp.Hash
-			MergeTXN=append(MergeTXN,resp.Hash)
+			cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID = resp.Hash
+			MergeTXN = append(MergeTXN, resp.Hash)
 
 		}
 
@@ -105,8 +106,8 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 	// response.PreviousProfileID=cd.PreviousProfileID
 
 	response.MergeTXNs = MergeTXN
-	response.PreviousIdentifiers = cd.MergingIdentifiers
-	response.ProfileID = cd.ProfileID
+	response.PreviousIdentifiers = cd.MergeProfileStruct.MergingIdentifiers
+	response.ProfileID = cd.MergeProfileStruct.ProfileID
 	return response
 
 }

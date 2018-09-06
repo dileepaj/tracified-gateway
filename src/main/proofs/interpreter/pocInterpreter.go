@@ -2,38 +2,34 @@ package interpreter
 
 import (
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/retriever/stellarRetriever"
 	"net/http"
 )
 
-// type POCInterface interface {
-// 	RetrievePOC() model.RetrievePOC
-// }
-
 type AbstractPOC struct {
-	Txn       string
-	ProfileID string
-	DBTree    []model.Current
-	BCTree    []model.Current
+	POCStruct apiModel.POCStruct
+	// Txn       string
+	// ProfileID string
+	// DBTree    []model.Current
+	// BCTree    []model.Current
 }
 
 func (AP *AbstractPOC) InterpretPOC() model.POC {
 	var pocObj model.POC
 
-	object := stellarRetriever.ConcretePOC{
-		Txn:       AP.Txn,
-		ProfileID: AP.ProfileID}
+	object := stellarRetriever.ConcretePOC{POCStruct: AP.POCStruct}
 
 	pocObj.RetrievePOC = object.RetrievePOC()
 
-	fmt.Println(AP.DBTree)
+	fmt.Println(AP.POCStruct.DBTree)
 	fmt.Println(pocObj.RetrievePOC.BCHash)
 
 	if pocObj.RetrievePOC.BCHash == nil {
 		return pocObj
 	} else {
-		pocObj.RetrievePOC.Error = testCompare(AP.DBTree, pocObj.RetrievePOC.BCHash)
+		pocObj.RetrievePOC.Error = testCompare(AP.POCStruct.DBTree, pocObj.RetrievePOC.BCHash)
 		return pocObj
 	}
 

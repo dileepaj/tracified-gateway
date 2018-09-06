@@ -2,6 +2,7 @@ package stellarExecuter
 
 import (
 	"log"
+	"main/api/apiModel"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
@@ -9,11 +10,11 @@ import (
 )
 
 type ConcreteTrustline struct {
-	// *builder.AbstractTDPInsert
-	Code      string
-	Limit     string
-	Issuerkey string
-	Signerkey string
+	TrustlineStruct apiModel.TrustlineStruct
+	// Code      string
+	// Limit     string
+	// Issuerkey string
+	// Signerkey string
 }
 
 func (cd *ConcreteTrustline) CreateTrustline() string {
@@ -24,10 +25,10 @@ func (cd *ConcreteTrustline) CreateTrustline() string {
 
 	// issuerSeed := "SDIYQG2GHVQM3ALVIG3BOJSFNZUOUPRGV3YWWNA7UER5QVCYFLCTQDUT"
 	//Reg own account
-	recipientSeed := cd.Signerkey
+	recipientSeed := cd.TrustlineStruct.Signerkey
 
 	// Keys for accounts to issue and receive the new asset
-	issuer, err := keypair.Parse(cd.Issuerkey)
+	issuer, err := keypair.Parse(cd.TrustlineStruct.Issuerkey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,14 +38,14 @@ func (cd *ConcreteTrustline) CreateTrustline() string {
 	}
 
 	// Create an object to represent the new asset
-	Asset := build.CreditAsset(cd.Code, issuer.Address())
+	Asset := build.CreditAsset(cd.TrustlineStruct.Code, issuer.Address())
 
 	// First, the receiving account must trust the asset
 	trustTx, err := build.Transaction(
 		build.SourceAccount{recipient.Address()},
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
 		build.TestNetwork,
-		build.Trust(Asset.Code, Asset.Issuer, build.Limit(cd.Limit)),
+		build.Trust(Asset.Code, Asset.Issuer, build.Limit(cd.TrustlineStruct.Limit)),
 	)
 	if err != nil {
 		log.Fatal(err)

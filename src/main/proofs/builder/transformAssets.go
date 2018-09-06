@@ -26,7 +26,7 @@ type AbstractTransformAssets struct {
 }
 
 func (AP *AbstractTransformAssets) TransformAssets() string {
-	object2 := stellarExecuter.ConcreteProfile{Identifiers: AP.AssestTransfer.Identifier, InsertType: "1", PreviousTXNID: AP.AssestTransfer.PreviousTXNID, PreviousProfileID: AP.AssestTransfer.PreviousProfileID}
+	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.AssestTransfer.InsertProfileStruct}
 
 	result2 := object2.InsertProfile()
 

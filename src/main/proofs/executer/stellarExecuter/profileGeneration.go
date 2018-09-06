@@ -2,6 +2,7 @@ package stellarExecuter
 
 import (
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"net/http"
 
@@ -10,11 +11,11 @@ import (
 )
 
 type ConcreteProfile struct {
-	// *builder.AbstractProfileInsert
-	Identifiers       string
-	InsertType        string
-	PreviousTXNID     string
-	PreviousProfileID string
+	InsertProfileStruct apiModel.InsertProfileStruct
+	// Identifiers       string
+	// InsertType        string
+	// PreviousTXNID     string
+	// PreviousProfileID string
 }
 
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
@@ -22,20 +23,20 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertProfileResponse
-	response.PreviousTXNID = cd.PreviousTXNID
-	response.PreviousProfileID = cd.PreviousProfileID
-	response.Identifiers = cd.Identifiers
-	response.TxnType = cd.InsertType
+	response.PreviousTXNID = cd.InsertProfileStruct.PreviousTXNID
+	response.PreviousProfileID = cd.InsertProfileStruct.PreviousProfileID
+	response.Identifiers = cd.InsertProfileStruct.Identifier
+	response.TxnType = cd.InsertProfileStruct.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertType)),
-		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-		build.SetData("PreviousProfileID", []byte(cd.PreviousProfileID)),
-		build.SetData("Identifiers", []byte(cd.Identifiers)),
+		build.SetData("Transaction Type", []byte(cd.InsertProfileStruct.Type)),
+		build.SetData("PreviousTXNID", []byte(cd.InsertProfileStruct.PreviousTXNID)),
+		build.SetData("PreviousProfileID", []byte(cd.InsertProfileStruct.PreviousProfileID)),
+		build.SetData("Identifiers", []byte(cd.InsertProfileStruct.Identifier)),
 	)
 
 	if err != nil {

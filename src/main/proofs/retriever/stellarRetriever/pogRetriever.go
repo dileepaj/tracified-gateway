@@ -6,21 +6,22 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"main/api/apiModel"
 	"main/model"
 )
 
 type ConcretePOG struct {
-	LastTxn string
+	POGStruct apiModel.POGStruct
 }
 
 func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
-	CurrentTxn := db.LastTxn
+	CurrentTxn := db.POGStruct.LastTxn
 	// var response model.RetrievePOG
 	response := model.RetrievePOG{CurrentTxn, "", "", model.Error{200, ""}}
 	var Rerr model.Error
 	var PreviousTxn string
 
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.LastTxn + "/operations")
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POGStruct.LastTxn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
@@ -64,7 +65,8 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			} else if keys[1].Value != "" {
 				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 
-				object := ConcretePOG{LastTxn: PreviousTxn}
+				pogStruct := apiModel.POGStruct{LastTxn: PreviousTxn}
+				object := ConcretePOG{POGStruct: pogStruct}
 
 				response = object.RetrievePOG()
 			} else {

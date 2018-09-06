@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -11,22 +12,25 @@ type GenesisInsertInterface interface {
 }
 
 type AbstractGenesisInsert struct {
-	Identifiers string
-	InsertType  string
+	InsertProfileStruct apiModel.InsertProfileStruct
+	// Identifiers string
+	// InsertType  string
 	// PreviousTXNID string
 }
 
 func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 
-	object1 := stellarExecuter.ConcreteGenesis{Identifiers: AP.Identifiers, InsertType: AP.InsertType}
+	object1 := stellarExecuter.ConcreteGenesis{InsertProfileStruct: AP.InsertProfileStruct}
 
 	result := object1.InsertGenesis()
 
 	if result.GenesisTxn == "" {
 		return result
 	}
+	AP.InsertProfileStruct.Identifier = result.Identifiers
+	AP.InsertProfileStruct.PreviousTXNID = result.GenesisTxn
 
-	object2 := stellarExecuter.ConcreteProfile{Identifiers: result.Identifiers, InsertType: "1", PreviousTXNID: result.GenesisTxn, PreviousProfileID: ""}
+	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.InsertProfileStruct}
 
 	result2 := object2.InsertProfile()
 	if result2.ProfileTxn == "" {

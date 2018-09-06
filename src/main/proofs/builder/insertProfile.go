@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -11,15 +12,16 @@ type ProflieInsertInterface interface {
 }
 
 type AbstractProfileInsert struct {
-	Identifiers       string
-	InsertType        string
-	PreviousTXNID     string
-	PreviousProfileID string
+	InsertProfileStruct apiModel.InsertProfileStruct
+	// Identifiers       string
+	// InsertType        string
+	// PreviousTXNID     string
+	// PreviousProfileID string
 }
 
 func (AP *AbstractProfileInsert) ProfileInsert() model.InsertProfileResponse {
 
-	object := stellarExecuter.ConcreteProfile{Identifiers: AP.Identifiers, InsertType: AP.InsertType, PreviousTXNID: AP.PreviousTXNID, PreviousProfileID: AP.PreviousProfileID}
+	object := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.InsertProfileStruct}
 
 	result := object.InsertProfile()
 

@@ -4,27 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"main/api/apiModel"
 	"main/model"
 
 	"net/http"
 )
-
-// type PublicKeyPOC struct {
-// 	Name  string
-// 	Value string
-// }
-
-// type KeysResponsePOC struct {
-// 	Collection []PublicKeyPOC
-// }
-
-// type ConcretePOC struct {
-// 	// *interpreter.AbstractPOC
-// 	Txn       string
-// 	ProfileID string
-// 	DBTree    []model.Current
-// 	BCTree    []model.Current
-// }
 
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
@@ -32,11 +16,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var mergeTree []model.Current
 	var temp model.Current
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
-		response.Txn = db.Txn
+		response.Txn = db.POCStruct.Txn
 		response.Error = Rerr
 		return response
 
@@ -70,12 +54,12 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			switch transactionType {
 			case "0":
 				identifier := Base64DecEnc("Decode", keys[2].Value)
-				temp = model.Current{TXNID: db.Txn, TType: transactionType, Identifier: identifier}
+				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, Identifier: identifier}
 			case "1":
 				previousProfile := Base64DecEnc("Decode", keys[2].Value)
 				identifier := Base64DecEnc("Decode", keys[3].Value)
 				temp = model.Current{
-					TXNID:             db.Txn,
+					TXNID:             db.POCStruct.Txn,
 					TType:             transactionType,
 					Identifier:        identifier,
 					PreviousProfileID: previousProfile}
@@ -87,11 +71,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				fmt.Println("TDPHash")
 				fmt.Println(TDPHash)
 
-				temp = model.Current{TXNID: db.Txn, TType: transactionType, DataHash: TDPHash, ProfileID: Profile}
+				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, ProfileID: Profile}
 			case "3":
 			case "4":
 			case "5":
-				temp = model.Current{TXNID: db.Txn, TType: transactionType}
+				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType}
 			case "6":
 
 				mergeID := Base64DecEnc("Decode", keys[3].Value)
@@ -100,13 +84,16 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				if err != nil {
 					Rerr.Code = result.StatusCode
 					Rerr.Message = "The HTTP request failed for Merge ID"
-					response.Txn = db.Txn
+					response.Txn = db.POCStruct.Txn
 					response.Error = Rerr
 					return response
 				} else {
 
 					if result.StatusCode == 200 {
-						object := ConcretePOC{Txn: mergeID, BCTree: mergeTree, DBTree: db.DBTree, ProfileID: Profile}
+						POCObject1 := apiModel.POCStruct{Txn: mergeID, BCTree: mergeTree, DBTree: db.POCStruct.DBTree, ProfileID: Profile}
+
+						object := ConcretePOC{POCStruct: POCObject1}
+						// object := ConcretePOC{Txn: mergeID, BCTree: mergeTree, DBTree: db.POCStruct.DBTree, ProfileID: Profile}
 						response = object.RetrieveFullPOC()
 
 						mergeTree = response.BCHash
@@ -115,7 +102,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				}
 
 				temp = model.Current{
-					TXNID:       db.Txn,
+					TXNID:       db.POCStruct.Txn,
 					TType:       transactionType,
 					ProfileID:   Profile,
 					MergedChain: mergeTree,
@@ -123,17 +110,17 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "7":
 
 				temp = model.Current{
-					TXNID: db.Txn,
+					TXNID: db.POCStruct.Txn,
 					TType: transactionType}
 			case "8":
 
 				temp = model.Current{
-					TXNID: db.Txn,
+					TXNID: db.POCStruct.Txn,
 					TType: transactionType}
 			case "9":
 
 				temp = model.Current{
-					TXNID: db.Txn,
+					TXNID: db.POCStruct.Txn,
 					TType: transactionType}
 			default:
 
@@ -145,21 +132,23 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				fmt.Println(bcPreHash)
 			}
 
-			db.BCTree = append(db.BCTree, temp)
+			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
 
 			Rerr.Code = result.StatusCode
 			Rerr.Message = "The Blockchain Tree Retrieved successfully"
-			response.Txn = db.Txn
-			response.BCHash = db.BCTree
-			response.DBHash = db.DBTree
+			response.Txn = db.POCStruct.Txn
+			response.BCHash = db.POCStruct.BCTree
+			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
 			if keys[1].Value != "" {
-				object := ConcretePOC{
+				POCObject2 := apiModel.POCStruct{
 					Txn:       bcPreHash,
-					BCTree:    db.BCTree,
-					DBTree:    db.DBTree,
-					ProfileID: db.ProfileID}
+					BCTree:    db.POCStruct.BCTree,
+					DBTree:    db.POCStruct.DBTree,
+					ProfileID: db.POCStruct.ProfileID}
+
+				object := ConcretePOC{POCStruct: POCObject2}
 				response = object.RetrieveFullPOC()
 			}
 

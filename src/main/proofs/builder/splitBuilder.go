@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -12,14 +13,15 @@ type ProflieSplitInterface interface {
 }
 
 type AbstractSplitProfile struct {
-	PreviousTXNID     string
-	Identifiers       string
-	SplitIdentifiers  []string
-	InsertType        string
-	ProfileID         string
-	Assets            []string
-	Code              string
-	PreviousProfileID string
+	SplitProfileStruct apiModel.SplitProfileStruct
+	// PreviousTXNID     string
+	// Identifiers       string
+	// SplitIdentifiers  []string
+	// InsertType        string
+	// ProfileID         string
+	// Assets            []string
+	// Code              string
+	// PreviousProfileID string
 }
 
 func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
@@ -28,28 +30,24 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 	var splitTXN []string
 	var result2 model.SplitProfileResponse
 
-	if len(AP.SplitIdentifiers) >= 1 {
+	if len(AP.SplitProfileStruct.SplitIdentifiers) >= 1 {
 
-		for i := 0; i < len(AP.SplitIdentifiers); i++ {
-
-			object := stellarExecuter.ConcreteProfile{
-				Identifiers:       AP.SplitIdentifiers[i],
-				InsertType:        "1",
-				PreviousTXNID:     AP.PreviousTXNID,
-				PreviousProfileID: AP.PreviousProfileID,
-			}
+		for i := 0; i < len(AP.SplitProfileStruct.SplitIdentifiers); i++ {
+			AP.SplitProfileStruct.InsertProfileStruct.Identifier = AP.SplitProfileStruct.SplitIdentifiers[i]
+			object := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.SplitProfileStruct.InsertProfileStruct}
 
 			result := object.InsertProfile()
 
 			splitProfileID = append(splitProfileID, result.ProfileTxn)
 
-			object1 := stellarExecuter.ConcreteSplit{
-				PreviousTXNID: result.ProfileTxn,
-				InsertType:    AP.InsertType,
-				ProfileID:     result.ProfileTxn,
-				Assets:        AP.Assets[i],
-				Code:          AP.Code,
-			}
+			object1 := stellarExecuter.ConcreteSplit{SplitProfileStruct: AP.SplitProfileStruct, CurAssets: AP.SplitProfileStruct.Assets[i]}
+			// object1 := stellarExecuter.ConcreteSplit{
+			// 	PreviousTXNID: result.ProfileTxn,
+			// 	InsertType:    AP.SplitProfileStruct.InsertProfileStruct.Type,
+			// 	ProfileID:     result.ProfileTxn,
+			// 	Assets:        AP.SplitProfileStruct.Assets[i],
+			// 	Code:          AP.SplitProfileStruct.Code,
+			// }
 
 			result2 = object1.InsertSplit()
 

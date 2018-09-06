@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+	"main/api/apiModel"
 	"main/model"
 	"main/proofs/retriever/stellarRetriever"
 	"net/http"
@@ -12,15 +13,16 @@ type POEInterface interface {
 }
 
 type AbstractPOE struct {
-	Txn       string
-	ProfileID string
-	Hash      string
+	POEStruct apiModel.POEStruct
+	// Txn       string
+	// ProfileID string
+	// Hash      string
 }
 
 func (AP *AbstractPOE) InterpretPOE() model.POE {
 	var poeObj model.POE
 
-	object := stellarRetriever.ConcretePOE{Txn: AP.Txn, ProfileID: AP.ProfileID, Hash: AP.Hash}
+	object := stellarRetriever.ConcretePOE{POEStruct: AP.POEStruct}
 
 	poeObj.RetrievePOE = object.RetrievePOE()
 
@@ -30,7 +32,7 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 		poeObj.RetrievePOE.Error = MatchingHash(
 			poeObj.RetrievePOE.BCHash,
 			poeObj.RetrievePOE.DBHash,
-			AP.ProfileID,
+			AP.POEStruct.ProfileID,
 			poeObj.RetrievePOE.BCProfile)
 		return poeObj
 	}

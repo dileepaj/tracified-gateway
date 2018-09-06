@@ -7,15 +7,16 @@ import (
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 
+	"main/api/apiModel"
 	"main/model"
 )
 
 type ConcreteInsertData struct {
-	// *builder.AbstractTDPInsert
-	Hash          string
-	InsertType    string
-	PreviousTXNID string
-	ProfileId     string
+	InsertTDP apiModel.InsertTDP
+	// Hash          string
+	// InsertType    string
+	// PreviousTXNID string
+	// ProfileId     string
 }
 
 func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
@@ -23,18 +24,18 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertDataResponse
-	response.ProfileID = cd.ProfileId
-	response.TxnType = cd.InsertType
+	response.ProfileID = cd.InsertTDP.ProfileID
+	response.TxnType = cd.InsertTDP.InsertType
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertType)),
-		build.SetData("PreviousTXNID", []byte(cd.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.ProfileId)),
-		build.SetData("TDPHash", []byte(cd.Hash)),
+		build.SetData("Transaction Type", []byte(cd.InsertTDP.InsertType)),
+		build.SetData("PreviousTXNID", []byte(cd.InsertTDP.PreviousTXNID)),
+		build.SetData("ProfileID", []byte(cd.InsertTDP.ProfileID)),
+		build.SetData("TDPHash", []byte(cd.InsertTDP.Hash)),
 	)
 
 	if err != nil {
