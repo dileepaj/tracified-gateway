@@ -73,7 +73,7 @@ import (
 // }
 
 type ConcreteTransform struct {
-	AssestTransfer apiModel.AssestTransfer
+	AssetTransfer apiModel.AssetTransfer
 	ProfileID      string
 	// Code1  string
 	// Limit1 string
@@ -95,9 +95,9 @@ func (cd *ConcreteTransform) TransformMerge() string {
 	// log.Fatal(http.ListenAndServe(":8030", router))
 
 	//issuer
-	issuerSeed := cd.AssestTransfer.Issuer
-	Reciver2 := cd.AssestTransfer.Reciver
-	recipientSeed := cd.AssestTransfer.Sender //factory
+	issuerSeed := cd.AssetTransfer.Issuer
+	Reciver2 := cd.AssetTransfer.Reciver
+	recipientSeed := cd.AssetTransfer.Sender //factory
 	// recipientSeed2 := reciver2 //reg
 
 	// issuer, err := keypair.Parse(issuerSeed)
@@ -121,7 +121,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
 	}
 	opsType := []build.TransactionMutator{
-		build.SetData("Transaction Type", []byte(cd.AssestTransfer.InsertProfileStruct.Type)),
+		build.SetData("Transaction Type", []byte(cd.AssetTransfer.Type)),
 	}
 	muts = append(muts, opsType...)
 	opsTxn := []build.TransactionMutator{
@@ -133,7 +133,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 	}
 	muts = append(muts, opsProfile...)
 
-	arrSize := len(cd.AssestTransfer.Asset)
+	arrSize := len(cd.AssetTransfer.Asset)
 	fmt.Println(arrSize)
 	for i := 0; i < arrSize; i++ {
 		if i < arrSize-1 {
@@ -141,7 +141,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 				build.Payment(
 					build.SourceAccount{recipient.Address()},
 					build.Destination{AddressOrSeed: Reciver2},
-					build.CreditAmount{cd.AssestTransfer.Asset[i].Code, issuerSeed, cd.AssestTransfer.Asset[i].Limit},
+					build.CreditAmount{cd.AssetTransfer.Asset[i].Code, issuerSeed, cd.AssetTransfer.Asset[i].Limit},
 				),
 			}
 			muts = append(muts, ops...)
@@ -150,7 +150,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 				build.Payment(
 					build.SourceAccount{Reciver2},
 					build.Destination{AddressOrSeed: recipient.Address()},
-					build.CreditAmount{cd.AssestTransfer.Asset[i].Code, issuerSeed, cd.AssestTransfer.Asset[i].Limit},
+					build.CreditAmount{cd.AssetTransfer.Asset[i].Code, issuerSeed, cd.AssetTransfer.Asset[i].Limit},
 				),
 			}
 			muts = append(muts, ops...)

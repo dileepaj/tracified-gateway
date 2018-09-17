@@ -18,22 +18,6 @@ import (
 	"main/proofs/interpreter"
 )
 
-func SaveData(w http.ResponseWriter, r *http.Request) {
-	// 	vars := mux.Vars(r)
-	// 	response := model.InsertDataResponse{}
-
-	// 	display := &stellarExecuter.ConcreteInsertData{Hash: vars["hash"], InsertType: vars["type"], PreviousTXNID: vars["PreviousTXNID"], ProfileId: vars["profileId"]}
-	// 	response = display.TDPInsert(display)
-
-	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	// 	w.WriteHeader(response.Error.Code)
-	// 	result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.Txn, ProfileID: response.ProfileID, Type: response.TxnType}
-	// 	json.NewEncoder(w).Encode(result)
-
-	// return
-
-}
-
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -284,7 +268,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				PreviousTXNID:    response.PreviousTXNID,
 				SplitProfiles:    response.SplitProfiles,
 				SplitTXN:         response.SplitTXN,
-				Identifier:       SplitObj.InsertProfileStruct.Identifier,
+				Identifier:       SplitObj.Identifier,
 				SplitIdentifiers: SplitObj.SplitIdentifiers,
 				Type:             TType}
 			json.NewEncoder(w).Encode(result)	
@@ -309,7 +293,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				TxnHash:            response.Txn,
 				PreviousTXNID:      response.PreviousTXNID,
 				ProfileID:          response.ProfileID,
-				Identifier:         MergeObj.InsertProfileStruct.Identifier,
+				Identifier:         MergeObj.Identifier,
 				Type:               TType,
 				MergingIdentifiers: response.PreviousIdentifiers,
 				MergeTXNs:          response.MergeTXNs}
@@ -447,7 +431,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 
 	// var response model.POE
-	var TObj apiModel.AssestTransfer
+	var TObj apiModel.AssetTransfer
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -461,7 +445,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTransformAssets{AssestTransfer: TObj}
+		display := &builder.AbstractTransformAssets{AssetTransfer: TObj}
 		result := display.TransformAssets()
 		// display := &builder.AbstractTransformAssets{Code1: vars["code1"], Limit1: vars["limit1"], Code2: vars["code2"], Limit2: vars["limit2"], Code3: vars["code3"], Limit3: vars["limit3"], Code4: vars["code4"], Limit4: vars["limit4"]}
 		// display := &builder.AbstractTransformAssets{Code1: TObj.Asset[0].Code, Limit1: TObj.Asset[0].Limit, Code2: TObj.Asset[1].Code, Limit2: TObj.Asset[1].Limit, Code3: TObj.Asset[2].Code, Limit3: TObj.Asset[2].Limit, Code4: TObj.Asset[3].Code, Limit4: TObj.Asset[3].Limit}

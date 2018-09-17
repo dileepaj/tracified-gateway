@@ -41,8 +41,8 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 				build.TestNetwork,
 				build.SourceAccount{secretKey},
 				build.AutoSequence{horizon.DefaultTestNetClient},
-				build.SetData("TransactionType", []byte(cd.MergeProfileStruct.InsertProfileStruct.Type)),
-				build.SetData("PreviousTXNID", []byte(cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID)),
+				build.SetData("TransactionType", []byte(cd.MergeProfileStruct.Type)),
+				build.SetData("PreviousTXNID", []byte(cd.MergeProfileStruct.PreviousTXNID)),
 				build.SetData("ProfileID", []byte(cd.MergeProfileStruct.ProfileID)),
 				build.SetData("MergingTXN", []byte(cd.MergeProfileStruct.MergingTXNs[i])),
 				build.SetData("Assets", []byte(cd.MergeProfileStruct.Assets)),
@@ -89,9 +89,9 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 			response.Error.Code = http.StatusOK
 			response.Error.Message = "Transaction performed in the blockchain."
 			response.Txn = resp.Hash
-			response.PreviousTXNID = cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID
+			response.PreviousTXNID = cd.MergeProfileStruct.PreviousTXNID
 
-			cd.MergeProfileStruct.InsertProfileStruct.PreviousTXNID = resp.Hash
+			cd.MergeProfileStruct.PreviousTXNID = resp.Hash
 			MergeTXN = append(MergeTXN, resp.Hash)
 
 		}

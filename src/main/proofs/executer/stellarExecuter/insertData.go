@@ -35,7 +35,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 		build.SetData("Transaction Type", []byte(cd.InsertTDP.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.InsertTDP.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.InsertTDP.ProfileID)),
-		build.SetData("TDPHash", []byte(cd.InsertTDP.Hash)),
+		build.SetData("TDPHash", []byte(cd.InsertTDP.DataHash)),
 	)
 
 	if err != nil {

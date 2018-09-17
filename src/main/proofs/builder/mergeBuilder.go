@@ -36,11 +36,17 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 	// 	return result
 	// }
 
-	object := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.MergeProfileStruct.InsertProfileStruct}
+	temp:=apiModel.InsertProfileStruct{Type:"1",
+	PreviousProfileID:AP.MergeProfileStruct.PreviousProfileID,
+	PreviousTXNID:AP.MergeProfileStruct.PreviousTXNID,
+	Identifier:AP.MergeProfileStruct.Identifier}
+
+	object := stellarExecuter.ConcreteProfile{
+		InsertProfileStruct:temp}
 
 	result := object.InsertProfile()
 
-	AP.MergeProfileStruct.InsertProfileStruct.PreviousTXNID = result.ProfileTxn
+	AP.MergeProfileStruct.PreviousTXNID = result.ProfileTxn
 	AP.MergeProfileStruct.ProfileID = result.ProfileTxn
 
 	object1 := stellarExecuter.ConcreteMerge{MergeProfileStruct: AP.MergeProfileStruct}

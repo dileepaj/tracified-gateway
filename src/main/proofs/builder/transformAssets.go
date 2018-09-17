@@ -11,7 +11,7 @@ type transformAssetsInterface interface {
 }
 
 type AbstractTransformAssets struct {
-	AssestTransfer apiModel.AssestTransfer
+	AssetTransfer apiModel.AssetTransfer
 	// Code1  string
 	// Limit1 string
 	// Code2  string
@@ -26,11 +26,19 @@ type AbstractTransformAssets struct {
 }
 
 func (AP *AbstractTransformAssets) TransformAssets() string {
-	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.AssestTransfer.InsertProfileStruct}
+
+	temp:=apiModel.InsertProfileStruct{
+		Type:"1",
+		PreviousProfileID:AP.AssetTransfer.PreviousProfileID,
+		PreviousTXNID:AP.AssetTransfer.PreviousTXNID,
+		Identifier:AP.AssetTransfer.Identifier}
+
+	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 
-	object := stellarExecuter.ConcreteTransform{AssestTransfer: AP.AssestTransfer, ProfileID: result2.ProfileTxn}
+	object := stellarExecuter.ConcreteTransform{
+		AssetTransfer: AP.AssetTransfer, ProfileID: result2.ProfileTxn}
 
 	result := object.TransformMerge()
 

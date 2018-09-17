@@ -21,7 +21,14 @@ type AbstractcocLink struct {
 
 func (AP *AbstractcocLink) CoCLink() string {
 
-	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.ChangeOfCustodyLink.InsertProfileStruct}
+	temp:=apiModel.InsertProfileStruct{
+		Type:"1",
+		PreviousProfileID:AP.ChangeOfCustodyLink.PreviousProfileID,
+		PreviousTXNID:AP.ChangeOfCustodyLink.PreviousTXNID,
+		Identifier:AP.ChangeOfCustodyLink.Identifier}
+
+	object2 := stellarExecuter.ConcreteProfile{
+		InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 

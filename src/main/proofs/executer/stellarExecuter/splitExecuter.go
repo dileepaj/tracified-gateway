@@ -35,8 +35,8 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.TestNetwork,
 		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.InsertProfileStruct.Type)),
-		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.InsertProfileStruct.PreviousTXNID)),
+		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
+		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
 		build.SetData("Assets", []byte(cd.CurAssets)),
 		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
@@ -83,7 +83,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
 	response.Txn = resp.Hash
-	response.PreviousTXNID = cd.SplitProfileStruct.InsertProfileStruct.PreviousTXNID
+	response.PreviousTXNID = cd.SplitProfileStruct.PreviousTXNID
 
 	return response
 

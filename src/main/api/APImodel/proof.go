@@ -142,15 +142,20 @@ type ChangeOfCustody struct {
 type ChangeOfCustodyLink struct {
 	COCTxn              string `json:"COCTxn"`
 	SignerKey           string `json:"SignerKey"`
-	InsertProfileStruct InsertProfileStruct
-}
+	Type              string `json:"Type"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`}
 
-type AssestTransfer struct {
+type AssetTransfer struct {
 	Asset               []model.Asset
 	Issuer              string `json:"Issuer"`
 	Sender              string `json:"Sender"`
 	Reciver             string `json:"Reciver"`
-	InsertProfileStruct InsertProfileStruct
+	Type              string `json:"Type"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
 }
 
 type POCBody struct {
@@ -188,12 +193,13 @@ type InsertTDP struct {
 	Type    string
 	PreviousTXNID string
 	ProfileID     string
-	Hash          string
+	Identifier        string `json:"Identifier"`
+	DataHash          string
 }
 
-type InsertGenesis struct {
-	InsertProfileStruct InsertProfileStruct
-}
+// type InsertGenesis struct {
+// 	InsertProfileStruct InsertProfileStruct
+// }
 
 type InsertProfileStruct struct {
 	Type              string `json:"Type"`
@@ -203,20 +209,28 @@ type InsertProfileStruct struct {
 }
 
 type SplitProfileStruct struct {
+	Type              string `json:"Type"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
 	SplitIdentifiers    []string
 	ProfileID           string
 	Assets              []string
 	Code                string
-	InsertProfileStruct InsertProfileStruct
+	// InsertProfileStruct InsertProfileStruct
 }
 
 type MergeProfileStruct struct {
+	Type              string `json:"Type"`
+	PreviousTXNID     string `json:"PreviousTXNID"`
+	PreviousProfileID string `json:"PreviousProfileID"`
+	Identifier        string `json:"Identifier"`
 	MergingTXNs         []string
 	MergingIdentifiers  []string
 	ProfileID           string
 	Assets              string
 	Code                string
-	InsertProfileStruct InsertProfileStruct
+	// InsertProfileStruct InsertProfileStruct
 }
 
 type TrustlineStruct struct {

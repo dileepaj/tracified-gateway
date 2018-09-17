@@ -18,12 +18,6 @@ type Routes []Route
 var routes = Routes{
 
 	Route{
-		"TDPInsert",
-		"GET",
-		"/TDPInsert/{hash}/{type}/{PreviousTXNID}/{profileId}",
-		businessFacades.SaveData,
-	},
-	Route{
 		"POC",
 		"POST",
 		"/poc/{Txn}/{PID}",
