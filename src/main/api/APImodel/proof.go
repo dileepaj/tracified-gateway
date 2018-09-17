@@ -185,7 +185,7 @@ type COCRes struct {
 }
 
 type InsertTDP struct {
-	InsertType    string
+	Type    string
 	PreviousTXNID string
 	ProfileID     string
 	Hash          string

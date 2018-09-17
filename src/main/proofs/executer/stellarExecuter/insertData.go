@@ -25,14 +25,14 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertDataResponse
 	response.ProfileID = cd.InsertTDP.ProfileID
-	response.TxnType = cd.InsertTDP.InsertType
+	response.TxnType = cd.InsertTDP.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertTDP.InsertType)),
+		build.SetData("Transaction Type", []byte(cd.InsertTDP.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.InsertTDP.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.InsertTDP.ProfileID)),
 		build.SetData("TDPHash", []byte(cd.InsertTDP.Hash)),

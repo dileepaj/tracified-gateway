@@ -113,7 +113,10 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println(dbTree)
 
-	pocStructObj := apiModel.POCStruct{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
+	pocStructObj := apiModel.POCStruct{
+		Txn: vars["Txn"], 
+		ProfileID: vars["PID"], 
+		DBTree: dbTree}
 	display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 	response = display.InterpretFullPOC()
 
@@ -173,7 +176,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Please send a request body")
 		return
 	} else {
-		var TObj apiModel.TransactionStruct
+		// var TObj apiModel.TransactionStruct
 		// err := json.NewDecoder(r.Body).Decode(&TObj)
 		// if err != nil {
 		// 	w.WriteHeader(http.StatusBadRequest)
@@ -200,7 +203,12 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			result = display.GenesisInsert()
 
 			w.WriteHeader(result.Error.Code)
-			result2 := apiModel.GenesisSuccess{Message: result.Error.Message, ProfileTxn: result.ProfileTxn, GenesisTxn: result.GenesisTxn, Identifiers: result.Identifiers, Type: result.TxnType}
+			result2 := apiModel.GenesisSuccess{
+				Message: result.Error.Message, 
+				ProfileTxn: result.ProfileTxn, 
+				GenesisTxn: result.GenesisTxn, 
+				Identifiers: GObj.Identifier, 
+				Type:GObj.Type}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
@@ -219,7 +227,13 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			response = display.ProfileInsert()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.ProfileSuccess{Message: response.Error.Message, ProfileTxn: response.ProfileTxn, PreviousTXNID: response.PreviousTXNID, PreviousProfileID: response.PreviousProfileID, Identifiers: response.Identifiers, Type: response.TxnType}
+			result := apiModel.ProfileSuccess{
+				Message: response.Error.Message, 
+				ProfileTxn: response.ProfileTxn, 
+				PreviousTXNID: response.PreviousTXNID, 
+				PreviousProfileID: response.PreviousProfileID, 
+				Identifiers: PObj.Identifier, 
+				Type: PObj.Type}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			var TDP apiModel.InsertTDP
@@ -238,7 +252,11 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			response = display.TDPInsert()
 
 			w.WriteHeader(response.Error.Code)
-			result := apiModel.InsertSuccess{Message: response.Error.Message, TxNHash: response.TDPID, ProfileID: response.ProfileID, Type: response.TxnType}
+			result := apiModel.InsertSuccess{
+				Message: response.Error.Message, 
+				TxNHash: response.TDPID, 
+				ProfileID: response.ProfileID, 
+				Type: TDP.Type}
 			json.NewEncoder(w).Encode(result)
 		case "5":
 			var SplitObj apiModel.SplitProfileStruct
@@ -266,10 +284,10 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				PreviousTXNID:    response.PreviousTXNID,
 				SplitProfiles:    response.SplitProfiles,
 				SplitTXN:         response.SplitTXN,
-				Identifier:       TObj.Identifier,
-				SplitIdentifiers: TObj.Identifiers,
+				Identifier:       SplitObj.InsertProfileStruct.Identifier,
+				SplitIdentifiers: SplitObj.SplitIdentifiers,
 				Type:             TType}
-			json.NewEncoder(w).Encode(result)
+			json.NewEncoder(w).Encode(result)	
 		case "6":
 			var MergeObj apiModel.MergeProfileStruct
 			err := json.NewDecoder(r.Body).Decode(&MergeObj)
@@ -291,7 +309,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				TxnHash:            response.Txn,
 				PreviousTXNID:      response.PreviousTXNID,
 				ProfileID:          response.ProfileID,
-				Identifier:         TObj.Identifier,
+				Identifier:         MergeObj.InsertProfileStruct.Identifier,
 				Type:               TType,
 				MergingIdentifiers: response.PreviousIdentifiers,
 				MergeTXNs:          response.MergeTXNs}
