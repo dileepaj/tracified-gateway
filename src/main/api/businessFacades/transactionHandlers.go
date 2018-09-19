@@ -40,7 +40,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 		switch TType {
 		case "0":
-			var GObj apiModel.InsertProfileStruct
+			var GObj apiModel.InsertGenesisStruct
 			err := json.NewDecoder(r.Body).Decode(&GObj)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -51,7 +51,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(GObj)
 			result := model.InsertGenesisResponse{}
 
-			display := &builder.AbstractGenesisInsert{InsertProfileStruct: GObj}
+			display := &builder.AbstractGenesisInsert{InsertGenesisStruct: GObj}
 			result = display.GenesisInsert()
 
 			w.WriteHeader(result.Error.Code)

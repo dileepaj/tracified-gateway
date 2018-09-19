@@ -12,7 +12,7 @@ type GenesisInsertInterface interface {
 }
 
 type AbstractGenesisInsert struct {
-	InsertProfileStruct apiModel.InsertProfileStruct
+	InsertGenesisStruct apiModel.InsertGenesisStruct
 	// Identifiers string
 	// InsertType  string
 	// PreviousTXNID string
@@ -20,7 +20,7 @@ type AbstractGenesisInsert struct {
 
 func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 
-	object1 := stellarExecuter.ConcreteGenesis{InsertProfileStruct: AP.InsertProfileStruct}
+	object1 := stellarExecuter.ConcreteGenesis{InsertGenesisStruct: AP.InsertGenesisStruct}
 
 	result := object1.InsertGenesis()
 
@@ -28,9 +28,9 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 		return result
 	}
 	temp:=apiModel.InsertProfileStruct{Type:"1",
-	PreviousProfileID:AP.InsertProfileStruct.PreviousProfileID,
+	PreviousProfileID:"",
 	PreviousTXNID:result.GenesisTxn,
-	Identifier:AP.InsertProfileStruct.Identifier}
+	Identifier:AP.InsertGenesisStruct.Identifier}
 
 	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
 

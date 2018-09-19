@@ -197,9 +197,10 @@ type InsertTDP struct {
 	DataHash          string
 }
 
-// type InsertGenesis struct {
-// 	InsertProfileStruct InsertProfileStruct
-// }
+type InsertGenesisStruct struct {
+	Type              string `json:"Type"`
+	Identifier        string `json:"Identifier"`
+}
 
 type InsertProfileStruct struct {
 	Type              string `json:"Type"`
@@ -257,4 +258,8 @@ type POGStruct struct {
 	LastTxn    string
 	POGTxn     string
 	Identifier string
+}
+
+type POCOBJ struct{
+	Chain []model.Current
 }

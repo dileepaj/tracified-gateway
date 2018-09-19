@@ -11,7 +11,7 @@ import (
 )
 
 type ConcreteGenesis struct {
-	InsertProfileStruct apiModel.InsertProfileStruct
+	InsertGenesisStruct apiModel.InsertGenesisStruct
 	// Identifiers   string
 	// InsertType    string
 	// PreviousTXNID string
@@ -24,17 +24,17 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertGenesisResponse
-	response.Identifiers = cd.InsertProfileStruct.Identifier
-	response.TxnType = cd.InsertProfileStruct.Type
+	response.Identifiers = cd.InsertGenesisStruct.Identifier
+	response.TxnType = cd.InsertGenesisStruct.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertProfileStruct.Type)),
+		build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
 		build.SetData("PreviousTXNID", []byte("")),
-		build.SetData("Identifiers", []byte(cd.InsertProfileStruct.Identifier)),
+		build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
 	)
 
 	if err != nil {

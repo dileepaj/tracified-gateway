@@ -1,7 +1,7 @@
 package businessFacades
 
 import (
-	"io/ioutil"
+
 	// "main/proofs/retriever/stellarRetriever"
 
 	"encoding/json"
@@ -20,100 +20,79 @@ import (
 
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	var response model.POC
-	var dbTree []model.Current
-
-	data, _ := ioutil.ReadAll(r.Body)
-
-	var raw map[string]interface{}
-	json.Unmarshal(data, &raw)
-	// raw["count"] = 2
-	out, _ := json.Marshal(raw["Chain"])
-
-	keysBody := out
-	keys := make([]model.Current, 0)
-	json.Unmarshal(keysBody, &keys)
-	// var lol
-
-	for i := 0; i < len(keys); i++ {
-		temp := model.Current{
-			TType:    keys[i].TType,
-			TXNID:    keys[i].TXNID,
-			DataHash: keys[i].DataHash,
-			MergedID: keys[i].MergedID}
-		dbTree = append(dbTree, temp)
-	}
-
-	fmt.Println(dbTree)
-
-	pocStructObj := apiModel.POCStruct{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: dbTree}
-	display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
-	response = display.InterpretPOC()
-
+	var TObj apiModel.POCOBJ
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(response.RetrievePOC.Error.Code)
-	// w.WriteHeader(http.StatusBadRequest)
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
 
-	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-	result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: dbTree}
-	json.NewEncoder(w).Encode(result)
+		fmt.Println(TObj)
 
+		pocStructObj := apiModel.POCStruct{Txn: vars["Txn"], ProfileID: vars["PID"], DBTree: TObj.Chain}
+		display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
+		response = display.InterpretPOC()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(response.RetrievePOC.Error.Code)
+		// w.WriteHeader(http.StatusBadRequest)
+
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+		result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: TObj.Chain}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
 	return
 }
 
 func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	var response model.POC
-	var dbTree []model.Current
-
-	data, _ := ioutil.ReadAll(r.Body)
-
-	var raw map[string]interface{}
-	json.Unmarshal(data, &raw)
-	// raw["count"] = 2
-	out, _ := json.Marshal(raw["Chain"])
-
-	keysBody := out
-	keys := make([]model.Current, 0)
-	json.Unmarshal(keysBody, &keys)
-	// var lol
-
-	for i := 0; i < len(keys); i++ {
-		temp := model.Current{
-			TType:             keys[i].TType,
-			TXNID:             keys[i].TXNID,
-			DataHash:          keys[i].DataHash,
-			ProfileID:         keys[i].ProfileID,
-			PreviousProfileID: keys[i].PreviousProfileID,
-			MergedID:          keys[i].MergedID,
-			MergedChain:       keys[i].MergedChain,
-			Identifier:        keys[i].Identifier,
-			Assets:            keys[i].Assets,
-			Time:              keys[i].Time}
-		dbTree = append(dbTree, temp)
-	}
-
-	fmt.Println(dbTree)
-
-	pocStructObj := apiModel.POCStruct{
-		Txn: vars["Txn"], 
-		ProfileID: vars["PID"], 
-		DBTree: dbTree}
-	display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
-	response = display.InterpretFullPOC()
-
+	var TObj apiModel.POCOBJ
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(response.RetrievePOC.Error.Code)
-	// w.WriteHeader(http.StatusBadRequest)
+	if r.Body == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Please send a request body")
+		return
+	} else {
+		err := json.NewDecoder(r.Body).Decode(&TObj)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Error while Decoding the body")
+			fmt.Println(err)
+			return
+		}
 
-	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-	result := apiModel.PocSuccess{
-		Message: response.RetrievePOC.Error.Message,
-		Chain:   dbTree}
-	json.NewEncoder(w).Encode(result)
+		fmt.Println(TObj)
 
+		pocStructObj := apiModel.POCStruct{
+			Txn:       vars["Txn"],
+			ProfileID: vars["PID"],
+			DBTree:    TObj.Chain}
+		display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
+		response = display.InterpretFullPOC()
+
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(response.RetrievePOC.Error.Code)
+		// w.WriteHeader(http.StatusBadRequest)
+
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+		result := apiModel.PocSuccess{
+			Message: response.RetrievePOC.Error.Message,
+			Chain:   TObj.Chain}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
 	return
 }
 
