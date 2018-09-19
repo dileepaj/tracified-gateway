@@ -66,12 +66,13 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "2":
 
 				Profile = Base64DecEnc("Decode", keys[2].Value)
-				TDPHash = Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[3].Value)
+				TDPHash = Base64DecEnc("Decode", keys[4].Value)
 
 				fmt.Println("TDPHash")
 				fmt.Println(TDPHash)
 
-				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, ProfileID: Profile}
+				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, ProfileID: Profile ,Identifier:identifier}
 			case "3":
 			case "4":
 			case "5":

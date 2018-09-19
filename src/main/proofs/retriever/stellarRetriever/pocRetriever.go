@@ -71,7 +71,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			if transactionType == "2" {
 				if keys[3] != (PublicKeyPOC{}) {
-					TDPHash = Base64DecEnc("Decode", keys[3].Value)
+					TDPHash = Base64DecEnc("Decode", keys[4].Value)
 					fmt.Println("TDPHash")
 					fmt.Println(TDPHash)
 				}

@@ -27,10 +27,12 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 	if result.GenesisTxn == "" {
 		return result
 	}
-	AP.InsertProfileStruct.Identifier = result.Identifiers
-	AP.InsertProfileStruct.PreviousTXNID = result.GenesisTxn
+	temp:=apiModel.InsertProfileStruct{Type:"1",
+	PreviousProfileID:AP.InsertProfileStruct.PreviousProfileID,
+	PreviousTXNID:result.GenesisTxn,
+	Identifier:AP.InsertProfileStruct.Identifier}
 
-	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: AP.InsertProfileStruct}
+	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 	if result2.ProfileTxn == "" {

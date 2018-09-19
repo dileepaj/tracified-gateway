@@ -57,7 +57,7 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 					case "2":
 						fmt.Println(db[i].DataHash + " = " + bc[i].DataHash)
 						fmt.Println(db[i].ProfileID + " = " + bc[i].ProfileID)
-						if db[i].DataHash == bc[i].DataHash && db[i].ProfileID == bc[i].ProfileID {
+						if db[i].Identifier == bc[i].Identifier && db[i].DataHash == bc[i].DataHash && db[i].ProfileID == bc[i].ProfileID {
 							Rerr.Code = http.StatusOK
 							Rerr.Message = "Success! BC Tree & DB Tree matched."
 						} else {

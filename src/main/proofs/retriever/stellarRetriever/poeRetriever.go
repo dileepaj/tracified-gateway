@@ -60,7 +60,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			json.Unmarshal(keysBody, &keys)
 			// fmt.Printf("%#v", keys[0].Name)
 			// fmt.Printf("%#v", keys[0].Value)
-			bcHash = Base64DecEnc("Decode", keys[3].Value)
+			bcHash = Base64DecEnc("Decode", keys[4].Value)
 			profile := Base64DecEnc("Decode", keys[2].Value)
 
 			Rerr.Code = http.StatusOK

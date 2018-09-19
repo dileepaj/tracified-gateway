@@ -24,7 +24,7 @@ var routes = Routes{
 		businessFacades.CheckPOC,
 	},
 	Route{
-		"POC",
+		"FULLPOC",
 		"POST",
 		"/fullpoc/{Txn}/{PID}",
 		businessFacades.CheckFullPOC,
