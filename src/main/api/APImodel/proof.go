@@ -140,18 +140,19 @@ type ChangeOfCustody struct {
 }
 
 type ChangeOfCustodyLink struct {
-	COCTxn              string `json:"COCTxn"`
-	SignerKey           string `json:"SignerKey"`
+	COCTxn            string `json:"COCTxn"`
+	SignerKey         string `json:"SignerKey"`
 	Type              string `json:"Type"`
 	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
-	Identifier        string `json:"Identifier"`}
+	Identifier        string `json:"Identifier"`
+}
 
 type AssetTransfer struct {
-	Asset               []model.Asset
-	Issuer              string `json:"Issuer"`
-	Sender              string `json:"Sender"`
-	Reciver             string `json:"Reciver"`
+	Asset             []model.Asset
+	Issuer            string `json:"Issuer"`
+	Sender            string `json:"Sender"`
+	Reciver           string `json:"Reciver"`
 	Type              string `json:"Type"`
 	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
@@ -190,16 +191,16 @@ type COCRes struct {
 }
 
 type InsertTDP struct {
-	Type    string
+	Type          string
 	PreviousTXNID string
 	ProfileID     string
-	Identifier        string `json:"Identifier"`
-	DataHash          string
+	Identifier    string `json:"Identifier"`
+	DataHash      string
 }
 
 type InsertGenesisStruct struct {
-	Type              string `json:"Type"`
-	Identifier        string `json:"Identifier"`
+	Type       string `json:"Type"`
+	Identifier string `json:"Identifier"`
 }
 
 type InsertProfileStruct struct {
@@ -209,28 +210,44 @@ type InsertProfileStruct struct {
 	Identifier        string `json:"Identifier"`
 }
 
+type InsertPOAStruct struct {
+	Type          string   `json:"Type"`
+	PreviousTXNID string   `json:"PreviousTXNID"`
+	ProfileID     string   `json:"ProfileID"`
+	Identifier    []string `json:"Identifier"`
+}
+
+type InsertPOCertStruct struct {
+	Type     string `json:"Type"`
+	CertType string `json:"CertType"`
+	CertBody string `json:"CertBody"`
+	Validity string `json:"Validity"`
+	Issued   string `json:"Issued"`
+	Expired  string `json:"Expired"`
+}
+
 type SplitProfileStruct struct {
 	Type              string `json:"Type"`
 	PreviousTXNID     string `json:"PreviousTXNID"`
 	PreviousProfileID string `json:"PreviousProfileID"`
 	Identifier        string `json:"Identifier"`
-	SplitIdentifiers    []string
-	ProfileID           string
-	Assets              []string
-	Code                string
+	SplitIdentifiers  []string
+	ProfileID         string
+	Assets            []string
+	Code              string
 	// InsertProfileStruct InsertProfileStruct
 }
 
 type MergeProfileStruct struct {
-	Type              string `json:"Type"`
-	PreviousTXNID     string `json:"PreviousTXNID"`
-	PreviousProfileID string `json:"PreviousProfileID"`
-	Identifier        string `json:"Identifier"`
-	MergingTXNs         []string
-	MergingIdentifiers  []string
-	ProfileID           string
-	Assets              string
-	Code                string
+	Type               string `json:"Type"`
+	PreviousTXNID      string `json:"PreviousTXNID"`
+	PreviousProfileID  string `json:"PreviousProfileID"`
+	Identifier         string `json:"Identifier"`
+	MergingTXNs        []string
+	MergingIdentifiers []string
+	ProfileID          string
+	Assets             string
+	Code               string
 	// InsertProfileStruct InsertProfileStruct
 }
 
@@ -260,6 +277,6 @@ type POGStruct struct {
 	Identifier string
 }
 
-type POCOBJ struct{
+type POCOBJ struct {
 	Chain []model.Current
 }

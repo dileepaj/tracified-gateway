@@ -1,23 +1,16 @@
 package businessFacades
 
 import (
-	// "io/ioutil"
-	// "main/proofs/retriever/stellarRetriever"
-
 	"encoding/json"
 	"fmt"
-
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"main/api/apiModel"
 	"main/model"
-
 	"main/proofs/builder"
-	// "main/proofs/interpreter"
 )
-
 
 func Transaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -28,16 +21,6 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Please send a request body")
 		return
 	} else {
-		// var TObj apiModel.TransactionStruct
-		// err := json.NewDecoder(r.Body).Decode(&TObj)
-		// if err != nil {
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	json.NewEncoder(w).Encode("Error while Decoding the body")
-		// 	fmt.Println(err)
-		// 	return
-		// }
-		// fmt.Println(TObj)
-
 		switch TType {
 		case "0":
 			var GObj apiModel.InsertGenesisStruct
@@ -56,11 +39,11 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(result.Error.Code)
 			result2 := apiModel.GenesisSuccess{
-				Message: result.Error.Message, 
-				ProfileTxn: result.ProfileTxn, 
-				GenesisTxn: result.GenesisTxn, 
-				Identifiers: GObj.Identifier, 
-				Type:GObj.Type}
+				Message:     result.Error.Message,
+				ProfileTxn:  result.ProfileTxn,
+				GenesisTxn:  result.GenesisTxn,
+				Identifiers: GObj.Identifier,
+				Type:        GObj.Type}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
@@ -80,12 +63,12 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.ProfileSuccess{
-				Message: response.Error.Message, 
-				ProfileTxn: response.ProfileTxn, 
-				PreviousTXNID: response.PreviousTXNID, 
-				PreviousProfileID: response.PreviousProfileID, 
-				Identifiers: PObj.Identifier, 
-				Type: PObj.Type}
+				Message:           response.Error.Message,
+				ProfileTxn:        response.ProfileTxn,
+				PreviousTXNID:     response.PreviousTXNID,
+				PreviousProfileID: response.PreviousProfileID,
+				Identifiers:       PObj.Identifier,
+				Type:              PObj.Type}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			var TDP apiModel.InsertTDP
@@ -105,11 +88,12 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			w.WriteHeader(response.Error.Code)
 			result := apiModel.InsertSuccess{
-				Message: response.Error.Message, 
-				TxNHash: response.TDPID, 
-				ProfileID: response.ProfileID, 
-				Type: TDP.Type}
+				Message:   response.Error.Message,
+				TxNHash:   response.TDPID,
+				ProfileID: response.ProfileID,
+				Type:      TDP.Type}
 			json.NewEncoder(w).Encode(result)
+
 		case "5":
 			var SplitObj apiModel.SplitProfileStruct
 			err := json.NewDecoder(r.Body).Decode(&SplitObj)
@@ -139,7 +123,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Identifier:       SplitObj.Identifier,
 				SplitIdentifiers: SplitObj.SplitIdentifiers,
 				Type:             TType}
-			json.NewEncoder(w).Encode(result)	
+			json.NewEncoder(w).Encode(result)
 		case "6":
 			var MergeObj apiModel.MergeProfileStruct
 			err := json.NewDecoder(r.Body).Decode(&MergeObj)
@@ -166,6 +150,53 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				MergingIdentifiers: response.PreviousIdentifiers,
 				MergeTXNs:          response.MergeTXNs}
 			json.NewEncoder(w).Encode(result)
+
+		case "10":
+			var POA apiModel.InsertPOAStruct
+			err := json.NewDecoder(r.Body).Decode(&POA)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(POA)
+			response := model.InsertDataResponse{}
+
+			display := &builder.AbstractPOAInsert{InsertPOAStruct: POA}
+			response = display.POAInsert()
+
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.InsertSuccess{
+				Message:   response.Error.Message,
+				TxNHash:   response.TDPID,
+				ProfileID: response.ProfileID,
+				Type:      POA.Type}
+			json.NewEncoder(w).Encode(result)
+
+		case "11":
+			var Cert apiModel.InsertPOCertStruct
+			err := json.NewDecoder(r.Body).Decode(&Cert)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode("Error while Decoding the body")
+				fmt.Println(err)
+				return
+			}
+			fmt.Println(Cert)
+			response := model.InsertDataResponse{}
+
+			display := &builder.AbstractPOCertInsert{InsertPOCertStruct: Cert}
+			response = display.POCertInsert()
+
+			w.WriteHeader(response.Error.Code)
+			result := apiModel.InsertSuccess{
+				Message:   response.Error.Message,
+				TxNHash:   response.TDPID,
+				ProfileID: response.ProfileID,
+				Type:      Cert.Type}
+			json.NewEncoder(w).Encode(result)
+
 		default:
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Please send a valid Transaction Type")
