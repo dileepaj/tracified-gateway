@@ -76,10 +76,13 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "3":
 			case "4":
 			case "5":
-				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType}
+				identifier := Base64DecEnc("Decode", keys[3].Value)
+
+				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType,Identifier:identifier}
 			case "6":
 
-				mergeID := Base64DecEnc("Decode", keys[3].Value)
+				mergeID := Base64DecEnc("Decode", keys[4].Value)
+				identifier := Base64DecEnc("Decode", keys[3].Value)
 				Profile = Base64DecEnc("Decode", keys[2].Value)
 				result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
 				if err != nil {
@@ -107,7 +110,8 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 					TType:       transactionType,
 					ProfileID:   Profile,
 					MergedChain: mergeTree,
-					MergedID:    mergeID}
+					MergedID:    mergeID,
+					Identifier:identifier}
 			case "7":
 
 				temp = model.Current{

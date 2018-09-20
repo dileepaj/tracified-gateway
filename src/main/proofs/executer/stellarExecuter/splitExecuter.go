@@ -38,6 +38,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
+		build.SetData("Identifiers", []byte(cd.SplitProfileStruct.Identifier)),
 		build.SetData("Assets", []byte(cd.CurAssets)),
 		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
 	)

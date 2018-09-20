@@ -45,9 +45,16 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 			result := object.InsertProfile()
 
 			splitProfileID = append(splitProfileID, result.ProfileTxn)
+			temp1:=apiModel.SplitProfileStruct{
+				Type:AP.SplitProfileStruct.Type,
+				PreviousProfileID:AP.SplitProfileStruct.PreviousProfileID,
+				PreviousTXNID:result.ProfileTxn,
+				Identifier:AP.SplitProfileStruct.SplitIdentifiers[i],
+				Code:AP.SplitProfileStruct.Code,
+			}
 
 			object1 := stellarExecuter.ConcreteSplit{
-				SplitProfileStruct: AP.SplitProfileStruct, 
+				SplitProfileStruct: temp1, 
 				CurAssets: AP.SplitProfileStruct.Assets[i]}
 		
 

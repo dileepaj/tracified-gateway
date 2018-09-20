@@ -69,7 +69,19 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 					case "5":
 
 					case "6":
-						return fullCompare(db[i].MergedChain, bc[i].MergedChain)
+						if db[i].Identifier == bc[i].Identifier && db[i].ProfileID == bc[i].ProfileID {
+							Rerr.Code = http.StatusOK
+							Rerr.Message = "Success! BC Tree & DB Tree matched."
+
+							return fullCompare(db[i].MergedChain, bc[i].MergedChain)
+
+						} else {
+
+							Rerr.Code = http.StatusOK
+							Rerr.Message = "Error! TXN: " + db[i].TXNID + " is invalid."
+							return Rerr
+						}
+						
 					default:
 						Rerr.Code = http.StatusOK
 						Rerr.Message = "Error! Invalid Txn Type in TXN: " + db[i].TXNID + "."

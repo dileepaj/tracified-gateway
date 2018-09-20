@@ -44,6 +44,7 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 				build.SetData("TransactionType", []byte(cd.MergeProfileStruct.Type)),
 				build.SetData("PreviousTXNID", []byte(cd.MergeProfileStruct.PreviousTXNID)),
 				build.SetData("ProfileID", []byte(cd.MergeProfileStruct.ProfileID)),
+				build.SetData("Identifiers", []byte(cd.MergeProfileStruct.Identifier)),
 				build.SetData("MergingTXN", []byte(cd.MergeProfileStruct.MergingTXNs[i])),
 				build.SetData("Assets", []byte(cd.MergeProfileStruct.Assets)),
 				build.SetData("Code", []byte(cd.MergeProfileStruct.Code)),
