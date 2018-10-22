@@ -17,12 +17,7 @@ type PocFailure struct {
 }
 
 //poe Success response
-// type PoeSuccess struct {
-// 	DataHash string
-// 	TxNHash  string
-// 	Message  string
-// }
-
+/*todelete*/
 type PoeSuccess struct {
 	Message string
 	TxNHash string
@@ -196,6 +191,11 @@ type InsertTDP struct {
 	ProfileID     string
 	Identifier    string `json:"Identifier"`
 	DataHash      string
+}
+
+type TestTDP struct {
+	XDR    string
+	RawTDP string
 }
 
 type InsertGenesisStruct struct {

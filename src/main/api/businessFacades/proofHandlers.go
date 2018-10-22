@@ -104,12 +104,12 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
 	response = display.InterpretPOG()
 
-	fmt.Println("response.RetrievePOG.Error.Code")
-	fmt.Println(response.RetrievePOG.Error.Code)
+	// fmt.Println("response.RetrievePOG.Error.Code")
+	// fmt.Println(response.RetrievePOG.Error.Code)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOG.Error.Code)
-	result := apiModel.PoeSuccess{Message: response.RetrievePOG.Error.Message, TxNHash: response.RetrievePOG.CurTxn}
-	json.NewEncoder(w).Encode(result)
+	// result := apiModel.PoeSuccess{Message: response.RetrievePOG.Error.Message, TxNHash: response.RetrievePOG.CurTxn}
+	json.NewEncoder(w).Encode(response)
 	return
 
 }
@@ -124,8 +124,7 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(response.RetrievePOE.Error.Code)
-	result := apiModel.PoeSuccess{Message: response.RetrievePOE.Error.Message, TxNHash: response.RetrievePOE.Txn}
-	json.NewEncoder(w).Encode(result)
+	json.NewEncoder(w).Encode(response.RetrievePOE)
 	return
 
 }

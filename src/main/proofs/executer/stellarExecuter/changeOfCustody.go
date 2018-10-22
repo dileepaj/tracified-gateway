@@ -47,6 +47,7 @@ func (cd *ConcreteChangeOfCustody) ChangeOfCustody() model.COCResponse {
 		build.SetData("Transaction Type", []byte(cd.COC.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.COC.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.COC.PreviousProfileID)),
+		build.SetData("Identifier", []byte(cd.COC.PreviousProfileID)),
 		build.Payment(
 			build.SourceAccount{signerSeed.Address()},
 			build.Destination{AddressOrSeed: cd.COC.Reciverkey},

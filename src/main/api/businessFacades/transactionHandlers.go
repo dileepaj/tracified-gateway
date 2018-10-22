@@ -71,7 +71,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Type:              PObj.Type}
 			json.NewEncoder(w).Encode(result)
 		case "2":
-			var TDP apiModel.InsertTDP
+			var TDP apiModel.TestTDP
 			err := json.NewDecoder(r.Body).Decode(&TDP)
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
@@ -90,8 +90,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			result := apiModel.InsertSuccess{
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
-				ProfileID: response.ProfileID,
-				Type:      TDP.Type}
+				ProfileID: "response.ProfileID",
+				Type:      "TDP.Type"}
 			json.NewEncoder(w).Encode(result)
 
 		case "5":

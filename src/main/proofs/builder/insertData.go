@@ -12,7 +12,7 @@ type TDPInsertInterface interface {
 }
 
 type AbstractTDPInsert struct {
-	InsertTDP apiModel.InsertTDP
+	InsertTDP apiModel.TestTDP
 	// Hash          string
 	// InsertType    string
 	// PreviousTXNID string

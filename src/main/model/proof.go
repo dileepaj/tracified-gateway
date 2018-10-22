@@ -1,30 +1,12 @@
 package model
 
-type Node struct {
-	Previous []Node
-	Current  Current
-}
-
-type Current struct {
-	TType             string   `json:"TType"`
-	TXNID             string   `json:"TXNID"`
-	DataHash          string   `json:"DataHash"`
-	MergedID          string   `json:"MergedID"`
-	Identifier        string   `json:"Identifier"`
-	PreviousProfileID string   `json:"PreviousProfileID"`
-	ProfileID         string   `json:"ProfileID"`
-	Assets            []string `json:"Assets"`
-	Time              string   `json:"Time"`
-	MergedChain       []Current
-}
-
 //proof of POE
 type RetrievePOE struct {
-	Txn    string `json:"txn"`
-	BCHash string `json:"bcHash"`
-	DBHash string `json:"dbHash"`
+	Txn       string `json:"txn"`
+	BCHash    string `json:"bcHash"`
+	DBHash    string `json:"dbHash"`
 	BCProfile string `json:"BCProfile"`
-	Error  Error  `json:"error"`
+	Error     Error  `json:"error"`
 }
 
 type POE struct {
@@ -44,6 +26,20 @@ type POG struct {
 }
 
 //proof of POC
+
+type Current struct {
+	TType             string   `json:"TType"`
+	TXNID             string   `json:"TXNID"`
+	DataHash          string   `json:"DataHash"`
+	MergedID          string   `json:"MergedID"`
+	Identifier        string   `json:"Identifier"`
+	PreviousProfileID string   `json:"PreviousProfileID"`
+	ProfileID         string   `json:"ProfileID"`
+	Assets            []string `json:"Assets"`
+	Time              string   `json:"Time"`
+	MergedChain       []Current
+}
+
 type RetrievePOC struct {
 	Txn    string    `json:"txn"`
 	BCHash []Current `json:"bcHash"`
