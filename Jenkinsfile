@@ -9,7 +9,6 @@ node {
 
                 // Install the desired Go version
                 def root = tool name: 'Go 1.10', type: 'go'
-                sh 'root'
                 stage('Checkout'){
                     echo 'Checking out SCM'
                     sh 'cd $GOPATH && go list ./... | grep -v /vendor/ | grep -v github.com | grep -v golang.org > projectPaths'
