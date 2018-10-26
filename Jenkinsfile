@@ -5,7 +5,7 @@ node {
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"]) {
-                // env.PATH="${GOPATH}/bin:$PATH"
+                env.PATH="${GOPATH}/bin:$PATH"
  
                 // Install the desired Go version
                 def root = tool name: 'Go 1.10', type: 'go'
@@ -23,11 +23,11 @@ node {
                     echo 'Building Executable'
                 
                     // Produced binary is $GOPATH/src/cmd/project/project
-                    // withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
+                    withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
                         sh 'go env'
                         sh "cd $GOPATH/src/main/ && go get && env GOOS=linux GOARCH=arm64 go build"
                         sh 'chmod u+x main'
-                    // }
+                    }
                    
                 }
                 
