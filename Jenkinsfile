@@ -21,7 +21,7 @@ node {
                 }
                 
                 stage('Deploy'){
-
+                    echo 'Deployed'
                 }
             }
         }
