@@ -25,7 +25,7 @@ node {
                     // Produced binary is $GOPATH/src/cmd/project/project
                     withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
                         sh 'go env'
-                        sh "cd $GOPATH/src/main/ && go get && env GOOS=linux GOARCH=arm64 go build"
+                        sh "cd $GOPATH/src/main/ && go install && go get && go build"
                         sh 'chmod u+x main'
                     }
                    
