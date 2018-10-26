@@ -1,6 +1,5 @@
 node {
     try{
-        notifyBuild('STARTED')
         echo 'buildState INPROGRESS'
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
