@@ -1,18 +1,19 @@
 node {
     try{
-            // Install the desired Go version
-        def root = tool name: 'Go 1.10', type: 'go'
-    
-        // Export environment variables pointing to the directory where Go was installed
-        withEnv(["GOROOT=${root}", "PATH+GO=${root}/bin"]) {
-            sh 'go version'
-        }
         
         echo 'buildState INPROGRESS'
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"]) {
-                env.PATH="${GOPATH}/bin:$PATH"
+                // env.PATH="${GOPATH}/bin:$PATH"
+
+                // Install the desired Go version
+                def root = tool name: 'Go 1.10', type: 'go'
+            
+                // Export environment variables pointing to the directory where Go was installed
+                withEnv(["GOROOT=${root}", "PATH+GO=${root}/bin"]) {
+                    sh 'go version'
+                }
                 
                 stage('Checkout'){
                     echo 'Checking out SCM'
