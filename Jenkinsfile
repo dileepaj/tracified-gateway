@@ -9,6 +9,8 @@ node {
  
                 // Install the desired Go version
                 def root = tool name: 'Go 1.10', type: 'go'
+                sh 'go version'
+
                 stage('Checkout'){
                     echo 'Checking out SCM'
                     checkout scm
@@ -23,11 +25,11 @@ node {
                     echo 'Building Executable'
                 
                     // Produced binary is $GOPATH/src/cmd/project/project
-                    withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
+                    // withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
                         sh 'go env'
-                        sh "cd $GOPATH/src/main/ && go install && go get && go build"
+                        sh "cd $GOPATH/src/main/ && go get && go build"
                         sh 'chmod u+x main'
-                    }
+                    // }
                    
                 }
                 
