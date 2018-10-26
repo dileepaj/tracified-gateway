@@ -15,7 +15,7 @@ node {
                     echo 'Building Executable'
                 
                     //Produced binary is $GOPATH/src/cmd/project/project
-                    sh 'cd $GOPATH/src/main/ && env GOOS=linux GOARCH=arm go build'
+                    sh """cd $GOPATH/src/main/ && env GOOS=linux GOARCH=arm go build"""
                     sh 'chmod u+x main'
                 }
                 
