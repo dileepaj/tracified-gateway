@@ -19,7 +19,7 @@ node {
                     echo 'Building Executable'
                 
                     //Produced binary is $GOPATH/src/cmd/project/project
-                    withEnv(["GOROOT=${root}", "PATH+GO=${root}/bin"]) {
+                    withEnv(["GOROOT=${root}", "PATH+GO=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/"]) {
                         sh 'go env'
                         sh "cd ./src/main/ && go get && env GOOS=linux GOARCH=arm go build"
                         sh 'chmod u+x main'
