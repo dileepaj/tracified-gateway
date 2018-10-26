@@ -17,7 +17,7 @@ node {
             
             export GOROOT="${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/"
             export GOPATH="${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"
-            export PATH=$PATH:"$GOROOT/bin"
+            export PATH="$PATH:$GOROOT/bin"
 
                 stage('Build'){
                     echo 'Building Executable'
