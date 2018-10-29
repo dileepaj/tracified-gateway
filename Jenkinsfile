@@ -18,9 +18,8 @@ node {
             
             stage 'Build'
             sh 'ls -l'
-            sh sh "cd $GOPATH/src/main/"
+            sh sh "cd ${GOPATH}/src/main/"
             sh 'ls -l'
-           
             sh 'go get'
             sh 'go build .'
             
