@@ -2,17 +2,15 @@ node {
     try{
         currentBuild.result = "SUCCESS"
         echo 'buildState INPROGRESS'
-
-         // Install the desired Go version
-                def root = tool name: 'Go 1.10', type: 'go'
-                sh 'go version'
-                sh "${root}"
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"]) {
                 env.PATH="${GOPATH}/bin:$PATH"
  
-               
+                // Install the desired Go version
+                def root = tool name: 'Go 1.10.3', type: 'go'
+                sh 'go version'
+                sh "${root}"
 
                 stage('Checkout'){
                     echo 'Checking out SCM'
