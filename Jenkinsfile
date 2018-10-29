@@ -5,12 +5,12 @@ node {
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"]) {
-                env.PATH="${GOPATH}/bin:$PATH"
+                // env.PATH="${GOPATH}/bin:$PATH"
  
                 // Install the desired Go version
                 def root = tool name: 'Go 1.10.3', type: 'go'
-                sh 'go version'
                 sh "${root}"
+                // sh 'go version'
 
                 stage('Checkout'){
                     echo 'Checking out SCM'
