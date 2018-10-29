@@ -14,6 +14,8 @@ node {
 
             
             stage 'Build'
+            sh 'cd src/main'
+            sh 'go get'
             sh 'go build .'
             
             stage 'Deploy'
