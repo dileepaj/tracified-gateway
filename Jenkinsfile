@@ -10,7 +10,7 @@ node {
                 env.PATH="${GOPATH}/bin:$PATH"
  
                 // Install the desired Go version
-                 def root = tool name: 'Go1.8', type: 'go'
+                //  def root = tool name: 'Go1.8', type: 'go'
                 // sh "${root}"
                 // sh 'go version'
 
