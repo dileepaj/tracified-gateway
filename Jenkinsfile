@@ -6,7 +6,7 @@ node {
         // Install the desired Go version
         def root = tool name: 'Go1.8', type: 'go'
         
-        ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/dileepaj/tracified-gateway/tree/wallet/src/main") {
+        ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}", "PATH+GO=${root}/bin"]) {
                 env.PATH="${GOPATH}/bin:$PATH"
  
