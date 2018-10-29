@@ -14,9 +14,10 @@ node {
 
             
             stage 'Build'
-            sh 'cd src/main'
-            sh 'go get'
-            sh 'go build .'
+            sh 'ls -l'
+            // sh 'cd src/main'
+            // sh 'go get'
+            // sh 'go build .'
             
             stage 'Deploy'
             // Do nothing.
