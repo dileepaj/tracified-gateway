@@ -19,7 +19,7 @@ node {
             
             stage 'Build'
             sh 'ls -l'
-            sh "chmod 777 ${GOPATH}src/main/main.go"
+            sh "usermod -a -G jenkins jenkins"
             sh "cd ${GOPATH}src/main/"
             sh 'ls -l'
             sh "go get ${GOPATH}src/main/"
