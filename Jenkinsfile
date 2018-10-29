@@ -19,7 +19,8 @@ node {
             
             stage 'Build'
             sh 'ls -l'
-            sh "${GOPATH}src/main/"
+            sh "chmod 777 ${GOPATH}src/main/main.go"
+            sh "cd ${GOPATH}src/main/"
             sh 'ls -l'
             sh "go get ${GOPATH}src/main/"
             sh "go build ${GOPATH}src/main/"
