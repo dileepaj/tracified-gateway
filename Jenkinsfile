@@ -1,5 +1,3 @@
-import jenkins.model.*
-jenkins = Jenkins.instance
 
 node {
     def root = tool name: 'Go 1.8', type: 'go'
@@ -21,7 +19,7 @@ node {
             
             stage 'Build'
             sh 'ls -l'
-            sh sh "cd ${GOPATH}/src/main/"
+            sh "cd ${GOPATH}/src/main/"
             sh 'ls -l'
             sh 'go get'
             sh 'go build .'
