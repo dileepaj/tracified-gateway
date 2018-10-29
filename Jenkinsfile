@@ -2,19 +2,22 @@ node {
     try{
         currentBuild.result = "SUCCESS"
         echo 'buildState INPROGRESS'
+
+         // Install the desired Go version
+                def root = tool name: 'Go 1.10', type: 'go'
+                sh 'go version'
+                sh "${root}"
         
         ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
             withEnv(["GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}"]) {
                 env.PATH="${GOPATH}/bin:$PATH"
  
-                // Install the desired Go version
-                def root = tool name: 'Go 1.10', type: 'go'
-                sh 'go version'
+               
 
                 stage('Checkout'){
                     echo 'Checking out SCM'
                     checkout scm
-                    
+
                 }        
             
             // export GOROOT="${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/"
@@ -25,7 +28,7 @@ node {
                     echo 'Building Executable'
                 
                     // Produced binary is $GOPATH/src/cmd/project/project
-                    withEnv(["GOROOT=${root}", "PATH+GO=${root}/bin"]) {
+                    withEnv(["GOROOT=${root}/bin", "PATH+GO=${root}/bin"]) {
                         sh 'go env'
                         sh "cd $GOPATH/src/main/ && go get && go build"
                         sh 'chmod u+x main'
