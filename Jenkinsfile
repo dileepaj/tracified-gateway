@@ -4,7 +4,10 @@ node {
         withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
             
-            stage 'Checkout'
+            stage('Checkout'){
+                echo 'Checking out SCM'
+                checkout scm
+            }  
         
             stage 'preTest'
             sh 'go version'
