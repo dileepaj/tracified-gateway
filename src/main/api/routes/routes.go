@@ -87,4 +87,21 @@ var routes = Routes{
 		"/pocbctree/{Txn}",
 		businessFacades.DeveloperRetriever,
 	},
+	Route{
+		"GetCOCCollectionBySender",
+		"get",
+		"/getcocbysender/{Sender}",
+		businessFacades.GetCocBySender,
+	},
+	Route{
+		"GetCOCCollectionByReceiver",
+		"get",
+		"/getcocbyreceiver/{Receiver}",
+		businessFacades.GetCocByReceiver,
+	},Route{
+		"InsertCOCCollection",
+		"POST",
+		"/insertcoccollection",
+		businessFacades.InsertCocCollection,
+	},
 }

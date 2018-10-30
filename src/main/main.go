@@ -1,17 +1,19 @@
 package main
 
 import (
-	"fmt"
+	// "fmt"
 
+	"fmt"
 	"log"
 	"main/api/routes"
 	"net/http"
 
 	"github.com/gorilla/handlers"
+
 )
 
 func main() {
-
+	
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})

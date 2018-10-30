@@ -2,24 +2,26 @@ package businessFacades
 
 import (
 	// "io/ioutil"
+	// "main/dao"
 	"main/proofs/retriever/stellarRetriever"
+	"gopkg.in/mgo.v2/bson"
+
+	"gopkg.in/mgo.v2"
 
 	"encoding/json"
 	"fmt"
+	// "gopkg.in/mgo.v2"
 
 	"net/http"
 
 	"github.com/gorilla/mux"
 
 	"main/api/apiModel"
+	// "main/dao"
 	"main/model"
-
 	"main/proofs/builder"
 	// "main/proofs/interpreter"
 )
-
-
-
 
 func CreateTrust(w http.ResponseWriter, r *http.Request) {
 
@@ -251,3 +253,122 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+func GetCocBySender(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// fmt.Println(GObj)
+	session, err2 := mgo.Dial("mongodb://Zeemzo:abcd1234@ds143953.mlab.com:43953/tracified-gateway")
+	if err2 != nil {
+		// panic(err)
+	}
+	// response, err := dao.GetCOCbySender(vars["Sender"])
+
+	defer session.Close()
+
+	// session:=Connection()
+	c := session.DB("tracified-gateway").C("COC")
+	result :=model.COCCollectionBody{}
+
+	err:= c.Find(bson.M{"sender": vars["Sender"]}).One(&result)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		result := model.Error{Code:http.StatusNotFound,
+			Message:"No Results Found"}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.GetCOCCollection{
+			Collection: result}
+		json.NewEncoder(w).Encode(result)
+	}
+
+	return
+
+}
+
+func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	// var response model.COCCollectionBody
+
+	// response, err := dao.GetCOCbyReceiver(vars["Receiver"])
+	session, err2 := mgo.Dial("mongodb://Zeemzo:abcd1234@ds143953.mlab.com:43953/tracified-gateway")
+	if err2 != nil {
+		// panic(err)
+	}
+	// response, err := dao.GetCOCbySender(vars["Sender"])
+
+	defer session.Close()
+
+	// session:=Connection()
+	c := session.DB("tracified-gateway").C("COC")
+	result :=model.COCCollectionBody{}
+
+	err:= c.Find(bson.M{"receiver": vars["Receiver"]}).One(&result)
+
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		result := model.Error{Code:http.StatusNotFound,
+			Message:"No Results Found"}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.GetCOCCollection{
+			Collection: result}
+		json.NewEncoder(w).Encode(result)
+	}
+
+	return
+
+}
+
+func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var GObj model.COCCollectionBody
+	err := json.NewDecoder(r.Body).Decode(&GObj)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while Decoding the body")
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Println(GObj)
+	session, err2 := mgo.Dial("mongodb://Zeemzo:abcd1234@ds143953.mlab.com:43953/tracified-gateway")
+	if err2 != nil {
+		// panic(err)
+	}
+
+	defer session.Close()
+
+	// session:=Connection()
+	c := session.DB("tracified-gateway").C("COC")
+	err1:= c.Insert(GObj)
+	if err1 != nil {
+		// log.Fatal(err)
+	}
+
+	// err1:= InsertCoc(GObj)
+	if err1 != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusNotFound)
+		result := apiModel.InsertCOCCollectionResponse{
+			Message: "Failed"}
+		json.NewEncoder(w).Encode(result)
+		return
+	} else {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.InsertCOCCollectionResponse{
+			Message: "Success"}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+}
+
