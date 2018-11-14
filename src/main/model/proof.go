@@ -2,10 +2,10 @@ package model
 
 //proof of POE
 type RetrievePOE struct {
-	Txn       string `json:"txn"`
+	TdpId       string `json:"tdpId"`
 	BCHash    string `json:"bcHash"`
 	DBHash    string `json:"dbHash"`
-	BCProfile string `json:"BCProfile"`
+	Identifier string `json:"identifier"`
 	Error     Error  `json:"error"`
 }
 
@@ -45,6 +45,13 @@ type RetrievePOC struct {
 	BCHash []Current `json:"bcHash"`
 	DBHash []Current `json:"dbHash"`
 	Error  Error     `json:"error"`
+}
+
+type RetrievePrevious struct {
+	// Txn    string    `json:"txn"`
+	// BCHash []Current `json:"bcHash"`
+	HashList []Current `json:"dbHash"`
+	// Error  Error     `json:"error"`
 }
 
 type POC struct {

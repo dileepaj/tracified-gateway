@@ -32,7 +32,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/poe/{Txn}/{PID}/{Hash}",
+		"/poe/{Txn}/{Hash}",
 		businessFacades.CheckPOE,
 	},
 	Route{
@@ -92,16 +92,39 @@ var routes = Routes{
 		"get",
 		"/getcocbysender/{Sender}",
 		businessFacades.GetCocBySender,
-	},
-	Route{
+	},Route{
 		"GetCOCCollectionByReceiver",
 		"get",
 		"/getcocbyreceiver/{Receiver}",
 		businessFacades.GetCocByReceiver,
-	},Route{
+	},
+	Route{
 		"InsertCOCCollection",
 		"POST",
 		"/insertcoccollection",
 		businessFacades.InsertCocCollection,
+	},
+	Route{
+		"InsertTransactioCollection",
+		"POST",
+		"/insertTransactioncollection",
+		businessFacades.InsertTransactionCollection,
+	},
+	Route{
+		"UpdateTransactioCollection",
+		"POST",
+		"/updateTransactioncollection",
+		businessFacades.UpdateTransactionCollection,
+	},
+	Route{
+		"SubmitXDR",
+		"POST",
+		"/submitxdr",
+		businessFacades.SubmitXDR,
+	},Route{
+		"LastTxn",
+		"GET",
+		"/lastTxn/{Identifier}",
+		businessFacades.LastTxn,
 	},
 }

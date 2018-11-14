@@ -1,7 +1,7 @@
 package builder
 
 import (
-	"main/api/apiModel"
+	// "main/api/apiModel"
 	"main/model"
 	"main/proofs/executer/stellarExecuter"
 )
@@ -12,16 +12,17 @@ type TDPInsertInterface interface {
 }
 
 type AbstractTDPInsert struct {
-	InsertTDP apiModel.TestTDP
+	XDR string
+	// InsertTDP apiModel.TestTDP
 	// Hash          string
 	// InsertType    string
 	// PreviousTXNID string
 	// ProfileId     string
 }
 
-func (AP *AbstractTDPInsert) TDPInsert() model.InsertDataResponse {
+func (AP *AbstractTDPInsert) TDPInsert() model.SubmitXDRResponse {
 
-	object := stellarExecuter.ConcreteInsertData{InsertTDP: AP.InsertTDP}
+	object := stellarExecuter.ConcreteInsertData{XDR: AP.XDR}
 	// object := stellarExecuter.ConcreteInsertData{Hash: AP.Hash, InsertType: AP.InsertType, PreviousTXNID: AP.PreviousTXNID, ProfileId: AP.ProfileId}
 
 	result := object.InsertDataHash()

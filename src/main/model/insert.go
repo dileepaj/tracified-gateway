@@ -12,6 +12,15 @@ type InsertDataResponse struct {
 	Error     Error
 }
 
+type SubmitXDRResponse struct {
+	TDPID     string
+	Identifier string
+	PublicKey   string
+	TXNID string
+	TxnType string
+	Error     Error
+}
+
 type InsertProfileResponse struct {
 	ProfileTxn        string
 	PreviousProfileID string

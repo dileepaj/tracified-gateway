@@ -33,7 +33,7 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 			poeObj.RetrievePOE.BCHash,
 			poeObj.RetrievePOE.DBHash,
 			AP.POEStruct.ProfileID,
-			poeObj.RetrievePOE.BCProfile)
+			poeObj.RetrievePOE.Identifier)
 		return poeObj
 	}
 }
@@ -45,13 +45,14 @@ func MatchingHash(bcHash string, dbHash string, bcProfile string, dbProfile stri
 	if bcHash == dbHash {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."
-		if bcProfile == dbProfile {
-			Rerr.Code = http.StatusOK
-			Rerr.Message = "POE Success! DB & BC Hash and Profile match."
-		} else {
-			Rerr.Code = http.StatusOK
-			Rerr.Message = "BC Profile & DB Profile didn't match."
-		}
+		
+		// if bcProfile == dbProfile {
+		// 	Rerr.Code = http.StatusOK
+		// 	Rerr.Message = "POE Success! DB & BC Hash and Profile match."
+		// } else {
+		// 	Rerr.Code = http.StatusOK
+		// 	Rerr.Message = "BC Profile & DB Profile didn't match."
+		// }
 		return Rerr
 
 	} else {

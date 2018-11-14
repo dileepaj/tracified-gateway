@@ -6,19 +6,19 @@ import (
 
 	"github.com/stellar/go/clients/horizon"
 
-	"main/api/apiModel"
+	// "main/api/apiModel"
 	"main/model"
 )
 
 type ConcreteInsertData struct {
-	InsertTDP apiModel.TestTDP
+	XDR string
 }
 
-func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
+func (cd *ConcreteInsertData) InsertDataHash() model.SubmitXDRResponse {
 
 	// publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	// secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
-	var response model.InsertDataResponse
+	var response model.SubmitXDRResponse
 	// response.ProfileID = cd.InsertTDP.ProfileID
 	// response.TxnType = cd.InsertTDP.Type
 
@@ -59,9 +59,10 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 	// }
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.InsertTDP.XDR)
+	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
 	if err != nil {
 		// panic(err)
+		fmt.Println(err.Error())
 		response.Error.Code = http.StatusNotFound
 		response.Error.Message = "Test net client crashed"
 		return response
@@ -73,7 +74,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.InsertDataResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.TDPID = resp.Hash
+	response.TXNID = resp.Hash
 
 	return response
 

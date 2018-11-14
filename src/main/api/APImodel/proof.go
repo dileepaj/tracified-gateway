@@ -45,6 +45,17 @@ type InsertSuccess struct {
 	Type      string
 }
 
+type SubmitXDRSuccess struct {
+	Message   string
+	TxNHash   string
+	TdpId	string
+	Identifier string
+	Type      string
+	PublicKey string
+	Status string
+
+}
+
 type GenesisSuccess struct {
 	Message     string
 	ProfileTxn  string
@@ -195,7 +206,14 @@ type InsertTDP struct {
 
 type TestTDP struct {
 	XDR    string
-	RawTDP string
+	// RawTDP string
+}
+
+type TestXDRSubmit struct {
+	XDR        string
+	Identifier string
+	TdpId      string
+	PublicKey  string
 }
 
 type InsertGenesisStruct struct {

@@ -36,7 +36,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOE"
-		response.Txn = db.POEStruct.Txn
+		response.TdpId = db.POEStruct.Txn
 
 		response.Error = Rerr
 		return response
@@ -60,21 +60,21 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			json.Unmarshal(keysBody, &keys)
 			// fmt.Printf("%#v", keys[0].Name)
 			// fmt.Printf("%#v", keys[0].Value)
-			bcHash = Base64DecEnc("Decode", keys[4].Value)
+			bcHash = Base64DecEnc("Decode", keys[3].Value)
 			profile := Base64DecEnc("Decode", keys[2].Value)
 
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash retrieved from the blockchain."
 			response.Error = Rerr
-			response.Txn = db.POEStruct.Txn
+			response.TdpId = db.POEStruct.Txn
 			response.DBHash = db.POEStruct.Hash
 			response.BCHash = bcHash
-			response.BCProfile = profile
+			response.Identifier = profile
 
 		} else {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
-			response.Txn = db.POEStruct.Txn
+			response.TdpId = db.POEStruct.Txn
 
 			response.Error = Rerr
 			return response

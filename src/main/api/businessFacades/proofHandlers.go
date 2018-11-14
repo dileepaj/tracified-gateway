@@ -1,6 +1,7 @@
 package businessFacades
 
 import (
+	"main/dao"
 
 	// "main/proofs/retriever/stellarRetriever"
 
@@ -114,17 +115,53 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// func CheckPOE(w http.ResponseWriter, r *http.Request) {
+// 	vars := mux.Vars(r)
+
+// 	var response model.POE
+// 	poeStructObj := apiModel.POEStruct{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
+// 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
+// 	response = display.InterpretPOE()
+
+// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 	w.WriteHeader(response.RetrievePOE.Error.Code)
+// 	json.NewEncoder(w).Encode(response.RetrievePOE)
+// 	return
+
+// }
+
 func CheckPOE(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
 	vars := mux.Vars(r)
 
-	var response model.POE
-	poeStructObj := apiModel.POEStruct{Txn: vars["Txn"], ProfileID: vars["PID"], Hash: vars["Hash"]}
-	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
-	response = display.InterpretPOE()
+	object := dao.Connection{}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(response.RetrievePOE.Error.Code)
-	json.NewEncoder(w).Encode(response.RetrievePOE)
-	return
+	p := object.GetTransactionForTdpId(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+		fmt.Println(result)
+		var response model.POE
+		poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: vars["Hash"]}
+		display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
+		response = display.InterpretPOE()
+
+		w.WriteHeader(response.RetrievePOE.Error.Code)
+		json.NewEncoder(w).Encode(response.RetrievePOE)
+
+		return data
+
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusNotFound)
+		response := model.Error{Message: "Not Found"}
+		json.NewEncoder(w).Encode(response)
+		fmt.Println(response)
+		return error
+
+	})
+	p.Await()
+
+	// return
 
 }
