@@ -19,8 +19,8 @@ var routes = Routes{
 
 	Route{
 		"POC",
-		"POST",
-		"/poc/{Txn}/{PID}",
+		"GET",
+		"/poc/{Txn}",
 		businessFacades.CheckPOC,
 	},
 	Route{
@@ -32,7 +32,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/poe/{Txn}/{Hash}",
+		"/poe/{Txn}",
 		businessFacades.CheckPOE,
 	},
 	Route{
@@ -105,17 +105,23 @@ var routes = Routes{
 		businessFacades.InsertCocCollection,
 	},
 	Route{
-		"InsertTransactioCollection",
-		"POST",
-		"/insertTransactioncollection",
-		businessFacades.InsertTransactionCollection,
+		"InsertCOCCollection",
+		"PUT",
+		"/insertcoccollection",
+		businessFacades.UpdateCocCollection,
 	},
-	Route{
-		"UpdateTransactioCollection",
-		"POST",
-		"/updateTransactioncollection",
-		businessFacades.UpdateTransactionCollection,
-	},
+	// Route{
+	// 	"InsertTransactioCollection",
+	// 	"POST",
+	// 	"/insertTransactioncollection",
+	// 	businessFacades.InsertTransactionCollection,
+	// },
+	// Route{
+	// 	"UpdateTransactioCollection",
+	// 	"POST",
+	// 	"/updateTransactioncollection",
+	// 	businessFacades.UpdateTransactionCollection,
+	// },
 	Route{
 		"SubmitXDR",
 		"POST",

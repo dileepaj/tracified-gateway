@@ -15,6 +15,8 @@ import (
 	// "github.com/stellar/go/keypair"
 	// "github.com/stellar/go/strkey"
 	"github.com/stellar/go/xdr"
+		// "github.com/stellar/go/hash"
+
 
 	"github.com/gorilla/mux"
 
@@ -238,17 +240,19 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	var test xdr.TransactionEnvelope
-	err = xdr.SafeUnmarshalBase64(TDP.XDR, &test)
-	if err != nil {
-		fmt.Println(err)
-	}
+	///////////////////////////////
+	///important code
+	// brr:=build.TransactionBuilder{TX:&txe,NetworkPassphrase:build.TestNetwork.Passphrase}
+	// fmt.Println(build.TestNetwork.Passphrase)
+	
+	// t,_:=brr.Hash()
+	// test:=fmt.Sprintf("%x",t)
+	// fmt.Println(test)
+	///////////////////////////////
 
 	// fmt.Println(txe.SourceAccount.Address())
 	TDP.PublicKey = txe.SourceAccount.Address()
-	// TDP.TxnHash=txe.
-
-	// fmt.Println(txe.Operations[1].Body.ManageDataOp.DataValue)
+	
 
 	fmt.Println(len(txe.Operations))
 	TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")

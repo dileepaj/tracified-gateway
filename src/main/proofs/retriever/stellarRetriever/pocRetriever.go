@@ -3,7 +3,7 @@ package stellarRetriever
 import (
 	// "fmt"
 	"encoding/json"
-	"fmt"
+	// "fmt"
 	"io/ioutil"
 	"main/api/apiModel"
 	"main/model"
@@ -31,6 +31,14 @@ type ConcretePOC struct {
 func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error
+	var bcPreHash string
+	// var dataHash string
+
+	var transactionType string
+	var TDPHash string
+	var mergeID string
+	var temp model.Current
+
 	// output := make([]string, 20)
 	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
 	if err != nil {
@@ -57,23 +65,18 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			keysBody := out1
 			keys := make([]PublicKeyPOC, 0)
 			json.Unmarshal(keysBody, &keys)
-			var bcPreHash string
-			// var dataHash string
 
-			var transactionType string
-			var TDPHash string
-			var mergeID string
 			if keys[0] != (PublicKeyPOC{}) {
 				transactionType = Base64DecEnc("Decode", keys[0].Value)
-				fmt.Println("transactionType")
-				fmt.Println(transactionType)
+				// fmt.Println("transactionType")
+				// fmt.Println(transactionType)
 			}
 
 			if transactionType == "2" {
 				if keys[3] != (PublicKeyPOC{}) {
-					TDPHash = Base64DecEnc("Decode", keys[4].Value)
-					fmt.Println("TDPHash")
-					fmt.Println(TDPHash)
+					TDPHash = Base64DecEnc("Decode", keys[3].Value)
+					// fmt.Println("TDPHash")
+					// fmt.Println(TDPHash)
 				}
 
 			}
@@ -92,8 +95,8 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 						if result.StatusCode == 200 {
 							mergeID = Base64DecEnc("Decode", keys[3].Value)
-							fmt.Println("TDPHash")
-							fmt.Println(TDPHash)
+							// fmt.Println("TDPHash")
+							// fmt.Println(TDPHash)
 						}
 
 					}
@@ -104,12 +107,14 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 
 			if keys[1] != (PublicKeyPOC{}) {
 				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
-				fmt.Println("bcPreHash")
-				fmt.Println(bcPreHash)
+				// fmt.Println("bcPreHash")
+				// fmt.Println(bcPreHash)
 			}
 
-			temp := model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, MergedID: mergeID}
+			temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, MergedID: mergeID}
+			// fmt.Println(temp)
 			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
+			// fmt.Println(db.POCStruct.BCTree)
 
 			Rerr.Code = result.StatusCode
 			Rerr.Message = "The Blockchain Tree Retrieved successfully"
@@ -118,11 +123,12 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
-			if keys[1].Value != "" {
+			if bcPreHash != "0" {
 				POCObject := apiModel.POCStruct{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
 				object := ConcretePOC{POCStruct: POCObject}
 				// object := ConcretePOC{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
 				response = object.RetrievePOC()
+				// fmt.Println(response)
 			}
 
 			// fmt.Print(response)

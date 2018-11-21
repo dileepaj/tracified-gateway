@@ -9,6 +9,8 @@ import (
 	// "github.com/fanliao/go-promise"
 
 	// "gopkg.in/mgo.v2"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/xdr"
 
 	"encoding/json"
 	"fmt"
@@ -257,7 +259,6 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -270,7 +271,7 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 		// 	Collection: data}
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error  {
+	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotFound)
 		// result := model.Error{Code: http.StatusNotFound,
@@ -294,7 +295,7 @@ func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 		// 	Collection: data}
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error  {
+	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotFound)
 		// result := model.Error{Code: http.StatusNotFound,
@@ -306,7 +307,6 @@ func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
@@ -317,7 +317,32 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
+	var accept xdr.Transaction
+	var reject xdr.Transaction
+	err = xdr.SafeUnmarshalBase64(GObj.AcceptXdr, &accept)
+	if err != nil {
+		fmt.Println(err)
+	}
 
+	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.TestNetwork.Passphrase}
+	fmt.Println(build.TestNetwork.Passphrase)
+	// fmt.Println(brr.Hash())
+	t, _ := brr.Hash()
+	test := fmt.Sprintf("%x", t)
+
+	err = xdr.SafeUnmarshalBase64(GObj.RejectXdr, &reject)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.TestNetwork.Passphrase}
+	fmt.Println(build.TestNetwork.Passphrase)
+	// fmt.Println(brr.Hash())
+	t1, _ := brr1.Hash()
+	test1 := fmt.Sprintf("%x", t1)
+
+	GObj.AcceptTxn = test
+	GObj.RejectTxn = test1
 	fmt.Println(GObj)
 	object := dao.Connection{}
 	err1 := object.InsertCoc(GObj)
@@ -339,9 +364,12 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
+func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var GObj model.TransactionCollectionBody
+	var GObj model.COCCollectionBody
+	var selection model.COCCollectionBody
+	var result apiModel.InsertCOCCollectionResponse
+
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -349,56 +377,185 @@ func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-
 	fmt.Println(GObj)
 	object := dao.Connection{}
-	err1 := object.InsertTransaction(GObj)
+	switch GObj.Status {
+	case "accepted":
+		p := object.GetCOCbyAcceptTxn(GObj.AcceptTxn)
+		p.Then(func(data interface{}) interface{} {
+			selection = data.(model.COCCollectionBody)
+			display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
+			response := display.TDPInsert()
+		
+			if response.Error.Code == 404 {
+				w.WriteHeader(response.Error.Code)
+				result = apiModel.InsertCOCCollectionResponse{
+					Message: "Failed"}
+				json.NewEncoder(w).Encode(result)
+			}else{
+				selection.TxnHash=response.TXNID
+				err1 := object.UpdateCOC(selection, GObj)
+				if err1 != nil {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.WriteHeader(http.StatusNotFound)
+					result = apiModel.InsertCOCCollectionResponse{
+						Message: "Failed"}
+					json.NewEncoder(w).Encode(result)
+					
+				} else {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.WriteHeader(http.StatusOK)
+					body:=selection
+					body.AcceptTxn=GObj.AcceptTxn
+					body.AcceptXdr=GObj.AcceptXdr
+					body.Status=GObj.Status
+					result = apiModel.InsertCOCCollectionResponse{
+						Message: "Success", Body: body}
+					json.NewEncoder(w).Encode(result)
+					
+				}
+			}
+			
 
-	if err1 != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNotFound)
-		result := apiModel.InsertTransactionCollectionResponse{
-			Message: "Failed"}
-		json.NewEncoder(w).Encode(result)
-		return
-	} else {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.InsertTransactionCollectionResponse{
-			Message: "Success", Body: GObj}
-		json.NewEncoder(w).Encode(result)
-		return
+			
+			return data
+		}).Catch(func(error error) error {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(error)
+			return error
+		})
+		p.Await()
+		break
+	case "rejected":
+		p := object.GetCOCbyRejectTxn(GObj.RejectTxn)
+		p.Then(func(data interface{}) interface{} {
+			selection = data.(model.COCCollectionBody)
+			display := &builder.AbstractTDPInsert{XDR: GObj.RejectXdr}
+			response := display.TDPInsert()
+		
+			if response.Error.Code == 404 {
+				w.WriteHeader(response.Error.Code)
+				result = apiModel.InsertCOCCollectionResponse{
+					Message: "Failed"}
+				json.NewEncoder(w).Encode(result)
+			}else{
+				selection.TxnHash=response.TXNID
+				err1 := object.UpdateCOC(selection, GObj)
+				if err1 != nil {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.WriteHeader(http.StatusNotFound)
+					result = apiModel.InsertCOCCollectionResponse{
+						Message: "Failed"}
+					json.NewEncoder(w).Encode(result)
+					
+				} else {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.WriteHeader(http.StatusOK)
+					body:=selection
+					body.RejectTxn=GObj.RejectTxn
+					body.RejectXdr=GObj.RejectXdr
+					body.Status=GObj.Status
+					result = apiModel.InsertCOCCollectionResponse{
+						Message: "Success", Body: body}
+					json.NewEncoder(w).Encode(result)
+					
+				}
+			}
+			
+
+			
+			return data
+		}).Catch(func(error error) error {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(http.StatusNotFound)
+			json.NewEncoder(w).Encode(error)
+			return error
+		})
+		p.Await()
+		break
 	}
+	
+	
+
+	// err1 := object.UpdateCOC(selection, GObj)
+	// if err1 != nil {
+	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// 	w.WriteHeader(http.StatusNotFound)
+	// 	result := apiModel.InsertCOCCollectionResponse{
+	// 		Message: "Failed"}
+	// 	json.NewEncoder(w).Encode(result)
+	// 	return
+	// } else {
+	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.InsertCOCCollectionResponse{
+	// 		Message: "Success", Body: GObj}
+	// 	json.NewEncoder(w).Encode(result)
+	// 	return
+	// }
+	return
 }
-func UpdateTransactionCollection(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var GObj model.TransactionUpdate
-	err := json.NewDecoder(r.Body).Decode(&GObj)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
-		return
-	}
 
-	fmt.Println(GObj)
-	object := dao.Connection{}
-	err1 := object.UpdateTransaction(GObj.Selector,GObj.Update)
+// func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 	var GObj model.TransactionCollectionBody
+// 	err := json.NewDecoder(r.Body).Decode(&GObj)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		json.NewEncoder(w).Encode("Error while Decoding the body")
+// 		fmt.Println(err)
+// 		return
+// 	}
 
-	if err1 != nil {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusNotFound)
-		result := apiModel.InsertTransactionCollectionResponse{
-			Message: "Failed"}
-		json.NewEncoder(w).Encode(result)
-		return
-	} else {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.InsertTransactionCollectionResponse{
-			Message: "Success", Body: GObj.Update}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-}
+// 	fmt.Println(GObj)
+// 	object := dao.Connection{}
+// 	err1 := object.InsertTransaction(GObj)
 
+// 	if err1 != nil {
+// 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 		w.WriteHeader(http.StatusNotFound)
+// 		result := apiModel.InsertTransactionCollectionResponse{
+// 			Message: "Failed"}
+// 		json.NewEncoder(w).Encode(result)
+// 		return
+// 	} else {
+// 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 		w.WriteHeader(http.StatusOK)
+// 		result := apiModel.InsertTransactionCollectionResponse{
+// 			Message: "Success", Body: GObj}
+// 		json.NewEncoder(w).Encode(result)
+// 		return
+// 	}
+// }
+// func UpdateTransactionCollection(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 	var GObj model.TransactionUpdate
+// 	err := json.NewDecoder(r.Body).Decode(&GObj)
+// 	if err != nil {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		json.NewEncoder(w).Encode("Error while Decoding the body")
+// 		fmt.Println(err)
+// 		return
+// 	}
+
+// 	fmt.Println(GObj)
+// 	object := dao.Connection{}
+// 	err1 := object.UpdateTransaction(GObj.Selector,GObj.Update)
+
+// 	if err1 != nil {
+// 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 		w.WriteHeader(http.StatusNotFound)
+// 		result := apiModel.InsertTransactionCollectionResponse{
+// 			Message: "Failed"}
+// 		json.NewEncoder(w).Encode(result)
+// 		return
+// 	} else {
+// 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 		w.WriteHeader(http.StatusOK)
+// 		result := apiModel.InsertTransactionCollectionResponse{
+// 			Message: "Success", Body: GObj.Update}
+// 		json.NewEncoder(w).Encode(result)
+// 		return
+// 	}
+// }

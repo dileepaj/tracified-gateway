@@ -5,12 +5,15 @@ import(
 )
 
 type COCCollectionBody struct {
+	TxnHash string
 	Sender   string
 	Receiver string
-	Xdr      string
+	AcceptXdr string
+	RejectXdr string
+	AcceptTxn string
+	RejectTxn string
 	Identifier string
 	Status    string
-	
 }
 type TransactionCollectionBody struct {
 	Identifier   string
