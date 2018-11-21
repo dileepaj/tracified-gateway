@@ -1,30 +1,31 @@
 package builder
 
 import (
-	"fmt"
-
-	"github.com/Tracified-Gateway/model"
-	"github.com/Tracified-Gateway/proofs/executer/stellarExecuter"
+	// "github.com/tracified-gateway/api/apiModel"
+	"github.com/tracified-gateway/model"
+	"github.com/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
-type InsertData struct{}
-
-func InsertTDP(hash string, secret string, profileId string, rootHash string) model.RootTree {
-	result := stellarExecuter.InsertDataHash(hash, secret, profileId, rootHash)
-
-	if result.Hash == "" {
-		fmt.Println("Error in Stellar Executer!")
-	}
-
-	return result
+// type InsertData struct{}
+type TDPInsertInterface interface {
+	InsertDataHash() model.InsertDataResponse
 }
 
-func (I *InsertData) TDPInsert(hash string, secret string, profileId string, rootHash string) model.RootTree {
-	result := stellarExecuter.InsertDataHash(hash, secret, profileId, rootHash)
+type AbstractTDPInsert struct {
+	XDR string
+	// InsertTDP apiModel.TestTDP
+	// Hash          string
+	// InsertType    string
+	// PreviousTXNID string
+	// ProfileId     string
+}
 
-	if result.Hash == "" {
-		fmt.Println("Error in Stellar Executer!")
-	}
+func (AP *AbstractTDPInsert) TDPInsert() model.SubmitXDRResponse {
+
+	object := stellarExecuter.ConcreteInsertData{XDR: AP.XDR}
+	// object := stellarExecuter.ConcreteInsertData{Hash: AP.Hash, InsertType: AP.InsertType, PreviousTXNID: AP.PreviousTXNID, ProfileId: AP.ProfileId}
+
+	result := object.InsertDataHash()
 
 	return result
 }

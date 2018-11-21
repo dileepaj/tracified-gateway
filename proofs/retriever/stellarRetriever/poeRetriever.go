@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/Tracified-Gateway/model"
-	"github.com/Tracified-Gateway/proofs/interpreter"
+	"github.com/tracified-gateway/api/apiModel"
+	"github.com/tracified-gateway/model"
 )
 
 type PublicKey struct {
@@ -21,10 +21,10 @@ type KeysResponse struct {
 }
 
 type ConcretePOE struct {
-	*interpreter.AbstractPOE
-	Txn       string
-	ProfileID string
-	Hash      string
+	POEStruct apiModel.POEStruct
+	// Txn       string
+	// ProfileID string
+	// Hash      string
 }
 
 func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
@@ -32,11 +32,11 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 	var response model.RetrievePOE
 	var Rerr model.Error
 
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POEStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOE"
-		response.Txn = db.Txn
+		response.TdpId = db.POEStruct.Txn
 
 		response.Error = Rerr
 		return response
@@ -60,19 +60,21 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			json.Unmarshal(keysBody, &keys)
 			// fmt.Printf("%#v", keys[0].Name)
 			// fmt.Printf("%#v", keys[0].Value)
-			bcHash = Base64DecEnc("Decode", keys[0].Value)
+			bcHash = Base64DecEnc("Decode", keys[3].Value)
+			profile := Base64DecEnc("Decode", keys[2].Value)
 
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash retrieved from the blockchain."
 			response.Error = Rerr
-			response.Txn = db.Txn
-			response.DBHash = db.Hash
+			response.TdpId = db.POEStruct.Txn
+			response.DBHash = db.POEStruct.Hash
 			response.BCHash = bcHash
+			response.Identifier = profile
 
 		} else {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
-			response.Txn = db.Txn
+			response.TdpId = db.POEStruct.Txn
 
 			response.Error = Rerr
 			return response

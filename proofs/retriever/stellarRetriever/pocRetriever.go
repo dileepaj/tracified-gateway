@@ -1,10 +1,13 @@
 package stellarRetriever
 
 import (
+	// "fmt"
 	"encoding/json"
+	// "fmt"
 	"io/ioutil"
-	"github.com/Tracified-Gateway/model"
-	"github.com/Tracified-Gateway/proofs/interpreter"
+	"github.com/tracified-gateway/api/apiModel"
+	"github.com/tracified-gateway/model"
+
 	"net/http"
 )
 
@@ -18,25 +21,30 @@ type KeysResponsePOC struct {
 }
 
 type ConcretePOC struct {
-	*interpreter.AbstractPOC
-	Txn       string
-	ProfileID string
-	DBTree    string
+	POCStruct apiModel.POCStruct
+	// Txn       string
+	// ProfileID string
+	// DBTree    []model.Current
+	// BCTree    []model.Current
 }
 
 func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
-	var bcHash string
-	// var Cerr error
 	var response model.RetrievePOC
 	var Rerr model.Error
+	var bcPreHash string
+	// var dataHash string
 
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
-	//https://horizon-testnet.stellar.org/transactions/e903f5ef813002295e97c0f08cf26d1fd411615e18384890395f6b0943ed83b5/operations
+	var transactionType string
+	var TDPHash string
+	var mergeID string
+	var temp model.Current
+
+	// output := make([]string, 20)
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
-		response.Txn = db.Txn
-
+		response.Txn = db.POCStruct.Txn
 		response.Error = Rerr
 		return response
 
@@ -57,27 +65,76 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			keysBody := out1
 			keys := make([]PublicKeyPOC, 0)
 			json.Unmarshal(keysBody, &keys)
-			// fmt.Printf("%#v", keys[0].Name)
-			// fmt.Printf("%#v", keys[0].Value)
-			bcHash = Base64DecEnc("Decode", keys[0].Value)
 
-			Rerr.Code = http.StatusOK
-			Rerr.Message = "Txn Hash retrieved from the blockchain."
+			if keys[0] != (PublicKeyPOC{}) {
+				transactionType = Base64DecEnc("Decode", keys[0].Value)
+				// fmt.Println("transactionType")
+				// fmt.Println(transactionType)
+			}
+
+			if transactionType == "2" {
+				if keys[3] != (PublicKeyPOC{}) {
+					TDPHash = Base64DecEnc("Decode", keys[3].Value)
+					// fmt.Println("TDPHash")
+					// fmt.Println(TDPHash)
+				}
+
+			}
+
+			if transactionType == "6" {
+				if keys[3] != (PublicKeyPOC{}) {
+					mergeID = Base64DecEnc("Decode", keys[3].Value)
+					result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
+					if err != nil {
+						Rerr.Code = result.StatusCode
+						Rerr.Message = "The HTTP request failed for Merge ID"
+						response.Txn = db.POCStruct.Txn
+						response.Error = Rerr
+						return response
+					} else {
+
+						if result.StatusCode == 200 {
+							mergeID = Base64DecEnc("Decode", keys[3].Value)
+							// fmt.Println("TDPHash")
+							// fmt.Println(TDPHash)
+						}
+
+					}
+
+				}
+
+			}
+
+			if keys[1] != (PublicKeyPOC{}) {
+				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
+				// fmt.Println("bcPreHash")
+				// fmt.Println(bcPreHash)
+			}
+
+			temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, MergedID: mergeID}
+			// fmt.Println(temp)
+			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
+			// fmt.Println(db.POCStruct.BCTree)
+
+			Rerr.Code = result.StatusCode
+			Rerr.Message = "The Blockchain Tree Retrieved successfully"
+			response.Txn = db.POCStruct.Txn
+			response.BCHash = db.POCStruct.BCTree
+			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
-			response.Txn = db.Txn
-			response.DBHash = db.DBTree
-			response.BCHash = bcHash
-		} else {
 
-			Rerr.Code = http.StatusOK
-			Rerr.Message = "Txn Hash does not exist in the blockchain."
-			response.Txn = db.Txn
+			if bcPreHash != "0" {
+				POCObject := apiModel.POCStruct{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
+				object := ConcretePOC{POCStruct: POCObject}
+				// object := ConcretePOC{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
+				response = object.RetrievePOC()
+				// fmt.Println(response)
+			}
 
-			response.Error = Rerr
-			return response
+			// fmt.Print(response)
 		}
 
+		return response
 	}
 
-	return response
 }
