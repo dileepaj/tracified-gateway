@@ -34,7 +34,11 @@ Steps to contribute:
 - Install packages
 
 ```
-    go get
+    go get -u github.com/golang/dep/cmd/dep
+    dep init
+    dep ensure
+
+   
 ```
 
 - Build 
