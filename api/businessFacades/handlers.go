@@ -384,22 +384,25 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 		p := object.GetCOCbyAcceptTxn(GObj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
+			// fmt.Println("OLD BODY")
+
+			// fmt.Println(selection)
 			display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
 			response := display.TDPInsert()
 		
-			if response.Error.Code == 404 {
+			if response.TXNID == "" {
 				w.WriteHeader(response.Error.Code)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
 				json.NewEncoder(w).Encode(result)
 			}else{
-				selection.TxnHash=response.TXNID
+				GObj.TxnHash=response.TXNID
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusNotFound)
 					result = apiModel.InsertCOCCollectionResponse{
-						Message: "Failed"}
+						Message: "Pending"}
 					json.NewEncoder(w).Encode(result)
 					
 				} else {
@@ -434,13 +437,13 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			display := &builder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
 		
-			if response.Error.Code == 404 {
+			if response.TXNID == "" {
 				w.WriteHeader(response.Error.Code)
 				result = apiModel.InsertCOCCollectionResponse{
-					Message: "Failed"}
+					Message: "Pending"}
 				json.NewEncoder(w).Encode(result)
 			}else{
-				selection.TxnHash=response.TXNID
+				GObj.TxnHash=response.TXNID
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")

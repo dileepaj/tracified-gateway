@@ -1,7 +1,7 @@
 package interpreter
 
 import (
-	// "fmt"
+	"fmt"
 	"github.com/tracified-gateway/api/apiModel"
 	"github.com/tracified-gateway/model"
 	"github.com/tracified-gateway/proofs/retriever/stellarRetriever"
@@ -23,8 +23,8 @@ func (AP *AbstractPOC) InterpretPOC() model.POC {
 
 	pocObj.RetrievePOC = object.RetrievePOC()
 
-	// fmt.Println(AP.POCStruct.DBTree)
-	// fmt.Println(pocObj.RetrievePOC.BCHash)
+	fmt.Println(AP.POCStruct.DBTree)
+	fmt.Println(pocObj.RetrievePOC.BCHash)
 
 	if pocObj.RetrievePOC.BCHash == nil {
 		return pocObj

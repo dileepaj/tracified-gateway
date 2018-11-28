@@ -4,7 +4,7 @@ import (
 	// "fmt"
 
 	"fmt"
-	"log"
+	// "log"
 	"github.com/tracified-gateway/api/routes"
 	"net/http"
 
@@ -18,8 +18,8 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	router := routes.NewRouter()
-
-	log.Fatal(http.ListenAndServe(":8030", handlers.CORS(originsOk, headersOk, methodsOk)(router)))
+	router := routes.NewRouter()	
 	fmt.Println("Gateway Started @port :8030...!")
+	http.ListenAndServe(":8030", handlers.CORS(originsOk, headersOk, methodsOk)(router))
+
 }

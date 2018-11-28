@@ -40,6 +40,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 
 	session, err := cd.connect()
 	if err != nil {
+
 		fmt.Println(err)
 		return err
 	}
@@ -62,6 +63,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		c := session.DB("tracified-gateway").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
+			fmt.Println("update error")
 			fmt.Println(err1)
 		}
 		break
@@ -81,6 +83,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		c := session.DB("tracified-gateway").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
+			fmt.Println("update error")
+
 			fmt.Println(err1)
 		}
 

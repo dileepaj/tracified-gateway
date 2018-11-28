@@ -176,9 +176,10 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 
 			h := sha256.New()
 			lol := raw["Data"]
+			// lol=lol+result.Identifier
 			fmt.Println(lol)
 
-			h.Write([]byte(fmt.Sprintf("%s", lol)))
+			h.Write([]byte(fmt.Sprintf("%s", lol)+result.Identifier))
 
 			fmt.Printf("%x", h.Sum(nil))
 
@@ -226,7 +227,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
-			pocStructObj.Txn = "e2a4af62c8184d507b4f751d294df30b644c184e99aae9b1fd226c1fa90966b4"
+			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
 				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpID
@@ -251,7 +252,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 					base64 := raw["Data"]
 					// fmt.Println(base64)
 
-					h.Write([]byte(fmt.Sprintf("%s", base64)))
+					h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
 					// fmt.Printf("%x", h.Sum(nil))
 
 					DataStoreTXN := model.Current{
