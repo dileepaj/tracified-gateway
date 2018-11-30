@@ -6,9 +6,9 @@ node {
             env.PATH="${GOPATH}/bin:$PATH"
             
             sh 'mkdir bin'
-            sh 'mkdir src'
+            sh 'mkdir src/github.com'
             sh 'ls'
-            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/") {
+            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/") {
               stage('Checkout'){
                   echo 'Checking out SCM'
                   // sh 'cd src'
