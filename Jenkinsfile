@@ -5,36 +5,39 @@ node {
         withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
             
-            stage('Checkout'){
-                echo 'Checking out SCM'
-                sh 'mkdir bin'
-                sh 'mkdir src'
-                sh 'cd src'
-                checkout scm
-            }  
-        
-            stage 'preTest'
-            sh 'go version'
-            sh 'go env'
+            sh 'mkdir bin'
+            sh 'mkdir src'
+            sh 'ls'
+            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/") {
+              stage('Checkout'){
+                  echo 'Checking out SCM'
+                  // sh 'cd src'
+                  checkout scm
+              }  
+          
+              stage 'preTest'
+              sh 'go version'
+              sh 'go env'
 
-            stage 'Test'
+              stage 'Test'
 
-            
-            stage 'Build'
-            // sh 'ls -l'
-            sh 'pwd'
-            sh 'go get -u github.com/golang/dep/cmd/dep'
-            sh 'dep ensure'
-            sh 'go build'
-            sh 'ls -l'
-            // sh "usermod -a -G jenkins jenkins"
-            // sh "cd ${GOPATH}src/main/"
-            // sh 'ls -l'
-            // sh "go get ${GOPATH}src/main/"
-            // sh "go build ${GOPATH}src/main/"
-            
-            stage 'Deploy'
-            // Do nothing.
+              
+              stage 'Build'
+              // sh 'ls -l'
+              sh 'pwd'
+              sh 'go get -u github.com/golang/dep/cmd/dep'
+              sh 'dep ensure'
+              sh 'go build'
+              sh 'ls -l'
+              // sh "usermod -a -G jenkins jenkins"
+              // sh "cd ${GOPATH}src/main/"
+              // sh 'ls -l'
+              // sh "go get ${GOPATH}src/main/"
+              // sh "go build ${GOPATH}src/main/"
+              
+              stage 'Deploy'
+              // Do nothing.
+            }
         }
     }
 }
