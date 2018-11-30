@@ -30,7 +30,7 @@ node {
               sh 'go get -u github.com/golang/dep/cmd/dep'
               sh 'dep ensure'
               sh 'ls ./../'
-              sh 'ls ./../github.com@tmp'
+              // sh 'ls ./../github.com@tmp'
               sh 'go build'
               sh 'ls -l'
               // sh "usermod -a -G jenkins jenkins"
