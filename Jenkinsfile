@@ -8,8 +8,9 @@ node {
             sh 'mkdir bin'
             sh 'mkdir src'
             sh 'mkdir src/github.com'
+            sh 'mkdir src/github.com/tracified-gateway'
             sh 'ls'
-            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/") {
+            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/tracified-gateway") {
               stage('Checkout'){
                   echo 'Checking out SCM'
                   // sh 'cd src'
@@ -29,6 +30,7 @@ node {
               sh 'go get -u github.com/golang/dep/cmd/dep'
               sh 'dep ensure'
               sh 'ls ./../'
+              sh 'ls ./../github.com@tmp'
               sh 'go build'
               sh 'ls -l'
               // sh "usermod -a -G jenkins jenkins"
