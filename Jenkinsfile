@@ -18,7 +18,7 @@ node {
 
             
             stage 'Build'
-            sh 'ls -l'
+            // sh 'ls -l'
             sh 'pwd'
             sh 'go get -u github.com/golang/dep/cmd/dep'
             sh 'dep ensure'
