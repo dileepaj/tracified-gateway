@@ -7,6 +7,9 @@ node {
             
             stage('Checkout'){
                 echo 'Checking out SCM'
+                sh 'mkdir bin'
+                sh 'mkdir src'
+                sh 'cd src'
                 checkout scm
             }  
         
