@@ -17,7 +17,7 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 
 	up := model.TransactionCollectionBody{
 		Identifier: selector.Identifier,
-		TdpID:      selector.TdpID,
+		TdpId:      selector.TdpId,
 		PublicKey:  selector.PublicKey,
 		XDR:        selector.XDR,
 		TxnHash:    update.TxnHash,

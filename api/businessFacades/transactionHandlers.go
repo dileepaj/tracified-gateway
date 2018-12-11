@@ -3,27 +3,14 @@ package businessFacades
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/tracified-gateway/dao"
-	"strings"
-
-	// "github.com/tracified-gateway/proofs/retriever/stellarRetriever"
-	// "bytes"
 	"net/http"
-
-	// "github.com/stellar/go/build"
-	// "github.com/stellar/go/clients/horizon"
-	// "github.com/stellar/go/keypair"
-	// "github.com/stellar/go/strkey"
-	"github.com/stellar/go/xdr"
-		// "github.com/stellar/go/hash"
-
-
+	"strings"
 	"github.com/gorilla/mux"
-
+	"github.com/stellar/go/xdr"
 	"github.com/tracified-gateway/api/apiModel"
+	"github.com/tracified-gateway/dao"
 	"github.com/tracified-gateway/model"
 	"github.com/tracified-gateway/proofs/builder"
-	// "github.com/tracified-gateway/proofs/builder"
 )
 
 func Transaction(w http.ResponseWriter, r *http.Request) {
@@ -224,151 +211,74 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+	object := dao.Connection{}
+	var copy model.TransactionCollectionBody
 
-	var TDP model.TransactionCollectionBody
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("No Header present!")
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("No Content-Type present!")
+		return
+	}
+
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
+		// fmt.Println(err)
 		return
 	}
+	for i := 0; i < len(TDP); i++ {
+		TDP[i].Status = "Pending"
+		var txe xdr.Transaction
+		err = xdr.SafeUnmarshalBase64(TDP[i].XDR, &txe)
+		if err != nil {
+			fmt.Println(err)
+		}
 
-	var txe xdr.Transaction
-	err = xdr.SafeUnmarshalBase64(TDP.XDR, &txe)
-	if err != nil {
-		fmt.Println(err)
+		TDP[i].PublicKey = txe.SourceAccount.Address()
+		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		TDP[i].TxnType = TxnType
+		TDP[i].Status = "pending"
+
+		copy=TDP[i]
+		err1 := object.InsertTransaction(TDP[i])
+		if err1 != nil {
+			TDP[i].Status = "failed"
+		}
+
+	}
+	for i := 0; i < len(TDP); i++ {
+		display := &builder.AbstractTDPInsert{XDR: TDP[i].XDR}
+		response := display.TDPInsert()
+		if response.Error.Code == 503 {
+			TDP[i].Status = "pending"
+		} else {
+			TDP[i].TxnHash = response.TXNID
+
+			upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
+			err2 := object.UpdateTransaction(copy, upd)
+			if err2 != nil {
+				TDP[i].Status = "pending"
+			} else {
+				TDP[i].Status = "done"
+			}
+		}
 	}
 
-	///////////////////////////////
-	///important code
-	// brr:=build.TransactionBuilder{TX:&txe,NetworkPassphrase:build.TestNetwork.Passphrase}
-	// fmt.Println(build.TestNetwork.Passphrase)
-	
-	// t,_:=brr.Hash()
-	// test:=fmt.Sprintf("%x",t)
-	// fmt.Println(test)
-	///////////////////////////////
-
-	// fmt.Println(txe.SourceAccount.Address())
-	TDP.PublicKey = txe.SourceAccount.Address()
-	
-
-	fmt.Println(len(txe.Operations))
-	TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-	TDP.TxnType = TxnType
-	fmt.Println(TxnType)
-	fmt.Println(txe.SeqNum)
-	TDP.Status = "pending"
-
-	// txe.SourceAccount.Address()
-
-	// previous := model.TransactionCollectionBody{}
-	object := dao.Connection{}
-	// p := object.GetLastTransactionbyIdentifier(TDP.Identifier)
-	// p.Then(func(data interface{}) interface{} {
-	// 	var body = data.(map[string]string)
-	// 	previous.TxnHash = body["TxnHash"]
-
-	// 	return nil
-	// }).Catch(func(error error) error {
-	// 	return error
-	// })
-	// p.Await()
-	// if previous != (model.TransactionCollectionBody{}) {
-	// 	obj := stellarRetriever.ConcretePrevious{Count: 0}
-	// 	data, er := obj.RetrievePrevious8Transactions(previous.TxnHash)
-	// 	if er != nil {
-	// 		w.WriteHeader(http.StatusBadRequest)
-	// 		json.NewEncoder(w).Encode(er)
-	// 		fmt.Println(er)
-	// 		return
-	// 	}
-	// 	if len(data.HashList) == 8 {
-
-	/////////////////
-
-	err1 := object.InsertTransaction(TDP)
-	if err1 != nil {
-		w.WriteHeader(http.StatusNotFound)
-		result := apiModel.InsertCOCCollectionResponse{
-			Message: "Failed"}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	display := &builder.AbstractTDPInsert{XDR: TDP.XDR}
-	response := display.TDPInsert()
-
-	if response.Error.Code == 404 {
-		w.WriteHeader(response.Error.Code)
-		result := apiModel.SubmitXDRSuccess{
-			Message:    response.Error.Message,
-			TdpId:      TDP.TdpID,
-			PublicKey:  TDP.PublicKey,
-			Identifier: TDP.Identifier,
-			Type:       TDP.TxnType}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
-	err2 := object.UpdateTransaction(TDP, upd)
-
-	if err2 != nil {
-		w.WriteHeader(response.Error.Code)
-		result := apiModel.SubmitXDRSuccess{
-			Message:    response.Error.Message,
-			TxNHash:    response.TXNID,
-			TdpId:      TDP.TdpID,
-			PublicKey:  TDP.PublicKey,
-			Identifier: TDP.Identifier,
-			Type:       TDP.TxnType,
-			Status:     "pending"}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	w.WriteHeader(response.Error.Code)
+	w.WriteHeader(http.StatusOK)
 	result := apiModel.SubmitXDRSuccess{
-		Message:    response.Error.Message,
-		TxNHash:    response.TXNID,
-		TdpId:      TDP.TdpID,
-		PublicKey:  TDP.PublicKey,
-		Identifier: TDP.Identifier,
-		Type:       TDP.TxnType,
-		Status:     "done"}
+		Message: "Success, Please check each transaction status below",
+		Txns:    TDP,
+	}
 	json.NewEncoder(w).Encode(result)
 	return
-
-	//////////////////
-
-	// 	} else {
-	// 		// 	b := object.GetTransactionsbyIdentifier(TDP.Identifier)
-	// 		// 	b.Then(func(data interface{}) interface{} {
-	// 		// 		var body = data.(map[string]string)
-
-	// 		// 		return nil
-	// 		// 	}).Catch(func(error error) error {
-	// 		// 		return error
-	// 		// 	})
-	// 		// 	b.Await()
-	// 	}
-	// }
-	// // var TransactionBD model.TransactionCollectionBody
-	// // TransactionBD := model.TransactionCollectionBody{XDR: TDP.XDR, Identifier: TDP.Identifier, PublicKey: TDP.PublicKey, TdpID: TDP.TdpId}
-	// // object := dao.Connection{}
-	// // err1 := object.InsertTransaction(TransactionBD)
-
-	// // response := model.InsertDataResponse{}
-
-	// // // display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
-	// // display := &stellarExecuter.ConcreteSubmitXDR{InsertTDP: TDP}
-	// // response = display.SubmitXDR()
-
-	// w.WriteHeader(http.StatusOK)
-	// result := ""
-	// json.NewEncoder(w).Encode(result)
 }
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {

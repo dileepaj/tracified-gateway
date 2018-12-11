@@ -175,10 +175,10 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 			// fmt.Println(body)
 
 			h := sha256.New()
-			lol := raw["Data"]
+			lol := raw["data"]
 			fmt.Println(lol)
 
-			h.Write([]byte(fmt.Sprintf("%s", lol)))
+			h.Write([]byte(fmt.Sprintf("%s", lol)+result.Identifier))
 
 			fmt.Printf("%x", h.Sum(nil))
 
@@ -226,10 +226,10 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
-			pocStructObj.Txn = "e2a4af62c8184d507b4f751d294df30b644c184e99aae9b1fd226c1fa90966b4"
+			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpID
+				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
 				bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE5OTI0NDU2ODV9.zLuscboIwwEmxB2-YLOiNb2NhxTBKkhKLZwM9Qrahtk"
 				// Create a new request using http
 				req, er := http.NewRequest("GET", url, nil)
@@ -248,10 +248,10 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 					json.Unmarshal(body, &raw)
 
 					h := sha256.New()
-					base64 := raw["Data"]
+					base64 := raw["data"]
 					// fmt.Println(base64)
 
-					h.Write([]byte(fmt.Sprintf("%s", base64)))
+					h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
 					// fmt.Printf("%x", h.Sum(nil))
 
 					DataStoreTXN := model.Current{
@@ -276,8 +276,13 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
 
+
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+			
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
+			fmt.Println(result)
+			fmt.Println(response.RetrievePOC.Error.Message)
+
 			json.NewEncoder(w).Encode(result)
 			// 		return
 

@@ -45,14 +45,19 @@ type InsertSuccess struct {
 	Type      string
 }
 
+// type SubmitXDRSuccess struct {
+// 	Message   string
+// 	TxNHash   string
+// 	TdpId	string
+// 	Identifier string
+// 	Type      string
+// 	PublicKey string
+// 	Status string
+
+// }
 type SubmitXDRSuccess struct {
 	Message   string
-	TxNHash   string
-	TdpId	string
-	Identifier string
-	Type      string
-	PublicKey string
-	Status string
+	Txns []model.TransactionCollectionBody
 
 }
 
