@@ -21,10 +21,11 @@ import (
 	// "github.com/fanliao/go-promise"
 	"github.com/gorilla/mux"
 
-	"github.com/tracified-gateway/api/apiModel"
 	// "github.com/tracified-gateway/dao"
 	"github.com/tracified-gateway/model"
-	"github.com/tracified-gateway/proofs/builder"
+	"github.com/tracified-gateway/proofs/builder"	
+	"github.com/tracified-gateway/api/apiModel"
+
 	// "github.com/tracified-gateway/proofs/interpreter"
 )
 
