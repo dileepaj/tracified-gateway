@@ -56,10 +56,13 @@ type InsertSuccess struct {
 
 // }
 type SubmitXDRSuccess struct {
-	Message   string
-	Txns []model.TransactionCollectionBody
-
+	status string
 }
+// type SubmitXDRSuccess struct {
+// 	Message   string
+// 	Txns []model.TransactionCollectionBody
+
+// }
 
 type GenesisSuccess struct {
 	Message     string
