@@ -45,6 +45,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	}
 	defer session.Close()
 
+	fmt.Println(update.Status)
 	switch update.Status {
 	case "accepted":
 		up := model.COCCollectionBody{
@@ -63,6 +64,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
+			return err1
+
 		}
 		break
 	case "rejected":
@@ -82,10 +85,33 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
+			return err1
+
 		}
 
 		break
 
+	case "expired":
+		up := model.COCCollectionBody{
+			TxnHash:    selector.TxnHash,
+			Sender:     selector.Sender,
+			Receiver:   selector.Receiver,
+			AcceptXdr:  selector.AcceptXdr,
+			RejectXdr:  selector.RejectXdr,
+			AcceptTxn:  selector.AcceptTxn,
+			RejectTxn:  selector.RejectTxn,
+			Identifier: selector.Identifier,
+			Status:     update.Status,
+		}
+
+		c := session.DB("tracified-gateway").C("COC")
+		err1 := c.Update(selector, up)
+		if err1 != nil {
+			fmt.Println(err1)
+			return err1
+		}
+
+		break
 	}
 
 	return err

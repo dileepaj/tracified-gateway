@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "fmt"
 
 	"fmt"
 	"github.com/tracified-gateway/api/routes"

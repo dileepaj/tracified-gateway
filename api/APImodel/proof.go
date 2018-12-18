@@ -56,8 +56,9 @@ type InsertSuccess struct {
 
 // }
 type SubmitXDRSuccess struct {
-	status string
+	Status string
 }
+
 // type SubmitXDRSuccess struct {
 // 	Message   string
 // 	Txns []model.TransactionCollectionBody
@@ -213,7 +214,7 @@ type InsertTDP struct {
 }
 
 type TestTDP struct {
-	XDR    string
+	XDR string
 	// RawTDP string
 }
 

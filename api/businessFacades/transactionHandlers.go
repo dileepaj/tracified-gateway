@@ -274,8 +274,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	result := apiModel.SubmitXDRSuccess{
-		Message: "Success, Please check each transaction status below",
-		Txns:    TDP,
+		Status: "Success",
 	}
 	json.NewEncoder(w).Encode(result)
 	return
