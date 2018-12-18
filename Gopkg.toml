@@ -25,10 +25,10 @@
 #   unused-packages = true
 
 [metadata.heroku]
-  root-package = "github.com/heroku/go-getting-started"
+  root-package = "github.com/dileepaj/tracified-gateway"
   go-version = "1.8.3"
   install = [ "./..." ]
-  
+
 [[constraint]]
   branch = "master"
   name = "github.com/chebyrash/promise"
