@@ -24,6 +24,10 @@
 #   go-tests = true
 #   unused-packages = true
 
+[[metadata.heroku]]
+  root-package = "github.com/dileepaj/dileepaj/tracified-gateway"
+  go-version = "1.10.3"
+  ensure= true
 
 [[constraint]]
   branch = "master"

@@ -2,8 +2,8 @@ package businessFacades
 
 import (
 	// "io/ioutil"
-	"github.com/tracified-gateway/dao"
-	"github.com/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 
 	// "gopkg.in/mgo.v2/bson"
 	// "github.com/fanliao/go-promise"
@@ -21,11 +21,11 @@ import (
 	// "github.com/fanliao/go-promise"
 	"github.com/gorilla/mux"
 
-	"github.com/tracified-gateway/api/apiModel"
-	// "github.com/tracified-gateway/dao"
-	"github.com/tracified-gateway/model"
-	"github.com/tracified-gateway/proofs/builder"
-	// "github.com/tracified-gateway/proofs/interpreter"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	// "github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/proofs/builder"
+	// "github.com/dileepaj/tracified-gateway/proofs/interpreter"
 )
 
 func CreateTrust(w http.ResponseWriter, r *http.Request) {

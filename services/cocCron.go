@@ -6,8 +6,8 @@ import (
 	"github.com/stellar/go/xdr"
 	// "github.com/stellar/go/clients/horizon"
 
-	"github.com/tracified-gateway/dao"
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func CheckCOCStatus() {

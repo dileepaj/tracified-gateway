@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 
 	"gopkg.in/mgo.v2/bson"
 

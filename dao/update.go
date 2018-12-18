@@ -3,7 +3,7 @@ package dao
 import (
 	"fmt"
 
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {

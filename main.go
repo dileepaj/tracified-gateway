@@ -3,11 +3,11 @@ package main
 import (
 
 	"fmt"
-	"github.com/tracified-gateway/api/routes"
+	"github.com/dileepaj/tracified-gateway/api/routes"
 	"net/http"
 	"github.com/robfig/cron"
 	"github.com/gorilla/handlers"
-	"github.com/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services"
 
 
 )

@@ -7,8 +7,8 @@ import (
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 type ConcreteInsertPOA struct {
