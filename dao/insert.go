@@ -14,7 +14,7 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	}
 	defer session.Close()
 
-	c := session.DB("dileepaj/tracified-gateway").C("COC")
+	c := session.DB("tracified-gateway").C("COC")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -31,7 +31,7 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	}
 	defer session.Close()
 
-	c := session.DB("dileepaj/tracified-gateway").C("Transactions")
+	c := session.DB("tracified-gateway").C("Transactions")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)

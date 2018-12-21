@@ -9,7 +9,6 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/dileepaj/tracified-gateway/services"
 
-
 )
 
 func main() {
