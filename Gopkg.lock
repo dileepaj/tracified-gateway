@@ -96,6 +96,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/robfig/cron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
+
+[[projects]]
   digest = "1:54bd573538ca13ccf85d18c99249d934f17957f17263256b42565a11c854c1de"
   name = "github.com/segmentio/go-loggly"
   packages = ["."]
@@ -196,6 +204,7 @@
     "github.com/chebyrash/promise",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
+    "github.com/robfig/cron",
     "github.com/stellar/go/build",
     "github.com/stellar/go/clients/horizon",
     "github.com/stellar/go/keypair",

@@ -1,7 +1,7 @@
 package apiModel
 
 import (
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 //poc Success response
@@ -56,10 +56,14 @@ type InsertSuccess struct {
 
 // }
 type SubmitXDRSuccess struct {
-	Message   string
-	Txns []model.TransactionCollectionBody
-
+	Status string
 }
+
+// type SubmitXDRSuccess struct {
+// 	Message   string
+// 	Txns []model.TransactionCollectionBody
+
+// }
 
 type GenesisSuccess struct {
 	Message     string
@@ -210,7 +214,7 @@ type InsertTDP struct {
 }
 
 type TestTDP struct {
-	XDR    string
+	XDR string
 	// RawTDP string
 }
 

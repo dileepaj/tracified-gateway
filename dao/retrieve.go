@@ -1,7 +1,7 @@
 package dao
 
 import (
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 
 	"gopkg.in/mgo.v2/bson"
 
@@ -130,6 +130,35 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 
 }
 
+func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
+	result := []model.COCCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("COC")
+		err1 := c.Find(bson.M{"status": status}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			fmt.Println(err1)
+			reject(err1)
+
+		}
+		resolve(result)
+
+	})
+
+	return p
+
+}
 
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}

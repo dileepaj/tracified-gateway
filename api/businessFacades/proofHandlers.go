@@ -1,9 +1,9 @@
 package businessFacades
 
 import (
-	"github.com/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/dao"
 
-	// "github.com/tracified-gateway/proofs/retriever/stellarRetriever"
+	// "github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"crypto/sha256"
 	"net/http"
 
@@ -17,11 +17,11 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
 
-	// "github.com/tracified-gateway/proofs/builder"
-	"github.com/tracified-gateway/proofs/interpreter"
+	// "github.com/dileepaj/tracified-gateway/proofs/builder"
+	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
 )
 
 // func CheckPOC(w http.ResponseWriter, r *http.Request) {

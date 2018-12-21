@@ -1,9 +1,9 @@
 package builder
 
 import (
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
-	"github.com/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
 type cocLinkInterface interface {
