@@ -2,6 +2,7 @@ package builder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
