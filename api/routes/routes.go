@@ -2,7 +2,6 @@ package routes
 
 import (
 	"net/http"
-
 	"github.com/dileepaj/tracified-gateway/api/businessFacades"
 )
 
