@@ -4,10 +4,10 @@ node {
         withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
             
-            sh 'mkdir bin'
-            sh 'mkdir src'
-            sh 'mkdir src/github.com'
-            sh 'mkdir src/github.com/tracified-gateway'
+            // sh 'mkdir bin'
+            // sh 'mkdir src'
+            // sh 'mkdir src/github.com'
+            // sh 'mkdir src/github.com/tracified-gateway'
             sh 'ls'
             ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/tracified-gateway") {
               stage('Checkout'){
