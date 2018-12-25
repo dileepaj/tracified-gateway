@@ -11,7 +11,6 @@ import (
 	// "gopkg.in/mgo.v2"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
-
 	"encoding/json"
 	"fmt"
 	// "gopkg.in/mgo.v2"
