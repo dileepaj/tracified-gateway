@@ -25,19 +25,15 @@
 #   unused-packages = true
 
 
-[[override]]
+[[constraint]]
   branch = "master"
   name = "github.com/chebyrash/promise"
 
-[[override]]
+[[constraint]]
   name = "github.com/gorilla/handlers"
   version = "1.4.0"
 
-[[override]]
-  name = "github.com/gorilla/mux"
-  version = "1.6.2"
-
-[[override]]
+[[constraint]]
   branch = "master"
   name = "github.com/stellar/go"
 
