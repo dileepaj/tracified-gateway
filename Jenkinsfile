@@ -40,6 +40,7 @@ node {
               
               stage 'Deploy'
               // Do nothing.
+              sh "./tracified-gateway"
             }
         }
     // }
