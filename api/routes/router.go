@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tracified-gateway/api"
+	// "github.com/tracified-gateway/api"
 )
 
 func NewRouter() *mux.Router {
