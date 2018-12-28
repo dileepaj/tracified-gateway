@@ -7,6 +7,8 @@ import(
 type COCCollectionBody struct {
 	TxnHash string
 	Sender   string
+	SubAccount string
+	SequenceNo int
 	Receiver string
 	AcceptXdr string
 	RejectXdr string

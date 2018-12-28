@@ -280,6 +280,30 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func LastTxn(w http.ResponseWriter, r *http.Request) {
+	//
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+		res := model.LastTxnResponse{LastTxn: result.TxnHash}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusNotFound)
+		response := model.Error{Message: "Not Found"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
 // func SplitXDR(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 // 	var TDP []model.TransactionCollectionBody
@@ -352,27 +376,4 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 // 	return
 // }
 
-func LastTxn(w http.ResponseWriter, r *http.Request) {
-	//
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	vars := mux.Vars(r)
-
-	object := dao.Connection{}
-	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
-	p.Then(func(data interface{}) interface{} {
-
-		result := data.(model.TransactionCollectionBody)
-		res := model.LastTxnResponse{LastTxn: result.TxnHash}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(res)
-		return nil
-	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
-		json.NewEncoder(w).Encode(response)
-		return error
-	})
-	p.Await()
-
-}
