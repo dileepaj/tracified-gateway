@@ -38,6 +38,10 @@
   version = "1.6.2"
 
 [[constraint]]
+  name = "github.com/robfig/cron"
+  version = "1.1.0"
+
+[[constraint]]
   branch = "master"
   name = "github.com/stellar/go"
 
@@ -48,3 +52,10 @@
 [prune]
   go-tests = true
   unused-packages = true
+
+[metadata.heroku]
+  root-package = "github.com/dileepaj/tracified-gateway"
+  go-version = "go1.10.3"
+  install = [ "." ]
+  ensure = "true"
+  additional-tools = ["github.com/golang-migrate/migrate"]

@@ -1,7 +1,8 @@
 package apiModel
 
 import(
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
+	
 )
 
 type GetCOCCollection struct {

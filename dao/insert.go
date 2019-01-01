@@ -3,7 +3,7 @@ package dao
 import (
 	"fmt"
 
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {

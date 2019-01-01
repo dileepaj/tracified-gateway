@@ -2,8 +2,7 @@ package routes
 
 import (
 	"net/http"
-
-	"github.com/tracified-gateway/api/businessFacades"
+	"github.com/dileepaj/tracified-gateway/api/businessFacades"
 )
 
 type Route struct {
@@ -81,7 +80,7 @@ var routes = Routes{
 		"POST",
 		"/COCLink/Transaction",
 		businessFacades.COCLink,
-	},Route{
+	}, Route{
 		"POCDeveloperRetriever",
 		"get",
 		"/pocbctree/{Txn}",
@@ -92,7 +91,7 @@ var routes = Routes{
 		"get",
 		"/getcocbysender/{Sender}",
 		businessFacades.GetCocBySender,
-	},Route{
+	}, Route{
 		"GetCOCCollectionByReceiver",
 		"get",
 		"/getcocbyreceiver/{Receiver}",
@@ -125,12 +124,33 @@ var routes = Routes{
 	Route{
 		"SubmitXDR",
 		"POST",
-		"/submitxdr",
+		"/transaction/dataPacket",
+		businessFacades.SubmitXDR,
+	},
+	Route{
+		"SubmitSplit",
+		"POST",
+		"/transaction/split",
 		businessFacades.SubmitXDR,
 	},Route{
+		"SubmitGenesis",
+		"POST",
+		"/transaction/genesis",
+		businessFacades.SubmitXDR,
+	},Route{
+		"SubmitTransformation",
+		"POST",
+		"/transaction/transformation",
+		businessFacades.SubmitXDR,
+	},Route{
+		"SubmitMerge",
+		"POST",
+		"/transaction/merge",
+		businessFacades.SubmitXDR,
+	},  Route{
 		"LastTxn",
 		"GET",
-		"/lastTxn/{Identifier}",
+		"/transaction/lastTxn/{Identifier}",
 		businessFacades.LastTxn,
 	},
 }

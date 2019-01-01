@@ -5,7 +5,7 @@ import (
 
 	"github.com/gorilla/mux"
 
-	"github.com/tracified-gateway/api"
+	// "github.com/dileepaj/tracified-gateway/api"
 )
 
 func NewRouter() *mux.Router {
@@ -15,7 +15,7 @@ func NewRouter() *mux.Router {
 		var handler http.Handler
 
 		handler = route.HandlerFunc
-		handler = api.Logger(handler, route.Name)
+		handler = Logger(handler, route.Name)
 
 		router.
 			Methods(route.Method).

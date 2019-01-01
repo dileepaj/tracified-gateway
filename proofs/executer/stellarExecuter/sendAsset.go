@@ -1,8 +1,8 @@
 package stellarExecuter
 
 import (
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
 	"net/http"
 
 	"github.com/stellar/go/build"

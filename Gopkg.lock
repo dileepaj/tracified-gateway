@@ -96,6 +96,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:ed615c5430ecabbb0fb7629a182da65ecee6523900ac1ac932520860878ffcad"
+  name = "github.com/robfig/cron"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b41be1df696709bb6395fe435af20370037c0b4c"
+  version = "v1.1"
+
+[[projects]]
   digest = "1:54bd573538ca13ccf85d18c99249d934f17957f17263256b42565a11c854c1de"
   name = "github.com/segmentio/go-loggly"
   packages = ["."]
@@ -115,7 +123,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:abfbdfc9eeeafac74501521dc9c11b6e7a756ae1cbb2986416c3fb452cadcd37"
+  digest = "1:393ea46f2901b064b74759d9b83fad9d93005a7a050db69b88448c4b18005c80"
   name = "github.com/stellar/go"
   packages = [
     "amount",
@@ -138,7 +146,7 @@
     "xdr",
   ]
   pruneopts = "UT"
-  revision = "c235e807644d76fc15c8328df4cbb49a25b990d0"
+  revision = "d0fd3fc54379730416baf402381451150bb5569b"
 
 [[projects]]
   branch = "master"
@@ -169,11 +177,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:225564f71149334315118db714e1ea87513e4a11cf4acb27e26bc7577cebfa0b"
+  digest = "1:9652da56be8fe4998e79e36be6b9d30fe4fd4aacb73ecf0d9b3a33228189dc7e"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "62eef0e2fa9b2c385f7b2778e763486da6880d37"
+  revision = "b4a75ba826a64a70990f11a225237acd6ef35c9f"
 
 [[projects]]
   branch = "v2"
@@ -196,6 +204,7 @@
     "github.com/chebyrash/promise",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
+    "github.com/robfig/cron",
     "github.com/stellar/go/build",
     "github.com/stellar/go/clients/horizon",
     "github.com/stellar/go/keypair",
