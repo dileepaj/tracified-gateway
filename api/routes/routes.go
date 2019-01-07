@@ -109,18 +109,6 @@ var routes = Routes{
 		"/insertcoccollection",
 		businessFacades.UpdateCocCollection,
 	},
-	// Route{
-	// 	"InsertTransactioCollection",
-	// 	"POST",
-	// 	"/insertTransactioncollection",
-	// 	businessFacades.InsertTransactionCollection,
-	// },
-	// Route{
-	// 	"UpdateTransactioCollection",
-	// 	"POST",
-	// 	"/updateTransactioncollection",
-	// 	businessFacades.UpdateTransactionCollection,
-	// },
 	Route{
 		"SubmitXDR",
 		"POST",
@@ -147,10 +135,15 @@ var routes = Routes{
 		"POST",
 		"/transaction/merge",
 		businessFacades.SubmitXDR,
-	},  Route{
+	},Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",
 		businessFacades.LastTxn,
+	},Route{
+		"SubAccountStatus",
+		"POST",
+		"/transaction/coc/subAccountStatus",
+		businessFacades.CheckAccountsStatus,
 	},
 }
