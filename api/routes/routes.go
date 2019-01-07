@@ -19,13 +19,13 @@ var routes = Routes{
 	Route{
 		"POC",
 		"GET",
-		"/poc/{Txn}",
+		"/proof/poc/{Txn}",
 		businessFacades.CheckPOC,
 	},
 	Route{
 		"FULLPOC",
 		"POST",
-		"/fullpoc/{Txn}/{PID}",
+		"/proof/fullpoc/{Txn}",
 		businessFacades.CheckFullPOC,
 	},
 	Route{

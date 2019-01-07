@@ -56,7 +56,7 @@ type InsertSuccess struct {
 
 // }
 type SubmitXDRSuccess struct {
-	Status string
+	Status string 
 }
 
 // type SubmitXDRSuccess struct {
