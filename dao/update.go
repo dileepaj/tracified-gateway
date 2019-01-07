@@ -58,6 +58,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			RejectTxn:  selector.RejectTxn,
 			Identifier: selector.Identifier,
 			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
 		}
 
 		c := session.DB("tracified-gateway").C("COC")
@@ -79,6 +81,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			RejectTxn:  update.RejectTxn,
 			Identifier: selector.Identifier,
 			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
 		}
 
 		c := session.DB("tracified-gateway").C("COC")
@@ -102,6 +106,9 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			RejectTxn:  selector.RejectTxn,
 			Identifier: selector.Identifier,
 			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
+			
 		}
 
 		c := session.DB("tracified-gateway").C("COC")

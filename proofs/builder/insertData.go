@@ -22,10 +22,10 @@ type AbstractTDPInsert struct {
 
 func (AP *AbstractTDPInsert) TDPInsert() model.SubmitXDRResponse {
 
-	object := stellarExecuter.ConcreteInsertData{XDR: AP.XDR}
+	object := stellarExecuter.ConcreteSubmitXDR{XDR: AP.XDR}
 	// object := stellarExecuter.ConcreteInsertData{Hash: AP.Hash, InsertType: AP.InsertType, PreviousTXNID: AP.PreviousTXNID, ProfileId: AP.ProfileId}
 
-	result := object.InsertDataHash()
+	result := object.SubmitXDR()
 
 	return result
 }
