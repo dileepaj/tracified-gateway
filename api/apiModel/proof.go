@@ -298,6 +298,10 @@ type POCStruct struct {
 	BCTree    []model.Current
 }
 
+// type POGStruct struct {
+// 	Identifier string
+// }
+
 type POGStruct struct {
 	LastTxn    string
 	POGTxn     string

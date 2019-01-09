@@ -52,7 +52,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			fmt.Println("keys map => ", keys)
 			TxnType := Base64DecEnc("Decode", keys[0].Value)
 
-			if keys[0].Name == "Transaction Type" && TxnType == "0" {
+			if TxnType == "0" {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Txn Hash retrieved from the blockchain."
 				response.Error = Rerr
@@ -62,7 +62,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 
 				return response
 
-			} else if keys[1].Value != "" {
+			} else if keys[1].Value != ""||keys[1].Value != "0" {
 				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 
 				pogStruct := apiModel.POGStruct{LastTxn: PreviousTxn}

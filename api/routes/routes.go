@@ -37,7 +37,7 @@ var routes = Routes{
 	Route{
 		"POG",
 		"GET",
-		"/pog/{LastTxn}/{POGTxn}/{Identifier}",
+		"/pog/{Identifier}",
 		businessFacades.CheckPOG,
 	},
 	Route{
