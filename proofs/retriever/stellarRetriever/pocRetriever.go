@@ -123,8 +123,16 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
-			if bcPreHash != "0" {
-				POCObject := apiModel.POCStruct{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
+			if bcPreHash=="0"{
+				bcPreHash=""
+			}
+			
+			if bcPreHash != "" {
+				POCObject := apiModel.POCStruct{
+					Txn: bcPreHash, 
+					BCTree: db.POCStruct.BCTree, 
+					DBTree: db.POCStruct.DBTree, 
+					ProfileID: db.POCStruct.ProfileID}
 				object := ConcretePOC{POCStruct: POCObject}
 				// object := ConcretePOC{Txn: bcPreHash, BCTree: db.POCStruct.BCTree, DBTree: db.POCStruct.DBTree, ProfileID: db.POCStruct.ProfileID}
 				response = object.RetrievePOC()

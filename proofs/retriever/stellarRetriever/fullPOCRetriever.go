@@ -145,7 +145,10 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
-			if keys[1].Value != "" {
+			if bcPreHash=="0"{
+				bcPreHash=""
+			}
+			if bcPreHash != "" {
 				POCObject2 := apiModel.POCStruct{
 					Txn:       bcPreHash,
 					BCTree:    db.POCStruct.BCTree,
