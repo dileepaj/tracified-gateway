@@ -60,13 +60,13 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		defer session.Close()
 
 		c := session.DB("tracified-gateway").C("COC")
-		lol,er:=c.Find(bson.M{"subaccount": subAccount}).Count()
+		count,er:=c.Find(bson.M{"subaccount": subAccount}).Count()
 		if er!=nil{
 			fmt.Println(er)
 			reject(er)
 		}
 
-		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(lol-1).One(&result)
+		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count-1).One(&result)
 		if err1 != nil {
 			fmt.Println(err1)
 			reject(err1)

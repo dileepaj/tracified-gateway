@@ -290,10 +290,11 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 		return data
 
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
-		// fmt.Println(response)
 		return error
 
 	})
@@ -324,14 +325,14 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 			response = display.InterpretPOG()
 	
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(response.RetrievePOG.Error.Code)
-			json.NewEncoder(w).Encode(response)
+			w.WriteHeader(response.RetrievePOG.Message.Code)
+			json.NewEncoder(w).Encode(response.RetrievePOG)
 			return nil
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 				w.WriteHeader(http.StatusOK)
-				response := model.Error{Message: "Not Found"}
+				response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 				json.NewEncoder(w).Encode(response)
 				return error
 		})
@@ -342,7 +343,7 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 		w.WriteHeader(http.StatusOK)
-		response := model.Error{Message: "Not Found"}
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})

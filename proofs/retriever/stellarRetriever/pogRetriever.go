@@ -27,7 +27,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
 		response.CurTxn = CurrentTxn
 
-		response.Error = Rerr
+		response.Message = Rerr
 		return response
 
 	} else {
@@ -55,7 +55,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			if TxnType == "0" {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Txn Hash retrieved from the blockchain."
-				response.Error = Rerr
+				response.Message = Rerr
 				response.CurTxn = CurrentTxn
 				response.PreTxn = Base64DecEnc("Decode", keys[1].Value)
 				response.Identifier = Base64DecEnc("Decode", keys[2].Value)
@@ -72,7 +72,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			} else {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Genesis Transaction not found."
-				response.Error = Rerr
+				response.Message = Rerr
 
 				return response
 			}
@@ -81,7 +81,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
 			response.CurTxn = CurrentTxn
-			response.Error = Rerr
+			response.Message = Rerr
 
 			return response
 		}

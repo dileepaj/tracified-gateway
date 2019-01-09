@@ -289,11 +289,13 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(GObj)
 	object := dao.Connection{}
 	for i:=0;i<len(GObj.SubAccounts);i++ {
+		
 		p := object.GetLastCOCbySubAccount(GObj.SubAccounts[i])
 		p.Then(func(data interface{}) interface{} {
 			result=append(result,data.(apiModel.GetSubAccountStatusResponse))
 			return data
 		}).Catch(func(error error) error {
+			result=append(result,apiModel.GetSubAccountStatusResponse{SubAccount:GObj.SubAccounts[i],Available:true})
 
 			return error
 		})

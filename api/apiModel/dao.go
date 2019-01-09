@@ -31,6 +31,7 @@ type GetSubAccountStatus struct {
 }
 
 type GetSubAccountStatusResponse struct {
+	// Message string `json:"message"`
 	SubAccount string `json:"subAccount"`
 	Receiver string `json:"receiver"`
 	SequenceNo int `json:"sequenceNo"`
