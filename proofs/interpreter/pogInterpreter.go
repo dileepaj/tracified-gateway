@@ -2,6 +2,7 @@ package interpreter
 
 import (
 	"fmt"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
@@ -36,8 +37,14 @@ func (AP *AbstractPOG) InterpretPOG() model.POG {
 			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis Identifier hash didn't match!"
 			return pogObj
 		} else if pogObj.RetrievePOG.PreTxn != "" {
-			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis previousTxn ID is not empty!"
-			return pogObj
+			if pogObj.RetrievePOG.PreTxn != "0" {
+				pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis previousTxn ID is not empty!"
+				return pogObj
+			} else {
+				pogObj.RetrievePOG.Error.Message = "Proof of Genesis Success!"
+				return pogObj
+			}
+
 		} else {
 			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Success!"
 			return pogObj

@@ -31,8 +31,10 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result)
+
 		}
-		resolve(result)
 
 	})
 
@@ -61,8 +63,10 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result)
+
 		}
-		resolve(result)
 
 	})
 
@@ -91,8 +95,10 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result)
+
 		}
-		resolve(result)
 
 	})
 
@@ -121,9 +127,10 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 			fmt.Println(err1)
 			reject(err1)
 
-		}
-		resolve(result)
+		}else{
+			resolve(result)
 
+		}
 	})
 
 	return p
@@ -151,8 +158,10 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result)
+
 		}
-		resolve(result)
 
 	})
 
@@ -181,8 +190,10 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result[len(result)-1])
+
 		}
-		resolve(result[len(result)-1])
 
 	})
 
@@ -190,6 +201,35 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 
 }
 
+func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
+		if err1 != nil {
+			fmt.Println(err1)
+			reject(err1)
+
+		}
+		resolve(result)
+
+	})
+
+	return p
+
+}
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -211,8 +251,10 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 			fmt.Println(err1)
 			reject(err1)
 
+		}else{
+			resolve(result)
+
 		}
-		resolve(result)
 
 	})
 
@@ -241,8 +283,10 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 				fmt.Println(err1)
 				reject(err1)
 	
+			}else{
+				resolve(result)
+	
 			}
-			resolve(result)
 	
 		})
 	
