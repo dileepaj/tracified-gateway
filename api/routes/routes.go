@@ -136,6 +136,11 @@ var routes = Routes{
 		"/transaction/merge",
 		businessFacades.SubmitXDR,
 	},Route{
+		"SubmitTransfer",
+		"POST",
+		"/transaction/transfer",
+		businessFacades.SubmitXDR,
+	},Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",

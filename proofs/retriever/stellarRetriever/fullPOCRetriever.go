@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 )
-
+//RetrieveFullPOC ...
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error

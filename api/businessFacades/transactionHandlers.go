@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
 	// "strings"
 	"github.com/gorilla/mux"
 	// "github.com/stellar/go/xdr"
@@ -217,38 +218,49 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Header present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)	
+
 		return
 	}
 
 	if r.Header.Get("Content-Type") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Content-Type present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)		
+
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while Decoding the body")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
 		// fmt.Println(err)
 		return
-	}
-	
-	status:=builder.XDRSubmitter(TDP)
-	if status{
-			w.WriteHeader(http.StatusOK)
-			result := apiModel.SubmitXDRSuccess{
+	} 
+
+	status := builder.XDRSubmitter(TDP)
+	if status {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
 			Status: "Success",
-			}
-			json.NewEncoder(w).Encode(result)
+		}
+		json.NewEncoder(w).Encode(result)
+
 	}
 
 	return
 }
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {
-	//
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	
@@ -264,14 +276,15 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return nil
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})
 	p.Await()
 
 }
+
 // func SplitXDR(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 // 	var TDP []model.TransactionCollectionBody
@@ -343,5 +356,4 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 // 	json.NewEncoder(w).Encode(result)
 // 	return
 // }
-
 
