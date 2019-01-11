@@ -133,8 +133,11 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 				resq, er := client.Do(req)
 
 				if er != nil {
-					w.WriteHeader(http.StatusNotFound)
-					json.NewEncoder(w).Encode(er.Error)
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+					w.WriteHeader(http.StatusOK)
+					response := model.Error{Message: "Connection to the DataStore was interupted"}
+					json.NewEncoder(w).Encode(response)
 				} else {
 					// fmt.Println(req)
 					body, _ := ioutil.ReadAll(resq.Body)
@@ -182,6 +185,11 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 			return data
 		}).Catch(func(error error) error {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+			w.WriteHeader(http.StatusOK)
+			response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
 			return error
 		})
 		g.Await()
@@ -189,10 +197,11 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 		return data
 
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "TDP ID Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
-		// fmt.Println(response)
 		return error
 
 	})
@@ -290,15 +299,73 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 		return data
 
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
-		// fmt.Println(response)
 		return error
 
 	})
 	p.Await()
 
 	// return
+
+}
+
+func CheckPOG(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+
+	var response model.POG
+
+	object:=dao.Connection{}
+	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
+	p.Then(func(data interface{}) interface{} {
+
+		LastTxn := data.(model.TransactionCollectionBody)
+
+		g:= object.GetFirstTransactionbyIdentifier(vars["Identifier"])
+		g.Then(func(data interface{}) interface{} {
+
+			FirstTxn := data.(model.TransactionCollectionBody)
+
+			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:FirstTxn.TxnHash, Identifier: vars["Identifier"]}
+			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
+			response = display.InterpretPOG()
+	
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			w.WriteHeader(response.RetrievePOG.Message.Code)
+			json.NewEncoder(w).Encode(response.RetrievePOG)
+			return nil
+		}).Catch(func(error error) error {
+			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+				w.WriteHeader(http.StatusOK)
+				response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+				json.NewEncoder(w).Encode(response)
+				return error
+		})
+		g.Await()
+
+		return nil
+	}).Catch(func(error error) error {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+
+
+
+	
+
+	// fmt.Println("response.RetrievePOG.Error.Code")
+	// fmt.Println(response.RetrievePOG.Error.Code)
+
+	return
 
 }

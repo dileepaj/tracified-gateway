@@ -274,6 +274,44 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var GObj apiModel.GetSubAccountStatus
+	var result []apiModel.GetSubAccountStatusResponse
+
+	err := json.NewDecoder(r.Body).Decode(&GObj)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while Decoding the body")
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(GObj)
+	object := dao.Connection{}
+	for i:=0;i<len(GObj.SubAccounts);i++ {
+		
+		p := object.GetLastCOCbySubAccount(GObj.SubAccounts[i])
+		p.Then(func(data interface{}) interface{} {
+			result=append(result,data.(apiModel.GetSubAccountStatusResponse))
+			return data
+		}).Catch(func(error error) error {
+			result=append(result,apiModel.GetSubAccountStatusResponse{SubAccount:GObj.SubAccounts[i],Available:true})
+
+			return error
+		})
+		p.Await()
+
+	
+	}
+	
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	return
+
+	
+}
+
+
 // func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 // 	var GObj model.TransactionCollectionBody

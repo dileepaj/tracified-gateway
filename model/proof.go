@@ -15,10 +15,10 @@ type POE struct {
 
 //proof of POG
 type RetrievePOG struct {
-	CurTxn     string `json:"CurTxn"`
-	PreTxn     string `json:"PreTxn"`
-	Identifier string `json:"Identifier"`
-	Error      Error  `json:"error"`
+	CurTxn     string `json:"genesisTxn"`
+	PreTxn     string `json:"previousTxn"`
+	Identifier string `json:"identifier"`
+	Message      Error  `json:"status"`
 }
 
 type POG struct {

@@ -26,6 +26,8 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) bool {
 
 		TDP[i].PublicKey = txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		TDP[i].Identifier =Identifier
 		TDP[i].TxnType = TxnType
 		TDP[i].Status = "pending"
 

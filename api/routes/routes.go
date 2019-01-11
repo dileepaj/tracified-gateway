@@ -37,7 +37,7 @@ var routes = Routes{
 	Route{
 		"POG",
 		"GET",
-		"/pog/{LastTxn}/{POGTxn}/{Identifier}",
+		"/pog/{Identifier}",
 		businessFacades.CheckPOG,
 	},
 	Route{
@@ -109,18 +109,6 @@ var routes = Routes{
 		"/insertcoccollection",
 		businessFacades.UpdateCocCollection,
 	},
-	// Route{
-	// 	"InsertTransactioCollection",
-	// 	"POST",
-	// 	"/insertTransactioncollection",
-	// 	businessFacades.InsertTransactionCollection,
-	// },
-	// Route{
-	// 	"UpdateTransactioCollection",
-	// 	"POST",
-	// 	"/updateTransactioncollection",
-	// 	businessFacades.UpdateTransactionCollection,
-	// },
 	Route{
 		"SubmitXDR",
 		"POST",
@@ -147,10 +135,20 @@ var routes = Routes{
 		"POST",
 		"/transaction/merge",
 		businessFacades.SubmitXDR,
-	},  Route{
+	},Route{
+		"SubmitTransfer",
+		"POST",
+		"/transaction/transfer",
+		businessFacades.SubmitXDR,
+	},Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",
 		businessFacades.LastTxn,
+	},Route{
+		"SubAccountStatus",
+		"POST",
+		"/transaction/coc/subAccountStatus",
+		businessFacades.CheckAccountsStatus,
 	},
 }
