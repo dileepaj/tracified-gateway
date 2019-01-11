@@ -222,6 +222,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 			Status: "No Header present!",
 		}
 		json.NewEncoder(w).Encode(result)	
+
 		return
 	}
 
@@ -231,6 +232,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 			Status: "No Content-Type present!",
 		}
 		json.NewEncoder(w).Encode(result)		
+
 		return
 	}
 
@@ -252,6 +254,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 			Status: "Success",
 		}
 		json.NewEncoder(w).Encode(result)
+
 	}
 
 	return
@@ -260,6 +263,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 func LastTxn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+	
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
@@ -352,3 +356,4 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 // 	json.NewEncoder(w).Encode(result)
 // 	return
 // }
+
