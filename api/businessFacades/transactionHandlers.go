@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
+
+	// "strings"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/xdr"
+	// "github.com/stellar/go/xdr"
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -212,78 +213,57 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
-	object := dao.Connection{}
-	var copy model.TransactionCollectionBody
+	// object := dao.Connection{}
+	// var copy model.TransactionCollectionBody
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Header present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)	
+
 		return
 	}
 
 	if r.Header.Get("Content-Type") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Content-Type present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)		
+
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while Decoding the body")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
 		// fmt.Println(err)
 		return
-	}
-	for i := 0; i < len(TDP); i++ {
-		TDP[i].Status = "Pending"
-		var txe xdr.Transaction
-		err = xdr.SafeUnmarshalBase64(TDP[i].XDR, &txe)
-		if err != nil {
-			fmt.Println(err)
+	} 
+
+	status := builder.XDRSubmitter(TDP)
+	if status {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Success",
 		}
-
-		TDP[i].PublicKey = txe.SourceAccount.Address()
-		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		TDP[i].TxnType = TxnType
-		TDP[i].Status = "pending"
-
-		copy=TDP[i]
-		err1 := object.InsertTransaction(TDP[i])
-		if err1 != nil {
-			TDP[i].Status = "failed"
-		}
+		json.NewEncoder(w).Encode(result)
 
 	}
-	for i := 0; i < len(TDP); i++ {
-		display := &builder.AbstractTDPInsert{XDR: TDP[i].XDR}
-		response := display.TDPInsert()
-		if response.Error.Code == 503 {
-			TDP[i].Status = "pending"
-		} else {
-			TDP[i].TxnHash = response.TXNID
 
-			upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
-			err2 := object.UpdateTransaction(copy, upd)
-			if err2 != nil {
-				TDP[i].Status = "pending"
-			} else {
-				TDP[i].Status = "done"
-			}
-		}
-	}
-
-	w.WriteHeader(http.StatusOK)
-	result := apiModel.SubmitXDRSuccess{
-		Status: "Success",
-	}
-	json.NewEncoder(w).Encode(result)
 	return
 }
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {
-	//
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+	
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
@@ -296,14 +276,15 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return nil
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})
 	p.Await()
 
 }
+
 // func SplitXDR(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 // 	var TDP []model.TransactionCollectionBody
@@ -375,5 +356,4 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 // 	json.NewEncoder(w).Encode(result)
 // 	return
 // }
-
 

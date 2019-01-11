@@ -157,16 +157,18 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 		
 			if response.Error.Code == 404 {
-				w.WriteHeader(response.Error.Code)
+				w.WriteHeader(400)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
 				json.NewEncoder(w).Encode(result)
 			}else{
-				selection.TxnHash=response.TXNID
+				GObj.TxnHash=response.TXNID
+				fmt.Println(response.TXNID)
+
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-					w.WriteHeader(http.StatusNotFound)
+					w.WriteHeader(400)
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
@@ -174,7 +176,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
-					body:=selection
+					body:=GObj
 					body.AcceptTxn=GObj.AcceptTxn
 					body.AcceptXdr=GObj.AcceptXdr
 					body.Status=GObj.Status
@@ -185,12 +187,10 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			
-
-			
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(400)
 			json.NewEncoder(w).Encode(error)
 			return error
 		})
@@ -204,16 +204,17 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 		
 			if response.Error.Code == 404 {
-				w.WriteHeader(response.Error.Code)
+				w.WriteHeader(400)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
 				json.NewEncoder(w).Encode(result)
 			}else{
-				selection.TxnHash=response.TXNID
+				GObj.TxnHash=response.TXNID
+				fmt.Println(response.TXNID)
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-					w.WriteHeader(http.StatusNotFound)
+					w.WriteHeader(400)
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
@@ -221,7 +222,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
-					body:=selection
+					body:=GObj
 					body.RejectTxn=GObj.RejectTxn
 					body.RejectXdr=GObj.RejectXdr
 					body.Status=GObj.Status
@@ -237,12 +238,19 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusNotFound)
+			w.WriteHeader(400)
 			json.NewEncoder(w).Encode(error)
 			return error
 		})
 		p.Await()
 		break
+
+	default:
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(400)
+		result = apiModel.InsertCOCCollectionResponse{
+			Message: "Failed, Status invalid"}
+		json.NewEncoder(w).Encode(result)
 	}
 	
 	
@@ -281,11 +289,13 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(GObj)
 	object := dao.Connection{}
 	for i:=0;i<len(GObj.SubAccounts);i++ {
+		
 		p := object.GetLastCOCbySubAccount(GObj.SubAccounts[i])
 		p.Then(func(data interface{}) interface{} {
 			result=append(result,data.(apiModel.GetSubAccountStatusResponse))
 			return data
 		}).Catch(func(error error) error {
+			result=append(result,apiModel.GetSubAccountStatusResponse{SubAccount:GObj.SubAccounts[i],Available:true})
 
 			return error
 		})

@@ -9,7 +9,7 @@ import (
 
 	"net/http"
 )
-
+//RetrieveFullPOC ...
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error
@@ -56,18 +56,17 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				identifier := Base64DecEnc("Decode", keys[2].Value)
 				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, Identifier: identifier}
 			case "1":
-				previousProfile := Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
+				// previousProfile := Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[2].Value)
 				temp = model.Current{
 					TXNID:             db.POCStruct.Txn,
 					TType:             transactionType,
-					Identifier:        identifier,
-					PreviousProfileID: previousProfile}
+					Identifier:        identifier}
 			case "2":
 
-				Profile = Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
-				TDPHash = Base64DecEnc("Decode", keys[4].Value)
+				// Profile = Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[2].Value)
+				TDPHash = Base64DecEnc("Decode", keys[3].Value)
 
 				fmt.Println("TDPHash")
 				fmt.Println(TDPHash)
@@ -76,14 +75,14 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "3":
 			case "4":
 			case "5":
-				identifier := Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[2].Value)
 
 				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType,Identifier:identifier}
 			case "6":
 
-				mergeID := Base64DecEnc("Decode", keys[4].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
-				Profile = Base64DecEnc("Decode", keys[2].Value)
+				mergeID := Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[2].Value)
+				// Profile = Base64DecEnc("Decode", keys[2].Value)
 				result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
 				if err != nil {
 					Rerr.Code = result.StatusCode
@@ -146,7 +145,10 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
-			if keys[1].Value != "" {
+			if bcPreHash=="0"{
+				bcPreHash=""
+			}
+			if bcPreHash != "" {
 				POCObject2 := apiModel.POCStruct{
 					Txn:       bcPreHash,
 					BCTree:    db.POCStruct.BCTree,

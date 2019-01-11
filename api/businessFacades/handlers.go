@@ -245,9 +245,11 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	display := &stellarRetriever.ConcretePOC{POCStruct: pocStructObj}
 	// display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"]}
 	response.RetrievePOC = display.RetrieveFullPOC()
+	// response.RetrievePOC = display.RetrievePOC()
+
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(response.RetrievePOC.Error.Code)
+	w.WriteHeader(200)
 	// w.WriteHeader(http.StatusBadRequest)
 
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}

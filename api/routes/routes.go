@@ -19,13 +19,13 @@ var routes = Routes{
 	Route{
 		"POC",
 		"GET",
-		"/poc/{Txn}",
+		"/proof/poc/{Txn}",
 		businessFacades.CheckPOC,
 	},
 	Route{
 		"FULLPOC",
 		"POST",
-		"/fullpoc/{Txn}/{PID}",
+		"/proof/fullpoc/{Txn}",
 		businessFacades.CheckFullPOC,
 	},
 	Route{
@@ -37,7 +37,7 @@ var routes = Routes{
 	Route{
 		"POG",
 		"GET",
-		"/pog/{LastTxn}/{POGTxn}/{Identifier}",
+		"/pog/{Identifier}",
 		businessFacades.CheckPOG,
 	},
 	Route{
@@ -134,6 +134,11 @@ var routes = Routes{
 		"SubmitMerge",
 		"POST",
 		"/transaction/merge",
+		businessFacades.SubmitXDR,
+	},Route{
+		"SubmitTransfer",
+		"POST",
+		"/transaction/transfer",
 		businessFacades.SubmitXDR,
 	},Route{
 		"LastTxn",
