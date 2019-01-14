@@ -160,9 +160,10 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				XDR:selection.AcceptXdr,
 			}
 			TXNS=append(TXNS,TXN)
+			fmt.Println(TXNS)
 			status,response:= builder.XDRSubmitter(TXNS)
 
-			selection = data.(model.COCCollectionBody)
+			// selection = data.(model.COCCollectionBody)
 			// display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
 			// response := display.TDPInsert()
 
