@@ -162,7 +162,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			TXNS=append(TXNS,TXN)
 			status,response:= builder.XDRSubmitter(TXNS)
 
-			// selection = data.(model.COCCollectionBody)
+			selection = data.(model.COCCollectionBody)
 			// display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
 			// response := display.TDPInsert()
 
