@@ -7,6 +7,8 @@ import (
 
 	// "strings"
 	"github.com/gorilla/mux"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/xdr"
 	// "github.com/stellar/go/xdr"
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -221,7 +223,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Header present!",
 		}
-		json.NewEncoder(w).Encode(result)	
+		json.NewEncoder(w).Encode(result)
 
 		return
 	}
@@ -231,7 +233,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Content-Type present!",
 		}
-		json.NewEncoder(w).Encode(result)		
+		json.NewEncoder(w).Encode(result)
 
 		return
 	}
@@ -245,9 +247,9 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		// fmt.Println(err)
 		return
-	} 
+	}
 
-	status ,_:= builder.XDRSubmitter(TDP)
+	status, _ := builder.XDRSubmitter(TDP)
 	if status {
 		w.WriteHeader(http.StatusOK)
 		result := apiModel.SubmitXDRSuccess{
@@ -260,12 +262,9 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
-
 func LastTxn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
@@ -284,6 +283,35 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
+
+}
+
+type Transuc struct {
+	TXN string `json:"txn"`
+}
+
+func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	var Trans xdr.Transaction
+	// var lol string
+
+	err := xdr.SafeUnmarshalBase64(vars["XDR"], &Trans)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: build.TestNetwork.Passphrase}
+	fmt.Println(build.TestNetwork.Passphrase)
+	// fmt.Println(brr.Hash())
+	t, _ := brr.Hash()
+	test := fmt.Sprintf("%x", t)
+
+	w.WriteHeader(http.StatusOK)
+	response := Transuc{TXN: test}
+	json.NewEncoder(w).Encode(response)
+	return 
 
 }
 
@@ -358,4 +386,3 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 // 	json.NewEncoder(w).Encode(result)
 // 	return
 // }
-

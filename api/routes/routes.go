@@ -151,9 +151,20 @@ var routes = Routes{
 		"/transaction/coc/subAccountStatus",
 		businessFacades.CheckAccountsStatus,
 	}, Route{
-		"POCGatewayRetriever",
+		"POCGatewayRetrieverForTDP",
 		"get",
 		"/gatewayTree/{Txn}",
 		businessFacades.GatewayRetriever,
+	},
+	Route{
+		"POCGatewayRetrieverForIdentifier",
+		"get",
+		"/gatewayTree/{Identifier}",
+		businessFacades.GatewayRetrieverWithIdentifier,
+	},Route{
+		"ConvertXDRToTXN",
+		"get",
+		"/xdrToTxn/{XDR}",
+		businessFacades.ConvertXDRToTXN,
 	},
 }

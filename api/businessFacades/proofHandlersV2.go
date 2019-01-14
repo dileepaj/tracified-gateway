@@ -335,11 +335,12 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
-
+		fmt.Println(LastTxn)
 		g:= object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
 			FirstTxn := data.(model.TransactionCollectionBody)
+			fmt.Println(FirstTxn)
 
 			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:FirstTxn.TxnHash, Identifier: vars["Identifier"]}
 			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
