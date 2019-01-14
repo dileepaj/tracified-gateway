@@ -157,7 +157,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 
 			var TXNS []model.TransactionCollectionBody
 			TXN:=model.TransactionCollectionBody{
-				XDR:selection.AcceptXdr,
+				XDR:GObj.AcceptXdr,
 			}
 			TXNS=append(TXNS,TXN)
 			fmt.Println(TXNS)
