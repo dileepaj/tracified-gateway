@@ -159,7 +159,7 @@ var routes = Routes{
 	Route{
 		"POCGatewayRetrieverForIdentifier",
 		"get",
-		"/gatewayTree/{Identifier}",
+		"/gatewayTreeWithIdentifier/{Identifier}",
 		businessFacades.GatewayRetrieverWithIdentifier,
 	},Route{
 		"ConvertXDRToTXN",
