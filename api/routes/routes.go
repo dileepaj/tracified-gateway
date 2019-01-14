@@ -150,5 +150,10 @@ var routes = Routes{
 		"POST",
 		"/transaction/coc/subAccountStatus",
 		businessFacades.CheckAccountsStatus,
+	}, Route{
+		"POCGatewayRetriever",
+		"get",
+		"/gatewayTree/{Txn}",
+		businessFacades.GatewayRetriever,
 	},
 }
