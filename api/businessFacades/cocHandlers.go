@@ -152,11 +152,21 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	case "accepted":
 		p := object.GetCOCbyAcceptTxn(GObj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
+
 			selection = data.(model.COCCollectionBody)
-			display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
-			response := display.TDPInsert()
-		
-			if response.Error.Code == 404 {
+
+			var TXNS []model.TransactionCollectionBody
+			TXN:=model.TransactionCollectionBody{
+				XDR:selection.AcceptXdr,
+			}
+			TXNS=append(TXNS,TXN)
+			status,response:= builder.XDRSubmitter(TXNS)
+
+			// selection = data.(model.COCCollectionBody)
+			// display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
+			// response := display.TDPInsert()
+
+			if !status {
 				w.WriteHeader(400)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}

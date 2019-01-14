@@ -247,7 +247,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		return
 	} 
 
-	status := builder.XDRSubmitter(TDP)
+	status ,_:= builder.XDRSubmitter(TDP)
 	if status {
 		w.WriteHeader(http.StatusOK)
 		result := apiModel.SubmitXDRSuccess{
@@ -259,6 +259,8 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 
 	return
 }
+
+
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
