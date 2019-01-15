@@ -47,7 +47,7 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 		// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + vars["Txn"]
 		url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-		bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE4NzI0NDU2ODV9.oiez4l8YlU0JmFl2e_kMkmAJTRe4u76Sz-mKmt-GNK0"
+		bearer := "Bearer " + constants.BackendToken
 		// Create a new request using http
 		req, er := http.NewRequest("GET", url, nil)
 
@@ -127,7 +127,7 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
 					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
-					bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE5OTI0NDU2ODV9.zLuscboIwwEmxB2-YLOiNb2NhxTBKkhKLZwM9Qrahtk"
+					bearer := "Bearer " + constants.BackendToken
 					// Create a new request using http
 					req, er := http.NewRequest("GET", url, nil)
 	
@@ -245,8 +245,10 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-				bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE5OTI0NDU2ODV9.zLuscboIwwEmxB2-YLOiNb2NhxTBKkhKLZwM9Qrahtk"
+				// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
+				url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
+
+				bearer := "Bearer " + constants.BackendToken
 				// Create a new request using http
 				req, er := http.NewRequest("GET", url, nil)
 
