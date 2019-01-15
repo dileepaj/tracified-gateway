@@ -166,5 +166,10 @@ var routes = Routes{
 		"get",
 		"/xdrToTxn/{XDR}",
 		businessFacades.ConvertXDRToTXN,
+	},Route{
+		"LastCOC",
+		"get",
+		"/lastCoc/{Identifier}",
+		businessFacades.LastCOC,
 	},
 }
