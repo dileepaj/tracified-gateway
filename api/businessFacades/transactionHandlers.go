@@ -246,7 +246,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		// fmt.Println(err)
+		fmt.Println(err)
 		return
 	}
 	fmt.Println(TDP)
