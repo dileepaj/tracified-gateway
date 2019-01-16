@@ -171,5 +171,10 @@ var routes = Routes{
 		"get",
 		"/lastCoc/{Identifier}",
 		businessFacades.LastCOC,
+	},Route{
+		"Retrieve TDP for Transaction",
+		"get",
+		"/tdpForTxn/{Txn}",
+		businessFacades.TDPForTXN,
 	},
 }

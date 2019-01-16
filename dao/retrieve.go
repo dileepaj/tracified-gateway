@@ -378,3 +378,35 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	
 	}
 
+
+	func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
+		result := model.TransactionCollectionBody{}
+		// p := promise.NewPromise()
+	
+		var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+			// Do something asynchronously.
+			session, err := cd.connect()
+	
+			if err != nil {
+				fmt.Println(err)
+				reject(err)
+	
+			}
+			defer session.Close()
+	
+			c := session.DB("tracified-gateway").C("Transactions")
+			err1 := c.Find(bson.M{"txnhash": Txn}).One(&result)
+			if err1 != nil {
+				fmt.Println(err1)
+				reject(err1)
+	
+			}else{
+				resolve(result)
+	
+			}
+	
+		})
+	
+		return p
+	
+	}

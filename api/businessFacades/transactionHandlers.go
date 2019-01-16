@@ -315,6 +315,35 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type TDP struct {
+	TdpId string `json:"tdpId"`
+}
+
+func TDPForTXN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetTdpIdForTransaction(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+
+		res := TDP{TdpId: result.TdpId}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TdpId Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+
 // func SplitXDR(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 // 	var TDP []model.TransactionCollectionBody
