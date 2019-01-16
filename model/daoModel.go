@@ -19,15 +19,15 @@ type COCCollectionBody struct {
 	
 }
 type TransactionCollectionBody struct {
-	Identifier   string `json:"Identifier"`
-	TdpId string `json:"TdpId"`
-	// ProfileID      string
-	TxnHash string `json:"TxnHash"`
+	Identifier   string 
+	TdpId string 
+	ProfileID      string
+	TxnHash string 
 	// ProfileHash    string
-	PublicKey string `json:"PublicKey"`
-	TxnType string `json:"TxnType"`
-	XDR string `json:"XDR"`
-	Status string `json:"Status"`
+	PublicKey string 
+	TxnType string 
+	XDR string 
+	Status string 
 }
 type XDR struct{
 	XDR build.TransactionMutator

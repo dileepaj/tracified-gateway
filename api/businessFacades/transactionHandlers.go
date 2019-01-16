@@ -238,7 +238,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println(TDP)
+	// fmt.Println(TDP)
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
