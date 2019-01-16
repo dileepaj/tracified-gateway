@@ -24,7 +24,7 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		// ProfileHash:update.ProfileHash,
 		TxnType: selector.TxnType,
 		Status:  update.Status,
-		// ProfileID:update.ProfileID,
+		ProfileID:update.ProfileID,
 	}
 
 	c := session.DB("tracified-gateway").C("Transactions")

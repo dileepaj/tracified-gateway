@@ -19,9 +19,9 @@ type COCCollectionBody struct {
 	
 }
 type TransactionCollectionBody struct {
-	Identifier   string 
+	Identifier string 
 	TdpId string 
-	ProfileID      string
+	ProfileID string
 	TxnHash string 
 	// ProfileHash    string
 	PublicKey string 
