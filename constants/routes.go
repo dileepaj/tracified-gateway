@@ -1,7 +1,7 @@
 package constants
 
-//  var TracifiedBackend="http://localhost:3001/"
-var TracifiedBackend="https://staging.api.tracified.com"
+ var TracifiedBackend="http://localhost:3001/"
+// var TracifiedBackend="https://staging.api.tracified.com"
 
 
  var RawTDP="/api/v2/dataPackets/raw?id="

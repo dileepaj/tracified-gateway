@@ -292,16 +292,56 @@ type Transuc struct {
 	TXN string `json:"txn"`
 }
 
+type TranXDR struct {
+	XDR string `json:"XDR"`
+}
+
 func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	vars := mux.Vars(r)
 	var Trans xdr.Transaction
 	// var lol string
 
-	err := xdr.SafeUnmarshalBase64(vars["XDR"], &Trans)
+	var TDP TranXDR
+	// object := dao.Connection{}
+	// var copy model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	// fmt.Println(TDP)
+	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
 		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	err1 := xdr.SafeUnmarshalBase64(TDP.XDR, &Trans)
+	if err1 != nil {
+		fmt.Println(err1)
 	}
 
 	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: build.TestNetwork.Passphrase}
