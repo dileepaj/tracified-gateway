@@ -9,11 +9,14 @@ import (
 	// "github.com/fanliao/go-promise"
 
 	// "gopkg.in/mgo.v2"
+	"strconv"
+
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 
 	"encoding/json"
 	"fmt"
+
 	// "gopkg.in/mgo.v2"
 
 	"net/http"
@@ -80,7 +83,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
 	err := json.NewDecoder(r.Body).Decode(&GObj)
-	if err != nil {		
+	if err != nil {
 		fmt.Println(err)
 
 		w.WriteHeader(http.StatusBadRequest)
@@ -111,13 +114,54 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	t1, _ := brr1.Hash()
 	test1 := fmt.Sprintf("%x", t1)
 
+	var txe xdr.Transaction
+	// var TDP model.COCCollectionBody
+	err1 := xdr.SafeUnmarshalBase64(GObj.AcceptXdr, &txe)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+	useSentSequence := false
+
+	for i := 0; i < len(txe.Operations); i++ {
+
+		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+			// GObj.SequenceNo ,_= strconv.Atoi(fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo));
+			// fmt.Println("HAHAHAHA BUMPY")
+			v:=fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+			// fmt.Println(v)
+			GObj.SequenceNo ,_=strconv.Atoi(v)
+
+			// if s, err := strconv.Atoi(fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo)); err == nil {
+			// 	fmt.Println(s)
+			// 	GObj.SequenceNo = s
+			// 	useSentSequence = true
+			// }
+
+		}
+		// fmt.Println( txe.Operations[i].Body.Type )
+	}
+	if !useSentSequence {
+		// fmt.Println("HAHAHAHA NOT BUMPY")
+		v:=fmt.Sprint(txe.SeqNum)
+		// fmt.Println(v)
+		GObj.SequenceNo ,_=strconv.Atoi(v)
+
+		// if s, err := strconv.Atoi(fmt.Sprintf("%s", txe.SeqNum)); err == nil {
+		// 	fmt.Println(s)
+		// 	GObj.SequenceNo = s
+
+		// 	// useSentSequence=true
+		// }
+	}
+
+	// fmt.Println(GObj.SequenceNo)
 	GObj.AcceptTxn = test
 	GObj.RejectTxn = test1
 	fmt.Println(GObj)
 	object := dao.Connection{}
-	err1 := object.InsertCoc(GObj)
+	err2 := object.InsertCoc(GObj)
 
-	if err1 != nil {
+	if err2 != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusNotFound)
 		result := apiModel.InsertCOCCollectionResponse{
@@ -157,12 +201,12 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			selection = data.(model.COCCollectionBody)
 
 			var TXNS []model.TransactionCollectionBody
-			TXN:=model.TransactionCollectionBody{
-				XDR:GObj.AcceptXdr,
+			TXN := model.TransactionCollectionBody{
+				XDR: GObj.AcceptXdr,
 			}
-			TXNS=append(TXNS,TXN)
+			TXNS = append(TXNS, TXN)
 			fmt.Println(TXNS)
-			status,response:= builder.XDRSubmitter(TXNS)
+			status, response := builder.XDRSubmitter(TXNS)
 
 			// selection = data.(model.COCCollectionBody)
 			// display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
@@ -173,8 +217,41 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
 				json.NewEncoder(w).Encode(result)
-			}else{
-				GObj.TxnHash=response.TXNID
+			} else {
+
+				// var txe xdr.Transaction
+				// // var TDP model.COCCollectionBody
+				// err := xdr.SafeUnmarshalBase64(TXN.XDR, &txe)
+				// if err != nil {
+				// 	fmt.Println(err)
+				// }
+				// useSentSequence:=false
+
+				// for i:=0;i<len(txe.Operations);i++{
+
+				// 	if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+				// 		// GObj.SequenceNo ,_= strconv.Atoi(fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo));
+				// 		if s, err := strconv.Atoi(fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo)); err == nil {
+				// 			fmt.Printf("%T, %v", s, s)
+				// 			GObj.SequenceNo=s
+				// 			useSentSequence=true
+				// 		}
+
+				// 	}
+				// 	// fmt.Println( txe.Operations[i].Body.Type )
+				// }
+				// if !useSentSequence{
+				// 	if s, err := strconv.Atoi(fmt.Sprintf("%s",txe.SeqNum)); err == nil {
+				// 		fmt.Printf("%T, %v", s, s)
+				// 		GObj.SequenceNo=s
+				// 		// useSentSequence=true
+				// 	}
+				// }
+				// fmt.printf("%d",txe.Operations)
+
+				// GObj.SequenceNo =
+
+				GObj.TxnHash = response.TXNID
 				fmt.Println(response.TXNID)
 
 				err1 := object.UpdateCOC(selection, GObj)
@@ -184,21 +261,21 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
-					
+
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
-					body:=GObj
-					body.AcceptTxn=GObj.AcceptTxn
-					body.AcceptXdr=GObj.AcceptXdr
-					body.Status=GObj.Status
+					body := GObj
+					body.AcceptTxn = GObj.AcceptTxn
+					body.AcceptXdr = GObj.AcceptXdr
+					body.Status = GObj.Status
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Success", Body: body}
 					json.NewEncoder(w).Encode(result)
-					
+
 				}
 			}
-			
+
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -214,14 +291,14 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			selection = data.(model.COCCollectionBody)
 			display := &builder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
-		
+
 			if response.Error.Code == 404 {
 				w.WriteHeader(400)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
 				json.NewEncoder(w).Encode(result)
-			}else{
-				GObj.TxnHash=response.TXNID
+			} else {
+				GObj.TxnHash = response.TXNID
 				fmt.Println(response.TXNID)
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
@@ -230,23 +307,21 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
-					
+
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
-					body:=GObj
-					body.RejectTxn=GObj.RejectTxn
-					body.RejectXdr=GObj.RejectXdr
-					body.Status=GObj.Status
+					body := GObj
+					body.RejectTxn = GObj.RejectTxn
+					body.RejectXdr = GObj.RejectXdr
+					body.Status = GObj.Status
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Success", Body: body}
 					json.NewEncoder(w).Encode(result)
-					
+
 				}
 			}
-			
 
-			
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -264,8 +339,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			Message: "Failed, Status invalid"}
 		json.NewEncoder(w).Encode(result)
 	}
-	
-	
 
 	// err1 := object.UpdateCOC(selection, GObj)
 	// if err1 != nil {
@@ -300,27 +373,25 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(GObj)
 	object := dao.Connection{}
-	for i:=0;i<len(GObj.SubAccounts);i++ {
-		
+	for i := 0; i < len(GObj.SubAccounts); i++ {
+
 		p := object.GetLastCOCbySubAccount(GObj.SubAccounts[i])
 		p.Then(func(data interface{}) interface{} {
-			result=append(result,data.(apiModel.GetSubAccountStatusResponse))
+			result = append(result, data.(apiModel.GetSubAccountStatusResponse))
 			return data
 		}).Catch(func(error error) error {
-			result=append(result,apiModel.GetSubAccountStatusResponse{SubAccount:GObj.SubAccounts[i],Available:true})
+			result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
 
 			return error
 		})
 		p.Await()
 
-	
 	}
-	
+
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(result)
 	return
 
-	
 }
 
 func LastCOC(w http.ResponseWriter, r *http.Request) {
@@ -346,8 +417,6 @@ func LastCOC(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
-
-
 
 // func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
 // 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
