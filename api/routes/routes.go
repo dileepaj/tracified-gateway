@@ -150,5 +150,31 @@ var routes = Routes{
 		"POST",
 		"/transaction/coc/subAccountStatus",
 		businessFacades.CheckAccountsStatus,
+	}, Route{
+		"POCGatewayRetrieverForTDP",
+		"GET",
+		"/gatewayTree/{Txn}",
+		businessFacades.GatewayRetriever,
+	},
+	Route{
+		"POCGatewayRetrieverForIdentifier",
+		"GET",
+		"/gatewayTreeWithIdentifier/{Identifier}",
+		businessFacades.GatewayRetrieverWithIdentifier,
+	},Route{
+		"ConvertXDRToTXN",
+		"POST",
+		"/xdrToTxn",
+		businessFacades.ConvertXDRToTXN,
+	},Route{
+		"LastCOC",
+		"GET",
+		"/lastCoc/{Identifier}",
+		businessFacades.LastCOC,
+	},Route{
+		"Retrieve TDP for Transaction",
+		"GET",
+		"/tdpForTxn/{Txn}",
+		businessFacades.TDPForTXN,
 	},
 }

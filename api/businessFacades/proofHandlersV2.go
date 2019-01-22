@@ -47,7 +47,7 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 		// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + vars["Txn"]
 		url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-		bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE4NzI0NDU2ODV9.oiez4l8YlU0JmFl2e_kMkmAJTRe4u76Sz-mKmt-GNK0"
+		bearer := "Bearer " + constants.BackendToken
 		// Create a new request using http
 		req, er := http.NewRequest("GET", url, nil)
 
@@ -123,42 +123,54 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-				bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE5OTI0NDU2ODV9.zLuscboIwwEmxB2-YLOiNb2NhxTBKkhKLZwM9Qrahtk"
-				// Create a new request using http
-				req, er := http.NewRequest("GET", url, nil)
+				if res[i].TxnType=="2"{
+					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
+					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
-				req.Header.Add("Authorization", bearer)
-				client := &http.Client{}
-				resq, er := client.Do(req)
-
-				if er != nil {
-					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-					w.WriteHeader(http.StatusOK)
-					response := model.Error{Message: "Connection to the DataStore was interupted"}
-					json.NewEncoder(w).Encode(response)
-				} else {
-					// fmt.Println(req)
-					body, _ := ioutil.ReadAll(resq.Body)
-					var raw map[string]interface{}
-					json.Unmarshal(body, &raw)
-
-					h := sha256.New()
-					base64 := raw["data"]
-					// fmt.Println(base64)
-
-					h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
-					// fmt.Printf("%x", h.Sum(nil))
-
+					bearer := "Bearer " + constants.BackendToken
+					// Create a new request using http
+					req, er := http.NewRequest("GET", url, nil)
+	
+					req.Header.Add("Authorization", bearer)
+					client := &http.Client{}
+					resq, er := client.Do(req)
+	
+					if er != nil {
+						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	
+						w.WriteHeader(http.StatusOK)
+						response := model.Error{Message: "Connection to the DataStore was interupted"}
+						json.NewEncoder(w).Encode(response)
+					} else {
+						// fmt.Println(req)
+						body, _ := ioutil.ReadAll(resq.Body)
+						var raw map[string]interface{}
+						json.Unmarshal(body, &raw)
+	
+						h := sha256.New()
+						base64 := raw["data"]
+						// fmt.Println(base64)
+	
+						h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
+						// fmt.Printf("%x", h.Sum(nil))
+	
+						DataStoreTXN := model.Current{
+							TType:      res[i].TxnType,
+							TXNID:      res[i].TxnHash,
+							Identifier: res[i].Identifier,
+							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+	
+						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
+					}
+				}else{
 					DataStoreTXN := model.Current{
-						TType:      "2",
+						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
 						Identifier: res[i].Identifier,
-						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-
+					}
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
+				
 			}
 
 			// pocStructObj = apiModel.POCStruct{
@@ -233,8 +245,10 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-				bearer := "Bearer " + "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJjb21wYW55IjoiVGVzdCAiLCJ1c2VybmFtZSI6Imhwa2F2aW5kQGdtYWlsLmNvbSIsImxvY2FsZSI6IlNyaSBMYW5rYSIsInBlcm1pc3Npb25zIjp7IjAiOlsiMTAiLCI3IiwiOCIsIjkiXSwiMDAyMDgiOlsiMSJdfSwidHlwZSI6IkFkbWluIiwidGVuYW50SUQiOiI0OTk4NDZkMC0yZDlhLTExZTgtODhmMy0wMzEyMmJkNDA1ZTEiLCJhdXRoX3RpbWUiOjE1NDIyNzI4ODYsIm5hbWUiOiJTYWFyYWtldGhhIHRlc3QgYWNjb3VudCAgIiwic3RhZ2VzIjpbIjAwMjAxIiwiMDAyMDIiLCIwMDIwMyIsIjAwMjAzIiwiMDAyMDQiLCIwMDIwNSIsIjAwMjA2IiwiMDAyMDciLCIwMDIwOCIsIjAwMjA5Il0sInBob25lX251bWJlciI6Iis5NDc3OTI5OTU5MCIsImVtYWlsIjoiaHBrYXZpbmRAZ21haWwuY29tIiwiYWRkcmVzcyI6eyJmb3JtYXR0ZWQiOiI5OXggdGVjaCJ9LCJkb21haW4iOiJEYWlyeSIsImRpc3BsYXlJbWFnZSI6Imh0dHBzOi8vdHJhY2lmaWVkLXByb2ZpbGUtaW1hZ2VzLnMzLmFwLXNvdXRoLTEuYW1hem9uYXdzLmNvbS9ocGthdmluZCU0MGdtYWlsLmNvbTE2Y2Q4OTYwLWU3ZjYtMTFlOC1iNzhlLTJkODAyZDQ2ZjlhNi5qcGVnIiwiaWF0IjoxNTQyMjcyODg1LCJleHAiOjE5OTI0NDU2ODV9.zLuscboIwwEmxB2-YLOiNb2NhxTBKkhKLZwM9Qrahtk"
+				// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
+				url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
+
+				bearer := "Bearer " + constants.BackendToken
 				// Create a new request using http
 				req, er := http.NewRequest("GET", url, nil)
 
@@ -323,11 +337,12 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
-
+		fmt.Println(LastTxn)
 		g:= object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
 			FirstTxn := data.(model.TransactionCollectionBody)
+			fmt.Println(FirstTxn)
 
 			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:FirstTxn.TxnHash, Identifier: vars["Identifier"]}
 			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}

@@ -80,10 +80,11 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
 	err := json.NewDecoder(r.Body).Decode(&GObj)
-	if err != nil {
+	if err != nil {		
+		fmt.Println(err)
+
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
 		return
 	}
 	var accept xdr.Transaction
@@ -152,11 +153,22 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	case "accepted":
 		p := object.GetCOCbyAcceptTxn(GObj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
+
 			selection = data.(model.COCCollectionBody)
-			display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
-			response := display.TDPInsert()
-		
-			if response.Error.Code == 404 {
+
+			var TXNS []model.TransactionCollectionBody
+			TXN:=model.TransactionCollectionBody{
+				XDR:GObj.AcceptXdr,
+			}
+			TXNS=append(TXNS,TXN)
+			fmt.Println(TXNS)
+			status,response:= builder.XDRSubmitter(TXNS)
+
+			// selection = data.(model.COCCollectionBody)
+			// display := &builder.AbstractTDPInsert{XDR: GObj.AcceptXdr}
+			// response := display.TDPInsert()
+
+			if !status {
 				w.WriteHeader(400)
 				result = apiModel.InsertCOCCollectionResponse{
 					Message: "Failed"}
@@ -310,6 +322,31 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 
 	
 }
+
+func LastCOC(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetLastCOCbyIdentifier(vars["Identifier"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.COCCollectionBody)
+		// res := model.LastTxnResponse{LastTxn: result.TxnHash}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+
 
 
 // func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
