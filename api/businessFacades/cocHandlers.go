@@ -80,10 +80,11 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
 	err := json.NewDecoder(r.Body).Decode(&GObj)
-	if err != nil {
+	if err != nil {		
+		fmt.Println(err)
+
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
 		return
 	}
 	var accept xdr.Transaction
