@@ -141,7 +141,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		}
 		// fmt.Println( txe.Operations[i].Body.Type )
 	}
-	if useSentSequence {
+	if !useSentSequence {
 		// fmt.Println("HAHAHAHA NOT BUMPY")
 		v := fmt.Sprint(txe.SeqNum)
 		// fmt.Println(v)
