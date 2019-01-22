@@ -63,7 +63,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.SubmitXDRResponse {
 	if err != nil {
 		// panic(err)
 		fmt.Println(err.Error())
-		response.Error.Code = http.StatusServiceUnavailable
+		response.Error.Code = http.StatusNotFound
 		response.Error.Message = "Test net client crashed"
 		return response
 	}

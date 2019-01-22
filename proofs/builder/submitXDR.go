@@ -13,9 +13,11 @@ import (
 // type InsertData struct{}
 
 
-func XDRSubmitter(TDP []model.TransactionCollectionBody) bool {
+func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool,model.SubmitXDRResponse) {
 	object := dao.Connection{}
 	var copy model.TransactionCollectionBody
+	var ret model.SubmitXDRResponse
+
 	for i := 0; i < len(TDP); i++ {
 		TDP[i].Status = "Pending"
 		var txe xdr.Transaction
@@ -42,7 +44,8 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) bool {
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TDP[i].XDR}
 
 		response := display.SubmitXDR()
-		if response.Error.Code == 503 {
+		ret=response
+		if response.Error.Code == 404 {
 			TDP[i].Status = "pending"
 		} else {
 			TDP[i].TxnHash = response.TXNID
@@ -57,5 +60,5 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) bool {
 		}
 	}
 
-	return true
+	return true,ret
 }
