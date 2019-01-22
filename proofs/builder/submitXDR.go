@@ -45,7 +45,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool,model.SubmitXDRRe
 
 		response := display.SubmitXDR()
 		ret=response
-		if response.Error.Code == 503 {
+		if response.Error.Code == 404 {
 			TDP[i].Status = "pending"
 		} else {
 			TDP[i].TxnHash = response.TXNID

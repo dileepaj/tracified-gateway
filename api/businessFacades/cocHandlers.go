@@ -157,9 +157,10 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 
 			var TXNS []model.TransactionCollectionBody
 			TXN:=model.TransactionCollectionBody{
-				XDR:selection.AcceptXdr,
+				XDR:GObj.AcceptXdr,
 			}
 			TXNS=append(TXNS,TXN)
+			fmt.Println(TXNS)
 			status,response:= builder.XDRSubmitter(TXNS)
 
 			// selection = data.(model.COCCollectionBody)
@@ -320,6 +321,31 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 
 	
 }
+
+func LastCOC(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetLastCOCbyIdentifier(vars["Identifier"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.COCCollectionBody)
+		// res := model.LastTxnResponse{LastTxn: result.TxnHash}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+
 
 
 // func InsertTransactionCollection(w http.ResponseWriter, r *http.Request) {
