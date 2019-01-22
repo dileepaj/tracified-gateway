@@ -126,9 +126,9 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 
 		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
 			// GObj.SequenceNo ,_= strconv.Atoi(fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo));
-			// fmt.Println("HAHAHAHA BUMPY")
-			v := fmt.Sprintf("%s", txe.Operations[i].Body.BumpSequenceOp.BumpTo)
-			// fmt.Println(v)
+			fmt.Println("HAHAHAHA BUMPY")
+			v :=  fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+			fmt.Println(v)
 			GObj.SequenceNo, _ = strconv.Atoi(v)
 			useSentSequence = true
 
@@ -142,7 +142,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		// fmt.Println( txe.Operations[i].Body.Type )
 	}
 	if !useSentSequence {
-		// fmt.Println("HAHAHAHA NOT BUMPY")
+		fmt.Println("HAHAHAHA NOT BUMPY")
 		v := fmt.Sprint(txe.SeqNum)
 		// fmt.Println(v)
 		GObj.SequenceNo, _ = strconv.Atoi(v)
