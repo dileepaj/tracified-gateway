@@ -5,7 +5,7 @@ node {
         // withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
         withEnv(["GOROOT=${root}", "GOPATH=${workspace}", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
-            
+            sh "echo ${workspace}"
             // sh 'mkdir bin'
             // sh 'mkdir src'
             // sh 'mkdir src/github.com'
