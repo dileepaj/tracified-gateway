@@ -2,14 +2,14 @@ node {
     def root = tool name: 'Go 1.10.3', type: 'go'
     // ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
         withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
-            env.PATH="${GOPATH}/bin:$PATH"
+            // env.PATH="${GOPATH}/bin:$PATH"
             
             // sh 'mkdir bin'
             // sh 'mkdir src'
             // sh 'mkdir src/github.com'
             // sh 'mkdir src/github.com/tracified-gateway'
             sh 'ls'
-            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/tracified-gateway") {
+            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/dileepaj/tracified-gateway") {
               stage('Checkout'){
                   echo 'Checking out SCM'
                   // sh 'cd src'
