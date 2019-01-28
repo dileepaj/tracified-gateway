@@ -9,10 +9,10 @@ node {
             sh 'mkdir -p bin'
             // sh 'mkdir src'
             // sh 'mkdir src/github.com'
-            sh 'mkdir -p src/github.com/dileepaj'
+            sh 'mkdir -p src/github.com/dileepaj/tracified-gateway'
             sh 'ls'
-            sh 'cd src/github.com/dileepaj'
-            // ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/dileepaj/tracified-gateway") {
+            // sh 'cd src/github.com/dileepaj'
+            ws("${workspace}/src/github.com/dileepaj/tracified-gateway") {
               stage('Checkout'){
                   echo 'Checking out SCM'
                   // sh 'cd src'
