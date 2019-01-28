@@ -6,11 +6,12 @@ node {
         withEnv(["GOROOT=${root}", "GOPATH=${workspace}", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
             sh "echo ${workspace}"
-            // sh 'mkdir bin'
+            sh 'mkdir bin'
             // sh 'mkdir src'
             // sh 'mkdir src/github.com'
-            // sh 'mkdir src/github.com/tracified-gateway'
+            sh 'mkdir -p src/github.com/dileepaj'
             sh 'ls'
+            sh 'cd src/github.com/dileepaj'
             // ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/dileepaj/tracified-gateway") {
               stage('Checkout'){
                   echo 'Checking out SCM'
