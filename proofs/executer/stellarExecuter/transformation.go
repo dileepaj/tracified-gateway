@@ -3,7 +3,7 @@ package stellarExecuter
 import (
 	"fmt"
 	"log"
-	"github.com/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"

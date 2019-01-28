@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 type ConcretePOG struct {
@@ -27,7 +27,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
 		response.CurTxn = CurrentTxn
 
-		response.Error = Rerr
+		response.Message = Rerr
 		return response
 
 	} else {
@@ -52,17 +52,17 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			fmt.Println("keys map => ", keys)
 			TxnType := Base64DecEnc("Decode", keys[0].Value)
 
-			if keys[0].Name == "Transaction Type" && TxnType == "0" {
+			if TxnType == "0" {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Txn Hash retrieved from the blockchain."
-				response.Error = Rerr
+				response.Message = Rerr
 				response.CurTxn = CurrentTxn
 				response.PreTxn = Base64DecEnc("Decode", keys[1].Value)
 				response.Identifier = Base64DecEnc("Decode", keys[2].Value)
 
 				return response
 
-			} else if keys[1].Value != "" {
+			} else if keys[1].Value != ""||keys[1].Value != "0" {
 				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 
 				pogStruct := apiModel.POGStruct{LastTxn: PreviousTxn}
@@ -72,7 +72,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			} else {
 				Rerr.Code = http.StatusOK
 				Rerr.Message = "Genesis Transaction not found."
-				response.Error = Rerr
+				response.Message = Rerr
 
 				return response
 			}
@@ -81,7 +81,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
 			response.CurTxn = CurrentTxn
-			response.Error = Rerr
+			response.Message = Rerr
 
 			return response
 		}

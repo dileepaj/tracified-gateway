@@ -2,9 +2,10 @@ package interpreter
 
 import (
 	"fmt"
-	"github.com/tracified-gateway/api/apiModel"
-	"github.com/tracified-gateway/model"
-	"github.com/tracified-gateway/proofs/retriever/stellarRetriever"
+
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 )
 
 type POGInterface interface {
@@ -28,18 +29,24 @@ func (AP *AbstractPOG) InterpretPOG() model.POG {
 	fmt.Println("POGInterpreter")
 	fmt.Println(pogObj.RetrievePOG)
 
-	if pogObj.RetrievePOG.Error.Message == "Txn Hash retrieved from the blockchain." {
+	if pogObj.RetrievePOG.Message.Message == "Txn Hash retrieved from the blockchain." {
 		if pogObj.RetrievePOG.CurTxn != AP.POGStruct.POGTxn {
-			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis Txn hashes didn't match!"
+			pogObj.RetrievePOG.Message.Message = "Proof of Genesis Failed, Genesis Txn hashes didn't match!"
 			return pogObj
 		} else if pogObj.RetrievePOG.Identifier != AP.POGStruct.Identifier {
-			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis Identifier hash didn't match!"
+			pogObj.RetrievePOG.Message.Message = "Proof of Genesis Failed, Genesis Identifier hash didn't match!"
 			return pogObj
 		} else if pogObj.RetrievePOG.PreTxn != "" {
-			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Failed, Genesis previousTxn ID is not empty!"
-			return pogObj
+			if pogObj.RetrievePOG.PreTxn != "0" {
+				pogObj.RetrievePOG.Message.Message = "Proof of Genesis Failed, Genesis previousTxn ID is not empty!"
+				return pogObj
+			} else {
+				pogObj.RetrievePOG.Message.Message = "Proof of Genesis Success!"
+				return pogObj
+			}
+
 		} else {
-			pogObj.RetrievePOG.Error.Message = "Proof of Genesis Success!"
+			pogObj.RetrievePOG.Message.Message = "Proof of Genesis Success!"
 			return pogObj
 		}
 	} else {

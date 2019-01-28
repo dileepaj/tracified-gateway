@@ -3,7 +3,7 @@ package dao
 import (
 	"fmt"
 
-	"github.com/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -17,14 +17,14 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 
 	up := model.TransactionCollectionBody{
 		Identifier: selector.Identifier,
-		TdpID:      selector.TdpID,
+		TdpId:      selector.TdpId,
 		PublicKey:  selector.PublicKey,
 		XDR:        selector.XDR,
 		TxnHash:    update.TxnHash,
 		// ProfileHash:update.ProfileHash,
 		TxnType: selector.TxnType,
 		Status:  update.Status,
-		// ProfileID:update.ProfileID,
+		ProfileID:update.ProfileID,
 	}
 
 	c := session.DB("tracified-gateway").C("Transactions")
@@ -45,6 +45,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	}
 	defer session.Close()
 
+	fmt.Println(update.Status)
 	switch update.Status {
 	case "accepted":
 		up := model.COCCollectionBody{
@@ -57,12 +58,16 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			RejectTxn:  selector.RejectTxn,
 			Identifier: selector.Identifier,
 			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
 		}
 
 		c := session.DB("tracified-gateway").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
+			return err1
+
 		}
 		break
 	case "rejected":
@@ -76,16 +81,44 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			RejectTxn:  update.RejectTxn,
 			Identifier: selector.Identifier,
 			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
 		}
 
 		c := session.DB("tracified-gateway").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
+			return err1
+
 		}
 
 		break
 
+	case "expired":
+		up := model.COCCollectionBody{
+			TxnHash:    selector.TxnHash,
+			Sender:     selector.Sender,
+			Receiver:   selector.Receiver,
+			AcceptXdr:  selector.AcceptXdr,
+			RejectXdr:  selector.RejectXdr,
+			AcceptTxn:  selector.AcceptTxn,
+			RejectTxn:  selector.RejectTxn,
+			Identifier: selector.Identifier,
+			Status:     update.Status,
+			SubAccount: selector.SubAccount,
+			SequenceNo: selector.SequenceNo,
+			
+		}
+
+		c := session.DB("tracified-gateway").C("COC")
+		err1 := c.Update(selector, up)
+		if err1 != nil {
+			fmt.Println(err1)
+			return err1
+		}
+
+		break
 	}
 
 	return err
