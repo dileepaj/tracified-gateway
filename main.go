@@ -10,7 +10,7 @@ import (
 	// "github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	// "github.com/joho/godotenv"
-	// "github.com/robfig/cron"
+	"github.com/robfig/cron"
 )
 
 
@@ -29,11 +29,11 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
-	// c := cron.New()
-	// c.AddFunc("@every 30s", func() {
-	// 	services.CheckCOCStatus()
-	// })
-	// c.Start()
+	c := cron.New()
+	c.AddFunc("@every 30s", func() {
+// 		services.CheckCOCStatus()
+	})
+	c.Start()
 
 	router := routes.NewRouter()
 	fmt.Println("Gateway Started @port " + port)
