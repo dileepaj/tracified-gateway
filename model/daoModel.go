@@ -23,6 +23,7 @@ type TransactionCollectionBody struct {
 	TdpId string 
 	ProfileID string
 	TxnHash string 
+	PreviousTxnHash string
 	// ProfileHash    string
 	PublicKey string 
 	TxnType string 

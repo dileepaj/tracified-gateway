@@ -113,18 +113,18 @@ var routes = Routes{
 		"SubmitXDR",
 		"POST",
 		"/transaction/dataPacket",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitData,
 	},
 	Route{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitSplit,
 	},Route{
 		"SubmitGenesis",
 		"POST",
 		"/transaction/genesis",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitGenesis,
 	},Route{
 		"SubmitTransformation",
 		"POST",
