@@ -1,0 +1,16 @@
+---
+  - hosts: staging
+    environment:
+      PYTHONPATH: /home/{{ ansible_user }}/.local/lib/python2.7/site-packages
+    tasks:
+      - name: Copy service file
+        copy:
+          src: ./deploy/tracified-gateway.service
+          dest: /etc/systemd/system/
+      - name: Copy tracified-gateway binary
+        copy:
+          src: ./tracified-gateway
+          dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
+      - name: Run service file
+        become: true
+        shell: "systemctl start tracified-gateway.service"
