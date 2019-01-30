@@ -10,7 +10,7 @@
           dest: /etc/systemd/system/tracified-gateway.service
       - name: Copy tracified-gateway binary
         copy:
-          src: tracified-gateway
+          src: ../tracified-gateway
           dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
       - name: Run service file
         become: true
