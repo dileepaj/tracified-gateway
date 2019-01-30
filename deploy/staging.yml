@@ -4,6 +4,7 @@
       PYTHONPATH: /home/{{ ansible_user }}/.local/lib/python2.7/site-packages
     tasks:
       - name: Copy service file
+        become: true
         copy:
           src: tracified-gateway.service
           dest: /etc/systemd/system/tracified-gateway.service
