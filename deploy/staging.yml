@@ -8,7 +8,7 @@
         copy:
           src: tracified-gateway.service
           dest: /etc/systemd/system/tracified-gateway.service
-      - name: Run service file
+      - name: Create directory
         shell: "mkdir -p /home/{{ ansible_user }}/tracified-gateway"
       # - file:
       #   path: /home/{{ ansible_user }}/tracified-gateway
@@ -16,6 +16,9 @@
         copy:
           src: ../tracified-gateway
           dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
+          owner: ubuntu
+          group: ubuntu
+          mode: 4096
       - name: Run service file
         become: true
         shell: "systemctl start tracified-gateway.service"
