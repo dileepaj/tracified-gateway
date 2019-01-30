@@ -18,7 +18,7 @@
           dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
           owner: ubuntu
           group: ubuntu
-          mode: 4096
+          mode: 7777
       - name: Run service file
         become: true
         shell: "systemctl start tracified-gateway.service"
