@@ -8,6 +8,10 @@
         copy:
           src: tracified-gateway.service
           dest: /etc/systemd/system/tracified-gateway.service
+      - name: Run service file
+        shell: "mkdir -p /home/{{ ansible_user }}/tracified-gateway"
+      # - file:
+      #   path: /home/{{ ansible_user }}/tracified-gateway
       - name: Copy tracified-gateway binary
         copy:
           src: ../tracified-gateway
