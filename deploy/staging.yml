@@ -6,7 +6,7 @@
       - name: Copy service file
         copy:
           src: ./deploy/tracified-gateway.service
-          dest: /etc/systemd/system/
+          dest: /etc/systemd/system/tracified-gateway.service
       - name: Copy tracified-gateway binary
         copy:
           src: ./tracified-gateway
