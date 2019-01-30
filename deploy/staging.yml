@@ -5,7 +5,7 @@
     tasks:
       - name: Copy service file
         copy:
-          src: ./deploy/tracified-gateway.service
+          src: deploy/tracified-gateway.service
           dest: /etc/systemd/system/tracified-gateway.service
       - name: Copy tracified-gateway binary
         copy:
