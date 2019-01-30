@@ -37,9 +37,7 @@ node {
                 // sh "go build ${GOPATH}src/main/"
 
                 stage 'Deploy'
-                {
-                    ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu'
-                }
+                ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu'
               // Do nothing.
             }
         }
