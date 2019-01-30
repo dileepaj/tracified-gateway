@@ -32,13 +32,13 @@ var routes = Routes{
 		"POE",
 		"GET",
 		"/poe/{Txn}",
-		businessFacades.CheckPOE,
+		businessFacades.CheckPOEV3,
 	},
 	Route{
 		"POG",
 		"GET",
 		"/pog/{Identifier}",
-		businessFacades.CheckPOG,
+		businessFacades.CheckPOGV3,
 	},
 	Route{
 		"Transactions",

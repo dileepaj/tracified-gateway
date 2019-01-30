@@ -2,7 +2,7 @@ package model
 
 //proof of POE
 type RetrievePOE struct {
-	TdpId       string `json:"tdpId"`
+	TdpId       string `json:"txnId"`
 	BCHash    string `json:"bcHash"`
 	DBHash    string `json:"dbHash"`
 	Identifier string `json:"identifier"`

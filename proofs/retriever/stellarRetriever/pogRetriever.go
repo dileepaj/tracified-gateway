@@ -21,7 +21,8 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 	var Rerr model.Error
 	var PreviousTxn string
 
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POGStruct.LastTxn + "/operations")
+	//RETRIEVE INITIAL GATEWAY SIGNED TXN
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
@@ -44,11 +45,12 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			json.Unmarshal(keysBody, &keys)
 			fmt.Println("keys map => ", keys)
 
-			PreviousTxn=Base64DecEnc("Decode", keys[1].Value)
+			PreviousTxn=Base64DecEnc("Decode", keys[0].Value)
+			CurrentTxn=Base64DecEnc("Decode", keys[1].Value)
 			//Retrive Current TXN DATA
-			result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + Base64DecEnc("Decode", keys[1].Value) + "/operations")
+			result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
 			if err1 != nil {
-				Rerr.Code = result.StatusCode
+				Rerr.Code = result1.StatusCode
 				Rerr.Message = "The HTTP request failed for RetrievePOG"
 				response.CurTxn = CurrentTxn
 				response.PreTxn = Base64DecEnc("Decode", keys[0].Value)

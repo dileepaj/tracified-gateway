@@ -1,6 +1,8 @@
 package businessFacades
 
 import (
+	"encoding/base64"
+
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 
@@ -25,7 +27,14 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
 )
 
+type PublicKey struct {
+	Name  string
+	Value string
+}
 
+type KeysResponse struct {
+	Collection []PublicKey
+}
 
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -33,11 +42,38 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-
+	var CurrentTxn string
 	p := object.GetTransactionForTdpId(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)
+
+		result1, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + result.TxnHash + "/operations")
+		if err != nil {
+
+		} else {
+			data, _ := ioutil.ReadAll(result1.Body)
+
+			if result1.StatusCode == 200 {
+				var raw map[string]interface{}
+				json.Unmarshal(data, &raw)
+				// raw["count"] = 2
+				out, _ := json.Marshal(raw["_embedded"])
+				var raw1 map[string]interface{}
+				json.Unmarshal(out, &raw1)
+				out1, _ := json.Marshal(raw1["records"])
+
+				keysBody := out1
+				keys := make([]PublicKey, 0)
+				json.Unmarshal(keysBody, &keys)
+
+				byteData, _ := base64.StdEncoding.DecodeString(keys[1].Value)
+
+				CurrentTxn = string(byteData)
+				fmt.Println("THE TXN OF THE USER TXN: " + CurrentTxn)
+			}
+		}
+
 		// fmt.Println(result)
 		var response model.POE
 		// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + vars["Txn"]
@@ -46,7 +82,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		bearer := "Bearer " + constants.BackendToken
 		// Create a new request using http
 		req, er := http.NewRequest("GET", url, nil)
-
 		req.Header.Add("Authorization", bearer)
 		client := &http.Client{}
 		resq, er := client.Do(req)
@@ -66,9 +101,10 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 			h := sha256.New()
 			lol := raw["data"]
-			fmt.Println(lol)
+			// fmt.Println(lol)
 
-			h.Write([]byte(fmt.Sprintf("%s", lol)+result.Identifier))
+			h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
+			fmt.Println("RAW BASE64 + IDENTIFIER")
 
 			fmt.Printf("%x", h.Sum(nil))
 
@@ -85,8 +121,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		return data
 
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(w).Encode(response)
 		fmt.Println(response)
 		return error
@@ -119,21 +155,21 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				if res[i].TxnType=="2"{
+				if res[i].TxnType == "2" {
 					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
 					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
 					bearer := "Bearer " + constants.BackendToken
 					// Create a new request using http
 					req, er := http.NewRequest("GET", url, nil)
-	
+
 					req.Header.Add("Authorization", bearer)
 					client := &http.Client{}
 					resq, er := client.Do(req)
-	
+
 					if er != nil {
 						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	
+
 						w.WriteHeader(http.StatusOK)
 						response := model.Error{Message: "Connection to the DataStore was interupted"}
 						json.NewEncoder(w).Encode(response)
@@ -142,23 +178,23 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 						body, _ := ioutil.ReadAll(resq.Body)
 						var raw map[string]interface{}
 						json.Unmarshal(body, &raw)
-	
+
 						h := sha256.New()
 						base64 := raw["data"]
 						// fmt.Println(base64)
-	
-						h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
+
+						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 						// fmt.Printf("%x", h.Sum(nil))
-	
+
 						DataStoreTXN := model.Current{
 							TType:      res[i].TxnType,
 							TXNID:      res[i].TxnHash,
 							Identifier: res[i].Identifier,
 							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-	
+
 						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 					}
-				}else{
+				} else {
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
@@ -166,7 +202,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 					}
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
-				
+
 			}
 
 			// pocStructObj = apiModel.POCStruct{
@@ -181,9 +217,8 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
 
-
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
+
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
 			fmt.Println(result)
 			fmt.Println(response.RetrievePOC.Error.Message)
@@ -218,7 +253,6 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	// return
 
 }
-
 
 func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -265,7 +299,7 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 					base64 := raw["data"]
 					// fmt.Println(base64)
 
-					h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
+					h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 					// fmt.Printf("%x", h.Sum(nil))
 
 					DataStoreTXN := model.Current{
@@ -290,9 +324,8 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
 
-
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
+
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
 			fmt.Println(result)
 			fmt.Println(response.RetrievePOC.Error.Message)
@@ -327,23 +360,51 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	var response model.POG
+	var UserGenesis string
 
-	object:=dao.Connection{}
+	object := dao.Connection{}
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
 		fmt.Println(LastTxn)
-		g:= object.GetFirstTransactionbyIdentifier(vars["Identifier"])
+		g := object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
-			FirstTxn := data.(model.TransactionCollectionBody)
-			fmt.Println(FirstTxn)
+			FirstTxnGateway := data.(model.TransactionCollectionBody)
 
-			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:FirstTxn.TxnHash, Identifier: vars["Identifier"]}
+			// fmt.Println(FirstTxnGateway)
+			fmt.Println("First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS")
+			result1, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + FirstTxnGateway.TxnHash + "/operations")
+			if err != nil {
+
+			} else {
+				data, _ := ioutil.ReadAll(result1.Body)
+
+				if result1.StatusCode == 200 {
+					var raw map[string]interface{}
+					json.Unmarshal(data, &raw)
+					// raw["count"] = 2
+					out, _ := json.Marshal(raw["_embedded"])
+					var raw1 map[string]interface{}
+					json.Unmarshal(out, &raw1)
+					out1, _ := json.Marshal(raw1["records"])
+
+					keysBody := out1
+					keys := make([]PublicKey, 0)
+					json.Unmarshal(keysBody, &keys)
+
+					//GET THE USER SIGNED GENESIS TXN
+					byteData, _ := base64.StdEncoding.DecodeString(keys[1].Value)
+					UserGenesis = string(byteData)
+					fmt.Println("THE TXN OF THE USER TXN: " + UserGenesis)
+				}
+			}
+
+			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:UserGenesis, Identifier: vars["Identifier"]}
 			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
 			response = display.InterpretPOG()
-	
+
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(response.RetrievePOG.Message.Code)
 			json.NewEncoder(w).Encode(response.RetrievePOG)
@@ -351,10 +412,10 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-				w.WriteHeader(http.StatusOK)
-				response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
-				json.NewEncoder(w).Encode(response)
-				return error
+			w.WriteHeader(http.StatusOK)
+			response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+			return error
 		})
 		g.Await()
 
@@ -368,11 +429,6 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
-
-
-
-	
 
 	// fmt.Println("response.RetrievePOG.Error.Code")
 	// fmt.Println(response.RetrievePOG.Error.Code)

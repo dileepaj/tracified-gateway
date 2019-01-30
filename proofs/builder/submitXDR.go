@@ -48,13 +48,14 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		TDP.PublicKey = txe.SourceAccount.Address()
+		TxnBody.PublicKey = txe.SourceAccount.Address()
 		// TDP.PreviousTxnHash=
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		TDP.Identifier = Identifier
-		TDP.TxnType = TxnType
-		TDP.Status = "pending"
+		TxnBody.Identifier = Identifier
+		TxnBody.TxnType = TxnType
+		TxnBody.Status = "pending"
+		// TxnBody.TdpId=
 		AP.TxnBody[i].Identifier = Identifier
 		AP.TxnBody[i].TxnType = TxnType
 
@@ -64,7 +65,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 			///ASSIGN PREVIOU y S MANAGE DATA BUILDER
 
 			result := data.(model.TransactionCollectionBody)
-			TDP.PreviousTxnHash = result.TxnHash
+			TxnBody.PreviousTxnHash = result.TxnHash
 			fmt.Println("Previous TXN: " + result.TxnHash)
 
 			return nil
@@ -74,9 +75,9 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 			return error
 		})
 		p.Await()
-		copy = append(copy, TDP)
+		copy = append(copy, TxnBody)
 		///INSERT INTO TRANSACTION COLLECTION
-		err1 := object.InsertTransaction(TDP)
+		err1 := object.InsertTransaction(TxnBody)
 		if err1 != nil {
 			TDP.Status = "failed"
 		}
@@ -170,13 +171,14 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		TDP.PublicKey = txe.SourceAccount.Address()
+		TxnBody.PublicKey = txe.SourceAccount.Address()
 		// TDP.PreviousTxnHash=
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		TDP.Identifier = Identifier
-		TDP.TxnType = TxnType
-		TDP.Status = "pending"
+		TxnBody.Identifier = Identifier
+		TxnBody.TxnType = TxnType
+		TxnBody.Status = "pending"
+		// TxnBody.TdpId=
 		AP.TxnBody[i].Identifier = Identifier
 		AP.TxnBody[i].TxnType = TxnType
 
@@ -186,7 +188,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 			///ASSIGN PREVIOU y S MANAGE DATA BUILDER
 
 			result := data.(model.TransactionCollectionBody)
-			TDP.PreviousTxnHash = result.TxnHash
+			TxnBody.PreviousTxnHash = result.TxnHash
 			fmt.Println("Previous TXN: " + result.TxnHash)
 
 			return nil
@@ -196,9 +198,9 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 			return error
 		})
 		p.Await()
-		copy = append(copy, TDP)
+		copy = append(copy, TxnBody)
 		///INSERT INTO TRANSACTION COLLECTION
-		err1 := object.InsertTransaction(TDP)
+		err1 := object.InsertTransaction(TxnBody)
 		if err1 != nil {
 			TDP.Status = "failed"
 		}
