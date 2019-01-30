@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 RestartSec=1
-User={{ ansible_user }}
-ExecStart=/home/{{ ansible_user }}/tracified-gateway/tracified-gateway
+User=ubuntu
+ExecStart=/home/ubuntu/tracified-gateway/tracified-gateway
 
 [Install]
 WantedBy=multi-user.target
