@@ -107,12 +107,14 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 			)
+			
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
 				fmt.Println(err)
 			}
+
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {

@@ -27,8 +27,8 @@ func (cd *ConcreteSubmitXDR) SubmitXDR() model.SubmitXDRResponse {
 		return response
 	}
 
-	fmt.Println("Successful Transaction:")
-	fmt.Println("Ledger:", resp.Ledger)
+	// fmt.Println("Successful Transaction:")
+	// fmt.Println("Ledger:", resp.Ledger)
 	fmt.Println("Hash:", resp.Hash)
 
 	response.Error.Code = http.StatusOK
