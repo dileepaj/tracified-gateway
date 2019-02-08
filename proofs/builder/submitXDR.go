@@ -59,22 +59,22 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 		AP.TxnBody[i].Identifier = Identifier
 		AP.TxnBody[i].TxnType = TxnType
 
-		fmt.Println(Identifier)
-		p := object.GetLastTransactionbyIdentifier(Identifier)
-		p.Then(func(data interface{}) interface{} {
-			///ASSIGN PREVIOU y S MANAGE DATA BUILDER
+		// fmt.Println(Identifier)
+		// p := object.GetLastTransactionbyIdentifier(Identifier)
+		// p.Then(func(data interface{}) interface{} {
+		// 	///ASSIGN PREVIOU y S MANAGE DATA BUILDER
 
-			result := data.(model.TransactionCollectionBody)
-			TxnBody.PreviousTxnHash = result.TxnHash
-			fmt.Println("Previous TXN: " + result.TxnHash)
+		// 	result := data.(model.TransactionCollectionBody)
+		// 	TxnBody.PreviousTxnHash = result.TxnHash
+		// 	fmt.Println("Previous TXN: " + result.TxnHash)
 
-			return nil
-		}).Catch(func(error error) error {
-			///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
-			fmt.Println("Previous TXN: ERR ")
-			return error
-		})
-		p.Await()
+		// 	return nil
+		// }).Catch(func(error error) error {
+		// 	///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
+		// 	fmt.Println("Previous TXN: ERR ")
+		// 	return error
+		// })
+		// p.Await()
 		copy = append(copy, TxnBody)
 		///INSERT INTO TRANSACTION COLLECTION
 		err1 := object.InsertTransaction(TxnBody)
@@ -278,7 +278,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit() bool {
 	var copy []model.TransactionCollectionBody
 
 	var UserSplitTxnHashes []string
-	var ParentIdentifier string
+	// var ParentIdentifier string
+	// var ParentTxn string
 	var PreviousTxn string
 
 	///HARDCODED CREDENTIALS
@@ -298,38 +299,42 @@ func (AP *AbstractXDRSubmiter) SubmitSplit() bool {
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		TDP.PublicKey = txe.SourceAccount.Address()
+		TxnBody.PublicKey = txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		TDP.Identifier = Identifier
+		TxnBody.Identifier = Identifier
 		AP.TxnBody[i].Identifier = Identifier
 		AP.TxnBody[i].TxnType = TxnType
 
+		//FOR THE SPLIT PARENT RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if i == 0 {
-			ParentIdentifier = Identifier
+			// ParentIdentifier = Identifier
 
 			p := object.GetLastTransactionbyIdentifier(Identifier)
 			p.Then(func(data interface{}) interface{} {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result := data.(model.TransactionCollectionBody)
 				PreviousTxn = result.TxnHash
+				TxnBody.PreviousTxnHash = result.TxnHash
+
+				fmt.Println(TxnBody.PreviousTxnHash)
 				return nil
 			}).Catch(func(error error) error {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
-				PreviousTxn = ""
+				TxnBody.PreviousTxnHash = ""
 				return error
 			})
 			p.Await()
 		}
 
-		TDP.TxnType = TxnType
-		TDP.Status = "pending"
+		TxnBody.TxnType = TxnType
+		TxnBody.Status = "pending"
 
-		copy = append(copy, TDP)
+		copy = append(copy, TxnBody)
 
 		///INSERT INTO TRANSACTION COLLECTION
-		err1 := object.InsertTransaction(TDP)
+		err1 := object.InsertTransaction(TxnBody)
 		if err1 != nil {
 			TDP.Status = "failed"
 		}
@@ -351,24 +356,15 @@ func (AP *AbstractXDRSubmiter) SubmitSplit() bool {
 
 			////GET THE PREVIOUS TRANSACTION FOR THE IDENTIFIER
 
-			if i == 0 {
+			// if i == 0 {
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
-			} else {
-				p := object.GetLastTransactionbyIdentifier(ParentIdentifier)
-				p.Then(func(data interface{}) interface{} {
-					///ASSIGN PREVIOUS MANAGE DATA BUILDER
-					result := data.(model.TransactionCollectionBody)
-					PreviousTxn = result.TxnHash
-					return nil
-				}).Catch(func(error error) error {
-					///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
-					//DUE TO THE CHILD HAVING A NEW IDENTIFIER
-					PreviousTxn = ""
-					return error
-				})
-				p.Await()
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
-			}
+				TxnBody.PreviousTxnHash=PreviousTxn
+			// } else {
+			// //USE THE PARENT TXN AS PREVIOUS TXN
+			// 	PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(UserSplitTxnHashes[0]))
+			// 	TxnBody.PreviousTxnHash = UserSplitTxnHashes[0]
+
+			// }
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
@@ -399,8 +395,13 @@ func (AP *AbstractXDRSubmiter) SubmitSplit() bool {
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 				TxnBody.TxnHash = response1.TXNID
-
-				upd := model.TransactionCollectionBody{TxnHash: response1.TXNID, Status: "done"}
+				if i == 0 {
+					PreviousTxn = response1.TXNID
+				}
+				upd := model.TransactionCollectionBody{
+					TxnHash: response1.TXNID, 
+					Status: "done",
+					PreviousTxnHash:TxnBody.PreviousTxnHash}
 				err2 := object.UpdateTransaction(copy[i], upd)
 				if err2 != nil {
 					TxnBody.Status = "pending"
