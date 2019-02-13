@@ -417,20 +417,24 @@ func (AP *AbstractXDRSubmiter) SubmitSplit() bool {
 	return Done
 }
 
+//Builds the Merge Transaction mapping before pushing to stellar
 func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 	var Done bool
 	object := dao.Connection{}
-	var copy model.TransactionCollectionBody
+	var copy []model.TransactionCollectionBody
+
+	var UserMergeTxnHashes []string
+	var PreviousTxn string
+
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// var result model.SubmitXDRResponse
 
-	for _, TxnBody := range AP.TxnBody {
+	for i, TxnBody := range AP.TxnBody {
 
 		var TDP model.TransactionCollectionBody
 		var txe xdr.Transaction
-		var PreviousTXN build.ManageDataBuilder
 
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
@@ -438,18 +442,52 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 			fmt.Println(err)
 		}
 
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		TDP.PublicKey = txe.SourceAccount.Address()
+		//GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
+		TxnBody.PublicKey = txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		TDP.Identifier = Identifier
-		TDP.TxnType = TxnType
-		TDP.Status = "pending"
+		FromIdentifier1 := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		FromIdentifier2 := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
+		ItemCode := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
+		ItemAmount := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
+		TxnBody.Identifier = Identifier
 
-		copy = TDP
+		AP.TxnBody[i].Identifier = Identifier
+		AP.TxnBody[i].TxnType = TxnType
+		AP.TxnBody[i].FromIdentifier1 = FromIdentifier1
+		AP.TxnBody[i].FromIdentifier2 = FromIdentifier2
+		AP.TxnBody[i].ItemCode = ItemCode
+		AP.TxnBody[i].ItemAmount = ItemAmount
+	
+		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
+		if i == 0 {
+			p := object.GetLastTransactionbyIdentifier(Identifier)
+			p.Then(func(data interface{}) interface{} {
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER
+				result := data.(model.TransactionCollectionBody)
+				PreviousTxn = result.TxnHash
+				TxnBody.PreviousTxnHash = result.TxnHash
+
+				fmt.Println(TxnBody.PreviousTxnHash)
+				return nil
+			}).Catch(func(error error) error {
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+				TxnBody.PreviousTxnHash = ""
+				return error
+			})
+			p.Await()
+		}
+
+		
+
+		TxnBody.TxnType = TxnType
+		TxnBody.Status = "pending"
+
+		copy = append(copy, TxnBody)
 
 		///INSERT INTO TRANSACTION COLLECTION
-		err1 := object.InsertTransaction(TDP)
+		err1 := object.InsertTransaction(TxnBody)
 		if err1 != nil {
 			TDP.Status = "failed"
 		}
@@ -457,33 +495,38 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
 		result := display.SubmitXDR()
+		UserMergeTxnHashes = append(UserMergeTxnHashes, result.TXNID)
 
 		if result.Error.Code != 404 {
 			Done = true
 			// return Done
 		}
-		go func() {
-			////GET THE PREVIOUS TRANSACTION FOR THE IDENTIFIER
-			p := object.GetLastTransactionbyIdentifier(Identifier)
-			p.Then(func(data interface{}) interface{} {
-				///ASSIGN PREVIOUS MANAGE DATA BUILDER
-				result := data.(model.TransactionCollectionBody)
-				PreviousTXN = build.SetData("PreviousTXN", []byte(result.TxnHash))
-				return nil
-			}).Catch(func(error error) error {
-				///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
-				PreviousTXN = build.SetData("PreviousTXN", []byte(""))
-				return error
-			})
-			p.Await()
+	}
+	go func() {
 
+		for i, TxnBody := range AP.TxnBody {
+			var PreviousTXNBuilder build.ManageDataBuilder
+
+			////GET THE PREVIOUS TRANSACTION FOR THE IDENTIFIER
+			//INCASE OF FIRST MERGE BLOCK THE PREVIOUS IS TAKEN FROM IDENTIFIER
+			//&
+			//INCASE OF GREATER THAN ONE THE PREVIOUS TXN IS THE PREVIOUS MERGE
+			if i==0{
+				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
+				TxnBody.PreviousTxnHash=PreviousTxn
+			}else{
+				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
+				TxnBody.PreviousTxnHash=PreviousTxn
+			}
+				
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
 				build.TestNetwork,
 				build.SourceAccount{publicKey},
 				build.AutoSequence{horizon.DefaultTestNetClient},
-				PreviousTXN,
-				build.SetData("CurrentTXN", []byte(result.TXNID)),
+				PreviousTXNBuilder,
+				build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
+
 			)
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -506,20 +549,28 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 				TxnBody.TxnHash = response1.TXNID
-
-				upd := model.TransactionCollectionBody{TxnHash: response1.TXNID, Status: "done"}
-				err2 := object.UpdateTransaction(copy, upd)
+				if i == 0 {
+					PreviousTxn = response1.TXNID
+				}
+				upd := model.TransactionCollectionBody{
+					TxnHash: response1.TXNID, 
+					Status: "done",
+					PreviousTxnHash:TxnBody.PreviousTxnHash}
+				err2 := object.UpdateTransaction(copy[i], upd)
 				if err2 != nil {
 					TxnBody.Status = "pending"
 				} else {
 					TxnBody.Status = "done"
 				}
-				Done = true
+				// Done = true
 			}
-		}()
-	}
+		}
+
+	}()
+	// }
 	return Done
 }
+
 
 func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 	var Done bool

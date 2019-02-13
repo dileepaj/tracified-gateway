@@ -24,11 +24,15 @@ type TransactionCollectionBody struct {
 	ProfileID string
 	TxnHash string 
 	PreviousTxnHash string
-	// ProfileHash    string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ItemCode string
+	ItemAmount string
 	PublicKey string 
 	TxnType string 
 	XDR string 
 	Status string 
+	MergeID string
 }
 type XDR struct{
 	XDR build.TransactionMutator
