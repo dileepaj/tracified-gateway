@@ -677,6 +677,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 }
 
 func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRResponse) {
+	var status []bool
 	object := dao.Connection{}
 	var copy model.TransactionCollectionBody
 	var ret model.SubmitXDRResponse
@@ -710,8 +711,12 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 		ret = response
 		if response.Error.Code == 404 {
 			TDP[i].Status = "pending"
+			status=append(status,false)
+
 		} else {
 			TDP[i].TxnHash = response.TXNID
+
+			status=append(status,true)
 
 			upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
 			err2 := object.UpdateTransaction(copy, upd)
@@ -723,5 +728,17 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 		}
 	}
 
-	return true, ret
+	return checkBoolArray(status), ret
+}
+
+//checks the multiple boolean indexes in an array and returns the combined result.
+func checkBoolArray(array []bool) bool {
+	isMatch := true
+	for i := 0; i < len(array); i++ {
+		if array[i] == false {
+			isMatch = false
+			return isMatch
+		}
+	}
+	return isMatch
 }
