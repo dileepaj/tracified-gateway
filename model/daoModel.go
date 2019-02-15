@@ -33,6 +33,7 @@ type TransactionCollectionBody struct {
 	XDR string 
 	Status string 
 	MergeID string
+	Orphan bool
 }
 type XDR struct{
 	XDR build.TransactionMutator
