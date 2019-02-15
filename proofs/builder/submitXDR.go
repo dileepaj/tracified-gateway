@@ -92,7 +92,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 		}
 	}
 
-	go func() {
+	// go func() {
 		for i, TxnBody := range AP.TxnBody {
 
 			var PreviousTXNBuilder build.ManageDataBuilder
@@ -144,7 +144,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 				// Done = true
 			}
 		}
-	}()
+	// }()
 	// Done=true
 	return Done
 }
@@ -217,7 +217,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 		}
 	}
 
-	go func() {
+	// go func() {
 		for i, TxnBody := range AP.TxnBody {
 
 			var PreviousTXNBuilder build.ManageDataBuilder
@@ -267,7 +267,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 				// Done = true
 			}
 		}
-	}()
+	// }()
 	// Done=true
 	return Done
 }
