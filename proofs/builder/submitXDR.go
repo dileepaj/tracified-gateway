@@ -241,7 +241,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 
 	}
 
-	go func() {
+	// go func() {
 		for i, TxnBody := range AP.TxnBody {
 
 			if !AP.TxnBody[i].Orphan {
@@ -295,7 +295,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 			}
 
 		}
-	}()
+	// }()
 	// Done=true
 	return Done
 }
