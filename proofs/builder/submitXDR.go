@@ -77,10 +77,6 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 			Done = true
 			// return Done
 		}
-	}
-
-	// go func() {
-	for i, TxnBody := range AP.TxnBody {
 
 		var PreviousTXNBuilder build.ManageDataBuilder
 
@@ -129,7 +125,15 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis() bool {
 			}
 			// Done = true
 		}
+
+
 	}
+
+	// go func() {
+	// for i, TxnBody := range AP.TxnBody {
+
+		
+	// }
 	//ORPHAN TXNS TO BE COLLECTED HERE TO BE CALLED IN AGAIN
 	var Orphans []model.TransactionCollectionBody
 	for _, TxnBody := range AP.TxnBody {
@@ -219,33 +223,7 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 				// return Done
 			}
 
-			return nil
-		}).Catch(func(error error) error {
-			///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
-			fmt.Println("Sending to Orphanage!")
-			AP.TxnBody[i].Orphan = true
-			// TxnBody.Orphan = true
-
-			//INSERT THE TXN INTO THE BUFFER
-			err1 := object.InsertToOrphan(TxnBody)
-			if err1 != nil {
-				TDP.Status = "failed"
-			}else{
-				Done = true
-
-			}
-
-			return error
-		})
-		p.Await()
-
-	}
-
-	// go func() {
-		for i, TxnBody := range AP.TxnBody {
-
-			if !AP.TxnBody[i].Orphan {
-				var PreviousTXNBuilder build.ManageDataBuilder
+			var PreviousTXNBuilder build.ManageDataBuilder
 
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(copy[i].PreviousTxnHash))
 
@@ -292,9 +270,36 @@ func (AP *AbstractXDRSubmiter) SubmitData() bool {
 					}
 					// Done = true
 				}
+			return nil
+		}).Catch(func(error error) error {
+			///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
+			fmt.Println("Sending to Orphanage!")
+			AP.TxnBody[i].Orphan = true
+			// TxnBody.Orphan = true
+
+			//INSERT THE TXN INTO THE BUFFER
+			err1 := object.InsertToOrphan(TxnBody)
+			if err1 != nil {
+				TDP.Status = "failed"
+			}else{
+				Done = true
+
 			}
 
-		}
+			return error
+		})
+		p.Await()
+
+	}
+
+	// go func() {
+		// for i, TxnBody := range AP.TxnBody {
+
+		// 	if !AP.TxnBody[i].Orphan {
+				
+		// 	}
+
+		// }
 	// }()
 	// Done=true
 	return Done
