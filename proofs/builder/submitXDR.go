@@ -494,7 +494,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 		}
 
 		//GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
-		TxnBody.PublicKey = txe.SourceAccount.Address()
+		PublicKey := txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		FromIdentifier1 := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
@@ -503,6 +503,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 		ItemAmount := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
 		TxnBody.Identifier = Identifier
 
+		AP.TxnBody[i].PublicKey = PublicKey
 		AP.TxnBody[i].Identifier = Identifier
 		AP.TxnBody[i].TxnType = TxnType
 		AP.TxnBody[i].FromIdentifier1 = FromIdentifier1
@@ -510,16 +511,17 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 		AP.TxnBody[i].ItemCode = ItemCode
 		AP.TxnBody[i].ItemAmount = ItemAmount
 
+		fmt.Println(AP.TxnBody)
 		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if i == 0 {
-			p := object.GetLastTransactionbyIdentifier(Identifier)
+			p := object.GetLastTransactionbyIdentifier(FromIdentifier1)
 			p.Then(func(data interface{}) interface{} {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result := data.(model.TransactionCollectionBody)
 				PreviousTxn = result.TxnHash
-				TxnBody.PreviousTxnHash = result.TxnHash
+				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
 
-				fmt.Println(TxnBody.PreviousTxnHash)
+				fmt.Println(AP.TxnBody[i].PreviousTxnHash)
 				return nil
 			}).Catch(func(error error) error {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
@@ -530,19 +532,19 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 			p.Await()
 		}
 
-		TxnBody.TxnType = TxnType
-		TxnBody.Status = "pending"
+		AP.TxnBody[i].TxnType = TxnType
+		AP.TxnBody[i].Status = "pending"
 
-		copy = append(copy, TxnBody)
+		copy = append(copy, AP.TxnBody[i])
 
 		///INSERT INTO TRANSACTION COLLECTION
-		err1 := object.InsertTransaction(TxnBody)
+		err1 := object.InsertTransaction(AP.TxnBody[i])
 		if err1 != nil {
 			TDP.Status = "failed"
 		}
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
-		display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
+		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
 		result := display.SubmitXDR()
 		UserMergeTxnHashes = append(UserMergeTxnHashes, result.TXNID)
 
