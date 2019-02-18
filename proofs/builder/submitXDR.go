@@ -475,6 +475,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 
 	var UserMergeTxnHashes []string
 	var PreviousTxn string
+	var MergeID string
 
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
@@ -550,7 +551,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 			// return Done
 		}
 	}
-	go func() {
+	// go func() {
 
 		for i, TxnBody := range AP.TxnBody {
 			var PreviousTXNBuilder build.ManageDataBuilder
@@ -567,6 +568,24 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 				TxnBody.PreviousTxnHash = PreviousTxn
 			}
 
+			if i == 0 {
+				p := object.GetLastTransactionbyIdentifier(TxnBody.FromIdentifier2)
+				p.Then(func(data interface{}) interface{} {
+					///ASSIGN PREVIOUS MANAGE DATA BUILDER
+					result := data.(model.TransactionCollectionBody)
+					MergeID = result.TxnHash
+					TxnBody.MergeID = result.TxnHash
+	
+					fmt.Println(TxnBody.MergeID)
+					return nil
+				}).Catch(func(error error) error {
+					///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+					//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+					TxnBody.MergeID = ""
+					return error
+				})
+				p.Await()
+			}
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
 				build.TestNetwork,
@@ -574,6 +593,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 				build.AutoSequence{horizon.DefaultTestNetClient},
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
+				build.SetData("MergeID",[]byte(TxnBody.MergeID)),
 			)
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -613,7 +633,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
 			}
 		}
 
-	}()
+	// }()
 	// }
 	return Done
 }
