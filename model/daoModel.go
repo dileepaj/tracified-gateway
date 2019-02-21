@@ -26,6 +26,7 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash string
 	FromIdentifier1 string
 	FromIdentifier2 string
+	ToIdentifier string
 	ItemCode string
 	ItemAmount string
 	PublicKey string 
