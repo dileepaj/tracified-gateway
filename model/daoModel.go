@@ -26,6 +26,7 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash string
 	FromIdentifier1 string
 	FromIdentifier2 string
+	ToIdentifier string
 	ItemCode string
 	ItemAmount string
 	PublicKey string 
@@ -33,6 +34,7 @@ type TransactionCollectionBody struct {
 	XDR string 
 	Status string 
 	MergeID string
+	Orphan bool
 }
 type XDR struct{
 	XDR build.TransactionMutator
