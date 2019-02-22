@@ -14,17 +14,26 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		return err
 	}
 	defer session.Close()
-
+  
+	Previous:=selector.PreviousTxnHash
+	if update.PreviousTxnHash!=""{
+		Previous=update.PreviousTxnHash
+	}
 	up := model.TransactionCollectionBody{
 		Identifier: selector.Identifier,
 		TdpId:      selector.TdpId,
 		PublicKey:  selector.PublicKey,
 		XDR:        selector.XDR,
 		TxnHash:    update.TxnHash,
-		// ProfileHash:update.ProfileHash,
 		TxnType: selector.TxnType,
 		Status:  update.Status,
 		ProfileID:update.ProfileID,
+		PreviousTxnHash:Previous,
+		FromIdentifier1:selector.FromIdentifier1,
+		FromIdentifier2:selector.FromIdentifier2,
+		ItemAmount:selector.ItemAmount,
+		ItemCode:selector.ItemCode,
+
 	}
 
 	c := session.DB("tracified-gateway").C("Transactions")

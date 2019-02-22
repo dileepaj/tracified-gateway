@@ -21,62 +21,85 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 	var Rerr model.Error
 	var PreviousTxn string
 
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POGStruct.LastTxn + "/operations")
+	//RETRIEVE INITIAL GATEWAY SIGNED TXN
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
 		response.CurTxn = CurrentTxn
-
 		response.Message = Rerr
 		return response
-
 	} else {
 		data, _ := ioutil.ReadAll(result.Body)
-
 		if result.StatusCode == 200 {
 			var raw map[string]interface{}
 			json.Unmarshal(data, &raw)
-			// raw["count"] = 2
 			out, _ := json.Marshal(raw["_embedded"])
 
 			var raw1 map[string]interface{}
 			json.Unmarshal(out, &raw1)
-
 			out1, _ := json.Marshal(raw1["records"])
 
 			keysBody := out1
 			keys := make([]PublicKey, 0)
 			json.Unmarshal(keysBody, &keys)
-			// fmt.Printf("%#v", keys[0].Name)
-			// fmt.Printf("%#v", keys[0].Value)
 			fmt.Println("keys map => ", keys)
-			TxnType := Base64DecEnc("Decode", keys[0].Value)
 
-			if TxnType == "0" {
-				Rerr.Code = http.StatusOK
-				Rerr.Message = "Txn Hash retrieved from the blockchain."
-				response.Message = Rerr
+			PreviousTxn=Base64DecEnc("Decode", keys[0].Value)
+			CurrentTxn=Base64DecEnc("Decode", keys[1].Value)
+			//Retrive Current TXN DATA
+			result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
+			if err1 != nil {
+				Rerr.Code = result1.StatusCode
+				Rerr.Message = "The HTTP request failed for RetrievePOG"
 				response.CurTxn = CurrentTxn
-				response.PreTxn = Base64DecEnc("Decode", keys[1].Value)
-				response.Identifier = Base64DecEnc("Decode", keys[2].Value)
-
-				return response
-
-			} else if keys[1].Value != ""||keys[1].Value != "0" {
-				PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
-
-				pogStruct := apiModel.POGStruct{LastTxn: PreviousTxn}
-				object := ConcretePOG{POGStruct: pogStruct}
-
-				response = object.RetrievePOG()
-			} else {
-				Rerr.Code = http.StatusOK
-				Rerr.Message = "Genesis Transaction not found."
+				response.PreTxn = Base64DecEnc("Decode", keys[0].Value)
 				response.Message = Rerr
-
 				return response
-			}
+			} else {
+				data, _ := ioutil.ReadAll(result1.Body)
+				if result1.StatusCode == 200 {
+					var raw map[string]interface{}
+					json.Unmarshal(data, &raw)
+					out, _ := json.Marshal(raw["_embedded"])
 
+					var raw1 map[string]interface{}
+					json.Unmarshal(out, &raw1)
+					out1, _ := json.Marshal(raw1["records"])
+
+					keysBody := out1
+					keys := make([]PublicKey, 0)
+					json.Unmarshal(keysBody, &keys)
+					fmt.Println("keys map => ", keys)
+
+					//Use TXN TYPE TO RETRIEVE POG VALUES
+					TxnType := Base64DecEnc("Decode", keys[0].Value)
+
+					if TxnType == "0" {
+						Rerr.Code = http.StatusOK
+						Rerr.Message = "Txn Hash retrieved from the blockchain."
+						response.Message = Rerr
+						response.CurTxn = CurrentTxn
+						response.Identifier = Base64DecEnc("Decode", keys[1].Value)
+
+						return response
+
+					} else if PreviousTxn != "" || PreviousTxn != "0" {
+						// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
+
+						pogStruct := apiModel.POGStruct{LastTxn: PreviousTxn}
+						object := ConcretePOG{POGStruct: pogStruct}
+
+						response = object.RetrievePOG()
+					} else {
+						Rerr.Code = http.StatusOK
+						Rerr.Message = "Genesis Transaction not found."
+						response.Message = Rerr
+
+						return response
+					}
+				}
+			}
 		} else {
 			Rerr.Code = http.StatusOK
 			Rerr.Message = "Txn Hash does not exist in the blockchain."
@@ -85,8 +108,6 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 
 			return response
 		}
-
 	}
-
 	return response
 }

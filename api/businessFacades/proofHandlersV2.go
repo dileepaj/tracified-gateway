@@ -333,11 +333,14 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	var response model.POG
 
 	object:=dao.Connection{}
+	//RETRIVE LAST TRANSACTION HASH FOR THE IDENTIFIER
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
 		fmt.Println(LastTxn)
+
+		//RETRIVE FIRST TRANSACTION HASH FOR THE IDENTIFIER
 		g:= object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
