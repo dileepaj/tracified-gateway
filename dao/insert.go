@@ -56,3 +56,20 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 
 	return err
 }
+
+func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("Profiles")
+	err1 := c.Insert(Coc)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	return err
+}

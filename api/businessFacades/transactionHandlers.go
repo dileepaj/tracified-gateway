@@ -249,7 +249,7 @@ func SubmitXDR(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(TDP)
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitGenesis()
+	status:= display.SubmitData1()
 
 	// status, _ := builder.XDRSubmitter(TDP)
 	if status {
@@ -304,22 +304,27 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitGenesis()
+	display.SubmitGenesis(w,r)
 
 	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	// if status {
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Success",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }else{
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Failed",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }
+	// w.WriteHeader(http.StatusOK)
+	// result := apiModel.SubmitXDRSuccess{
+	// 	Status: "Success",
+	// }
+	// json.NewEncoder(w).Encode(result)
 	return
 }
 
@@ -359,22 +364,23 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitData()
+	display.SubmitData(w,r,true)
 
 	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	// if status {
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Success",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }else{
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Failed",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }
+
 	return
 }
 
@@ -488,7 +494,6 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
@@ -543,8 +548,6 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
-
-
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -638,7 +641,6 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	return 
 
 }
-
 type TDP struct {
 	TdpId string `json:"tdpId"`
 }
