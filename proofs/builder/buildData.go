@@ -133,7 +133,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 	// 	}
 	// }
 
-	// go func() {
+	go func() {
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
 
@@ -201,7 +201,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 				}
 			}
 		}
-	// }()
+	}()
 
 	if checkBoolArray(Done) {
 		w.WriteHeader(http.StatusOK)
