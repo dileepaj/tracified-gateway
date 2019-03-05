@@ -39,6 +39,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
+			
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
