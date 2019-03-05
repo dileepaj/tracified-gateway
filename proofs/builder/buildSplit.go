@@ -11,15 +11,15 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/xdr"
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 )
 
-func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Request)  {
+func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	var Done []bool
 	Done = append(Done, true)
 
@@ -162,10 +162,38 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				if i == 0 {
 					PreviousTxn = response1.TXNID
 				}
-		
+
 				///INSERT INTO TRANSACTION COLLECTION
 				err1 := object.InsertTransaction(AP.TxnBody[i])
 				if err1 != nil {
+				} else if i > 0 {
+
+					var PreviousProfile string
+					p := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1)
+					p.Then(func(data interface{}) interface{} {
+
+						result := data.(model.ProfileCollectionBody)
+						PreviousProfile = result.ProfileTxn
+						return nil
+					}).Catch(func(error error) error {
+						PreviousProfile = ""
+						return error
+					})
+					p.Await()
+
+					Profile := model.ProfileCollectionBody{
+						ProfileTxn:         response1.TXNID,
+						ProfileID:          AP.TxnBody[i].ProfileID,
+						Identifier:         AP.TxnBody[i].Identifier,
+						PreviousProfileTxn: PreviousProfile,
+						TriggerTxn:         UserSplitTxnHashes[i],
+						TxnType:            AP.TxnBody[i].TxnType,
+					}
+					err3 := object.InsertProfile(Profile)
+					if err3 != nil {
+
+					}
+
 				}
 			}
 		}
@@ -178,6 +206,6 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			Status: "Success",
 		}
 		json.NewEncoder(w).Encode(result)
-	}	
+	}
 	return
 }

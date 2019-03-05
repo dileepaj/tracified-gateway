@@ -182,6 +182,34 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err1 := object.InsertTransaction(AP.TxnBody[i])
 				if err1 != nil {
+				} else if i == 0 {
+
+					var PreviousProfile string
+					p := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1)
+					p.Then(func(data interface{}) interface{} {
+
+						result := data.(model.ProfileCollectionBody)
+						PreviousProfile = result.ProfileTxn
+						return nil
+					}).Catch(func(error error) error {
+						PreviousProfile = ""
+						return error
+					})
+					p.Await()
+
+					Profile := model.ProfileCollectionBody{
+						ProfileTxn:         response1.TXNID,
+						ProfileID:          AP.TxnBody[i].ProfileID,
+						Identifier:         AP.TxnBody[i].Identifier,
+						PreviousProfileTxn: PreviousProfile,
+						TriggerTxn:         UserMergeTxnHashes[i],
+						TxnType:            AP.TxnBody[i].TxnType,
+					}
+					err3 := object.InsertProfile(Profile)
+					if err3 != nil {
+
+					}
+
 				}
 
 				// Done = true
