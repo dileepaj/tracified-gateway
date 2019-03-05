@@ -19,7 +19,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 )
 
-func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request,NotOrphan bool) {
+func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	var Done []bool
 	Done = append(Done, NotOrphan)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -31,6 +31,8 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// var result model.SubmitXDRResponse
+	var OrphanBoolArray []bool
+	var OrphanBool bool
 
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
@@ -51,16 +53,22 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 			result := data.(model.TransactionCollectionBody)
 			AP.TxnBody[i].PreviousTxnHash = result.TxnHash
 			AP.TxnBody[i].Orphan = false
+			OrphanBoolArray = append(OrphanBoolArray, false)
 			fmt.Println("Adopting from Orphanage! or Just Submitting")
 			return nil
 		}).Catch(func(error error) error {
 			fmt.Println("Sending to Orphanage!")
+			OrphanBoolArray = append(OrphanBoolArray, true)
 			AP.TxnBody[i].Orphan = true
 			return error
 		})
 		p.Await()
+	}
 
-		if AP.TxnBody[i].Orphan {
+	OrphanBool = checkBoolArray(OrphanBoolArray)
+
+	if OrphanBool {
+		for i, _ := range AP.TxnBody {
 			//INSERT THE TXN INTO THE BUFFER
 			err1 := object.InsertToOrphan(AP.TxnBody[i])
 			if err1 != nil {
@@ -72,7 +80,9 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 				json.NewEncoder(w).Encode(response)
 				return
 			}
-		} else {
+		}
+	} else {
+		for i, _ := range AP.TxnBody {
 			//SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
 			result1 := display.SubmitXDR()
@@ -89,6 +99,38 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 			}
 		}
 	}
+	// for i, _ := range AP.TxnBody {
+
+	// 	if AP.TxnBody[i].Orphan {
+
+	// 		//INSERT THE TXN INTO THE BUFFER
+	// 		err1 := object.InsertToOrphan(AP.TxnBody[i])
+	// 		if err1 != nil {
+	// 			Done = append(Done, false)
+	// 			w.WriteHeader(400)
+	// 			response := apiModel.SubmitXDRSuccess{
+	// 				Status: "Index[" + strconv.Itoa(i) + "] TXN: Orphanage Admission Revoked",
+	// 			}
+	// 			json.NewEncoder(w).Encode(response)
+	// 			return
+	// 		}
+	// 	} else {
+	// 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
+	// 		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
+	// 		result1 := display.SubmitXDR()
+	// 		UserTxnHashes = append(UserTxnHashes, result1.TXNID)
+
+	// 		if result1.Error.Code == 400 {
+	// 			Done = append(Done, false)
+	// 			w.WriteHeader(result1.Error.Code)
+	// 			response := apiModel.SubmitXDRSuccess{
+	// 				Status: "Index[" + strconv.Itoa(i) + "] TXN: Blockchain Transaction Failed!",
+	// 			}
+	// 			json.NewEncoder(w).Encode(response)
+	// 			return
+	// 		}
+	// 	}
+	// }
 
 	go func() {
 		for i, TxnBody := range AP.TxnBody {
@@ -112,11 +154,11 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 				if err != nil {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
-	
+
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-	
+
 					}
 				}
 				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
@@ -124,11 +166,11 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 				if err != nil {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
-	
+
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-	
+
 					}
 				}
 
@@ -139,11 +181,11 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 				if response1.Error.Code == 400 {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
-	
+
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-	
+
 					}
 				} else {
 					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -153,7 +195,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						
+
 					}
 				}
 			}
