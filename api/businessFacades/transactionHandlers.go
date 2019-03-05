@@ -366,21 +366,6 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitData(w,r,true)
 
-	// status, _ := builder.XDRSubmitter(TDP)
-	// if status {
-	// 	w.WriteHeader(http.StatusOK)
-	// 	result := apiModel.SubmitXDRSuccess{
-	// 		Status: "Success",
-	// 	}
-	// 	json.NewEncoder(w).Encode(result)
-	// }else{
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	result := apiModel.SubmitXDRSuccess{
-	// 		Status: "Failed",
-	// 	}
-	// 	json.NewEncoder(w).Encode(result)
-	// }
-
 	return
 }
 
@@ -420,22 +405,8 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitSplit()
+	display.SubmitSplit(w,r)
 
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
 	return
 }
 
@@ -458,7 +429,6 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 			Status: "No Content-Type present!",
 		}
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}
 
@@ -475,22 +445,8 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitMerge()
+	display.SubmitMerge(w,r)
 
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
 	return
 }
 

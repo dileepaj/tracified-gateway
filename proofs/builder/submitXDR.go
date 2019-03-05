@@ -327,7 +327,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit1() bool {
 }
 
 //Builds the Merge Transaction mapping before pushing to stellar
-func (AP *AbstractXDRSubmiter) SubmitMerge() bool {
+func (AP *AbstractXDRSubmiter) SubmitMerge1() bool {
 	var Done bool
 	object := dao.Connection{}
 	var copy []model.TransactionCollectionBody
@@ -683,7 +683,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 		response := display.SubmitXDR()
 		ret = response
-		if response.Error.Code == 404 {
+		if response.Error.Code == 400 {
 			TDP[i].Status = "pending"
 			status = append(status, false)
 
