@@ -155,11 +155,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 
 			}
 		}
-	}
-
-	//ORPHAN TXNS TO BE COLLECTED HERE TO BE CALLED IN AGAIN
-	var Orphans []model.TransactionCollectionBody
-	for _, TxnBody := range AP.TxnBody {
+		var Orphans []model.TransactionCollectionBody
 		p := object.GetOrphanbyIdentifier(TxnBody.Identifier)
 		p.Then(func(data interface{}) interface{} {
 
@@ -174,10 +170,32 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 			return error
 		})
 		p.Await()
+
+		display := AbstractXDRSubmiter{TxnBody: Orphans}
+		display.SubmitData(w, r, false)
 	}
 
-	display := AbstractXDRSubmiter{TxnBody: Orphans}
-	display.SubmitData(w, r, false)
+	//ORPHAN TXNS TO BE COLLECTED HERE TO BE CALLED IN AGAIN
+	// var Orphans []model.TransactionCollectionBody
+	// for _, TxnBody := range AP.TxnBody {
+	// 	p := object.GetOrphanbyIdentifier(TxnBody.Identifier)
+	// 	p.Then(func(data interface{}) interface{} {
+
+	// 		result := data.(model.TransactionCollectionBody)
+	// 		Orphans = append(Orphans, result)
+	// 		err := object.RemoveFromOrphanage(TxnBody.Identifier)
+	// 		if err != nil {
+	// 			fmt.Println(err.Error())
+	// 		}
+	// 		return nil
+	// 	}).Catch(func(error error) error {
+	// 		return error
+	// 	})
+	// 	p.Await()
+	// }
+
+	// display := AbstractXDRSubmiter{TxnBody: Orphans}
+	// display.SubmitData(w, r, false)
 	// }()
 
 	if checkBoolArray(Done) {
