@@ -6,7 +6,7 @@ import (
 
 )
 
-func (cd *Connection) RemoveFromBuffer(Identifier string) error {
+func (cd *Connection) RemoveFromOrphanage(Identifier string) error {
 
 	session, err := cd.connect()
 	if err != nil {
@@ -14,7 +14,7 @@ func (cd *Connection) RemoveFromBuffer(Identifier string) error {
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway").C("Buffer")
+	c := session.DB("tracified-gateway").C("Orphan")
 	err1 := c.Remove(bson.M{"identifier": Identifier})
 	if err1 != nil {
 		fmt.Println(err1)

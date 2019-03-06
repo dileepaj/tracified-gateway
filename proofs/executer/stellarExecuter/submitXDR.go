@@ -21,9 +21,9 @@ func (cd *ConcreteSubmitXDR) SubmitXDR() model.SubmitXDRResponse {
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
 	if err != nil {
 		// panic(err)
-		fmt.Println(err)
-		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "Test net client crashed"
+		fmt.Println(err.Error())
+		response.Error.Code = http.StatusBadRequest
+		response.Error.Message = err.Error()
 		return response
 	}
 
