@@ -57,7 +57,9 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			keys := make([]PublicKey, 0)
 			json.Unmarshal(keysBody, &keys)
 
-			CurrentTxn=Base64DecEnc("Decode", keys[1].Value)
+			// Gtype:=Base64DecEnc("Decode", keys[0].Value)
+			// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
+			CurrentTxn = Base64DecEnc("Decode", keys[2].Value) 
 			//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
 			result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
 			if err != nil {
@@ -74,7 +76,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 					var raw map[string]interface{}
 					json.Unmarshal(data, &raw)
 					out, _ := json.Marshal(raw["_embedded"])
-					
+
 					var raw1 map[string]interface{}
 					json.Unmarshal(out, &raw1)
 					out1, _ := json.Marshal(raw1["records"])

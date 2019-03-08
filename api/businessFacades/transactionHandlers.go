@@ -212,62 +212,6 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SubmitXDR(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-
-		return
-	}
-
-	// fmt.Println(TDP)
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(TDP)
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitGenesis()
-
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
-	return
-}
-
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
@@ -304,22 +248,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitGenesis()
-
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	display.SubmitGenesis(w,r)
 	return
 }
 
@@ -359,22 +288,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitData()
-
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	display.SubmitData(w,r,true)
 	return
 }
 
@@ -414,22 +328,8 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitSplit()
+	display.SubmitSplit(w,r)
 
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
 	return
 }
 
@@ -452,7 +352,6 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 			Status: "No Content-Type present!",
 		}
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}
 
@@ -469,22 +368,49 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 	
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitMerge()
+	display.SubmitMerge(w,r)
 
-	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	}else{
+	return
+}
+
+
+func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
+			Status: "No Header present!",
 		}
 		json.NewEncoder(w).Encode(result)
+		return
 	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+	
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	display.SubmitMerge(w,r)
+
 	return
 }
 
@@ -543,8 +469,6 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
-
-
 
 func LastTxn(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -638,7 +562,6 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	return 
 
 }
-
 type TDP struct {
 	TdpId string `json:"tdpId"`
 }

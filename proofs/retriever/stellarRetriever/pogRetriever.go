@@ -45,8 +45,9 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			json.Unmarshal(keysBody, &keys)
 			fmt.Println("keys map => ", keys)
 
-			PreviousTxn=Base64DecEnc("Decode", keys[0].Value)
-			CurrentTxn=Base64DecEnc("Decode", keys[1].Value)
+			// Gtype:=Base64DecEnc("Decode", keys[0].Value)
+			PreviousTxn=Base64DecEnc("Decode", keys[1].Value)
+			CurrentTxn=Base64DecEnc("Decode", keys[2].Value)
 			//Retrive Current TXN DATA
 			result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
 			if err1 != nil {

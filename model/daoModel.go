@@ -36,6 +36,15 @@ type TransactionCollectionBody struct {
 	MergeID string
 	Orphan bool
 }
+
+type ProfileCollectionBody struct {
+	ProfileTxn string
+	ProfileID string
+	TxnType string
+	PreviousProfileTxn string
+	Identifier string
+	TriggerTxn string
+}
 type XDR struct{
 	XDR build.TransactionMutator
 }
