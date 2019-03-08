@@ -6,6 +6,7 @@ import (
 
 )
 
+//RemoveFromOrphanage ..
 func (cd *Connection) RemoveFromOrphanage(Identifier string) error {
 
 	session, err := cd.connect()

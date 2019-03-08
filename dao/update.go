@@ -6,6 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+//UpdateTransaction ...
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -45,6 +46,7 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
+//UpdateCOC ...
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
 
 	session, err := cd.connect()

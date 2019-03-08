@@ -5,7 +5,7 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-
+//Connection ...
 type Connection struct {
 }
 
@@ -20,8 +20,3 @@ func (cd *Connection) connect()(*mgo.Session,error) {
 	return session,err
 
 }
-
-
-
-
-//  Connection:=connect()
