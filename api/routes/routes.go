@@ -129,7 +129,7 @@ var routes = Routes{
 		"SubmitTransformation",
 		"POST",
 		"/transaction/transformation",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitTransformation,
 	},Route{
 		"SubmitMerge",
 		"POST",
@@ -139,7 +139,7 @@ var routes = Routes{
 		"SubmitTransfer",
 		"POST",
 		"/transaction/transfer",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitTransfer,
 	},Route{
 		"LastTxn",
 		"GET",
