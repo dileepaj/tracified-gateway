@@ -6,6 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+//InsertCoc ...
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 
 	session, err := cd.connect()
@@ -23,6 +24,7 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	return err
 }
 
+//InsertTransaction ...
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -40,6 +42,7 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	return err
 }
 
+//InsertToOrphan ...
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -57,6 +60,7 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	return err
 }
 
+//InsertProfile ...
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 
 	session, err := cd.connect()

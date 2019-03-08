@@ -11,6 +11,7 @@ import (
 	"github.com/chebyrash/promise"
 )
 
+//GetCOCbySender ...
 func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -43,6 +44,7 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 
 }
 
+//GetLastCOCbySubAccount ...
 func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	result2 := apiModel.GetSubAccountStatusResponse{}
@@ -88,6 +90,7 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 
 }
 
+//GetCOCbyReceiver ...
 func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -120,6 +123,7 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 
 }
 
+//GetCOCbyAcceptTxn ...
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -151,7 +155,7 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	return p
 
 }
-
+//GetCOCbyRejectTxn ...
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -183,6 +187,7 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 
 }
 
+//GetCOCbyStatus ...
 func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -215,6 +220,7 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 
 }
 
+//GetLastCOCbyIdentifier ...
 func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// result2 := apiModel.GetSubAccountStatusResponse{}
@@ -251,7 +257,7 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 	return p
 
 }
-
+//GetLastTransactionbyIdentifier ...
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -284,6 +290,7 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 
 }
 
+//GetFirstTransactionbyIdentifier ...
 func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -313,6 +320,8 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 	return p
 
 }
+
+//GetTransactionsbyIdentifier ...
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -345,6 +354,7 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 
 }
 
+//GetTransactionForTdpId ...
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -377,6 +387,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 
 }
 
+//GetTdpIdForTransaction ...simply returns a TXN collection when a txnid is given
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -409,6 +420,7 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 
 }
 
+//GetOrphanbyIdentifier ...
 func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -439,8 +451,7 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 
 }
 
-
-
+//GetProfilebyIdentifier ...
 func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
@@ -470,3 +481,4 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 	return p
 
 }
+

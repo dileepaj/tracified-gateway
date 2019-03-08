@@ -217,84 +217,87 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 		}
 	}
 
-	go func() {
-		for i := 0; i < len(TDP); i++{
-			p := object.GetLastTransactionbyIdentifier(TDP[i].Identifier)
-			p.Then(func(data interface{}) interface{} {
-				///ASSIGN PREVIOUS MANAGE DATA BUILDER
-				result := data.(model.TransactionCollectionBody)
-				TDP[i].PreviousTxnHash = result.TxnHash
-
-				return nil
-			}).Catch(func(error error) error {
-				TDP[i].PreviousTxnHash = ""
-				return error
-			})
-			p.Await()
-			var PreviousTXNBuilder build.ManageDataBuilder
-			PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(TDP[i].PreviousTxnHash))
-
-			//BUILD THE GATEWAY XDR
-			tx, err := build.Transaction(
-				build.TestNetwork,
-				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultTestNetClient},
-				build.SetData("Type", []byte("G"+TDP[i].TxnType)),
-				PreviousTXNBuilder,
-				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-			)
-
-			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-			GatewayTXE, err := tx.Sign(secretKey)
-			if err != nil {
-				TDP[i].TxnHash = UserTxnHashes[i]
-				TDP[i].Status = "Pending"
-
-				///INSERT INTO TRANSACTION COLLECTION
-				err2 := object.InsertTransaction(TDP[i])
-				if err2 != nil {
-
+	if checkBoolArray(status){
+		go func() {
+			for i := 0; i < len(TDP); i++{
+				p := object.GetLastTransactionbyIdentifier(TDP[i].Identifier)
+				p.Then(func(data interface{}) interface{} {
+					///ASSIGN PREVIOUS MANAGE DATA BUILDER
+					result := data.(model.TransactionCollectionBody)
+					TDP[i].PreviousTxnHash = result.TxnHash
+	
+					return nil
+				}).Catch(func(error error) error {
+					TDP[i].PreviousTxnHash = ""
+					return error
+				})
+				p.Await()
+				var PreviousTXNBuilder build.ManageDataBuilder
+				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(TDP[i].PreviousTxnHash))
+	
+				//BUILD THE GATEWAY XDR
+				tx, err := build.Transaction(
+					build.TestNetwork,
+					build.SourceAccount{publicKey},
+					build.AutoSequence{horizon.DefaultTestNetClient},
+					build.SetData("Type", []byte("G"+TDP[i].TxnType)),
+					PreviousTXNBuilder,
+					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+				)
+	
+				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+				GatewayTXE, err := tx.Sign(secretKey)
+				if err != nil {
+					TDP[i].TxnHash = UserTxnHashes[i]
+					TDP[i].Status = "Pending"
+	
+					///INSERT INTO TRANSACTION COLLECTION
+					err2 := object.InsertTransaction(TDP[i])
+					if err2 != nil {
+	
+					}
+				}
+				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+				txeB64, err := GatewayTXE.Base64()
+				if err != nil {
+					TDP[i].TxnHash = UserTxnHashes[i]
+					TDP[i].Status = "Pending"
+	
+					///INSERT INTO TRANSACTION COLLECTION
+					err2 := object.InsertTransaction(TDP[i])
+					if err2 != nil {
+	
+					}
+				}
+	
+				//SUBMIT THE GATEWAY'S SIGNED XDR
+				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+				response1 := display1.SubmitXDR()
+	
+				if response1.Error.Code == 400 {
+					TDP[i].TxnHash = UserTxnHashes[i]
+					TDP[i].Status = "Pending"
+	
+					///INSERT INTO TRANSACTION COLLECTION
+					err2 := object.InsertTransaction(TDP[i])
+					if err2 != nil {
+	
+					}
+				} else {
+					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+					TDP[i].TxnHash = response1.TXNID
+					TDP[i].Status = "done"
+	
+					///INSERT INTO TRANSACTION COLLECTION
+					err2 := object.InsertTransaction(TDP[i])
+					if err2 != nil {
+	
+					}
 				}
 			}
-			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
-			txeB64, err := GatewayTXE.Base64()
-			if err != nil {
-				TDP[i].TxnHash = UserTxnHashes[i]
-				TDP[i].Status = "Pending"
-
-				///INSERT INTO TRANSACTION COLLECTION
-				err2 := object.InsertTransaction(TDP[i])
-				if err2 != nil {
-
-				}
-			}
-
-			//SUBMIT THE GATEWAY'S SIGNED XDR
-			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR()
-
-			if response1.Error.Code == 400 {
-				TDP[i].TxnHash = UserTxnHashes[i]
-				TDP[i].Status = "Pending"
-
-				///INSERT INTO TRANSACTION COLLECTION
-				err2 := object.InsertTransaction(TDP[i])
-				if err2 != nil {
-
-				}
-			} else {
-				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
-				TDP[i].TxnHash = response1.TXNID
-				TDP[i].Status = "done"
-
-				///INSERT INTO TRANSACTION COLLECTION
-				err2 := object.InsertTransaction(TDP[i])
-				if err2 != nil {
-
-				}
-			}
-		}
-	}()
+		}()
+	}
+	
 	return checkBoolArray(status), ret
 }
 
