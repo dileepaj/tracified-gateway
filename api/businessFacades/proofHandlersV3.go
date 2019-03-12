@@ -1,19 +1,21 @@
 package businessFacades
 
 import (
-	"encoding/base64"
-	"github.com/dileepaj/tracified-gateway/constants"
-	"github.com/dileepaj/tracified-gateway/dao"
 	"crypto/sha256"
-	"net/http"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"strings"
 	"io/ioutil"
-	"github.com/gorilla/mux"
+	"net/http"
+	"strings"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
+	"github.com/gorilla/mux"
+	"github.com/stellar/go/xdr"
 )
 
 type PublicKey struct {
@@ -394,7 +396,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 
-			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn:UserGenesis, Identifier: vars["Identifier"]}
+			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn: UserGenesis, Identifier: vars["Identifier"]}
 			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}
 			response = display.InterpretPOG()
 
@@ -430,94 +432,26 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//CheckPOCOCV3 - WORKING MODEL
+//CheckPOCOCV3 - Developing
 func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
+	var txe xdr.Transaction
+	var COC model.COCCollectionBody
+	var COCAvailable bool
 	vars := mux.Vars(r)
-
 	object := dao.Connection{}
-	var CurrentTxn string
-	p := object.GetTdpIdForTransaction(vars["TxnId"])
+	p := object.GetCOCbyAcceptTxn(vars["TxnId"])
 	p.Then(func(data interface{}) interface{} {
-
-		result := data.(model.TransactionCollectionBody)
-
-		result1, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + result.TxnHash + "/operations")
-		if err != nil {
-
-		} else {
-			data, _ := ioutil.ReadAll(result1.Body)
-
-			if result1.StatusCode == 200 {
-				var raw map[string]interface{}
-				json.Unmarshal(data, &raw)
-				// raw["count"] = 2
-				out, _ := json.Marshal(raw["_embedded"])
-				var raw1 map[string]interface{}
-				json.Unmarshal(out, &raw1)
-				out1, _ := json.Marshal(raw1["records"])
-
-				keysBody := out1
-				keys := make([]PublicKey, 0)
-				json.Unmarshal(keysBody, &keys)
-
-				byteData, _ := base64.StdEncoding.DecodeString(keys[1].Value)
-
-				CurrentTxn = string(byteData)
-				fmt.Println("THE TXN OF THE USER TXN: " + CurrentTxn)
-			}
-		}
-
-		// fmt.Println(result)
-		var response model.POE
-		// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + vars["Txn"]
-		url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
-
-		bearer := "Bearer " + constants.BackendToken
-		// Create a new request using http
-		req, er := http.NewRequest("GET", url, nil)
-		req.Header.Add("Authorization", bearer)
-		client := &http.Client{}
-		resq, er := client.Do(req)
-
-		if er != nil {
-
-			w.WriteHeader(http.StatusNotFound)
-			json.NewEncoder(w).Encode(er.Error)
-
-		} else {
-			// fmt.Println(req)
-			body, _ := ioutil.ReadAll(resq.Body)
-			var raw map[string]interface{}
-			json.Unmarshal(body, &raw)
-			// fmt.Println(string(raw["Data"]))
-			// fmt.Println(body)
-
-			h := sha256.New()
-			lol := raw["data"]
-			// fmt.Println(lol)
-
-			h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
-			fmt.Println("RAW BASE64 + IDENTIFIER")
-
-			fmt.Printf("%x", h.Sum(nil))
-
-			poeStructObj := apiModel.POEStruct{Txn: result.TxnHash,
-				Hash: strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-			display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
-			response = display.InterpretPOE()
-
-			w.WriteHeader(response.RetrievePOE.Error.Code)
-			json.NewEncoder(w).Encode(response.RetrievePOE)
-
-		}
-
+		COCAvailable = true
+		COC = data.(model.COCCollectionBody)
+		fmt.Println(COC)
 		return data
 
 	}).Catch(func(error error) error {
+		COCAvailable = false
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
+		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE"}
 		json.NewEncoder(w).Encode(response)
 		fmt.Println(response)
 		return error
@@ -525,6 +459,15 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
-	// return
+	if COCAvailable {
+		err := xdr.SafeUnmarshalBase64(COC.AcceptXdr, &txe)
+		if err != nil {
+			//ignore error
+		}
+		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe}
+		display.InterpretPOCOC(w, r)
+	}
+
+	return
 
 }

@@ -44,7 +44,7 @@ var routes = Routes{
 		"POCOC",
 		"GET",
 		"/proof/pococ/{TxnId}",
-		businessFacades.CheckPOGV3,
+		businessFacades.CheckPOCOCV3,
 	},
 	Route{
 		"Transactions",

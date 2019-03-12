@@ -39,4 +39,6 @@ func main() {
 	fmt.Println("Gateway Started @port " + port)
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
+
+	
 }
