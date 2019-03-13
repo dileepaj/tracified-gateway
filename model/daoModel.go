@@ -45,6 +45,19 @@ type ProfileCollectionBody struct {
 	Identifier string
 	TriggerTxn string
 }
+
+
+type CertificateCollectionBody struct {
+	TxnType string 
+	PreviousCertificate string
+	CertificateType string 
+	Data string 
+	ValidityPeriod string
+	Asset string 
+	PublicKey string 
+	XDR string 
+	CertificateID string
+}
 type XDR struct{
 	XDR build.TransactionMutator
 }
