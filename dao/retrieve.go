@@ -482,3 +482,35 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 
 }
 
+//GetCertificatebyPublicKey ...
+func (cd *Connection) GetCertificatebyPublicKey(PublicKey string) *promise.Promise {
+	result := []model.CertificateCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Certificates")
+		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result[len(result)-1])
+
+		}
+
+	})
+
+	return p
+
+}

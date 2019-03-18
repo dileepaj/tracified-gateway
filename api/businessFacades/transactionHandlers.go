@@ -472,7 +472,7 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 
 func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
+	var TDP model.CertificateCollectionBody
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -505,8 +505,10 @@ func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println(TDP)
 
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitGenesis(w,r)
+	var temp []model.CertificateCollectionBody
+	temp=append(temp,TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody:temp}
+	display.SubmitInsertCertificate(w,r)
 	return
 }
 

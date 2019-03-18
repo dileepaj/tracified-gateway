@@ -147,6 +147,11 @@ var routes = Routes{
 		"/transaction/transfer",
 		businessFacades.SubmitTransfer,
 	},Route{
+		"InsertCertificate",
+		"POST",
+		"/transaction/certificateInsert",
+		businessFacades.SubmitCertificateInsert,
+	},Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",
