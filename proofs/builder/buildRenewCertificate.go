@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
 	// "strconv"
 	"strings"
 
@@ -17,12 +18,8 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-type AbstractCertificateSubmiter struct {
-	TxnBody []model.CertificateCollectionBody
-}
-
 //I AM THE GENESIS BUILDER
-func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWriter, r *http.Request) {
+func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWriter, r *http.Request) {
 	var Done []bool
 	Done = append(Done, true)
 
@@ -31,6 +28,8 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 	object := dao.Connection{}
 	var UserTxnHashes []string
 
+	valid:=false
+	
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
@@ -47,30 +46,61 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].CertificateType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].Data = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].CertificateID = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].ValidityPeriod = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].Asset = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
-		//SUBMIT THE FIRST XDR SIGNED BY THE USER
-		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-		result := display.SubmitXDR()
-		UserTxnHashes = append(UserTxnHashes, result.TXNID)
-
-		if result.Error.Code == 400 {
+		p := object.GetLastCertificatebyCertificateID(AP.TxnBody[i].CertificateID)
+		p.Then(func(data interface{}) interface{} {
+			result := data.(model.CertificateCollectionBody)
+			fmt.Println(result.PublicKey+" "+AP.TxnBody[i].PublicKey)
+			if result.PublicKey == AP.TxnBody[i].PublicKey {
+				valid = true
+			} else {
+				valid = false
+				Done = append(Done, false)
+				w.WriteHeader(400)
+				response := apiModel.SubmitXDRSuccess{
+					Status: "Certificate Blockchain Transaction Failed! Wrong Issuer Key",
+				}
+				json.NewEncoder(w).Encode(response)
+			}
+			return nil
+		}).Catch(func(error error) error {
+			valid = false
 			Done = append(Done, false)
-			w.WriteHeader(result.Error.Code)
+			w.WriteHeader(400)
 			response := apiModel.SubmitXDRSuccess{
-				Status: "Certificate Blockchain Transaction Failed!",
+				Status: "Certificate Blockchain Transaction Failed! No Certificate Found ",
 			}
 			json.NewEncoder(w).Encode(response)
+			return error
+		})
+		p.Await()
+
+		if valid {
+			//SUBMIT THE FIRST XDR SIGNED BY THE USER
+			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
+			result := display.SubmitXDR()
+			UserTxnHashes = append(UserTxnHashes, result.TXNID)
+
+			if result.Error.Code == 400 {
+				Done = append(Done, false)
+				w.WriteHeader(result.Error.Code)
+				response := apiModel.SubmitXDRSuccess{
+					Status: "Certificate Blockchain Transaction Failed!",
+				}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+		} else {
 			return
 		}
 	}
 
 	go func() {
 
-		for i, TxnBody := range AP.TxnBody {			
-			
+		for i, TxnBody := range AP.TxnBody {
+
 			var PreviousTXNBuilder build.ManageDataBuilder
 
 			//GET THE PREVIOUS CERTIFICATE FOR THE PUBLIC KEY
