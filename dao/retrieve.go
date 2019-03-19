@@ -155,6 +155,7 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	return p
 
 }
+
 //GetCOCbyRejectTxn ...
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
@@ -257,6 +258,7 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 	return p
 
 }
+
 //GetLastTransactionbyIdentifier ...
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
@@ -482,3 +484,101 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 
 }
 
+//GetLastCertificatebyPublicKey ...
+func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.Promise {
+	result := []model.CertificateCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Certificates")
+		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result[len(result)-1])
+
+		}
+
+	})
+
+	return p
+
+}
+
+//GetLastCertificatebyCertificateID ...
+func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *promise.Promise {
+	result := []model.CertificateCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Certificates")
+		err1 := c.Find(bson.M{"certificateid": CertificateID}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result[len(result)-1])
+
+		}
+
+	})
+
+	return p
+
+}
+
+//GetAllCertificatebyPublicKey ...
+func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Promise {
+	result := []model.CertificateCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Certificates")
+		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}

@@ -134,3 +134,22 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 
 	return err
 }
+
+
+func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("Certificates")
+	err1 := c.Update(selector, update)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	return err
+}
