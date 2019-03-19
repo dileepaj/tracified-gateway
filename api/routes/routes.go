@@ -157,6 +157,11 @@ var routes = Routes{
 		"/transaction/certificateRenew",
 		businessFacades.SubmitCertificateRenewal,
 	},Route{
+		"RevokeCertificate",
+		"POST",
+		"/transaction/certificateRevoke",
+		businessFacades.SubmitCertificateRevoke,
+	},Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",
