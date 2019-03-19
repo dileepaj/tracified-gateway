@@ -223,6 +223,5 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		}
 		json.NewEncoder(w).Encode(result)
 	}
-
 	return
 }

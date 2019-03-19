@@ -81,7 +81,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		result := display.SubmitXDR()
 		UserSplitTxnHashes = append(UserSplitTxnHashes, result.TXNID)
 
-		if result.Error.Code != 400 {
+		if result.Error.Code == 400 {
 			Done = append(Done, false)
 			w.WriteHeader(result.Error.Code)
 			response := apiModel.SubmitXDRSuccess{
@@ -89,6 +89,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}
 			json.NewEncoder(w).Encode(response)
 			return
+		}else{
+			fmt.Println((i+1)," Submitted")
 		}
 	}
 	go func() {
