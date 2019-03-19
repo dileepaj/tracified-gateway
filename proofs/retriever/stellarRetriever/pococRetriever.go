@@ -2,52 +2,53 @@ package stellarRetriever
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"net/http"
-	"github.com/dileepaj/tracified-gateway/model"
+
+	// "github.com/dileepaj/tracified-gateway/model"
+
+	"github.com/stellar/go/xdr"
 )
 
-func (db *ConcretePOE) RetrievePOCOC() model.RetrievePOE {
-	var bcHash string
-	var response model.RetrievePOE
-	var Rerr model.Error
+type ConcretePOCOC struct {
+	Txn string
+	// DBCOC xdr.Transaction
+	BCCOC xdr.Transaction
+}
+
+func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
+
 	var CurrentTxn string
+	CurrentTxn=db.Txn
 
+	var txe xdr.Transaction
 	//RETRIEVE GATEWAY SIGNED TXN
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POEStruct.Txn + "/operations")
-	if err != nil {
-		Rerr.Code = result.StatusCode
-		Rerr.Message = "The HTTP request failed for RetrievePOE"
-		response.TdpId = db.POEStruct.Txn
-		response.Error = Rerr
-		return response
-	} else {
-		data, _ := ioutil.ReadAll(result.Body)
+	// result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	// if err != nil {
 
-		if result.StatusCode == 200 {
-			var raw map[string]interface{}
-			json.Unmarshal(data, &raw)
-			// raw["count"] = 2
-			out, _ := json.Marshal(raw["_embedded"])
-			var raw1 map[string]interface{}
-			json.Unmarshal(out, &raw1)
-			out1, _ := json.Marshal(raw1["records"])
+	// } else {
+	// 	data, _ := ioutil.ReadAll(result.Body)
 
-			keysBody := out1
-			keys := make([]PublicKey, 0)
-			json.Unmarshal(keysBody, &keys)
+	// 	if result.StatusCode == 200 {
+	// 		var raw map[string]interface{}
+	// 		json.Unmarshal(data, &raw)
+	// 		// raw["count"] = 2
+	// 		out, _ := json.Marshal(raw["_embedded"])
+	// 		var raw1 map[string]interface{}
+	// 		json.Unmarshal(out, &raw1)
+	// 		out1, _ := json.Marshal(raw1["records"])
 
-			// Gtype:=Base64DecEnc("Decode", keys[0].Value)
-			// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
-			CurrentTxn = Base64DecEnc("Decode", keys[2].Value) 
+	// 		keysBody := out1
+	// 		keys := make([]PublicKey, 0)
+	// 		json.Unmarshal(keysBody, &keys)
+
+	// 		// Gtype:=Base64DecEnc("Decode", keys[0].Value)
+	// 		// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
+	// 		CurrentTxn = Base64DecEnc("Decode", keys[2].Value)
 			//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
-			result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
+			result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn)
 			if err != nil {
-				Rerr.Code = result.StatusCode
-				Rerr.Message = "The HTTP request failed for RetrievePOE"
-				response.TdpId = db.POEStruct.Txn
-				response.Error = Rerr
-				return response
 
 			} else {
 				data, _ := ioutil.ReadAll(result.Body)
@@ -55,41 +56,22 @@ func (db *ConcretePOE) RetrievePOCOC() model.RetrievePOE {
 				if result.StatusCode == 200 {
 					var raw map[string]interface{}
 					json.Unmarshal(data, &raw)
-					out, _ := json.Marshal(raw["_embedded"])
 
-					var raw1 map[string]interface{}
-					json.Unmarshal(out, &raw1)
-					out1, _ := json.Marshal(raw1["records"])
-
-					keysBody := out1
-					keys := make([]PublicKey, 0)
-					json.Unmarshal(keysBody, &keys)
-					bcHash = Base64DecEnc("Decode", keys[2].Value)
-					Identifier := Base64DecEnc("Decode", keys[1].Value)
-
-					Rerr.Code = http.StatusOK
-					Rerr.Message = "Txn Hash retrieved from the blockchain."
-					response.Error = Rerr
-					response.TdpId = db.POEStruct.Txn
-					response.DBHash = db.POEStruct.Hash
-					response.BCHash = bcHash
-					response.Identifier = Identifier
+					fmt.Println(raw["envelope_xdr"])
+					fmt.Println("HAHAHAHAAHAHAH")
+					err := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s",raw["envelope_xdr"]), &txe)
+					if err != nil {
+					} 
 
 				} else {
-					Rerr.Code = http.StatusOK
-					Rerr.Message = "Txn Hash does not exist in the blockchain."
-					response.TdpId = db.POEStruct.Txn
 
-					response.Error = Rerr
-					return response
 				}
 
 			}
-		}
-		// fmt.Printf("%#v", keys[0].Name)
-		// fmt.Printf("%#v", keys[0].Value)
+	// 	}
 
-	}
 
-	return response
+	// }
+
+	return txe
 }
