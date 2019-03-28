@@ -6,6 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"net/http"
+	"strings"
 )
 
 type POEInterface interface {
@@ -42,7 +43,7 @@ func MatchingHash(bcHash string, dbHash string, bcProfile string, dbProfile stri
 	var Rerr model.Error
 	fmt.Println("bcHash", "dbHash")
 	fmt.Println(bcHash, dbHash)
-	if bcHash == dbHash {
+	if strings.ToUpper(bcHash) == strings.ToUpper(dbHash) {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."
 		

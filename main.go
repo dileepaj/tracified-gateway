@@ -13,7 +13,6 @@ import (
 	"github.com/robfig/cron"
 )
 
-
 func getPort() string {
 	p := os.Getenv("PORT")
 	if p != "" {
@@ -21,7 +20,6 @@ func getPort() string {
 	}
 	return ":8000"
 }
-
 
 func main() {
 	port := getPort()
@@ -39,6 +37,4 @@ func main() {
 	fmt.Println("Gateway Started @port " + port)
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
-
-	
 }

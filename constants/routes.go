@@ -1,6 +1,6 @@
 package constants
 
-//  var TracifiedBackend="http://localhost:3001/"
+//  var TracifiedBackend="http://localhost:3001"
 var TracifiedBackend="https://staging.api.tracified.com"
 
 
