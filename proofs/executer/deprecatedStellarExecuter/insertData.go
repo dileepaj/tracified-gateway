@@ -1,4 +1,4 @@
-package stellarExecuter
+package deprecatedStellarExecuter
 
 import (
 	"fmt"

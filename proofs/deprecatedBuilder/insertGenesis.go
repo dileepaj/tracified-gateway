@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type GenesisInsertInterface interface {
@@ -20,7 +21,7 @@ type AbstractGenesisInsert struct {
 
 func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 
-	object1 := stellarExecuter.ConcreteGenesis{InsertGenesisStruct: AP.InsertGenesisStruct}
+	object1 := deprecatedStellarExecuter.ConcreteGenesis{InsertGenesisStruct: AP.InsertGenesisStruct}
 
 	result := object1.InsertGenesis()
 
@@ -32,7 +33,7 @@ func (AP *AbstractGenesisInsert) GenesisInsert() model.InsertGenesisResponse {
 		PreviousTXNID:     result.GenesisTxn,
 		Identifier:        AP.InsertGenesisStruct.Identifier}
 
-	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
+	object2 := deprecatedStellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 	if result2.ProfileTxn == "" {

@@ -16,6 +16,11 @@ type AbstractPOC struct {
 	// BCTree    []model.Current
 }
 
+/*InterpretPOC - Needs to be Modified
+@author - Azeem Ashraf
+@desc - Interprets All the required fields necessary to perform POC
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractPOC) InterpretPOC() model.POC {
 	var pocObj model.POC
 

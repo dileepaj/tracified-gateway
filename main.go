@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/dileepaj/tracified-gateway/api/routes"
-	// "github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	// "github.com/joho/godotenv"
 	"github.com/robfig/cron"
@@ -29,7 +29,7 @@ func main() {
 
 	c := cron.New()
 	c.AddFunc("@every 30m", func() {
-		// services.CheckCOCStatus()
+		services.CheckCOCStatus()
 	})
 	c.Start()
 

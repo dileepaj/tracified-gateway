@@ -1,10 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
 
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
 type AppointRegistrarInterface interface {
@@ -20,7 +20,7 @@ type AbstractAppointRegistrar struct {
 
 func (AP *AbstractAppointRegistrar) AppointReg() string {
 
-	object := stellarExecuter.ConcreteAppointReg{AppointRegistrar: AP.AppointRegistrar}
+	object := deprecatedStellarExecuter.ConcreteAppointReg{AppointRegistrar: AP.AppointRegistrar}
 
 	result := object.RegistrarRequest()
 

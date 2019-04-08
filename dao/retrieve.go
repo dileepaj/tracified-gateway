@@ -11,7 +11,9 @@ import (
 	"github.com/chebyrash/promise"
 )
 
-//GetCOCbySender ...
+/*GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -44,7 +46,9 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 
 }
 
-//GetLastCOCbySubAccount ...
+/*GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	result2 := apiModel.GetSubAccountStatusResponse{}
@@ -90,7 +94,9 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 
 }
 
-//GetCOCbyReceiver ...
+/*GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -123,7 +129,9 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 
 }
 
-//GetCOCbyAcceptTxn ...
+/*GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -156,7 +164,9 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 
 }
 
-//GetCOCbyRejectTxn ...
+/*GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -188,7 +198,9 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 
 }
 
-//GetCOCbyStatus ...
+/*GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
@@ -221,7 +233,9 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 
 }
 
-//GetLastCOCbyIdentifier ...
+/*GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// result2 := apiModel.GetSubAccountStatusResponse{}
@@ -259,7 +273,9 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 
 }
 
-//GetLastTransactionbyIdentifier ...
+/*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -292,7 +308,9 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 
 }
 
-//GetFirstTransactionbyIdentifier ...
+/*GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -323,7 +341,9 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 
 }
 
-//GetTransactionsbyIdentifier ...
+/*GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -356,7 +376,9 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 
 }
 
-//GetTransactionForTdpId ...
+/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -389,7 +411,9 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 
 }
 
-//GetTdpIdForTransaction ...simply returns a TXN collection when a txnid is given
+/*GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
+@author - Azeem Ashraf
+*/ 
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -422,7 +446,9 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 
 }
 
-//GetOrphanbyIdentifier ...
+/*GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -453,7 +479,9 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 
 }
 
-//GetProfilebyIdentifier ...
+/*GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
@@ -484,7 +512,9 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 
 }
 
-//GetLastCertificatebyPublicKey ...
+/*GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
@@ -517,7 +547,9 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 
 }
 
-//GetLastCertificatebyCertificateID ...
+/*GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
@@ -550,7 +582,9 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 
 }
 
-//GetAllCertificatebyPublicKey ...
+/*GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
+@author - Azeem Ashraf
+*/
 func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()

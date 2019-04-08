@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/model"	
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type assetTransferInterface interface {
@@ -21,7 +22,7 @@ type AbstractAssetTransfer struct {
 
 func (AP *AbstractAssetTransfer) AssetTransfer() model.SendAssetResponse {
 
-	object := stellarExecuter.ConcreteSendAssest{Assest: AP.SendAssest}
+	object := deprecatedStellarExecuter.ConcreteSendAssest{Assest: AP.SendAssest}
 
 	result := object.SendAsset()
 

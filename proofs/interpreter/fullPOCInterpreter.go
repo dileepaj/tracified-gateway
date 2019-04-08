@@ -7,6 +7,12 @@ import (
 	"net/http"
 )
 
+
+/*InterpretFullPOC - Needs to be Modified
+@author - Azeem Ashraf
+@desc - Interprets All the required fields necessary to perform FULLPOC
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractPOC) InterpretFullPOC() model.POC {
 	var pocObj model.POC
 

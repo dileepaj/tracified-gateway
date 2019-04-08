@@ -1,4 +1,4 @@
-package stellarExecuter
+package deprecatedStellarExecuter
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"

@@ -18,11 +18,17 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
-
+/*AbstractXDRSubmiter - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Abstract Struct that hold's the TransactionModel
+*/
 type AbstractXDRSubmiter struct {
 	TxnBody []model.TransactionCollectionBody
 }
 
+/*SubmitTransfer - Deprecated
+@author - Azeem Ashraf
+*/
 func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 	var Done bool
 	object := dao.Connection{}
@@ -172,6 +178,9 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 	return Done
 }
 
+/*XDRSubmitter - Deprecated
+@author - Azeem Ashraf
+*/
 func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRResponse) {
 	var status []bool
 	object := dao.Connection{}
@@ -301,7 +310,10 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	return checkBoolArray(status), ret
 }
 
-//checks the multiple boolean indexes in an array and returns the combined result.
+/*
+@author - Azeem Ashraf
+@desc - checks the multiple boolean indexes in an array and returns the combined result.
+*/
 func checkBoolArray(array []bool) bool {
 	isMatch := true
 	for i := 0; i < len(array); i++ {

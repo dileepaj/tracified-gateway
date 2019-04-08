@@ -22,6 +22,11 @@ type AbstractPOCOC struct {
 	BCCOC xdr.Transaction
 }
 
+/*InterpretPOCOC - Working Model
+@author - Azeem Ashraf
+@desc - Interprets All the required fields necessary to perform POCOC
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) {
 
 	object := stellarRetriever.ConcretePOCOC{Txn: AP.Txn}
@@ -32,13 +37,13 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 	fmt.Println(AP.DBCOC.SourceAccount.Address())
 
 	w.WriteHeader(http.StatusOK)
-	result := CompareCOC(AP.DBCOC, AP.BCCOC)
+	result := compareCOC(AP.DBCOC, AP.BCCOC)
 	json.NewEncoder(w).Encode(result)
 	return
 
 }
 
-func CompareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
+func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
 	var result apiModel.SubmitXDRSuccess
 
 	if db.SourceAccount.Address() != bc.SourceAccount.Address() {

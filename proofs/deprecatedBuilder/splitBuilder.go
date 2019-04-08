@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 // type struct{}
@@ -39,7 +40,7 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 				PreviousTXNID:     AP.SplitProfileStruct.PreviousTXNID,
 				Identifier:        AP.SplitProfileStruct.SplitIdentifiers[i]}
 
-			object := stellarExecuter.ConcreteProfile{
+			object := deprecatedStellarExecuter.ConcreteProfile{
 				InsertProfileStruct: temp}
 
 			result := object.InsertProfile()
@@ -53,7 +54,7 @@ func (AP *AbstractSplitProfile) ProfileSplit() model.SplitProfileResponse {
 				Code:              AP.SplitProfileStruct.Code,
 			}
 
-			object1 := stellarExecuter.ConcreteSplit{
+			object1 := deprecatedStellarExecuter.ConcreteSplit{
 				SplitProfileStruct: temp1,
 				CurAssets:          AP.SplitProfileStruct.Assets[i]}
 

@@ -17,6 +17,11 @@ type ConcretePOCOC struct {
 	BCCOC xdr.Transaction
 }
 
+/*RetrievePOCOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the COC Txn from stellar using the TXN ID
+@params - XDR
+*/
 func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
 
 	var CurrentTxn string

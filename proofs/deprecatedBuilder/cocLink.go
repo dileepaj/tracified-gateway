@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type cocLinkInterface interface {
@@ -27,12 +28,12 @@ func (AP *AbstractcocLink) CoCLink() string {
 		PreviousTXNID:     AP.ChangeOfCustodyLink.PreviousTXNID,
 		Identifier:        AP.ChangeOfCustodyLink.Identifier}
 
-	object2 := stellarExecuter.ConcreteProfile{
+	object2 := deprecatedStellarExecuter.ConcreteProfile{
 		InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 
-	object := stellarExecuter.ConcreteCoCLinkage{ChangeOfCustodyLink: AP.ChangeOfCustodyLink, ProfileId: result2.ProfileTxn}
+	object := deprecatedStellarExecuter.ConcreteCoCLinkage{ChangeOfCustodyLink: AP.ChangeOfCustodyLink, ProfileId: result2.ProfileTxn}
 
 	result := object.CoCLinkage()
 

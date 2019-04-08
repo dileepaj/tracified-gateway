@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strings"
-
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -27,7 +26,13 @@ type KeysResponse struct {
 	Collection []PublicKey
 }
 
-//CheckPOEV3 - WORKING MODEL
+/*CheckPOEV3 - WORKING MODEL
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+@desc - Handles the Proof of Existance by retrieving the Raw Data from the Traceability Data Store
+and Retrieves the TXN ID and calls POE Interpreter
+Finally Returns the Response given by the POE Interpreter
+@params - ResponseWriter,Request
+*/
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -58,11 +63,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data, _ := ioutil.ReadAll(result1.Body)
-
-	// if result1.StatusCode == 200 {
 	var raw map[string]interface{}
 	json.Unmarshal(data, &raw)
-	// raw["count"] = 2
+
 	out, _ := json.Marshal(raw["_embedded"])
 	var raw1 map[string]interface{}
 	json.Unmarshal(out, &raw1)
@@ -76,14 +79,13 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	CurrentTxn = string(byteData)
 	fmt.Println("THE TXN OF THE USER TXN: " + CurrentTxn)
-	// }F
 
-	// fmt.Println(result)
 	var response model.POE
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
 	bearer := "Bearer " + constants.BackendToken
+
 	// Create a new request using http
 	req, er := http.NewRequest("GET", url, nil)
 	req.Header.Add("Authorization", bearer)
@@ -98,11 +100,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	}
 
 	body, _ := ioutil.ReadAll(resq.Body)
-	// if resq.StatusCode == 200 {
 	var raw2 map[string]interface{}
 	json.Unmarshal(body, &raw2)
-	// fmt.Println(string(raw["Data"]))
-	// fmt.Println(body)
 
 	h := sha256.New()
 	lol := raw2["data"]
@@ -121,16 +120,20 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 	json.NewEncoder(w).Encode(response.RetrievePOE)
-	// w.WriteHeader(http.StatusOK)
-	// res := model.Error{Message: fmt.Sprintf("%s", lol)}
-	// json.NewEncoder(w).Encode(res)
-	// }
 
 	return
 
 }
 
-//CheckPOCV3 - NEEDS TO BE TESTED
+
+/*CheckPOCV3 - Needs to be Tested
+@author - Azeem Ashraf
+@desc - Handles the Proof of Continuity by using the TXN ID in the PARAMS and 
+Creates the Complete tree using the gateway DB
+and calls POC Interpreter sending the tree in as a Param
+Finally Returns the Response given by the POC Interpreter
+@params - ResponseWriter,Request
+*/
 func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -250,7 +253,14 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//CheckFullPOCV3 - NEEDS TO BE TESTED
+/*CheckFullPOCV3 - Needs to be Tested 
+@author - Azeem Ashraf
+@desc - Handles the Full Proof of Continuity by using the TXN ID in the PARAMS and 
+Creates the Complete tree using the gateway DB
+and calls FullPOC Interpreter sending the tree in as a Param
+Finally Returns the Response given by the FullPOC Interpreter
+@params - ResponseWriter,Request
+*/
 func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -353,7 +363,14 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//CheckPOGV3 - WORKING MODEL
+/*CheckPOGV3 - WORKING MODEL
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+@desc - Handles the Proof of Genesis  Retrieves the TXN ID and calls POG Interpreter
+Creates the Complete tree using the gateway DB
+and calls FullPOC Interpreter sending the tree in as a Param
+Finally Returns the Response given by the FullPOC Interpreter
+@params - ResponseWriter,Request
+*/
 func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -371,8 +388,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 
 			FirstTxnGateway := data.(model.TransactionCollectionBody)
 
-			// fmt.Println(FirstTxnGateway)
-			fmt.Println("First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS")
+			//First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS
 			result1, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + FirstTxnGateway.TxnHash + "/operations")
 			if err != nil {
 
@@ -435,7 +451,14 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
-//CheckPOCOCV3 - Developing
+/*CheckPOCOCV3 - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Handles the Proof of Change of Custody by using the last COC TXN ID as Param,
+retrieves the COC object from the Gateway DB
+and calls POCOC Interpreter COC Transaction in the Stellar Transaction Format
+Finally Returns the Response given by the POCOC Interpreter
+@params - ResponseWriter,Request
+*/
 func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

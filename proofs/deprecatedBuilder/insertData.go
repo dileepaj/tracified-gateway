@@ -1,4 +1,4 @@
-package builder
+package deprecatedBuilder
 
 import (
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"

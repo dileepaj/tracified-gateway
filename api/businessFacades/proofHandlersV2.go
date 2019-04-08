@@ -3,25 +3,15 @@ package businessFacades
 import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-
-	// "github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"crypto/sha256"
 	"net/http"
-
 	"encoding/json"
 	"fmt"
 	"strings"
-
-	// "net/http"
-
 	"io/ioutil"
-
 	"github.com/gorilla/mux"
-
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-
-	// "github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
 )
 
@@ -31,6 +21,9 @@ type test struct {
 	Data string
 }
 
+/*CheckPOE - Deprecated
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+*/
 func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -102,6 +95,9 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*CheckPOC - Deprecated
+@author - Azeem Ashraf
+*/
 func CheckPOC(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -223,7 +219,9 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
+/*CheckFullPOC - Deprecated
+@author - Azeem Ashraf
+*/
 func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -327,6 +325,9 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*CheckPOG - Deprecated
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+*/
 func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

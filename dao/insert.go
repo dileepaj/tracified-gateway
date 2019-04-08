@@ -2,11 +2,12 @@ package dao
 
 import (
 	"fmt"
-
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-//InsertCoc ...
+/*InsertCoc Insert a single COC Object to COCCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 
 	session, err := cd.connect()
@@ -24,7 +25,9 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	return err
 }
 
-//InsertTransaction ...
+/*InsertTransaction Insert a single Transaction Object to TransactionCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -42,7 +45,9 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	return err
 }
 
-//InsertToOrphan ...
+/*InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -60,7 +65,9 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	return err
 }
 
-//InsertProfile ...
+/*InsertProfile Insert a single Profile Object to ProfileCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 
 	session, err := cd.connect()
@@ -78,6 +85,9 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	return err
 }
 
+/*InsertCertificate Insert a single Certificate Object to CertificateCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) error {
 
 	session, err := cd.connect()

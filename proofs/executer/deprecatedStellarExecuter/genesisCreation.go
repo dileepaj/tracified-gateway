@@ -1,8 +1,6 @@
-package stellarExecuter
+package deprecatedStellarExecuter
 
 import (
-	// "encoding/base64"
-	// "encoding/json"
 	"fmt"
 	"net/http"
 
@@ -13,42 +11,37 @@ import (
 	"github.com/stellar/go/clients/horizon"
 )
 
-type ConcreteSplit struct {
-	SplitProfileStruct apiModel.SplitProfileStruct
-	// PreviousProfileID string
-	// PreviousTXNID string
-	// Identifier string
+type ConcreteGenesis struct {
+	InsertGenesisStruct apiModel.InsertGenesisStruct
+	// Identifiers   string
 	// InsertType    string
-	// ProfileID     string
-	CurAssets string
-	// Code          string
+	// PreviousTXNID string
 }
 
-func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
+// var GenesisTxn string
 
-	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
-	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 
-	var response model.SplitProfileResponse
+	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
+	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
+	var response model.InsertGenesisResponse
+	response.Identifiers = cd.InsertGenesisStruct.Identifier
+	response.TxnType = cd.InsertGenesisStruct.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{secretKey},
+		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
-		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
-		build.SetData("Identifiers", []byte(cd.SplitProfileStruct.Identifier)),
-		build.SetData("Assets", []byte(cd.CurAssets)),
-		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
+		build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
+		build.SetData("PreviousTXNID", []byte("")),
+		build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
 	)
 
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "The HTTP request failed for SplitProfile "
-		fmt.Println(err)
+		response.Error.Message = "The HTTP request failed for InsertGenesis "
 		return response
 	}
 
@@ -84,8 +77,9 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.Txn = resp.Hash
-	response.PreviousTXNID = cd.SplitProfileStruct.PreviousTXNID
+	response.GenesisTxn = resp.Hash
+
+	// cd.PreviousTXNID = resp.Hash
 
 	return response
 

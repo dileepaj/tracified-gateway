@@ -11,7 +11,11 @@ import (
 	"net/http"
 )
 
-//RetrieveFullPOC ...
+/*RetrieveFullPOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the whole tree from stellar using the last TXN in the chain
+@params - XDR
+*/
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error

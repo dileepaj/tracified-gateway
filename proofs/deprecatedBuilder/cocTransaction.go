@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type cocTransactionInterface interface {
@@ -24,7 +25,7 @@ func (AP *AbstractCoCTransaction) CoCTransaction() model.COCResponse {
 
 	// result2 := object2.InsertProfile()
 
-	object := stellarExecuter.ConcreteChangeOfCustody{COC: AP.ChangeOfCustody}
+	object := deprecatedStellarExecuter.ConcreteChangeOfCustody{COC: AP.ChangeOfCustody}
 
 	result := object.ChangeOfCustody()
 

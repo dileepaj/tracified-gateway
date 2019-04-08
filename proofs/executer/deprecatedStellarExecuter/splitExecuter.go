@@ -1,45 +1,54 @@
-package stellarExecuter
+package deprecatedStellarExecuter
 
 import (
+	// "encoding/base64"
+	// "encoding/json"
 	"fmt"
 	"net/http"
 
-	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
 )
 
-type ConcreteInsertPOCert struct {
-	InsertPOCertStruct apiModel.InsertPOCertStruct
+type ConcreteSplit struct {
+	SplitProfileStruct apiModel.SplitProfileStruct
+	// PreviousProfileID string
+	// PreviousTXNID string
+	// Identifier string
+	// InsertType    string
+	// ProfileID     string
+	CurAssets string
+	// Code          string
 }
 
-func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
+func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
-	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
-	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
-	var response model.InsertDataResponse
-	// response.ProfileID = cd.InsertPOCertStruct.ProfileID
-	response.TxnType = cd.InsertPOCertStruct.Type
+	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+
+	var response model.SplitProfileResponse
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
-		build.SourceAccount{publicKey},
+		build.SourceAccount{secretKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertPOCertStruct.Type)),
-		build.SetData("CertType", []byte(cd.InsertPOCertStruct.CertType)),
-		build.SetData("CertBody", []byte(cd.InsertPOCertStruct.CertBody)),
-		build.SetData("Validity", []byte(cd.InsertPOCertStruct.Validity)),
-		build.SetData("Issued", []byte(cd.InsertPOCertStruct.Issued)),
-		build.SetData("Expired", []byte(cd.InsertPOCertStruct.Expired)),
+		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
+		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
+		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
+		build.SetData("Identifiers", []byte(cd.SplitProfileStruct.Identifier)),
+		build.SetData("Assets", []byte(cd.CurAssets)),
+		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
 	)
 
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "The HTTP request failed for InsertPOAHash "
+		response.Error.Message = "The HTTP request failed for SplitProfile "
+		fmt.Println(err)
 		return response
 	}
 
@@ -75,7 +84,8 @@ func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.TDPID = resp.Hash
+	response.Txn = resp.Hash
+	response.PreviousTXNID = cd.SplitProfileStruct.PreviousTXNID
 
 	return response
 

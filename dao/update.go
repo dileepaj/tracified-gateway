@@ -6,7 +6,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-//UpdateTransaction ...
+/*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -46,7 +48,9 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
-//UpdateCOC ...
+/*UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
+@author - Azeem Ashraf
+*/
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
 
 	session, err := cd.connect()
@@ -135,7 +139,9 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	return err
 }
 
-
+/*UpdateCertificate Update a Certificate Object from CertificateCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()

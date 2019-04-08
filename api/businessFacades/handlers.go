@@ -1,35 +1,25 @@
 package businessFacades
 
 import (
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"strings"
 	"crypto/sha256"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"io/ioutil"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
-
-	// "gopkg.in/mgo.v2/bson"
-	// "github.com/fanliao/go-promise"
-
-	// "gopkg.in/mgo.v2"
-	// "github.com/stellar/go/build"
-	// "github.com/stellar/go/xdr"
-
 	"encoding/json"
 	"fmt"
-	// "gopkg.in/mgo.v2"
-
 	"net/http"
-
-	// "github.com/fanliao/go-promise"
 	"github.com/gorilla/mux"
-
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/builder"
-	// "github.com/dileepaj/tracified-gateway/proofs/interpreter"
+	// "github.com/dileepaj/tracified-gateway/proofs/builder"
 )
 
+/*CreateTrust deprecated
+@author - Sharmilan Somasundaram
+*/
 func CreateTrust(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -47,7 +37,7 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTrustline{TrustlineStruct: TObj}
+		display := &deprecatedBuilder.AbstractTrustline{TrustlineStruct: TObj}
 		result := display.Trustline()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -58,6 +48,10 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+/*SendAssests deprecated
+@author - Sharmilan Somasundaram
+*/
 func SendAssests(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -75,7 +69,7 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractAssetTransfer{SendAssest: TObj}
+		display := &deprecatedBuilder.AbstractAssetTransfer{SendAssest: TObj}
 		response := display.AssetTransfer()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -87,6 +81,9 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*MultisigAccount deprecated
+@author - Sharmilan Somasundaram
+*/
 func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.RegistrarAccount
@@ -106,7 +103,7 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 		// var response model.POE
 
-		display := &builder.AbstractCreateRegistrar{RegistrarAccount: TObj}
+		display := &deprecatedBuilder.AbstractCreateRegistrar{RegistrarAccount: TObj}
 		result := display.CreateRegistrarAcc()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -119,6 +116,9 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*AppointRegistrar deprecated
+@author - Sharmilan Somasundaram
+*/
 func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.AppointRegistrar
@@ -136,7 +136,7 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		display := &builder.AbstractAppointRegistrar{AppointRegistrar: TObj}
+		display := &deprecatedBuilder.AbstractAppointRegistrar{AppointRegistrar: TObj}
 		result := display.AppointReg()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -147,6 +147,10 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+/*TransformV2 deprecated
+@author - Sharmilan Somasundaram
+*/
 func TransformV2(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 
@@ -165,7 +169,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTransformAssets{AssetTransfer: TObj}
+		display := &deprecatedBuilder.AbstractTransformAssets{AssetTransfer: TObj}
 		result := display.TransformAssets()
 		// display := &builder.AbstractTransformAssets{Code1: vars["code1"], Limit1: vars["limit1"], Code2: vars["code2"], Limit2: vars["limit2"], Code3: vars["code3"], Limit3: vars["limit3"], Code4: vars["code4"], Limit4: vars["limit4"]}
 		// display := &builder.AbstractTransformAssets{Code1: TObj.Asset[0].Code, Limit1: TObj.Asset[0].Limit, Code2: TObj.Asset[1].Code, Limit2: TObj.Asset[1].Limit, Code3: TObj.Asset[2].Code, Limit3: TObj.Asset[2].Limit, Code4: TObj.Asset[3].Code, Limit4: TObj.Asset[3].Limit}
@@ -180,6 +184,9 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*COC deprecated
+@author - Sharmilan Somasundaram
+*/
 func COC(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -197,7 +204,7 @@ func COC(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractCoCTransaction{ChangeOfCustody: TObj}
+		display := &deprecatedBuilder.AbstractCoCTransaction{ChangeOfCustody: TObj}
 		response := display.CoCTransaction()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -209,6 +216,9 @@ func COC(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*COCLink deprecated
+@author - Sharmilan Somasundaram
+*/
 func COCLink(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -226,7 +236,7 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractcocLink{ChangeOfCustodyLink: TObj}
+		display := &deprecatedBuilder.AbstractcocLink{ChangeOfCustodyLink: TObj}
 		result := display.CoCLink()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -238,6 +248,9 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*DeveloperRetriever testing
+@author - Azeem Ashraf
+*/
 func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -262,7 +275,9 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
-
+/*GatewayRetriever testing
+@author - Azeem Ashraf
+*/
 func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -382,7 +397,9 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
-
+/*GatewayRetrieverWithIdentifier testing
+@author - Azeem Ashraf
+*/
 func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 

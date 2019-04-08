@@ -1,47 +1,45 @@
-package stellarExecuter
+package deprecatedStellarExecuter
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/model"
-
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/clients/horizon"
+
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
-type ConcreteGenesis struct {
-	InsertGenesisStruct apiModel.InsertGenesisStruct
-	// Identifiers   string
-	// InsertType    string
-	// PreviousTXNID string
+type ConcreteInsertPOCert struct {
+	InsertPOCertStruct apiModel.InsertPOCertStruct
 }
 
-// var GenesisTxn string
-
-func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
+func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
 
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
-	var response model.InsertGenesisResponse
-	response.Identifiers = cd.InsertGenesisStruct.Identifier
-	response.TxnType = cd.InsertGenesisStruct.Type
+	var response model.InsertDataResponse
+	// response.ProfileID = cd.InsertPOCertStruct.ProfileID
+	response.TxnType = cd.InsertPOCertStruct.Type
 
 	// save data
 	tx, err := build.Transaction(
 		build.TestNetwork,
 		build.SourceAccount{publicKey},
 		build.AutoSequence{horizon.DefaultTestNetClient},
-		build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
-		build.SetData("PreviousTXNID", []byte("")),
-		build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
+		build.SetData("Transaction Type", []byte(cd.InsertPOCertStruct.Type)),
+		build.SetData("CertType", []byte(cd.InsertPOCertStruct.CertType)),
+		build.SetData("CertBody", []byte(cd.InsertPOCertStruct.CertBody)),
+		build.SetData("Validity", []byte(cd.InsertPOCertStruct.Validity)),
+		build.SetData("Issued", []byte(cd.InsertPOCertStruct.Issued)),
+		build.SetData("Expired", []byte(cd.InsertPOCertStruct.Expired)),
 	)
 
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "The HTTP request failed for InsertGenesis "
+		response.Error.Message = "The HTTP request failed for InsertPOAHash "
 		return response
 	}
 
@@ -77,9 +75,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	response.GenesisTxn = resp.Hash
-
-	// cd.PreviousTXNID = resp.Hash
+	response.TDPID = resp.Hash
 
 	return response
 

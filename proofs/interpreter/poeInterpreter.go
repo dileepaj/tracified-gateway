@@ -20,6 +20,11 @@ type AbstractPOE struct {
 	// Hash      string
 }
 
+/*InterpretPOE - Working Model
+@author - Azeem Ashraf
+@desc - Interprets All the required fields necessary to perform POE
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractPOE) InterpretPOE() model.POE {
 	var poeObj model.POE
 
@@ -30,7 +35,7 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 	if poeObj.RetrievePOE.BCHash == "" {
 		return poeObj
 	} else {
-		poeObj.RetrievePOE.Error = MatchingHash(
+		poeObj.RetrievePOE.Error = matchingHash(
 			poeObj.RetrievePOE.BCHash,
 			poeObj.RetrievePOE.DBHash,
 			AP.POEStruct.ProfileID,
@@ -39,7 +44,7 @@ func (AP *AbstractPOE) InterpretPOE() model.POE {
 	}
 }
 
-func MatchingHash(bcHash string, dbHash string, bcProfile string, dbProfile string) model.Error {
+func matchingHash(bcHash string, dbHash string, bcProfile string, dbProfile string) model.Error {
 	var Rerr model.Error
 	fmt.Println("bcHash", "dbHash")
 	fmt.Println(bcHash, dbHash)

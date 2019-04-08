@@ -1,9 +1,9 @@
-package builder
+package deprecatedBuilder
 
 import (
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
 // type InsertPOA struct{}
@@ -17,7 +17,7 @@ type AbstractPOAInsert struct {
 
 func (AP *AbstractPOAInsert) POAInsert() model.InsertDataResponse {
 
-	object := stellarExecuter.ConcreteInsertPOA{InsertPOAStruct: AP.InsertPOAStruct}
+	object := deprecatedStellarExecuter.ConcreteInsertPOA{InsertPOAStruct: AP.InsertPOAStruct}
 
 	result := object.InsertPOAHash()
 

@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+// CheckCOCStatus
 func CheckCOCStatus() {
 	// fmt.Println("NEW STUFF")
 	object := dao.Connection{}

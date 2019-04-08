@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type transformAssetsInterface interface {
@@ -33,11 +34,11 @@ func (AP *AbstractTransformAssets) TransformAssets() string {
 		PreviousTXNID:     AP.AssetTransfer.PreviousTXNID,
 		Identifier:        AP.AssetTransfer.Identifier}
 
-	object2 := stellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
+	object2 := deprecatedStellarExecuter.ConcreteProfile{InsertProfileStruct: temp}
 
 	result2 := object2.InsertProfile()
 
-	object := stellarExecuter.ConcreteTransform{
+	object := deprecatedStellarExecuter.ConcreteTransform{
 		AssetTransfer: AP.AssetTransfer, ProfileID: result2.ProfileTxn}
 
 	result := object.TransformMerge()

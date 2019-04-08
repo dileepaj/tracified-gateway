@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 // type struct{}
@@ -41,7 +42,7 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 		PreviousTXNID:     AP.MergeProfileStruct.PreviousTXNID,
 		Identifier:        AP.MergeProfileStruct.Identifier}
 
-	object := stellarExecuter.ConcreteProfile{
+	object := deprecatedStellarExecuter.ConcreteProfile{
 		InsertProfileStruct: temp}
 
 	result := object.InsertProfile()
@@ -49,7 +50,7 @@ func (AP *AbstractMergeProfile) ProfileMerge() model.MergeProfileResponse {
 	AP.MergeProfileStruct.PreviousTXNID = result.ProfileTxn
 	AP.MergeProfileStruct.ProfileID = result.ProfileTxn
 
-	object1 := stellarExecuter.ConcreteMerge{MergeProfileStruct: AP.MergeProfileStruct}
+	object1 := deprecatedStellarExecuter.ConcreteMerge{MergeProfileStruct: AP.MergeProfileStruct}
 	// object1 := stellarExecuter.ConcreteMerge{Identifiers: AP.MergeProfileStruct.InsertProfileStruct.Identifier,
 	// 	InsertType:         AP.MergeProfileStruct.InsertProfileStruct.Type,
 	// 	PreviousTXNID:      result.ProfileTxn,

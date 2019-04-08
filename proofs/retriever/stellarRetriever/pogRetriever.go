@@ -14,6 +14,11 @@ type ConcretePOG struct {
 	POGStruct apiModel.POGStruct
 }
 
+/*RetrievePOG - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the genesis TXN by following through the chain backwards from the last TXN performed in the chain.
+@params - POGStruct 
+*/
 func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 	CurrentTxn := db.POGStruct.LastTxn
 	// var response model.RetrievePOG

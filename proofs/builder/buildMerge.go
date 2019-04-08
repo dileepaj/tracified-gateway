@@ -20,6 +20,14 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+/*SubmitMerge - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Builds the TXN Type 6 for the gateway where it receives the user XDR 
+and decodes it's contents and submit's to stellar and further maps the received TXN 
+to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
+@note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	var Done []bool
 	Done = append(Done, true)

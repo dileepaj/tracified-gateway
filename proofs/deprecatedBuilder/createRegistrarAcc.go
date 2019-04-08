@@ -1,9 +1,10 @@
-package builder
+package deprecatedBuilder
 
 import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/executer/deprecatedStellarExecuter"
+
 )
 
 type createRegistrarAccInterface interface {
@@ -16,7 +17,7 @@ type AbstractCreateRegistrar struct {
 
 func (AP *AbstractCreateRegistrar) CreateRegistrarAcc() string {
 
-	object := stellarExecuter.ConcreteRegistrarAcc{RegistrarAccount: AP.RegistrarAccount}
+	object := deprecatedStellarExecuter.ConcreteRegistrarAcc{RegistrarAccount: AP.RegistrarAccount}
 
 	result := object.SetupAccount()
 
