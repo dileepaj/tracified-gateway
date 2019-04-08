@@ -1,6 +1,6 @@
 package apiModel
 
-import(
+import (
 	"github.com/dileepaj/tracified-gateway/model"
 	
 )

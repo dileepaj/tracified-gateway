@@ -12,169 +12,216 @@ type Route struct {
 	HandlerFunc http.HandlerFunc
 }
 
+//Routes An Array of type Route
 type Routes []Route
 
+/*routes contains all the routes
+@author Azeem Ashraf, Jajeththanan Sabapathipillai
+*/
 var routes = Routes{
 
 	Route{
 		"POC",
 		"GET",
 		"/proof/poc/{Txn}",
-		businessFacades.CheckPOC,
+		businessFacades.CheckPOC, //Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
 	},
 	Route{
 		"FULLPOC",
 		"POST",
 		"/proof/fullpoc/{Txn}",
-		businessFacades.CheckFullPOC,
+		businessFacades.CheckFullPOC, //Calls the Deprecated FULLPOC for Gateway Version 1
 	},
 	Route{
 		"POE",
 		"GET",
-		"/poe/{Txn}",
-		businessFacades.CheckPOE,
+		"/proof/poe/{Txn}",
+		businessFacades.CheckPOEV3, //Calls the Functional POE for Gateway Version 3
 	},
 	Route{
 		"POG",
 		"GET",
-		"/pog/{Identifier}",
-		businessFacades.CheckPOG,
+		"/proof/pog/{Identifier}",
+		businessFacades.CheckPOGV3, //Calls the Functional POG for Gateway Version 3
 	},
 	Route{
-		"Transactions",
-		"POST",
-		"/transaction/type/{TType}",
-		businessFacades.Transaction,
-	}, Route{
-		"TrustLine",
-		"POST",
-		"/create/Trustline",
-		businessFacades.CreateTrust,
-	}, Route{
-		"SendAssestV2",
-		"POST",
-		"/send/asset",
-		businessFacades.SendAssests,
-	}, Route{
-		"lockAcc",
-		"POST",
-		"/lock/registrarAcc",
-		businessFacades.MultisigAccount,
-	}, Route{
-		"UnlockAcc",
-		"POST",
-		"/Appoint/Registrar",
-		businessFacades.AppointRegistrar,
-	}, Route{
-		"transformV2",
-		"POST",
-		"/transform/V2",
-		businessFacades.TransformV2,
-	}, Route{
-		"COC",
-		"POST",
-		"/COC/Transaction",
-		businessFacades.COC,
-	}, Route{
-		"COCLink",
-		"POST",
-		"/COCLink/Transaction",
-		businessFacades.COCLink,
-	}, Route{
-		"POCDeveloperRetriever",
-		"get",
-		"/pocbctree/{Txn}",
-		businessFacades.DeveloperRetriever,
+		"POCOC",
+		"GET",
+		"/proof/pococ/{TxnId}",
+		businessFacades.CheckPOCOCV3, //Calls the Functional POCOC for Gateway Version 3
 	},
 	Route{
 		"GetCOCCollectionBySender",
 		"get",
 		"/getcocbysender/{Sender}",
-		businessFacades.GetCocBySender,
-	}, Route{
+		businessFacades.GetCocBySender, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"GetCOCCollectionByReceiver",
 		"get",
 		"/getcocbyreceiver/{Receiver}",
-		businessFacades.GetCocByReceiver,
+		businessFacades.GetCocByReceiver, //Calls the Functional POCOC for Gateway Version 3
 	},
 	Route{
 		"InsertCOCCollection",
 		"POST",
 		"/insertcoccollection",
-		businessFacades.InsertCocCollection,
+		businessFacades.InsertCocCollection, //Calls the Functional POCOC for Gateway Version 3
 	},
 	Route{
 		"InsertCOCCollection",
 		"PUT",
 		"/insertcoccollection",
-		businessFacades.UpdateCocCollection,
+		businessFacades.UpdateCocCollection, //Calls the Functional POCOC for Gateway Version 3
 	},
 	Route{
 		"SubmitXDR",
 		"POST",
 		"/transaction/dataPacket",
-		businessFacades.SubmitXDR,
+		businessFacades.SubmitData, //Calls the Functional POCOC for Gateway Version 3
 	},
 	Route{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",
-		businessFacades.SubmitXDR,
-	},Route{
+		businessFacades.SubmitSplit, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"SubmitGenesis",
 		"POST",
 		"/transaction/genesis",
-		businessFacades.SubmitXDR,
-	},Route{
+		businessFacades.SubmitGenesis, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"SubmitTransformation",
 		"POST",
 		"/transaction/transformation",
-		businessFacades.SubmitXDR,
-	},Route{
+		businessFacades.SubmitTransformation, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"SubmitMerge",
 		"POST",
 		"/transaction/merge",
-		businessFacades.SubmitXDR,
-	},Route{
+		businessFacades.SubmitMerge, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"SubmitTransfer",
 		"POST",
 		"/transaction/transfer",
-		businessFacades.SubmitXDR,
-	},Route{
+		businessFacades.SubmitTransfer, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
+		"InsertCertificate",
+		"POST",
+		"/transaction/certificateInsert",
+		businessFacades.SubmitCertificateInsert, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
+		"RenewCertificate",
+		"POST",
+		"/transaction/certificateRenew",
+		businessFacades.SubmitCertificateRenewal, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
+		"RevokeCertificate",
+		"POST",
+		"/transaction/certificateRevoke",
+		businessFacades.SubmitCertificateRevoke, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"LastTxn",
 		"GET",
 		"/transaction/lastTxn/{Identifier}",
-		businessFacades.LastTxn,
-	},Route{
+		businessFacades.LastTxn, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
 		"SubAccountStatus",
 		"POST",
 		"/transaction/coc/subAccountStatus",
-		businessFacades.CheckAccountsStatus,
-	}, Route{
+		businessFacades.CheckAccountsStatus, //Calls the Functional POCOC for Gateway Version 3
+	},
+	Route{
+		"POCDeveloperRetriever",
+		"get",
+		"/pocbctree/{Txn}",
+		businessFacades.DeveloperRetriever, //Test
+	},
+	Route{
 		"POCGatewayRetrieverForTDP",
 		"GET",
 		"/gatewayTree/{Txn}",
-		businessFacades.GatewayRetriever,
+		businessFacades.GatewayRetriever, //Test
 	},
 	Route{
 		"POCGatewayRetrieverForIdentifier",
 		"GET",
 		"/gatewayTreeWithIdentifier/{Identifier}",
-		businessFacades.GatewayRetrieverWithIdentifier,
-	},Route{
+		businessFacades.GatewayRetrieverWithIdentifier, //Test
+	},
+	Route{
 		"ConvertXDRToTXN",
 		"POST",
 		"/xdrToTxn",
-		businessFacades.ConvertXDRToTXN,
-	},Route{
+		businessFacades.ConvertXDRToTXN, //Test
+	},
+	Route{
 		"LastCOC",
 		"GET",
 		"/lastCoc/{Identifier}",
-		businessFacades.LastCOC,
-	},Route{
+		businessFacades.LastCOC, //Test
+	},
+	Route{
 		"Retrieve TDP for Transaction",
 		"GET",
 		"/tdpForTxn/{Txn}",
-		businessFacades.TDPForTXN,
+		businessFacades.TDPForTXN, //Test
+	},
+	Route{
+		"Transactions",
+		"POST",
+		"/transaction/type/{TType}",
+		businessFacades.Transaction, //Deprecated
+	},
+	Route{
+		"TrustLine",
+		"POST",
+		"/create/Trustline",
+		businessFacades.CreateTrust, //Deprecated
+	},
+	Route{
+		"SendAssestV2",
+		"POST",
+		"/send/asset",
+		businessFacades.SendAssests, //Deprecated
+	},
+	Route{
+		"lockAcc",
+		"POST",
+		"/lock/registrarAcc",
+		businessFacades.MultisigAccount, //Deprecated
+	},
+	Route{
+		"UnlockAcc",
+		"POST",
+		"/Appoint/Registrar",
+		businessFacades.AppointRegistrar, //Deprecated
+	},
+	Route{
+		"transformV2",
+		"POST",
+		"/transform/V2",
+		businessFacades.TransformV2, //Deprecated
+	},
+	Route{
+		"COC",
+		"POST",
+		"/COC/Transaction",
+		businessFacades.COC, //Deprecated
+	},
+	Route{
+		"COCLink",
+		"POST",
+		"/COCLink/Transaction",
+		businessFacades.COCLink, //Deprecated
 	},
 }

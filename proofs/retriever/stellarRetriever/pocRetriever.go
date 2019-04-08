@@ -22,12 +22,13 @@ type KeysResponsePOC struct {
 
 type ConcretePOC struct {
 	POCStruct apiModel.POCStruct
-	// Txn       string
-	// ProfileID string
-	// DBTree    []model.Current
-	// BCTree    []model.Current
 }
 
+/*RetrievePOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the whole tree from stellar using the last TXN in the chain
+@params - XDR
+*/
 func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error

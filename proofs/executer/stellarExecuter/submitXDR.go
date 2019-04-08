@@ -14,6 +14,11 @@ type ConcreteSubmitXDR struct {
 	XDR string
 }
 
+/*SubmitXDR - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Submits the XDR to stellar horizon api and returns the TXN hash.
+@params - XDR
+*/
 func (cd *ConcreteSubmitXDR) SubmitXDR() model.SubmitXDRResponse {
 
 	var response model.SubmitXDRResponse
@@ -21,14 +26,14 @@ func (cd *ConcreteSubmitXDR) SubmitXDR() model.SubmitXDRResponse {
 	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
 	if err != nil {
 		// panic(err)
-		fmt.Println(err)
-		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "Test net client crashed"
+		fmt.Println(err.Error())
+		response.Error.Code = http.StatusBadRequest
+		response.Error.Message = err.Error()
 		return response
 	}
 
-	fmt.Println("Successful Transaction:")
-	fmt.Println("Ledger:", resp.Ledger)
+	// fmt.Println("Successful Transaction:")
+	// fmt.Println("Ledger:", resp.Ledger)
 	fmt.Println("Hash:", resp.Hash)
 
 	response.Error.Code = http.StatusOK
