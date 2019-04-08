@@ -1,6 +1,7 @@
 package businessFacades
 
 import (
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -16,6 +17,12 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 )
 
+
+/*GetCocBySender - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Returns the COC Collection by querying the gateway DB by Sender Public Key
+@params - ResponseWriter,Request
+*/
 func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -41,6 +48,12 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+/*GetCocByReceiver - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Returns the COC Collection by querying the gateway DB by Receiver Public Key
+@params - ResponseWriter,Request
+*/
 func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -66,6 +79,11 @@ func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*InsertCocCollection - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Inserts a COC Collection received by the wallet application with sender's signature
+@params - ResponseWriter,Request
+*/
 func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
@@ -148,6 +166,14 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+
+/*UpdateCocCollection - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Handles the Proof of Existance by retrieving the Raw Data from the Traceability Data Store
+and Retrieves the TXN ID and calls POE Interpreter
+Finally Returns the Response given by the POE Interpreter
+@params - ResponseWriter,Request
+*/
 func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj model.COCCollectionBody
@@ -221,7 +247,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 		p := object.GetCOCbyRejectTxn(GObj.RejectTxn)
 		p.Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
-			display := &builder.AbstractTDPInsert{XDR: GObj.RejectXdr}
+			display := &deprecatedBuilder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
@@ -274,6 +300,12 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*CheckAccountsStatus - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Checks all the available COCs in the gateway datastore 
+and retrieves them by the sender's publickey and returns the status and sequence number.
+@params - ResponseWriter,Request
+*/
 func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj apiModel.GetSubAccountStatus
@@ -308,6 +340,11 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*LastCOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Returns the Txn ID of the last COC Txn
+@params - ResponseWriter,Request
+*/
 func LastCOC(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 

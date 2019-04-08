@@ -19,6 +19,14 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+/*SubmitSplit - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Builds the TXN Type 5 for the gateway where it receives the user XDR 
+and decodes it's contents and submit's to stellar and further maps the received TXN 
+to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
+@note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	var Done []bool
 	Done = append(Done, true)
@@ -81,7 +89,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		result := display.SubmitXDR()
 		UserSplitTxnHashes = append(UserSplitTxnHashes, result.TXNID)
 
-		if result.Error.Code != 400 {
+		if result.Error.Code == 400 {
 			Done = append(Done, false)
 			w.WriteHeader(result.Error.Code)
 			response := apiModel.SubmitXDRSuccess{
@@ -89,6 +97,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}
 			json.NewEncoder(w).Encode(response)
 			return
+		}else{
+			fmt.Println((i+1)," Submitted")
 		}
 	}
 	go func() {

@@ -6,6 +6,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+/*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
 
 	session, err := cd.connect()
@@ -45,6 +48,9 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
+/*UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
+@author - Azeem Ashraf
+*/
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
 
 	session, err := cd.connect()
@@ -128,6 +134,27 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		}
 
 		break
+	}
+
+	return err
+}
+
+/*UpdateCertificate Update a Certificate Object from CertificateCollection in DB
+@author - Azeem Ashraf
+*/
+func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("Certificates")
+	err1 := c.Update(selector, update)
+	if err1 != nil {
+		fmt.Println(err1)
 	}
 
 	return err

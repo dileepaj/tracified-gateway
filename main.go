@@ -7,12 +7,11 @@ import (
 	"os"
 
 	"github.com/dileepaj/tracified-gateway/api/routes"
-	// "github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	// "github.com/joho/godotenv"
 	"github.com/robfig/cron"
 )
-
 
 func getPort() string {
 	p := os.Getenv("PORT")
@@ -22,7 +21,6 @@ func getPort() string {
 	return ":8000"
 }
 
-
 func main() {
 	port := getPort()
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
@@ -30,8 +28,8 @@ func main() {
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
 	c := cron.New()
-	c.AddFunc("@every 30s", func() {
-		// services.CheckCOCStatus()
+	c.AddFunc("@every 30m", func() {
+		services.CheckCOCStatus()
 	})
 	c.Start()
 

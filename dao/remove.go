@@ -6,6 +6,9 @@ import (
 
 )
 
+/*RemoveFromOrphanage Remove a single Transaction Object from the OrphanCollection in DB
+@author - Azeem Ashraf
+*/
 func (cd *Connection) RemoveFromOrphanage(Identifier string) error {
 
 	session, err := cd.connect()

@@ -2,10 +2,7 @@ package routes
 
 import (
 	"net/http"
-
 	"github.com/gorilla/mux"
-
-	// "github.com/dileepaj/tracified-gateway/api"
 )
 
 func NewRouter() *mux.Router {

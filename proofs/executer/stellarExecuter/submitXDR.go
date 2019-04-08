@@ -14,6 +14,11 @@ type ConcreteSubmitXDR struct {
 	XDR string
 }
 
+/*SubmitXDR - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Submits the XDR to stellar horizon api and returns the TXN hash.
+@params - XDR
+*/
 func (cd *ConcreteSubmitXDR) SubmitXDR() model.SubmitXDRResponse {
 
 	var response model.SubmitXDRResponse

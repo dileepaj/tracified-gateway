@@ -11,14 +11,54 @@ import (
 	"net/http"
 )
 
-//RetrieveFullPOC ...
+/*RetrieveFullPOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the whole tree from stellar using the last TXN in the chain
+@params - XDR
+*/
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	var response model.RetrievePOC
 	var Rerr model.Error
 	var mergeTree []model.Current
 	var temp model.Current
+	var bcPreHash string
+
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+
+	result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	if err1 != nil {
+		Rerr.Code = result1.StatusCode
+		Rerr.Message = "The HTTP request failed for RetrievePOC"
+		response.Txn = db.POCStruct.Txn
+		response.Error = Rerr
+		return response
+
+	}
+
+	data, _ := ioutil.ReadAll(result1.Body)
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	// raw["count"] = 2
+	out, _ := json.Marshal(raw["_embedded"])
+
+	var raw1 map[string]interface{}
+	json.Unmarshal(out, &raw1)
+
+	out1, _ := json.Marshal(raw1["records"])
+
+	keysBody := out1
+	keys := make([]PublicKeyPOC, 0)
+	json.Unmarshal(keysBody, &keys)
+
+	Current:= Base64DecEnc("Decode", keys[2].Value)
+
+
+			if keys[1] != (PublicKeyPOC{}) {
+				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
+				fmt.Println("bcPreHash")
+				fmt.Println(bcPreHash)
+			}
+	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + Current + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -44,7 +84,6 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			keys := make([]PublicKeyPOC, 0)
 			json.Unmarshal(keysBody, &keys)
 
-			var bcPreHash string
 			var transactionType string
 			var TDPHash string
 			var Profile string
@@ -55,11 +94,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			}
 			switch transactionType {
 			case "0":
-				identifier := Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, Identifier: identifier}
 			case "1":
 				// previousProfile := Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 				temp = model.Current{
 					TXNID:      db.POCStruct.Txn,
 					TType:      transactionType,
@@ -67,8 +106,8 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "2":
 
 				// Profile = Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[2].Value)
-				TDPHash = Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
+				TDPHash = Base64DecEnc("Decode", keys[2].Value)
 
 				fmt.Println("TDPHash")
 				fmt.Println(TDPHash)
@@ -77,13 +116,13 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			case "3":
 			case "4":
 			case "5":
-				identifier := Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 
 				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, Identifier: identifier}
 			case "6":
 
-				mergeID := Base64DecEnc("Decode", keys[3].Value)
-				identifier := Base64DecEnc("Decode", keys[2].Value)
+				mergeID := Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 				// Profile = Base64DecEnc("Decode", keys[2].Value)
 				result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
 				if err != nil {
@@ -137,11 +176,11 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 
 			}
 
-			if keys[1] != (PublicKeyPOC{}) {
-				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
-				fmt.Println("bcPreHash")
-				fmt.Println(bcPreHash)
-			}
+			// if keys[1] != (PublicKeyPOC{}) {
+			// 	bcPreHash = Base64DecEnc("Decode", keys[1].Value)
+			// 	fmt.Println("bcPreHash")
+			// 	fmt.Println(bcPreHash)
+			// }
 
 			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
 

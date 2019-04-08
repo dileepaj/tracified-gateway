@@ -27,6 +27,11 @@ type ConcretePOE struct {
 	// Hash      string
 }
 
+/*RetrievePOE - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves Data TXN from stellar using the TXN ID
+@params - XDR
+*/
 func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 	var bcHash string
 	var response model.RetrievePOE
@@ -90,7 +95,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 					Rerr.Code = http.StatusOK
 					Rerr.Message = "Txn Hash retrieved from the blockchain."
 					response.Error = Rerr
-					response.TdpId = db.POEStruct.Txn
+					response.TdpId = CurrentTxn
 					response.DBHash = db.POEStruct.Hash
 					response.BCHash = bcHash
 					response.Identifier = Identifier
