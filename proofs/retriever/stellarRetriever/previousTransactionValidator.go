@@ -24,7 +24,7 @@ type ConcretePrevious struct {
 func (db *ConcretePrevious) RetrievePrevious8Transactions(txn string) (model.RetrievePrevious, error) {
 
 	db.Count++
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + txn + "/operations")
+	result, err := http.Get("https://horizon.stellar.org/transactions/" + txn + "/operations")
 	if err != nil {
 		db.Err = err
 	} else {

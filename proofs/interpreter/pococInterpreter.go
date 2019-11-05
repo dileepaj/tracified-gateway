@@ -20,6 +20,7 @@ type AbstractPOCOC struct {
 	Txn   string
 	DBCOC xdr.Transaction
 	BCCOC xdr.Transaction
+	XDR   string
 }
 
 /*InterpretPOCOC - Working Model
@@ -38,7 +39,13 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 
 	w.WriteHeader(http.StatusOK)
 	result := compareCOC(AP.DBCOC, AP.BCCOC)
-	json.NewEncoder(w).Encode(result)
+
+	response := CocSpecialResponse{
+		Status: result.Status,
+		Txn:    AP.Txn,
+		Xdr:    AP.XDR,
+	}
+	json.NewEncoder(w).Encode(response)
 	return
 
 }
@@ -65,5 +72,64 @@ func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSucces
 		result.Status = "Success, COC in Gateway and Blockchain matches"
 	}
 
+	//temporary creation of the coc txn details for user view
+
+	// var opArray []operation
+
+	// op:=operation{
+	// 	name:strings.TrimLeft(fmt.Sprintf("%s", db.Operations[0].Body.ManageDataOp.DataName), "&"),
+	// 	value:strings.TrimLeft(fmt.Sprintf("%s", db.Operations[0].Body.ManageDataOp.DataValue), "&"),
+	// }
+
+	// op1:=operation{
+	// 	name:strings.TrimLeft(fmt.Sprintf("%s", db.Operations[1].Body.ManageDataOp.DataName), "&"),
+	// 	value:strings.TrimLeft(fmt.Sprintf("%s", db.Operations[1].Body.ManageDataOp.DataValue), "&"),
+	// }
+
+	// n := bytes.Index(db.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode, []byte{0})
+
+	// s := string(byteArray[:n])
+
+	// op2:=operation{
+	// 	name:"Asset Code",
+	// 	value:strconv.Itoa(),
+	// }
+	// op3:=operation{
+	// 	name:"Asset Ammount",
+	// 	value:db.Operations[3].Body.PaymentOp.Amount,
+	// }
+
+	// opArray = append(opArray, op);
+	// opArray = append(opArray, op1);
+	// opArray = append(opArray, op2);
+	// opArray = append(opArray, op3);
+
+	// txe:=transaction{
+	// 	SourceAccount:db.SourceAccount.Address(),
+	// 	Operations:opArray,
+	// 	DestinationAccount:db.Operations[3].Body.PaymentOp.Destination.Address(),
+
+	// }
+
 	return result
+}
+
+type CocSpecialResponse struct {
+	Status string
+	Txn    string
+	Xdr    string
+}
+
+type transaction struct {
+	SourceAccount      string
+	DestinationAccount string
+	Fee                int32
+	SeqNum             int
+	TimeBounds         []int
+	Operations         []operation
+}
+
+type operation struct {
+	name  string
+	value string
 }

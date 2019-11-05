@@ -29,7 +29,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
 
 	var txe xdr.Transaction
 	//RETRIEVE GATEWAY SIGNED TXN
-	// result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	// result, err := http.Get("https://horizon.stellar.org/transactions/" + db.Txn + "/operations")
 	// if err != nil {
 
 	// } else {
@@ -52,7 +52,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
 	// 		// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 	// 		CurrentTxn = Base64DecEnc("Decode", keys[2].Value)
 			//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
-			result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn)
+			result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
 			if err != nil {
 
 			} else {

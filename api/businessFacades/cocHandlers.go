@@ -1,22 +1,21 @@
 package businessFacades
 
 import (
-	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
+
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/gorilla/mux"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
+	"github.com/gorilla/mux"
 )
-
 
 /*GetCocBySender - WORKING MODEL
 @author - Azeem Ashraf
@@ -47,7 +46,6 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
-
 
 /*GetCocByReceiver - WORKING MODEL
 @author - Azeem Ashraf
@@ -132,17 +130,19 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("HAHAHAHA BUMPY")
 			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
 			fmt.Println(v)
-			GObj.SequenceNo, _ = strconv.Atoi(v)
+			GObj.SequenceNo = v
 			useSentSequence = true
 
 		}
 	}
 	if !useSentSequence {
-		fmt.Println("HAHAHAHA NOT BUMPY")
+		fmt.Println("seq")
+		fmt.Println(txe.SeqNum)
 		v := fmt.Sprint(txe.SeqNum)
-		GObj.SequenceNo, _ = strconv.Atoi(v)
+		GObj.SequenceNo = v
 	}
-
+	fmt.Println("SubAcc")
+	fmt.Println(GObj.SubAccount)
 	GObj.AcceptTxn = test
 	GObj.RejectTxn = test1
 	fmt.Println(GObj)
@@ -165,7 +165,6 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
 
 /*UpdateCocCollection - WORKING MODEL
 @author - Azeem Ashraf
@@ -302,7 +301,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 
 /*CheckAccountsStatus - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Checks all the available COCs in the gateway datastore 
+@desc - Checks all the available COCs in the gateway datastore
 and retrieves them by the sender's publickey and returns the status and sequence number.
 @params - ResponseWriter,Request
 */

@@ -95,7 +95,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 				}
 				//SUBMIT THE FIRST XDR SIGNED BY THE USER
 				display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
-				result1 := display.SubmitXDR()
+				result1 := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 				UserTxnHashes = append(UserTxnHashes, result1.TXNID)
 
 				if result1.Error.Code != 404 {
@@ -130,7 +130,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR()
+				response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 404 {
 					TxnBody.Status = "pending"
@@ -209,7 +209,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TDP[i].XDR}
 
-		response := display.SubmitXDR()
+		response := display.SubmitXDR(false,TDP[i].TxnType)
 		ret = response
 		if response.Error.Code == 400 {
 			TDP[i].Status = "pending"
@@ -281,7 +281,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR()
+				response1 := display1.SubmitXDR(false,"G"+TDP[i].TxnType)
 	
 				if response1.Error.Code == 400 {
 					TDP[i].TxnHash = UserTxnHashes[i]

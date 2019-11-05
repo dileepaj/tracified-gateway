@@ -1,17 +1,18 @@
 package businessFacades
 
 import (
-	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"github.com/gorilla/mux"
-	"github.com/stellar/go/build"
-	"github.com/stellar/go/xdr"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/gorilla/mux"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/xdr"
 )
 
 /*Transaction - Deprecated
@@ -254,7 +255,9 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitGenesis(w,r)
+	display.SubmitSpecial(w, r)
+	// 	display.SubmitGenesis(w,r)
+
 	return
 }
 
@@ -296,9 +299,11 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(TDP)
-	
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitData(w,r,true)
+	// display.SubmitData(w,r,true)
+	display.SubmitSpecial(w, r)
+
 	return
 }
 
@@ -340,9 +345,9 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(TDP)
-	
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSplit(w,r)
+	display.SubmitSplit(w, r)
 
 	return
 }
@@ -384,9 +389,9 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(TDP)
-	
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitMerge(w,r)
+	display.SubmitMerge(w, r)
 
 	return
 }
@@ -428,9 +433,9 @@ func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(TDP)
-	
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitMerge(w,r)
+	display.SubmitMerge(w, r)
 
 	return
 }
@@ -473,9 +478,9 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println(TDP)
-	
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status:= display.SubmitTransfer()
+	status := display.SubmitTransfer()
 
 	// status, _ := builder.XDRSubmitter(TDP)
 	if status {
@@ -484,7 +489,7 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 			Status: "Success",
 		}
 		json.NewEncoder(w).Encode(result)
-	}else{
+	} else {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Failed",
@@ -534,9 +539,9 @@ func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
-	temp=append(temp,TDP)
-	display := &builder.AbstractCertificateSubmiter{TxnBody:temp}
-	display.SubmitInsertCertificate(w,r)
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitInsertCertificate(w, r)
 	return
 }
 
@@ -580,9 +585,9 @@ func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
-	temp=append(temp,TDP)
-	display := &builder.AbstractCertificateSubmiter{TxnBody:temp}
-	display.SubmitRenewCertificate(w,r)
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitRenewCertificate(w, r)
 	return
 }
 
@@ -626,9 +631,9 @@ func SubmitCertificateRevoke(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
-	temp=append(temp,TDP)
-	display := &builder.AbstractCertificateSubmiter{TxnBody:temp}
-	display.SubmitRevokeCertificate(w,r)
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitRevokeCertificate(w, r)
 	return
 }
 
@@ -729,9 +734,10 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	response := Transuc{TXN: test}
 	json.NewEncoder(w).Encode(response)
-	return 
+	return
 
 }
+
 type TDP struct {
 	TdpId string `json:"tdpId"`
 }
@@ -765,3 +771,31 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*TXNForTDP - Test Endpoint @desc Handles an incoming request and Returns the TXN ID for the TDP ID Provided.
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func TXNForTDP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetTransactionForTdpId(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+
+		// res := TDP{TdpId: result.TdpId}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TdpId Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}

@@ -2,11 +2,11 @@ package interpreter
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
-	"net/http"
 )
-
 
 /*InterpretFullPOC - Needs to be Modified
 @author - Azeem Ashraf
@@ -50,15 +50,6 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 							Rerr.Message = "Error! TXN: " + db[i].TXNID + " is invalid."
 							return Rerr
 						}
-					case "1":
-						if db[i].Identifier == bc[i].Identifier && db[i].PreviousProfileID == bc[i].PreviousProfileID {
-							Rerr.Code = http.StatusOK
-							Rerr.Message = "Success! BC Tree & DB Tree matched."
-						} else {
-							Rerr.Code = http.StatusOK
-							Rerr.Message = "Error! TXN: " + db[i].TXNID + " is invalid."
-							return Rerr
-						}
 
 					case "2":
 						fmt.Println(db[i].DataHash + " = " + bc[i].DataHash)
@@ -73,21 +64,25 @@ func fullCompare(db []model.Current, bc []model.Current) model.Error {
 							return Rerr
 						}
 					case "5":
-
-					case "6":
-						if db[i].Identifier == bc[i].Identifier && db[i].ProfileID == bc[i].ProfileID {
+						if db[i].Identifier == bc[i].Identifier {
 							Rerr.Code = http.StatusOK
 							Rerr.Message = "Success! BC Tree & DB Tree matched."
-
-							return fullCompare(db[i].MergedChain, bc[i].MergedChain)
-
 						} else {
-
 							Rerr.Code = http.StatusOK
 							Rerr.Message = "Error! TXN: " + db[i].TXNID + " is invalid."
 							return Rerr
 						}
-						
+
+					case "6":
+						if db[i].Identifier == bc[i].Identifier {
+							Rerr.Code = http.StatusOK
+							Rerr.Message = "Success! BC Tree & DB Tree matched."
+						} else {
+							Rerr.Code = http.StatusOK
+							Rerr.Message = "Error! TXN: " + db[i].TXNID + " is invalid."
+							return Rerr
+						}
+
 					default:
 						Rerr.Code = http.StatusOK
 						Rerr.Message = "Error! Invalid Txn Type in TXN: " + db[i].TXNID + "."

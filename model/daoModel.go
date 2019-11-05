@@ -8,7 +8,7 @@ type COCCollectionBody struct {
 	TxnHash    string
 	Sender     string
 	SubAccount string
-	SequenceNo int
+	SequenceNo string
 	Receiver   string
 	AcceptXdr  string
 	RejectXdr  string
@@ -20,6 +20,7 @@ type COCCollectionBody struct {
 type TransactionCollectionBody struct {
 	Identifier      string
 	TdpId           string
+	SequenceNo int64
 	ProfileID       string
 	TxnHash         string
 	PreviousTxnHash string
@@ -63,6 +64,18 @@ type XDR struct {
 
 type LastTxnResponse struct {
 	LastTxn string
+}
+
+type TransactionId struct {
+	Txnhash string
+	Url     string
+}
+
+type TransactionIds struct {
+	Txnhash    string
+	Url        string
+	Identifier string
+	TdpId      string
 }
 
 type COCCollectionList struct {

@@ -1,19 +1,22 @@
 package businessFacades
 
 import (
-	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
-	"strings"
 	"crypto/sha256"
-	"github.com/dileepaj/tracified-gateway/constants"
-	"io/ioutil"
-	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
-	"github.com/gorilla/mux"
+	"strings"
+	"time"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/gorilla/mux"
+	// "github.com/hpcloud/tail"
 	// "github.com/dileepaj/tracified-gateway/proofs/builder"
 )
 
@@ -262,7 +265,6 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	response.RetrievePOC = display.RetrieveFullPOC()
 	// response.RetrievePOC = display.RetrievePOC()
 
-
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
 	// w.WriteHeader(http.StatusBadRequest)
@@ -275,6 +277,41 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
+
+type logBody struct {
+	Data []string
+}
+
+/*RetrieveLogsForToday testing
+@author - Azeem Ashraf
+*/
+func RetrieveLogsForToday(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	s := time.Now().UTC().String()
+	dat, err := ioutil.ReadFile("GatewayLogs" + s[:10])
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(400)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Log File is not found",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+
+	} else {
+		stuff := strings.Split(string(dat), "\n")
+		w.WriteHeader(200)
+		result := logBody{
+			Data: stuff[:len(stuff)-1],
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+}
+
 /*GatewayRetriever testing
 @author - Azeem Ashraf
 */
@@ -298,21 +335,21 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				if res[i].TxnType=="2"{
+				if res[i].TxnType == "2" {
 					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
 					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
 					bearer := "Bearer " + constants.BackendToken
 					// Create a new request using http
 					req, er := http.NewRequest("GET", url, nil)
-	
+
 					req.Header.Add("Authorization", bearer)
 					client := &http.Client{}
 					resq, er := client.Do(req)
-	
+
 					if er != nil {
 						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	
+
 						w.WriteHeader(http.StatusOK)
 						response := model.Error{Message: "Connection to the DataStore was interupted"}
 						json.NewEncoder(w).Encode(response)
@@ -321,23 +358,23 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 						body, _ := ioutil.ReadAll(resq.Body)
 						var raw map[string]interface{}
 						json.Unmarshal(body, &raw)
-	
+
 						h := sha256.New()
 						base64 := raw["data"]
 						// fmt.Println(base64)
-	
-						h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
+
+						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 						// fmt.Printf("%x", h.Sum(nil))
-	
+
 						DataStoreTXN := model.Current{
 							TType:      res[i].TxnType,
 							TXNID:      res[i].TxnHash,
 							Identifier: res[i].Identifier,
 							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-	
+
 						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 					}
-				}else{
+				} else {
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
@@ -345,7 +382,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 					}
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
-				
+
 			}
 
 			// pocStructObj = apiModel.POCStruct{
@@ -360,9 +397,8 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
 
-
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
+
 			result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
 			// fmt.Println(result)
 			// fmt.Println(response.RetrievePOC.Error.Message)
@@ -393,10 +429,10 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
-
 	return
 
 }
+
 /*GatewayRetrieverWithIdentifier testing
 @author - Azeem Ashraf
 */
@@ -412,97 +448,96 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// p.Then(func(data interface{}) interface{} {
 
 	// 	result := data.(model.TransactionCollectionBody)
-		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
-		g := object.GetTransactionsbyIdentifier(vars["Identifier"])
-		g.Then(func(data interface{}) interface{} {
-			res := data.([]model.TransactionCollectionBody)
-			pocStructObj.Txn = res[len(res)-1].TxnHash
+	pocStructObj.DBTree = []model.Current{}
+	// fmt.Println(result)
+	g := object.GetTransactionsbyIdentifier(vars["Identifier"])
+	g.Then(func(data interface{}) interface{} {
+		res := data.([]model.TransactionCollectionBody)
+		pocStructObj.Txn = res[len(res)-1].TxnHash
 
-			for i := len(res) - 1; i >= 0; i-- {
-				if res[i].TxnType=="2"{
-					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
+		for i := len(res) - 1; i >= 0; i-- {
+			if res[i].TxnType == "2" {
+				// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
+				url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
-					bearer := "Bearer " + constants.BackendToken
-										// Create a new request using http
-					req, er := http.NewRequest("GET", url, nil)
-	
-					req.Header.Add("Authorization", bearer)
-					client := &http.Client{}
-					resq, er := client.Do(req)
-	
-					if er != nil {
-						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	
-						w.WriteHeader(http.StatusOK)
-						response := model.Error{Message: "Connection to the DataStore was interupted"}
-						json.NewEncoder(w).Encode(response)
-					} else {
-						// fmt.Println(req)
-						body, _ := ioutil.ReadAll(resq.Body)
-						var raw map[string]interface{}
-						json.Unmarshal(body, &raw)
-	
-						h := sha256.New()
-						base64 := raw["data"]
-						// fmt.Println(base64)
-	
-						h.Write([]byte(fmt.Sprintf("%s", base64)+res[i].Identifier))
-						// fmt.Printf("%x", h.Sum(nil))
-	
-						DataStoreTXN := model.Current{
-							TType:      res[i].TxnType,
-							TXNID:      res[i].TxnHash,
-							Identifier: res[i].Identifier,
-							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-	
-						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
-					}
-				}else{
+				bearer := "Bearer " + constants.BackendToken
+				// Create a new request using http
+				req, er := http.NewRequest("GET", url, nil)
+
+				req.Header.Add("Authorization", bearer)
+				client := &http.Client{}
+				resq, er := client.Do(req)
+
+				if er != nil {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+					w.WriteHeader(http.StatusOK)
+					response := model.Error{Message: "Connection to the DataStore was interupted"}
+					json.NewEncoder(w).Encode(response)
+				} else {
+					// fmt.Println(req)
+					body, _ := ioutil.ReadAll(resq.Body)
+					var raw map[string]interface{}
+					json.Unmarshal(body, &raw)
+
+					h := sha256.New()
+					base64 := raw["data"]
+					// fmt.Println(base64)
+
+					h.Write([]byte(fmt.Sprintf("%s", base64) + res[i].Identifier))
+					// fmt.Printf("%x", h.Sum(nil))
+
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
 						Identifier: res[i].Identifier,
-					}
+						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
-				
+			} else {
+				DataStoreTXN := model.Current{
+					TType:      res[i].TxnType,
+					TXNID:      res[i].TxnHash,
+					Identifier: res[i].Identifier,
+				}
+				pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 			}
 
-			// pocStructObj = apiModel.POCStruct{
+		}
 
-			// // }
-			// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
-			// response = display.InterpretPOC()
+		// pocStructObj = apiModel.POCStruct{
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
+		// // }
+		// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
+		// response = display.InterpretPOC()
 
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(200)
-			// w.WriteHeader(http.StatusBadRequest)
+		// fmt.Println(response.RetrievePOC.Error.Message)
 
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(200)
+		// w.WriteHeader(http.StatusBadRequest)
 
-			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
-			result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
-			// fmt.Println(result)
-			// fmt.Println(response.RetrievePOC.Error.Message)
-			json.NewEncoder(w).Encode(result)
-			// 		return
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
-			return data
-		}).Catch(func(error error) error {
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
+		// fmt.Println(result)
+		// fmt.Println(response.RetrievePOC.Error.Message)
+		json.NewEncoder(w).Encode(result)
+		// 		return
 
-			w.WriteHeader(http.StatusOK)
-			response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
-			json.NewEncoder(w).Encode(response)
-			return error
-		})
-		g.Await()
+		return data
+	}).Catch(func(error error) error {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		// return data
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	g.Await()
+
+	// return data
 
 	// }).Catch(func(error error) error {
 	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -515,9 +550,6 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// })
 	// p.Await()
 
-
 	return
 
 }
-
-

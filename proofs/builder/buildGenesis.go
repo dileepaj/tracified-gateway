@@ -50,12 +50,13 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].Status = "pending"
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-		result := display.SubmitXDR()
+		result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 		UserTxnHashes = append(UserTxnHashes, result.TXNID)
 
 		if result.Error.Code == 400 {
@@ -78,9 +79,9 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.TestNetwork,
+				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultTestNetClient},
+				build.AutoSequence{horizon.DefaultPublicNetClient},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
@@ -114,7 +115,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR()
+			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].TxnHash = UserTxnHashes[i]
@@ -135,31 +136,31 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				if err2 != nil {
 
 				} else {
-					var PreviousProfile string
-					p := object.GetProfilebyIdentifier(AP.TxnBody[i].Identifier)
-					p.Then(func(data interface{}) interface{} {
+					// var PreviousProfile string
+					// p := object.GetProfilebyIdentifier(AP.TxnBody[i].Identifier)
+					// p.Then(func(data interface{}) interface{} {
 
-						result := data.(model.ProfileCollectionBody)
-						PreviousProfile = result.ProfileTxn
-						return nil
-					}).Catch(func(error error) error {
-						PreviousProfile = ""
-						return error
-					})
-					p.Await()
+					// 	result := data.(model.ProfileCollectionBody)
+					// 	PreviousProfile = result.ProfileTxn
+					// 	return nil
+					// }).Catch(func(error error) error {
+					// 	PreviousProfile = ""
+					// 	return nil
+					// })
+					// p.Await()
 
-					Profile := model.ProfileCollectionBody{
-						ProfileTxn:         response1.TXNID,
-						ProfileID:          AP.TxnBody[i].ProfileID,
-						Identifier:         AP.TxnBody[i].Identifier,
-						PreviousProfileTxn: PreviousProfile,
-						TriggerTxn:         UserTxnHashes[i],
-						TxnType:            AP.TxnBody[i].TxnType,
-					}
-					err3 := object.InsertProfile(Profile)
-					if err3 != nil {
+					// Profile := model.ProfileCollectionBody{
+					// 	ProfileTxn:         response1.TXNID,
+					// 	ProfileID:          AP.TxnBody[i].ProfileID,
+					// 	Identifier:         AP.TxnBody[i].Identifier,
+					// 	PreviousProfileTxn: PreviousProfile,
+					// 	TriggerTxn:         UserTxnHashes[i],
+					// 	TxnType:            AP.TxnBody[i].TxnType,
+					// }
+					// err3 := object.InsertProfile(Profile)
+					// if err3 != nil {
 
-					}
+					// }
 
 				}
 			}
@@ -179,7 +180,8 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				}
 				return nil
 			}).Catch(func(error error) error {
-				return error
+				// return error
+				return nil
 			})
 			p.Await()
 		}

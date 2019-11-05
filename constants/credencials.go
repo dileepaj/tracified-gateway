@@ -1,7 +1,13 @@
 package constants
-
+ 
 //PublicKey The Stellar Testnet PublicKey for Gateway's Account, Should be replaced when stellar resets the testnet
-var PublicKey ="GDNQBZUQD3DEODU7MYAIEN35AQ6432EKLKH3F52VLZSOCTTIRBDGG5GH"
+// var PublicKey ="GDUTBNH7VVFUZTX4WCMW34WO6TOV6VH4QSUSZ5YOXF4TTRUWMQAZ3HSF"
+
+//Public network Keys
+var PublicKey ="GD3TLQVDZZNJ4VHVQ3MLDFMY5T2C5STXMSL2ZR7D434E5WCWQ2UZBGTR"
 
 //SecretKey The Stellar Testnet SecretKey for Gateway's Account, Should be replaced when stellar resets the testnet
-var SecretKey = "SCMPASFKBKW72WCNAOMGXS34XNJS44ATERY3JW3M7JXQLVSNVOVUS4MQ"
+// var SecretKey = "SCJW6N76UWARARCTHGVT5DYL26L4S77KEUXBHKUJBF526R2QOI4HC7IU"
+
+//Public network Keys
+var SecretKey = "SAP2NYVT7HX44VVI6IIGKHDIKKPW7YTMPWRVCG6E64EK7YL7W6Q5KGQU"

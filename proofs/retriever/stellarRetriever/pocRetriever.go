@@ -41,7 +41,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 	var temp model.Current
 
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	result, err := http.Get("https://horizon.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -85,7 +85,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			if transactionType == "6" {
 				if keys[3] != (PublicKeyPOC{}) {
 					mergeID = Base64DecEnc("Decode", keys[3].Value)
-					result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
+					result, err := http.Get("https://horizon.stellar.org/transactions/" + mergeID + "/operations")
 					if err != nil {
 						Rerr.Code = result.StatusCode
 						Rerr.Message = "The HTTP request failed for Merge ID"
