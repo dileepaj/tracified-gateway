@@ -4,15 +4,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strings"
-	"github.com/gorilla/mux"
-	"github.com/stellar/go/xdr"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/gorilla/mux"
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/xdr"
 )
 
+/*Transaction - Deprecated
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+@params - ResponseWriter,Request
+*/
 func Transaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	TType := (vars["TType"])
@@ -35,7 +41,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(GObj)
 			result := model.InsertGenesisResponse{}
 
-			display := &builder.AbstractGenesisInsert{InsertGenesisStruct: GObj}
+			display := &deprecatedBuilder.AbstractGenesisInsert{InsertGenesisStruct: GObj}
 			result = display.GenesisInsert()
 
 			w.WriteHeader(result.Error.Code)
@@ -59,7 +65,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(PObj)
 			response := model.InsertProfileResponse{}
 
-			display := &builder.AbstractProfileInsert{InsertProfileStruct: PObj}
+			display := &deprecatedBuilder.AbstractProfileInsert{InsertProfileStruct: PObj}
 			response = display.ProfileInsert()
 
 			w.WriteHeader(response.Error.Code)
@@ -84,7 +90,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			response := model.SubmitXDRResponse{}
 
 			// display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
-			display := &builder.AbstractTDPInsert{XDR: TDP.XDR}
+			display := &deprecatedBuilder.AbstractTDPInsert{XDR: TDP.XDR}
 			response = display.TDPInsert()
 
 			w.WriteHeader(response.Error.Code)
@@ -109,7 +115,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 			// for i := 0; i < len(TObj.Identifiers); i++ {
 
-			display := &builder.AbstractSplitProfile{SplitProfileStruct: SplitObj}
+			display := &deprecatedBuilder.AbstractSplitProfile{SplitProfileStruct: SplitObj}
 			response = display.ProfileSplit()
 			// 	SplitProfiles = append(SplitProfiles, response.Txn)
 			// }
@@ -137,7 +143,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(MergeObj)
 			response := model.MergeProfileResponse{}
 
-			display := &builder.AbstractMergeProfile{MergeProfileStruct: MergeObj}
+			display := &deprecatedBuilder.AbstractMergeProfile{MergeProfileStruct: MergeObj}
 			response = display.ProfileMerge()
 
 			w.WriteHeader(response.Error.Code)
@@ -164,7 +170,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(POA)
 			response := model.InsertDataResponse{}
 
-			display := &builder.AbstractPOAInsert{InsertPOAStruct: POA}
+			display := &deprecatedBuilder.AbstractPOAInsert{InsertPOAStruct: POA}
 			response = display.POAInsert()
 
 			w.WriteHeader(response.Error.Code)
@@ -187,7 +193,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(Cert)
 			response := model.InsertDataResponse{}
 
-			display := &builder.AbstractPOCertInsert{InsertPOCertStruct: Cert}
+			display := &deprecatedBuilder.AbstractPOCertInsert{InsertPOCertStruct: Cert}
 			response = display.POCertInsert()
 
 			w.WriteHeader(response.Error.Code)
@@ -209,79 +215,433 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SubmitXDR(w http.ResponseWriter, r *http.Request) {
+/*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
-	object := dao.Connection{}
-	var copy model.TransactionCollectionBody
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Header present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
 		return
 	}
 
 	if r.Header.Get("Content-Type") == "" {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("No Content-Type present!")
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
 		return
 	}
 
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while Decoding the body")
-		// fmt.Println(err)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
 		return
 	}
-	for i := 0; i < len(TDP); i++ {
-		TDP[i].Status = "Pending"
-		var txe xdr.Transaction
-		err = xdr.SafeUnmarshalBase64(TDP[i].XDR, &txe)
-		if err != nil {
-			fmt.Println(err)
-		}
+	fmt.Println(TDP)
 
-		TDP[i].PublicKey = txe.SourceAccount.Address()
-		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		TDP[i].TxnType = TxnType
-		TDP[i].Status = "pending"
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	display.SubmitSpecial(w, r)
+	// 	display.SubmitGenesis(w,r)
 
-		copy=TDP[i]
-		err1 := object.InsertTransaction(TDP[i])
-		if err1 != nil {
-			TDP[i].Status = "failed"
-		}
-
-	}
-	for i := 0; i < len(TDP); i++ {
-		display := &builder.AbstractTDPInsert{XDR: TDP[i].XDR}
-		response := display.TDPInsert()
-		if response.Error.Code == 503 {
-			TDP[i].Status = "pending"
-		} else {
-			TDP[i].TxnHash = response.TXNID
-
-			upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
-			err2 := object.UpdateTransaction(copy, upd)
-			if err2 != nil {
-				TDP[i].Status = "pending"
-			} else {
-				TDP[i].Status = "done"
-			}
-		}
-	}
-
-	w.WriteHeader(http.StatusOK)
-	result := apiModel.SubmitXDRSuccess{
-		Status: "Success",
-	}
-	json.NewEncoder(w).Encode(result)
 	return
 }
 
+/*SubmitData - @desc Handles an incoming request and calls the dataBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitData(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	// display.SubmitData(w,r,true)
+	display.SubmitSpecial(w, r)
+
+	return
+}
+
+/*SubmitSplit - @desc Handles an incoming request and calls the splitBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitSplit(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	display.SubmitSplit(w, r)
+
+	return
+}
+
+/*SubmitMerge - @desc Handles an incoming request and calls the mergeBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitMerge(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	display.SubmitMerge(w, r)
+
+	return
+}
+
+/*SubmitTransformation - Needs to be Refurbished @desc Handles an incoming request and calls the TransformationBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	display.SubmitMerge(w, r)
+
+	return
+}
+
+/*SubmitTransfer - Needs to be Refurbished @desc Handles an incoming request and calls the TransferBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP []model.TransactionCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
+	status := display.SubmitTransfer()
+
+	// status, _ := builder.XDRSubmitter(TDP)
+	if status {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Success",
+		}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Failed",
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+	return
+}
+
+/*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP model.CertificateCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	var temp []model.CertificateCollectionBody
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitInsertCertificate(w, r)
+	return
+}
+
+/*SubmitCertificateRenewal - @desc Handles an incoming request and calls the CertificateRevewalBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP model.CertificateCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	var temp []model.CertificateCollectionBody
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitRenewCertificate(w, r)
+	return
+}
+
+/*SubmitCertificateRevoke - @desc Handles an incoming request and calls the CertificateRevokeBuilder
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func SubmitCertificateRevoke(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TDP model.CertificateCollectionBody
+
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	var temp []model.CertificateCollectionBody
+	temp = append(temp, TDP)
+	display := &builder.AbstractCertificateSubmiter{TxnBody: temp}
+	display.SubmitRevokeCertificate(w, r)
+	return
+}
+
+/*LastTxn - @desc Handles an incoming request and Returns the Last TXN for the Identifier in the Params
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
 func LastTxn(w http.ResponseWriter, r *http.Request) {
-	//
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
@@ -296,84 +656,204 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 		return nil
 	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusNotFound)
-		response := model.Error{Message: "Not Found"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})
 	p.Await()
 
 }
-// func SplitXDR(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-// 	var TDP []model.TransactionCollectionBody
-// 	object := dao.Connection{}
-// 	var copy model.TransactionCollectionBody
 
-// 	if r.Header == nil {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		json.NewEncoder(w).Encode("No Header present!")
-// 		return
-// 	}
+type Transuc struct {
+	TXN string `json:"txn"`
+}
 
-// 	if r.Header.Get("Content-Type") == "" {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		json.NewEncoder(w).Encode("No Content-Type present!")
-// 		return
-// 	}
+type TranXDR struct {
+	XDR string `json:"XDR"`
+}
 
-// 	err := json.NewDecoder(r.Body).Decode(&TDP)
-// 	if err != nil {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		json.NewEncoder(w).Encode("Error while Decoding the body")
-// 		// fmt.Println(err)
-// 		return
-// 	}
-// 	for i := 0; i < len(TDP); i++ {
-// 		TDP[i].Status = "Pending"
-// 		var txe xdr.Transaction
-// 		err = xdr.SafeUnmarshalBase64(TDP[i].XDR, &txe)
-// 		if err != nil {
-// 			fmt.Println(err)
-// 		}
+/*ConvertXDRToTXN - Test Endpoint @desc Handles an incoming request and Returns the TXN Hash for teh XDR Provided
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-// 		TDP[i].PublicKey = txe.SourceAccount.Address()
-// 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-// 		TDP[i].TxnType = TxnType
-// 		TDP[i].Status = "pending"
+	var Trans xdr.Transaction
+	// var lol string
 
-// 		copy=TDP[i]
-// 		err1 := object.InsertTransaction(TDP[i])
-// 		if err1 != nil {
-// 			TDP[i].Status = "failed"
-// 		}
+	var TDP TranXDR
+	// object := dao.Connection{}
+	// var copy model.TransactionCollectionBody
 
-// 	}
-// 	for i := 0; i < len(TDP); i++ {
-// 		display := &builder.AbstractTDPInsert{XDR: TDP[i].XDR}
-// 		response := display.TDPInsert()
-// 		if response.Error.Code == 503 {
-// 			TDP[i].Status = "pending"
-// 		} else {
-// 			TDP[i].TxnHash = response.TXNID
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
 
-// 			upd := model.TransactionCollectionBody{TxnHash: response.TXNID, Status: "done"}
-// 			err2 := object.UpdateTransaction(copy, upd)
-// 			if err2 != nil {
-// 				TDP[i].Status = "pending"
-// 			} else {
-// 				TDP[i].Status = "done"
-// 			}
-// 		}
-// 	}
+		return
+	}
 
-// 	w.WriteHeader(http.StatusOK)
-// 	result := apiModel.SubmitXDRSuccess{
-// 		Message: "Success, Please check each transaction status below",
-// 		Txns:    TDP,
-// 	}
-// 	json.NewEncoder(w).Encode(result)
-// 	return
-// }
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
 
+		return
+	}
 
+	// fmt.Println(TDP)
+	err := json.NewDecoder(r.Body).Decode(&TDP)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(TDP)
+
+	err1 := xdr.SafeUnmarshalBase64(TDP.XDR, &Trans)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: build.TestNetwork.Passphrase}
+	fmt.Println(build.TestNetwork.Passphrase)
+	// fmt.Println(brr.Hash())
+	t, _ := brr.Hash()
+	test := fmt.Sprintf("%x", t)
+
+	w.WriteHeader(http.StatusOK)
+	response := Transuc{TXN: test}
+	json.NewEncoder(w).Encode(response)
+	return
+
+}
+
+type TDP struct {
+	TdpId string `json:"tdpId"`
+}
+
+/*TDPForTXN - Test Endpoint @desc Handles an incoming request and Returns the TDP ID for the TXN Provided.
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func TDPForTXN(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetTdpIdForTransaction(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+
+		res := TDP{TdpId: result.TdpId}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TdpId Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+
+/*TXNForTDP - Test Endpoint @desc Handles an incoming request and Returns the TXN ID for the TDP ID Provided.
+@author - Azeem Ashraf
+@params - ResponseWriter,Request
+*/
+func TXNForTDP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetTransactionForTdpId(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.TransactionCollectionBody)
+
+		// res := TDP{TdpId: result.TdpId}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TdpId Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	fmt.Println("lol")
+	var Artifacts model.ArtifactTransaction
+	fmt.Println("lol")
+	if r.Header == nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Header present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	if r.Header.Get("Content-Type") == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Content-Type present!",
+		}
+		json.NewEncoder(w).Encode(result)
+
+		return
+	}
+
+	// fmt.Println(TDP)
+	err := json.NewDecoder(r.Body).Decode(&Artifacts)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(Artifacts)
+	// fmt.Println(TDPs)
+	object := dao.Connection{}
+	err2 := object.InsertArtifact(Artifacts)
+	if err2 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Failed",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Success",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+}

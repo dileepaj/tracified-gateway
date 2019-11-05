@@ -2,78 +2,93 @@ package stellarExecuter
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"time"
 
 	"github.com/stellar/go/clients/horizon"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
 type ConcreteSubmitXDR struct {
-	InsertTDP apiModel.TestXDRSubmit
+	XDR string
 }
 
-func (cd *ConcreteSubmitXDR) SubmitXDR() model.InsertDataResponse {
+/*SubmitXDR - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Submits the XDR to stellar horizon api and returns the TXN hash.
+@params - XDR
+*/
+func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitXDRResponse {
 
-	// publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
-	// secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
-	var response model.InsertDataResponse
-	// response.ProfileID = cd.InsertTDP.ProfileID
-	// response.TxnType = cd.InsertTDP.Type
+	var response model.SubmitXDRResponse
+	s := time.Now().UTC().String()
 
-	// // save data
-	// tx, err := build.Transaction(
-	// 	build.TestNetwork,
-	// 	build.SourceAccount{publicKey},
-	// 	build.AutoSequence{horizon.DefaultTestNetClient},
-	// 	build.SetData("Transaction Type", []byte(cd.InsertTDP.Type)),
-	// 	build.SetData("PreviousTXNID", []byte(cd.InsertTDP.PreviousTXNID)),
-	// 	build.SetData("ProfileID", []byte(cd.InsertTDP.ProfileID)),
-	// 	build.SetData("Identifier", []byte(cd.InsertTDP.Identifier)),
-	// 	build.SetData("TDPHash", []byte(cd.InsertTDP.DataHash)),
-	// )
-
-	// if err != nil {
-	// 	// panic(err)
-	// 	response.Error.Code = http.StatusNotFound
-	// 	response.Error.Message = "The HTTP request failed for InsertDataHash "
-	// 	return response
-	// }
-
-	// // Sign the transaction to prove you are actually the person sending it.
-	// txe, err := tx.Sign(secretKey)
-	// if err != nil {
-	// 	// panic(err)
-	// 	response.Error.Code = http.StatusNotFound
-	// 	response.Error.Message = "signing request failed for the Transaction"
-	// 	return response
-	// }
-
-	// txeB64, err := txe.Base64()
-	// if err != nil {
-	// 	// panic(err)
-	// 	response.Error.Code = http.StatusNotFound
-	// 	response.Error.Message = "Base64 conversion failed for the Transaction"
-	// 	return response
-	// }
-
-	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.InsertTDP.XDR)
+	f, err := os.OpenFile("GatewayLogs"+s[:10], os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
 	if err != nil {
-		// panic(err)
-		response.Error.Code = http.StatusNotFound
-		response.Error.Message = "Test net client crashed"
-		return response
+		log.Fatalf("error opening file: %v", err)
 	}
+	defer f.Close()
 
-	fmt.Println("Successful Transaction:")
-	fmt.Println("Ledger:", resp.Ledger)
-	fmt.Println("Hash:", resp.Hash)
+	log.SetOutput(f)
+	// log.Println("This is a test log entry")
 
-	response.Error.Code = http.StatusOK
-	response.Error.Message = "Transaction performed in the blockchain."
-	response.TDPID = resp.Hash
+	if testnet {
+		resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
+		if err != nil {
+			error1 := err.(*horizon.Error)
+			TC, _ := error1.ResultCodes()
+			for _, element := range TC.OperationCodes {
+				response.Error.Message = response.Error.Message + element + "? "
+			}
+
+			// log.SetOutput(f)
+			log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+
+			response.Error.Code = http.StatusBadRequest
+			// response.Error.Message = err.Error()
+			return response
+		}
+
+		// fmt.Println("Successful Transaction:")
+		// fmt.Println("Ledger:", resp.Ledger)
+		log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+
+		response.Error.Code = http.StatusOK
+		response.Error.Message = "Transaction performed in the blockchain."
+		response.TXNID = resp.Hash
+	} else {
+		resp, err := horizon.DefaultPublicNetClient.SubmitTransaction(cd.XDR)
+		if err != nil {
+			error1 := err.(*horizon.Error)
+			TC, _ := error1.ResultCodes()
+			for _, element := range TC.OperationCodes {
+				response.Error.Message = response.Error.Message + element + "? "
+			}
+
+			// log.SetOutput(f)
+			log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+
+			response.Error.Code = http.StatusBadRequest
+			// response.Error.Message = err.Error()
+			return response
+		}
+
+		// fmt.Println("Successful Transaction:")
+		// fmt.Println("Ledger:", resp.Ledger)
+		log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+
+		response.Error.Code = http.StatusOK
+		response.Error.Message = "Transaction performed in the blockchain."
+		response.TXNID = resp.Hash
+	}
 
 	return response
 

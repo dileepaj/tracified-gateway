@@ -4,19 +4,99 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"net/http"
 )
 
+/*RetrieveFullPOC - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Retrieves the whole tree from stellar using the last TXN in the chain
+@params - XDR
+*/
 func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
+	object := dao.Connection{}
+
 	var response model.RetrievePOC
 	var Rerr model.Error
-	var mergeTree []model.Current
+	// var mergeTree []model.Current
 	var temp model.Current
+	var bcPreHash string
+
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+
+	//calls stellar to retrieve the gateway transaction
+	result1, err1 := http.Get("https://horizon.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	if err1 != nil {
+		Rerr.Code = result1.StatusCode
+		Rerr.Message = "The HTTP request failed for RetrievePOC"
+		response.Txn = db.POCStruct.Txn
+		response.Error = Rerr
+		return response
+	}
+
+	data, _ := ioutil.ReadAll(result1.Body)
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+	out, _ := json.Marshal(raw["_embedded"])
+
+	var raw1 map[string]interface{}
+	json.Unmarshal(out, &raw1)
+
+	out1, _ := json.Marshal(raw1["records"])
+
+	keysBody := out1
+	keys := make([]PublicKeyPOC, 0)
+	json.Unmarshal(keysBody, &keys)
+
+	Current := Base64DecEnc("Decode", keys[2].Value)
+	GatewayTXNType := Base64DecEnc("Decode", keys[0].Value)
+
+	//perform a check on the gateway txn
+	switch GatewayTXNType {
+	//for split child we realise that the identifier will change for parent
+	//thus on the child we look at the profile created
+	//and get the txn id of the previous profile and get the last TXN ID
+	case "G6":
+		var PreviousIdentifier string
+		PreviousProfile := Base64DecEnc("Decode", keys[4].Value)
+		p := object.GetProfilebyProfileID(PreviousProfile)
+		p.Then(func(data interface{}) interface{} {
+			result := data.(model.ProfileCollectionBody)
+			PreviousIdentifier = result.Identifier
+			return nil
+		}).Catch(func(error error) error {
+			PreviousIdentifier = ""
+			return error
+		})
+		p.Await()
+
+		p1 := object.GetLastTransactionbyIdentifier(PreviousIdentifier)
+		p1.Then(func(data interface{}) interface{} {
+			///ASSIGN PREVIOUS MANAGE DATA BUILDER
+			result := data.(model.TransactionCollectionBody)
+			bcPreHash = result.TxnHash
+			return nil
+		}).Catch(func(error error) error {
+			///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+			//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+			return error
+		})
+		p1.Await()
+	default:
+		if keys[1] != (PublicKeyPOC{}) {
+			bcPreHash = Base64DecEnc("Decode", keys[1].Value)
+			fmt.Println("bcPreHash")
+			fmt.Println(bcPreHash)
+		}
+
+	}
+
+	//calls stellar to retrieve the user transaction
+	result, err := http.Get("https://horizon.stellar.org/transactions/" + Current + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -30,7 +110,6 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 		if result.StatusCode == 200 {
 			var raw map[string]interface{}
 			json.Unmarshal(data, &raw)
-			// raw["count"] = 2
 			out, _ := json.Marshal(raw["_embedded"])
 
 			var raw1 map[string]interface{}
@@ -42,99 +121,60 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			keys := make([]PublicKeyPOC, 0)
 			json.Unmarshal(keysBody, &keys)
 
-			var bcPreHash string
 			var transactionType string
 			var TDPHash string
 			var Profile string
+
+			//initially checks for the transaction type then decideds on the other fields
 			if keys[0] != (PublicKeyPOC{}) {
 				transactionType = Base64DecEnc("Decode", keys[0].Value)
 				fmt.Println("transactionType")
 				fmt.Println(transactionType)
 			}
 			switch transactionType {
+			//genesis
 			case "0":
-				identifier := Base64DecEnc("Decode", keys[2].Value)
-				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, Identifier: identifier}
-			case "1":
-				previousProfile := Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 				temp = model.Current{
-					TXNID:             db.POCStruct.Txn,
-					TType:             transactionType,
-					Identifier:        identifier,
-					PreviousProfileID: previousProfile}
+					TXNID:      db.POCStruct.Txn,
+					TType:      transactionType,
+					Identifier: identifier}
+			//dataPacket
 			case "2":
 
-				Profile = Base64DecEnc("Decode", keys[2].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
-				TDPHash = Base64DecEnc("Decode", keys[4].Value)
+				// Profile = Base64DecEnc("Decode", keys[2].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
+				TDPHash = Base64DecEnc("Decode", keys[2].Value)
 
 				fmt.Println("TDPHash")
 				fmt.Println(TDPHash)
 
-				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType, DataHash: TDPHash, ProfileID: Profile ,Identifier:identifier}
-			case "3":
-			case "4":
+				temp = model.Current{
+					TXNID:      db.POCStruct.Txn,
+					TType:      transactionType,
+					DataHash:   TDPHash,
+					ProfileID:  Profile,
+					Identifier: identifier}
+
+			//split parent
 			case "5":
-				identifier := Base64DecEnc("Decode", keys[3].Value)
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 
-				temp = model.Current{TXNID: db.POCStruct.Txn, TType: transactionType,Identifier:identifier}
+				temp = model.Current{
+					TXNID:      db.POCStruct.Txn,
+					TType:      transactionType,
+					Identifier: identifier}
+
+			//split child
 			case "6":
-
-				mergeID := Base64DecEnc("Decode", keys[4].Value)
-				identifier := Base64DecEnc("Decode", keys[3].Value)
-				Profile = Base64DecEnc("Decode", keys[2].Value)
-				result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + mergeID + "/operations")
-				if err != nil {
-					Rerr.Code = result.StatusCode
-					Rerr.Message = "The HTTP request failed for Merge ID"
-					response.Txn = db.POCStruct.Txn
-					response.Error = Rerr
-					return response
-				} else {
-
-					if result.StatusCode == 200 {
-						POCObject1 := apiModel.POCStruct{Txn: mergeID, BCTree: mergeTree, DBTree: db.POCStruct.DBTree, ProfileID: Profile}
-
-						object := ConcretePOC{POCStruct: POCObject1}
-						// object := ConcretePOC{Txn: mergeID, BCTree: mergeTree, DBTree: db.POCStruct.DBTree, ProfileID: Profile}
-						response = object.RetrieveFullPOC()
-
-						mergeTree = response.BCHash
-					}
-
-				}
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 
 				temp = model.Current{
-					TXNID:       db.POCStruct.Txn,
-					TType:       transactionType,
-					ProfileID:   Profile,
-					MergedChain: mergeTree,
-					MergedID:    mergeID,
-					Identifier:identifier}
-			case "7":
-
-				temp = model.Current{
-					TXNID: db.POCStruct.Txn,
-					TType: transactionType}
-			case "8":
-
-				temp = model.Current{
-					TXNID: db.POCStruct.Txn,
-					TType: transactionType}
-			case "9":
-
-				temp = model.Current{
-					TXNID: db.POCStruct.Txn,
-					TType: transactionType}
+					TXNID:      db.POCStruct.Txn,
+					TType:      transactionType,
+					Identifier: identifier}
 			default:
 
-			}
-
-			if keys[1] != (PublicKeyPOC{}) {
-				bcPreHash = Base64DecEnc("Decode", keys[1].Value)
-				fmt.Println("bcPreHash")
-				fmt.Println(bcPreHash)
 			}
 
 			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
@@ -146,7 +186,10 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			response.DBHash = db.POCStruct.DBTree
 			response.Error = Rerr
 
-			if keys[1].Value != "" {
+			if bcPreHash == "0" {
+				bcPreHash = ""
+			}
+			if bcPreHash != "" {
 				POCObject2 := apiModel.POCStruct{
 					Txn:       bcPreHash,
 					BCTree:    db.POCStruct.BCTree,

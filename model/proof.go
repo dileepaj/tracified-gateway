@@ -2,7 +2,7 @@ package model
 
 //proof of POE
 type RetrievePOE struct {
-	TdpId       string `json:"tdpId"`
+	TdpId       string `json:"txnId"`
 	BCHash    string `json:"bcHash"`
 	DBHash    string `json:"dbHash"`
 	Identifier string `json:"identifier"`
@@ -15,10 +15,10 @@ type POE struct {
 
 //proof of POG
 type RetrievePOG struct {
-	CurTxn     string `json:"CurTxn"`
-	PreTxn     string `json:"PreTxn"`
-	Identifier string `json:"Identifier"`
-	Error      Error  `json:"error"`
+	CurTxn     string `json:"genesisTxn"`
+	PreTxn     string `json:"previousTxn"`
+	Identifier string `json:"identifier"`
+	Message      Error  `json:"status"`
 }
 
 type POG struct {
