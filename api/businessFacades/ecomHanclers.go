@@ -8,6 +8,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+
+	"github.com/stellar/go/strkey"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -264,6 +267,136 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var result []model.TransactionIds
+
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+
+	switch checkValidVersionByte(vars["key"]) {
+	case "pk":
+		p := object.GetAllTransactionForPK(vars["key"])
+		p.Then(func(data interface{}) interface{} {
+			res := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range res {
+				TxnHash := TxnBody.TxnHash
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
+				fmt.Println(string(mapB))
+
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := (string(encoded))
+				temp := model.TransactionIds{Txnhash: TxnHash,
+					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+						text + "%3D%3D&network=public",
+					Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
+				result = append(result, temp)
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
+			return nil
+		}).Catch(func(error error) error {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Public Key Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+			return error
+		})
+		p.Await()
+	case "txn":
+		q := object.GetAllTransactionForTxId(vars["key"])
+		q.Then(func(data interface{}) interface{} {
+			res := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range res {
+				TxnHash := TxnBody.TxnHash
+
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
+				fmt.Println(string(mapB))
+
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := (string(encoded))
+				temp := model.TransactionIds{Txnhash: TxnHash,
+					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+						text + "%3D%3D&network=public",
+					Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
+				result = append(result, temp)
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
+			return nil
+		}).Catch(func(error error) error {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "TxnHash Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+			return error
+		})
+		q.Await()
+
+	case "tdpid":
+		p := object.GetAllTransactionForTdpId(vars["key"])
+		fmt.Println(vars["id"])
+		p.Then(func(data interface{}) interface{} {
+			res := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range res {
+				TxnHash := TxnBody.TxnHash
+
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
+				fmt.Println(string(mapB))
+
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := (string(encoded))
+				temp := model.TransactionIds{Txnhash: TxnHash,
+					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+						text + "%3D%3D&network=public",
+					Identifier: TxnBody.Identifier}
+
+				result = append(result, temp)
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
+			return nil
+		}).Catch(func(error error) error {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "TDP ID Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+			return error
+		})
+		p.Await()
+	case "":
+		p := object.GetTransactionsbyIdentifier(vars["key"])
+		p.Then(func(data interface{}) interface{} {
+			res := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range res {
+				TxnHash := TxnBody.TxnHash
+
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
+				fmt.Println(string(mapB))
+
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := (string(encoded))
+				temp := model.TransactionIds{Txnhash: TxnHash,
+					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+						text + "%3D%3D&network=public",
+					Identifier: TxnBody.Identifier}
+
+				result = append(result, temp)
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
+			return nil
+		}).Catch(func(error error) error {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+			return error
+		})
+		p.Await()
+	}
+}
+
 func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -305,4 +438,41 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
+}
+
+func checkValidVersionByte(key string) string {
+
+	version, er := strkey.Version(key)
+	if er != nil {
+	}
+
+	if version == strkey.VersionByteAccountID {
+		return "pk"
+	}
+
+	if version == strkey.VersionByteSeed {
+		return "sk"
+	}
+
+	// if version == strkey.VersionByteHashTx {
+	// 	return "txn"
+	// }
+
+	// if version == strkey.VersionByteHashX {
+	// return "hash"
+	// }
+
+	matched, err := regexp.MatchString(`^[0-9a-f]{64}$`, key)
+	if err != nil {
+	}
+	if matched {
+		return "txn"
+	}
+	matched1, err1 := regexp.MatchString(`^[0-9a-f]{24}$`, key)
+	if err1 != nil {
+	}
+	if matched1 {
+		return "tdpid"
+	}
+	return ""
 }
