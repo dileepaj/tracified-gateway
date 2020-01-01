@@ -350,7 +350,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				temp := model.TransactionIds{Txnhash: TxnHash,
 					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
-					Identifier: TxnBody.Identifier}
+					Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
 
 				result = append(result, temp)
 			}
@@ -380,7 +380,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				temp := model.TransactionIds{Txnhash: TxnHash,
 					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
-					Identifier: TxnBody.Identifier}
+					Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
 
 				result = append(result, temp)
 			}
