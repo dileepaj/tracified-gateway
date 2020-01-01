@@ -261,6 +261,12 @@ var routes = Routes{
 		businessFacades.GetTransactionsForPK, //Test
 	},
 	Route{
+		"QueryTransactionsByKey",
+		"GET",
+		"/GetTransactions/{key}",
+		businessFacades.QueryTransactionsByKey, //multisearch
+	},
+	Route{
 		"RetriveTransactionId",
 		"GET",
 		"/GetTransactionId/{id}",
