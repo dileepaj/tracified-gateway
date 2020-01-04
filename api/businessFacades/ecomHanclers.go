@@ -438,6 +438,34 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*GetCOCByTxn - WORKING MODEL
+@author - Azeem Ashraf
+@desc - Returns the Txn ID of the last COC Txn
+@params - ResponseWriter,Request
+*/
+func GetCOCByTxn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+
+	object := dao.Connection{}
+	p := object.GetCOCByTxn(vars["txn"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.COCCollectionBody)
+		// res := model.LastTxnResponse{LastTxn: result.TxnHash}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
 
 func checkValidVersionByte(key string) string {
 

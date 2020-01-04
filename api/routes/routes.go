@@ -267,6 +267,12 @@ var routes = Routes{
 		businessFacades.QueryTransactionsByKey, //multisearch
 	},
 	Route{
+		"GetCOCByTxn",
+		"GET",
+		"/GetCOCByTxn/{txn}",
+		businessFacades.GetCOCByTxn, //multisearch
+	},
+	Route{
 		"RetriveTransactionId",
 		"GET",
 		"/GetTransactionId/{id}",
