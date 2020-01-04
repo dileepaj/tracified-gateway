@@ -283,6 +283,40 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 
 }
 
+
+/*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
+@author - Azeem Ashraf
+*/
+func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
+	result := model.COCCollectionBody{}
+	// result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("COC")
+		er := c.Find(bson.M{"txnhash": txnHash}).One(&result)
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		resolve(result)
+
+	})
+
+	return p
+
+}
 /*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */

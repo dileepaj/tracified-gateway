@@ -273,6 +273,12 @@ var routes = Routes{
 		businessFacades.QueryTransactionsByKey, //multisearch
 	},
 	Route{
+		"GetCOCByTxn",
+		"GET",
+		"/GetCOCByTxn/{txn}",
+		businessFacades.GetCOCByTxn, //multisearch
+	},
+	Route{
 		"ArtifactTransactions",
 		"POST",
 		"/Insert/ArtifactTransactions",
