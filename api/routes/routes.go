@@ -42,8 +42,8 @@ var routes = Routes{
 	Route{
 		"POG",
 		"GET",
-		"/proof/pog/{Identifier}",
-		businessFacades.CheckPOGV3, //Calls the Functional POG for Gateway Version 3
+		"/proof/pog/{Txn}",
+		businessFacades.CheckPOGV3Rewrite, //Calls the Functional POG for Gateway Version 3
 	},
 	Route{
 		"POCOC",

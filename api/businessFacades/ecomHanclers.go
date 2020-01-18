@@ -503,3 +503,47 @@ func checkValidVersionByte(key string) string {
 	}
 	return ""
 }
+
+//RetrievePOGTransactionByTxnId ...
+func RetrievePOGTransactionByTxnId(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	var result []model.TransactionIds
+	object := dao.Connection{}
+	p := object.GetAllTransactionForTxId(vars["id"])
+	fmt.Println(vars["id"])
+	p.Then(func(data interface{}) interface{} {
+		res := data.([]model.TransactionCollectionBody)
+		for _, TxnBody := range res {
+			TxnHash := TxnBody.TxnHash
+
+			mapD := map[string]string{"transaction": TxnHash}
+			mapB, _ := json.Marshal(mapD)
+			fmt.Println(string(mapB))
+			// trans := transaction{transaction:TxnHash}
+			// s := fmt.Sprintf("%v", trans)
+
+			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+			text := (string(encoded))
+			temp := model.TransactionIds{Txnhash: TxnHash,
+				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=public",
+				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
+
+			result = append(result, temp)
+		}
+
+		// res := TDP{TdpId: result.TdpId}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TDP ID Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}

@@ -23,8 +23,9 @@ func CheckTempOrphan() {
 	var clientList []string
 
 	//if multiple clients do exist then query and append them
-	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
-	clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")	
+	// clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
+	// clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
+	clientList = append(clientList, "GDNMRYEJ6NI2CVOPU3SDL4HYZWY535CZV7SC5MKEU2Z5PGTULMLAF2L5")
 	object := dao.Connection{}
 
 	//loop through clients
@@ -44,7 +45,7 @@ func CheckTempOrphan() {
 
 		stop := false //for infinite loop
 		//loop through sequence incrementally and see match
-		for i := seq+1; ; i++ {
+		for i := seq + 1; ; i++ {
 
 			p := object.GetSpecialForPkAndSeq(address, int64(i))
 			p.Then(func(data interface{}) interface{} {
@@ -114,7 +115,7 @@ func CheckTempOrphan() {
 						///ASSIGN PREVIOUS MANAGE DATA BUILDER
 						res := data.(model.TransactionCollectionBody)
 						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
-						result.PreviousTxnHash=res.TxnHash
+						result.PreviousTxnHash = res.TxnHash
 						return nil
 					}).Catch(func(error error) error {
 
