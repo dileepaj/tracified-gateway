@@ -550,7 +550,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		temp := model.TransactionIds{Txnhash: TxnHash,
 			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
-			Identifier: res.Identifier, TdpId: res.TdpId}
+			Identifier: res.Identifier, TdpId: res.TdpId,Status:"Success!"}
 
 		result = append(result, temp)
 
