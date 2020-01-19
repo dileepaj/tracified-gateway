@@ -504,39 +504,43 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
-			return json.NewEncoder(w).Encode(response)
+			json.NewEncoder(w).Encode(response)
+			return nil
 
 		}
 
 		data, _ := ioutil.ReadAll(result1.Body)
 
-		if result1.StatusCode == 200 {
-			var raw map[string]interface{}
-			json.Unmarshal(data, &raw)
-			// raw["count"] = 2
-			out, _ := json.Marshal(raw["_embedded"])
-			var raw1 map[string]interface{}
-			json.Unmarshal(out, &raw1)
-			out1, _ := json.Marshal(raw1["records"])
+		if result1.StatusCode != 200 {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+			json.NewEncoder(w).Encode(response)
+			return nil
+		}
 
-			keysBody := out1
-			keys := make([]PublicKey, 0)
-			json.Unmarshal(keysBody, &keys)
+		var raw map[string]interface{}
+		json.Unmarshal(data, &raw)
+		// raw["count"] = 2
+		out, _ := json.Marshal(raw["_embedded"])
+		var raw1 map[string]interface{}
+		json.Unmarshal(out, &raw1)
+		out1, _ := json.Marshal(raw1["records"])
 
-			//GET THE USER SIGNED GENESIS TXN
-			byteData0, _ := base64.StdEncoding.DecodeString(keys[0].Value)
-			Type := string(byteData0)
-			byteData1, _ := base64.StdEncoding.DecodeString(keys[1].Value)
-			Previous := string(byteData1)
+		keysBody := out1
+		keys := make([]PublicKey, 0)
+		json.Unmarshal(keysBody, &keys)
 
-			if Type != "0" && Previous != "" {
-				w.WriteHeader(http.StatusBadRequest)
-				response := model.Error{Message: "This Transaction is not a Genesis Txn"}
-				json.NewEncoder(w).Encode(response)
-			}
-			// byteData2, _ := base64.StdEncoding.DecodeString(keys[2].Value)
-			// UserGenesis := string(byteData2)
-			// fmt.Println("THE TXN OF THE USER TXN: " + UserGenesis)
+		//GET THE USER SIGNED GENESIS TXN
+		byteData0, _ := base64.StdEncoding.DecodeString(keys[0].Value)
+		Type := string(byteData0)
+		byteData1, _ := base64.StdEncoding.DecodeString(keys[1].Value)
+		Previous := string(byteData1)
+
+		if Type != "0" || Previous != "" {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "This Transaction is not a Genesis Txn"}
+			json.NewEncoder(w).Encode(response)
+			return nil
 		}
 
 		mapD := map[string]string{"transaction": TxnHash}
@@ -550,7 +554,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		temp := model.TransactionIds{Txnhash: TxnHash,
 			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
-			Identifier: res.Identifier, TdpId: res.TdpId,Status:"Success!"}
+			Identifier: res.Identifier, TdpId: res.TdpId, Status: "Success!"}
 
 		result = append(result, temp)
 
