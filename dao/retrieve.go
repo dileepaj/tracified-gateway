@@ -283,7 +283,6 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 
 }
 
-
 /*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
 @author - Azeem Ashraf
 */
@@ -943,6 +942,58 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 
 		c := session.DB("tracified-gateway-staging").C("TempOrphan")
 		err1 := c.Find(bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway-staging").C("Transactions")
+		f := c.Find(bson.M{})
+		count, er := f.Count()
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		if count > limit {
+			err1 := f.Skip(count - limit).All(&result)
+			if err1 != nil {
+				// fmt.Println(err1)
+				reject(err1)
+
+			} else {
+				resolve(result)
+
+			}
+
+		}
+
+		err1 := f.All(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)

@@ -3,16 +3,18 @@ package businessFacades
 import (
 	"encoding/base64"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-    "regexp"
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"regexp"
+	"strconv"
 
-	"github.com/stellar/go/strkey"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/gorilla/mux"
+	"github.com/stellar/go/strkey"
 )
 
 type transaction struct {
@@ -504,15 +506,23 @@ func checkValidVersionByte(key string) string {
 	return ""
 }
 
-//RetrievePOGTransactionByTxnId ...
-func RetrievePOGTransactionByTxnId(w http.ResponseWriter, r *http.Request) {
+//RetrievePreviousTranasctions ...
+func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
 	var result []model.TransactionIds
 	object := dao.Connection{}
-	p := object.GetAllTransactionForTxId(vars["id"])
-	fmt.Println(vars["id"])
+
+	limit, err := strconv.Atoi(vars["limit"])
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "The parameter should be an integer"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	p := object.GetPreviousTransactions(limit)
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
@@ -540,7 +550,7 @@ func RetrievePOGTransactionByTxnId(w http.ResponseWriter, r *http.Request) {
 		return nil
 	}).Catch(func(error error) error {
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "TDP ID Not Found in Gateway DataStore"}
+		response := model.Error{Message: "No Transactions Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})

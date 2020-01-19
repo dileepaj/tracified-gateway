@@ -277,5 +277,11 @@ var routes = Routes{
 		"GET",
 		"/GetTransactionId/{id}",
 		businessFacades.RetriveTransactionId, //Test
+	},	
+	Route{
+		"RetrievePreviousTranasctions",
+		"GET",
+		"/RetrievePreviousTranasctions/{limit}",
+		businessFacades.RetrievePreviousTranasctions, //Test
 	},
 }
