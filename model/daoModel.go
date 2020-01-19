@@ -20,7 +20,7 @@ type COCCollectionBody struct {
 type TransactionCollectionBody struct {
 	Identifier      string
 	TdpId           string
-	SequenceNo int64
+	SequenceNo      int64
 	ProfileID       string
 	TxnHash         string
 	PreviousTxnHash string
@@ -72,6 +72,7 @@ type TransactionId struct {
 }
 
 type TransactionIds struct {
+	Status     string
 	Txnhash    string
 	Url        string
 	Identifier string

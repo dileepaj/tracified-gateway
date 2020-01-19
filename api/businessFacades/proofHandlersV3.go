@@ -505,7 +505,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
 			return json.NewEncoder(w).Encode(response)
-			 
+
 		}
 
 		data, _ := ioutil.ReadAll(result1.Body)
@@ -606,7 +606,9 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			//ignore error
 		}
-		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr}
+		proofhash := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		fmt.Println(proofhash)
+		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash}
 		display.InterpretPOCOC(w, r)
 	}
 
