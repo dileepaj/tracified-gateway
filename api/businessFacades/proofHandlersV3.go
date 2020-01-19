@@ -536,7 +536,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		byteData1, _ := base64.StdEncoding.DecodeString(keys[1].Value)
 		Previous := string(byteData1)
 
-		if Type != "0" || Previous != "" {
+		if Type != "0" && Previous != "" {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "This Transaction is not a Genesis Txn"}
 			json.NewEncoder(w).Encode(response)
