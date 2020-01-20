@@ -166,7 +166,70 @@ func CheckTempOrphan() {
 					err2 := object.InsertTransaction(result)
 					if err2 != nil {
 						break
+					}				
+				case "9":
+
+					var PreviousTXNBuilder build.ManageDataBuilder
+
+					// var PreviousTxn string
+					p := object.GetLastTransactionbyIdentifier(result.Identifier)
+					p.Then(func(data interface{}) interface{} {
+						///ASSIGN PREVIOUS MANAGE DATA BUILDER
+						res := data.(model.TransactionCollectionBody)
+						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
+						result.PreviousTxnHash = res.TxnHash
+						return nil
+					}).Catch(func(error error) error {
+
+						return error
+					})
+					p.Await()
+
+					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
+					response := display.SubmitXDR(false, result.TxnType)
+					UserTxnHash = response.TXNID
+					if response.Error.Code == 400 {
+						break
 					}
+					//BUILD THE GATEWAY XDR
+					tx, err := build.Transaction(
+						build.PublicNetwork,
+						build.SourceAccount{publicKey},
+						build.AutoSequence{horizon.DefaultPublicNetClient},
+						build.SetData("Type", []byte("G"+result.TxnType)),
+						PreviousTXNBuilder,
+						build.SetData("CurrentTXN", []byte(UserTxnHash)),
+					)
+
+					//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+					GatewayTXE, err := tx.Sign(secretKey)
+					if err != nil {
+						break
+					}
+
+					//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+					txeB64, err := GatewayTXE.Base64()
+					if err != nil {
+						break
+					}
+
+					//SUBMIT THE GATEWAY'S SIGNED XDR
+					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+					response1 := display1.SubmitXDR(false, "G"+result.TxnType)
+
+					if response1.Error.Code == 400 {
+						break
+					}
+
+					result.TxnHash = response1.TXNID
+					result.Status = "done"
+					///INSERT INTO TRANSACTION COLLECTION
+					err2 := object.InsertTransaction(result)
+					if err2 != nil {
+						break
+					}
+				
+				
 				}
 				return nil
 			}).Catch(func(error error) error {

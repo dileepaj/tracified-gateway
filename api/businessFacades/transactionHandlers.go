@@ -302,7 +302,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
-	display.SubmitSpecial(w, r)
+	display.SubmitSpecialData(w, r)
 
 	return
 }
@@ -480,22 +480,22 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status := display.SubmitTransfer()
+	display.SubmitSpecialTransfer(w, r)
 
 	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	// if status {
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Success",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// } else {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Failed",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }
 	return
 }
 

@@ -302,7 +302,7 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 		}
 		defer session.Close()
 
-		c := session.DB("tracified-gateway").C("COC")
+		c := session.DB("tracified-gateway-staging").C("COC")
 		er := c.Find(bson.M{"txnhash": txnHash}).One(&result)
 		if er != nil {
 			// fmt.Println(er)
@@ -1008,3 +1008,6 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 	return p
 
 }
+
+
+

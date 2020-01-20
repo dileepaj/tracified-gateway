@@ -144,7 +144,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	var pocStructObj apiModel.POCStruct
 
 	//checks the gateway DB for a TXN with the TdpID in the parameter
-	p := object.GetTransactionForTdpId(vars["TdpID"])
+	p := object.GetTransactionByTxnhash(vars["TdpID"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)

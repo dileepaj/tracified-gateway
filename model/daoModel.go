@@ -35,6 +35,10 @@ type TransactionCollectionBody struct {
 	Status          string
 	MergeID         string
 	Orphan          bool
+	PreviousStage   string
+	CurrentStage    string
+	AppAccount      string
+	DataHash        string
 }
 
 type ProfileCollectionBody struct {
