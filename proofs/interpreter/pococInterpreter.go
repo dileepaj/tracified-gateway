@@ -38,7 +38,7 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 	var result []model.POCOCResponse
 	FromSigned := true
 	ToSigned := false
-	if AP.COCStatus != "pending" || AP.COCStatus != "expired" {
+	if AP.COCStatus != "pending" && AP.COCStatus != "expired" {
 		ToSigned = true
 	}
 
