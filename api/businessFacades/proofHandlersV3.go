@@ -488,19 +488,19 @@ Finally Returns the Response given by the FullPOC Interpreter
 */
 func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var txe xdr.Transaction
 
 	vars := mux.Vars(r)
-	var result []model.TransactionIds
+	var result []model.POGResponse
 	object := dao.Connection{}
 	p := object.GetTransactionByTxnhash(vars["Txn"])
 	fmt.Println(vars["Txn"])
 	p.Then(func(dat interface{}) interface{} {
 		res := dat.(model.TransactionCollectionBody)
 		TxnHash := res.TxnHash
+		PublicKey := res.PublicKey
 
-		// var UserGenesis string
-
-		result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash + "/operations")
+		result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
@@ -517,24 +517,18 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(response)
 			return nil
 		}
-
 		var raw map[string]interface{}
 		json.Unmarshal(data, &raw)
-		// raw["count"] = 2
-		out, _ := json.Marshal(raw["_embedded"])
-		var raw1 map[string]interface{}
-		json.Unmarshal(out, &raw1)
-		out1, _ := json.Marshal(raw1["records"])
 
-		keysBody := out1
-		keys := make([]PublicKey, 0)
-		json.Unmarshal(keysBody, &keys)
-
+		fmt.Println(raw["envelope_xdr"])
+		fmt.Println("HAHAHAHAAHAHAH")
+		timestamp := fmt.Sprintf("%s", raw["created_at"])
+		errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
+		if errXDR != nil {
+		}
 		//GET THE USER SIGNED GENESIS TXN
-		byteData0, _ := base64.StdEncoding.DecodeString(keys[0].Value)
-		Type := string(byteData0)
-		byteData1, _ := base64.StdEncoding.DecodeString(keys[1].Value)
-		Previous := string(byteData1)
+		Type := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		Previous := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 
 		if Type != "0" && Previous != "" {
 			w.WriteHeader(http.StatusBadRequest)
@@ -546,19 +540,20 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		mapD := map[string]string{"transaction": TxnHash}
 		mapB, _ := json.Marshal(mapD)
 		fmt.Println(string(mapB))
-		// trans := transaction{transaction:TxnHash}
-		// s := fmt.Sprintf("%v", trans)
 
 		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 		text := (string(encoded))
-		temp := model.TransactionIds{Txnhash: TxnHash,
+		temp := model.POGResponse{
+			Txnhash: TxnHash,
 			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
-			Identifier: res.Identifier, TdpId: res.TdpId, Status: "Success!"}
-
+			Identifier:     res.Identifier,
+			Status:         "Success!",
+			BlockchainName: "Stellar",
+			Timestamp:      timestamp,
+			SourceAccount:  PublicKey}
 		result = append(result, temp)
 
-		// res := TDP{TdpId: result.TdpId}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
@@ -612,7 +607,8 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		}
 		proofhash := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		fmt.Println(proofhash)
-		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash}
+		COCStatus := COC.Status
+		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus}
 		display.InterpretPOCOC(w, r)
 	}
 

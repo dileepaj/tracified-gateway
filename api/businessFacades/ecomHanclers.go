@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/base64"
+	"io/ioutil"
 
 	"encoding/json"
 	"fmt"
@@ -511,7 +512,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
-	var result []model.TransactionIds
+	var result []model.PrevTxnResponse
 	object := dao.Connection{}
 
 	limit, err := strconv.Atoi(vars["limit"])
@@ -528,6 +529,24 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		for _, TxnBody := range res {
 			TxnHash := TxnBody.TxnHash
 
+			result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+			if err != nil {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+				json.NewEncoder(w).Encode(response)
+				return nil
+			}
+			data, _ := ioutil.ReadAll(result1.Body)
+			if result1.StatusCode != 200 {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+				json.NewEncoder(w).Encode(response)
+				return nil
+			}
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+			timestamp := fmt.Sprintf("%s", raw["created_at"])
+
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
 			fmt.Println(string(mapB))
@@ -536,10 +555,14 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := (string(encoded))
-			temp := model.TransactionIds{Txnhash: TxnHash,
+			temp := model.PrevTxnResponse{Txnhash: TxnHash,
 				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
+				Identifier:    TxnBody.Identifier,
+				TdpId:         TxnBody.TdpId,
+				Timestamp:     timestamp,
+				SourceAccount: TxnBody.PublicKey,
+				TxnType:       TxnBody.TxnType}
 
 			result = append(result, temp)
 		}

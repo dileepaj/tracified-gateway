@@ -83,17 +83,41 @@ type TransactionIds struct {
 	TdpId      string
 }
 
+type PrevTxnResponse struct {
+	Status        string
+	Txnhash       string
+	TxnType       string
+	Url           string
+	SourceAccount string
+	Identifier    string
+	TdpId         string
+	Timestamp     string
+}
+
 type POCOCResponse struct {
-	Status     string
-	Txnhash    string
-	Url        string
-	Identifier string
-	TdpId      string
-	Quantity   string
-	AssetCode  string
-	From       string
-	To         string
-	Timestamp  string
+	Status         string
+	Txnhash        string
+	Url            string
+	Identifier     string
+	Quantity       string
+	AssetCode      string
+	From           string
+	To             string
+	FromSigned     bool
+	ToSigned       bool
+	BlockchainName string
+	COCStatus      string
+	Timestamp      string
+}
+
+type POGResponse struct {
+	Status         string
+	Txnhash        string
+	Url            string
+	SourceAccount  string
+	Identifier     string
+	BlockchainName string
+	Timestamp      string
 }
 
 type COCCollectionList struct {
