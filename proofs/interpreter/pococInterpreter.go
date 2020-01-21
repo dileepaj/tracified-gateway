@@ -34,10 +34,10 @@ type AbstractPOCOC struct {
 @params - ResponseWriter,Request
 */
 func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) {
-	var result []model.TransactionIds
+	var result []model.POCOCResponse
 
 	object := stellarRetriever.ConcretePOCOC{Txn: AP.ProofHash}
-	bcCOC, state := object.RetrievePOCOC()
+	bcCOC, state, timestamp := object.RetrievePOCOC()
 	if !state {
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "Failed to retrieve blockchain proof transaction"}
@@ -60,12 +60,17 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 
 	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 	text := (string(encoded))
-	temp := model.TransactionIds{
+	temp := model.POCOCResponse{
 		Txnhash: AP.Txn,
 		Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=public",
-		Identifier: strings.TrimLeft(fmt.Sprintf("%s", AP.BCCOC.Operations[1].Body.ManageDataOp.DataValue), "&"),
+		Identifier: strings.TrimLeft(fmt.Sprintf("%s", AP.DBCOC.Operations[1].Body.ManageDataOp.DataValue), "&"),
 		TdpId:      "",
+		From:       AP.DBCOC.Operations[1].SourceAccount.Address(),
+		To:         AP.DBCOC.Operations[3].Body.PaymentOp.Destination.Address(),
+		Timestamp:  timestamp,
+		Quantity:   strings.TrimRight(strconv.FormatInt(int64(AP.DBCOC.Operations[3].Body.PaymentOp.Amount), 10), "0"),
+		AssetCode:  strings.TrimRight(fmt.Sprintf("%s", AP.DBCOC.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode),"\u0000"),
 		Status:     res.Status}
 
 	result = append(result, temp)
@@ -83,9 +88,8 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
 	var result apiModel.SubmitXDRSuccess
 
-	fmt.Println(strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10),"0"))
+	fmt.Println(strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10), "0"))
 	fmt.Println(strings.TrimLeft(fmt.Sprintf("%s", bc.Operations[4].Body.ManageDataOp.DataValue), "&"))
-
 
 	if db.Operations[1].SourceAccount.Address() != bc.SourceAccount.Address() {
 		result.Status = "Failed, Source Address in Gateway and Blockchain Doesn't match"
@@ -100,12 +104,12 @@ func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSucces
 		return result
 
 	} else if !strings.Contains(
-		fmt.Sprintf("%s", db.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode),
+		strings.TrimRight(fmt.Sprintf("%s", db.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode),"\u0000"),
 		strings.TrimLeft(fmt.Sprintf("%s", bc.Operations[3].Body.ManageDataOp.DataValue), "&")) {
 		result.Status = "Failed, Asset Code in Gateway and Blockchain Doesn't match"
 		return result
 
-	} else if strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10),"0") !=
+	} else if strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10), "0") !=
 		strings.TrimLeft(fmt.Sprintf("%s", bc.Operations[4].Body.ManageDataOp.DataValue), "&") {
 		result.Status = "Failed, Asset Amount in Gateway and Blockchain Doesn't match"
 		return result

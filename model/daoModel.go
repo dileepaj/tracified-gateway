@@ -83,6 +83,19 @@ type TransactionIds struct {
 	TdpId      string
 }
 
+type POCOCResponse struct {
+	Status     string
+	Txnhash    string
+	Url        string
+	Identifier string
+	TdpId      string
+	Quantity   string
+	AssetCode  string
+	From       string
+	To         string
+	Timestamp  string
+}
+
 type COCCollectionList struct {
 	List []COCCollectionBody
 }
