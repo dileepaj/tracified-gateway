@@ -84,14 +84,19 @@ type TransactionIds struct {
 }
 
 type PrevTxnResponse struct {
-	Status        string
-	Txnhash       string
-	TxnType       string
-	Url           string
-	SourceAccount string
-	Identifier    string
-	TdpId         string
-	Timestamp     string
+	Status         string
+	Txnhash        string
+	TxnType        string
+	Url            string
+	From           string
+	To             string
+	SourceAccount  string
+	Identifier     string
+	TdpId          string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	AvailableProof string
 }
 
 type POCOCResponse struct {
