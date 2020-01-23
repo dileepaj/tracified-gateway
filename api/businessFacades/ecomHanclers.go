@@ -432,7 +432,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 				return nil
 			}
-	
+
 			if status == "success" {
 
 				var raw map[string]interface{}
@@ -468,12 +468,14 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 					text + "%3D%3D&network=public",
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
 				TxnType:        getTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
 				Ledger:         ledger,
 				SourceAccount:  TxnBody.PublicKey,
 				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
 				AvailableProof: getProofName(TxnBody.TxnType),
 				To:             to}
 
@@ -636,12 +638,14 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					text + "%3D%3D&network=public",
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
 				TxnType:        getTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
 				Ledger:         ledger,
 				SourceAccount:  TxnBody.PublicKey,
 				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
 				AvailableProof: getProofName(TxnBody.TxnType),
 				To:             to}
 

@@ -87,6 +87,7 @@ type PrevTxnResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
+	SequenceNo     int64
 	Url            string
 	From           string
 	To             string
@@ -97,6 +98,7 @@ type PrevTxnResponse struct {
 	Ledger         string
 	FeePaid        string
 	AvailableProof string
+	DataHash       string
 }
 
 type POCOCResponse struct {
