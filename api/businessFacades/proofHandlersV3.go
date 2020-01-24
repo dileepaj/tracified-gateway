@@ -144,14 +144,17 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	var pocStructObj apiModel.POCStruct
 
 	//checks the gateway DB for a TXN with the TdpID in the parameter
-	p := object.GetTransactionForTdpId(vars["TdpID"])
+	p := object.GetTransactionByTxnhash(vars["TdpID"])
+
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
 		// fmt.Println(result)
 
-		//using the identifier retrieved from the gateway DB for the particular TdpID 
+
+		//using the identifier retrieved from the gateway DB for the particular TdpID
+
 		//retrieve all the transactions.
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
@@ -168,21 +171,22 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 					// response.Error = Rerr
 					// return response
 				}
-			
+
 				data, _ := ioutil.ReadAll(result1.Body)
 				var raw map[string]interface{}
 				json.Unmarshal(data, &raw)
 				out, _ := json.Marshal(raw["_embedded"])
-			
+
 				var raw1 map[string]interface{}
 				json.Unmarshal(out, &raw1)
-			
+
 				out1, _ := json.Marshal(raw1["records"])
-			
+
 				keysBody := out1
 				keys := make([]PublicKeyPOC, 0)
 				json.Unmarshal(keysBody, &keys)
-			
+
+
 				Current := Base64DecEnc("Decode", keys[2].Value)
 				// GatewayTXNType := Base64DecEnc("Decode", keys[0].Value)
 
@@ -226,7 +230,9 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 					}
 				} else {
-					//this should be wear all future TXN types and their fields should be assigned 
+
+					//this should be wear all future TXN types and their fields should be assigned
+
 					//when retrieving from the gateway DB
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
@@ -479,6 +485,96 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
+/*CheckPOGV3Rewrite - WORKING MODEL
+@author - Azeem Ashraf, Jajeththanan Sabapathipillai
+@desc - Handles the Proof of Genesis  Retrieves the TXN ID and calls POG Interpreter
+Creates the Complete tree using the gateway DB
+and calls FullPOC Interpreter sending the tree in as a Param
+Finally Returns the Response given by the FullPOC Interpreter
+@params - ResponseWriter,Request
+*/
+func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var txe xdr.Transaction
+
+	vars := mux.Vars(r)
+	var result []model.POGResponse
+	object := dao.Connection{}
+	p := object.GetTransactionByTxnhash(vars["Txn"])
+	fmt.Println(vars["Txn"])
+	p.Then(func(dat interface{}) interface{} {
+		res := dat.(model.TransactionCollectionBody)
+		TxnHash := res.TxnHash
+		PublicKey := res.PublicKey
+
+		result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+			json.NewEncoder(w).Encode(response)
+			return nil
+
+		}
+
+		data, _ := ioutil.ReadAll(result1.Body)
+
+		if result1.StatusCode != 200 {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+			json.NewEncoder(w).Encode(response)
+			return nil
+		}
+		var raw map[string]interface{}
+		json.Unmarshal(data, &raw)
+
+		fmt.Println(raw["envelope_xdr"])
+		fmt.Println("HAHAHAHAAHAHAH")
+		timestamp := fmt.Sprintf("%s", raw["created_at"])
+		errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
+		if errXDR != nil {
+		}
+		//GET THE USER SIGNED GENESIS TXN
+		Type := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		Previous := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
+
+		if Type != "0" && Previous != "" {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "This Transaction is not a Genesis Txn"}
+			json.NewEncoder(w).Encode(response)
+			return nil
+		}
+
+		mapD := map[string]string{"transaction": TxnHash}
+		mapB, _ := json.Marshal(mapD)
+		fmt.Println(string(mapB))
+
+		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+		text := (string(encoded))
+		temp := model.POGResponse{
+			Txnhash: TxnHash,
+			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				text + "%3D%3D&network=public",
+			Identifier:     res.Identifier,
+			Status:         "Success!",
+			BlockchainName: "Stellar",
+			Timestamp:      timestamp,
+			SourceAccount:  PublicKey}
+		result = append(result, temp)
+
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+}
+
+
 /*CheckPOCOCV3 - WORKING MODEL
 @author - Azeem Ashraf
 @desc - Handles the Proof of Change of Custody by using the last COC TXN ID as Param,
@@ -518,7 +614,12 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			//ignore error
 		}
-		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr}
+
+		proofhash := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		fmt.Println(proofhash)
+		COCStatus := COC.Status
+		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus}
+
 		display.InterpretPOCOC(w, r)
 	}
 

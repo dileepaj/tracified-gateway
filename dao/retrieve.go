@@ -68,7 +68,9 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		}
 		defer session.Close()
 
+
 		c := session.DB("tracified-gateway").C("COC")
+
 		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
 		if er != nil {
 			// fmt.Println(er)
@@ -230,6 +232,7 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 		err1 := c.Find(bson.M{"status": status}).All(&result)
 		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
+
 			reject(err1)
 
 		} else {
@@ -272,6 +275,7 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		err1 := c.Find(bson.M{"identifier": identifier}).Skip(count - 1).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
+
 			reject(err1)
 		}
 
@@ -317,6 +321,7 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 	return p
 
 }
+
 /*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
@@ -370,7 +375,9 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		}
 		defer session.Close()
 
+
 		c := session.DB("tracified-gateway").C("Transactions")
+
 		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
@@ -445,6 +452,59 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 			reject(err1)
 
 		} else {
+
+			resolve(result)
+		}
+
+	})
+
+	return p
+
+}
+
+
+func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		f := c.Find(bson.M{})
+		count, er := f.Count()
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		if count > limit {
+			err1 := f.Skip(count - limit).All(&result)
+			if err1 != nil {
+				// fmt.Println(err1)
+				reject(err1)
+
+			} else {
+				resolve(result)
+
+			}
+
+		}
+
+		err1 := f.All(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
 			resolve(result)
 
 		}
@@ -454,6 +514,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 
 }
+
 
 func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}

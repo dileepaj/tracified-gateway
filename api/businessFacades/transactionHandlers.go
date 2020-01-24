@@ -215,6 +215,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
 /*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
@@ -250,6 +251,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(result)
 		fmt.Println(err)
+
 		return
 	}
 	fmt.Println(TDP)
@@ -330,7 +332,6 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 			Status: "No Content-Type present!",
 		}
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}
 
@@ -387,6 +388,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		fmt.Println(err)
 		return
+
 	}
 	fmt.Println(TDP)
 
@@ -480,24 +482,25 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	status := display.SubmitTransfer()
+	display.SubmitSpecialTransfer(w, r)
 
 	// status, _ := builder.XDRSubmitter(TDP)
-	if status {
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success",
-		}
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Failed",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+	// if status {
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Success",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// } else {
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Failed",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }
 	return
 }
+
 
 /*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
 @author - Azeem Ashraf
@@ -764,6 +767,7 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 	}).Catch(func(error error) error {
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TdpId Not Found in Gateway DataStore"}
+
 		json.NewEncoder(w).Encode(response)
 		return error
 	})
@@ -799,6 +803,7 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
+
 func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -856,4 +861,5 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+
 }

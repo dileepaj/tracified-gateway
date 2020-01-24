@@ -208,6 +208,7 @@
     "github.com/stellar/go/build",
     "github.com/stellar/go/clients/horizon",
     "github.com/stellar/go/keypair",
+    "github.com/stellar/go/strkey",
     "github.com/stellar/go/xdr",
     "gopkg.in/mgo.v2",
     "gopkg.in/mgo.v2/bson",

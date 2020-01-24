@@ -39,7 +39,7 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 
 	}
 
-	c := session.DB("tracified-gateway").C("Transactions")
+	c := session.DB("tracified-gateway-staging").C("Transactions")
 	err1 := c.Update(selector, up)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -77,7 +77,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SequenceNo: selector.SequenceNo,
 		}
 
-		c := session.DB("tracified-gateway").C("COC")
+		c := session.DB("tracified-gateway-staging").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
@@ -100,7 +100,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SequenceNo: selector.SequenceNo,
 		}
 
-		c := session.DB("tracified-gateway").C("COC")
+		c := session.DB("tracified-gateway-staging").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)
@@ -126,7 +126,7 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			
 		}
 
-		c := session.DB("tracified-gateway").C("COC")
+		c := session.DB("tracified-gateway-staging").C("COC")
 		err1 := c.Update(selector, up)
 		if err1 != nil {
 			fmt.Println(err1)

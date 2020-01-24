@@ -29,154 +29,156 @@ type AbstractXDRSubmiter struct {
 /*SubmitTransfer - Deprecated
 @author - Azeem Ashraf
 */
-func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
-	var Done bool
-	object := dao.Connection{}
-	var copy []model.TransactionCollectionBody
 
-	var UserTxnHashes []string
-	// var PreviousTxn []string
-	///HARDCODED CREDENTIALS
-	publicKey := constants.PublicKey
-	secretKey := constants.SecretKey
-	// var result model.SubmitXDRResponse
+// func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
+// 	var Done bool
+// 	object := dao.Connection{}
+// 	var copy []model.TransactionCollectionBody
 
-	for i, TxnBody := range AP.TxnBody {
-		var TDP model.TransactionCollectionBody
-		var txe xdr.Transaction
+// 	var UserTxnHashes []string
+// 	// var PreviousTxn []string
+// 	///HARDCODED CREDENTIALS
+// 	publicKey := constants.PublicKey
+// 	secretKey := constants.SecretKey
+// 	// var result model.SubmitXDRResponse
 
-		//decode the XDR
-		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
-		if err != nil {
-			fmt.Println(err)
-		}
+// 	for i, TxnBody := range AP.TxnBody {
+// 		var TDP model.TransactionCollectionBody
+// 		var txe xdr.Transaction
 
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		TxnBody.PublicKey = txe.SourceAccount.Address()
-		// TDP.PreviousTxnHash=
-		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		TxnBody.Identifier = Identifier
-		TxnBody.TxnType = TxnType
-		TxnBody.Status = "pending"
-		// TxnBody.TdpId=
-		AP.TxnBody[i].Identifier = Identifier
-		AP.TxnBody[i].TxnType = TxnType
+// 		//decode the XDR
+// 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
+// 		if err != nil {
+// 			fmt.Println(err)
+// 		}
 
-		fmt.Println(Identifier)
-		p := object.GetLastTransactionbyIdentifier(Identifier)
-		p.Then(func(data interface{}) interface{} {
-			///ASSIGN PREVIOU y S MANAGE DATA BUILDER
+// 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
+// 		TxnBody.PublicKey = txe.SourceAccount.Address()
+// 		// TDP.PreviousTxnHash=
+// 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+// 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
+// 		TxnBody.Identifier = Identifier
+// 		TxnBody.TxnType = TxnType
+// 		TxnBody.Status = "pending"
+// 		// TxnBody.TdpId=
+// 		AP.TxnBody[i].Identifier = Identifier
+// 		AP.TxnBody[i].TxnType = TxnType
 
-			result := data.(model.TransactionCollectionBody)
-			if result.TxnHash == "" {
-				fmt.Println("Sending to Orphanage!")
-				AP.TxnBody[i].Orphan = true
-				// TxnBody.Orphan = true
+// 		fmt.Println(Identifier)
+// 		p := object.GetLastTransactionbyIdentifier(Identifier)
+// 		p.Then(func(data interface{}) interface{} {
+// 			///ASSIGN PREVIOU y S MANAGE DATA BUILDER
 
-				//INSERT THE TXN INTO THE BUFFER
-				err1 := object.InsertToOrphan(TxnBody)
-				if err1 != nil {
-					TDP.Status = "failed"
-				} else {
-					Done = true
+// 			result := data.(model.TransactionCollectionBody)
+// 			if result.TxnHash == "" {
+// 				fmt.Println("Sending to Orphanage!")
+// 				AP.TxnBody[i].Orphan = true
+// 				// TxnBody.Orphan = true
 
-				}
+// 				//INSERT THE TXN INTO THE BUFFER
+// 				err1 := object.InsertToOrphan(TxnBody)
+// 				if err1 != nil {
+// 					TDP.Status = "failed"
+// 				} else {
+// 					Done = true
 
-			} else {
-				TxnBody.PreviousTxnHash = result.TxnHash
-				fmt.Println("Previous TXN: " + result.TxnHash)
+// 				}
 
-				copy = append(copy, TxnBody)
-				///INSERT INTO TRANSACTION COLLECTION
-				err1 := object.InsertTransaction(TxnBody)
-				if err1 != nil {
-					TDP.Status = "failed"
-				}
-				//SUBMIT THE FIRST XDR SIGNED BY THE USER
-				display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
-				result1 := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
-				UserTxnHashes = append(UserTxnHashes, result1.TXNID)
+// 			} else {
+// 				TxnBody.PreviousTxnHash = result.TxnHash
+// 				fmt.Println("Previous TXN: " + result.TxnHash)
 
-				if result1.Error.Code != 404 {
-					Done = true
-					// return Done
-				}
+// 				copy = append(copy, TxnBody)
+// 				///INSERT INTO TRANSACTION COLLECTION
+// 				err1 := object.InsertTransaction(TxnBody)
+// 				if err1 != nil {
+// 					TDP.Status = "failed"
+// 				}
+// 				//SUBMIT THE FIRST XDR SIGNED BY THE USER
+// 				display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
+// 				result1 := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
+// 				UserTxnHashes = append(UserTxnHashes, result1.TXNID)
 
-				var PreviousTXNBuilder build.ManageDataBuilder
+// 				if result1.Error.Code != 404 {
+// 					Done = true
+// 					// return Done
+// 				}
 
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(copy[i].PreviousTxnHash))
+// 				var PreviousTXNBuilder build.ManageDataBuilder
 
-				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					build.TestNetwork,
-					build.SourceAccount{publicKey},
-					build.AutoSequence{horizon.DefaultPublicNetClient},
-					build.SetData("Type", []byte("G"+TxnBody.TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				)
+// 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(copy[i].PreviousTxnHash))
 
-				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-				GatewayTXE, err := tx.Sign(secretKey)
-				if err != nil {
-					fmt.Println(err)
-				}
-				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
-				txeB64, err := GatewayTXE.Base64()
-				if err != nil {
-					fmt.Println(err)
-				}
+// 				//BUILD THE GATEWAY XDR
+// 				tx, err := build.Transaction(
+// 					build.TestNetwork,
+// 					build.SourceAccount{publicKey},
+// 					build.AutoSequence{horizon.DefaultTestNetClient},
+// 					build.SetData("Type", []byte("G"+TxnBody.TxnType)),
+// 					PreviousTXNBuilder,
+// 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+// 				)
 
-				//SUBMIT THE GATEWAY'S SIGNED XDR
-				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
+// 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+// 				GatewayTXE, err := tx.Sign(secretKey)
+// 				if err != nil {
+// 					fmt.Println(err)
+// 				}
+// 				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+// 				txeB64, err := GatewayTXE.Base64()
+// 				if err != nil {
+// 					fmt.Println(err)
+// 				}
 
-				if response1.Error.Code == 404 {
-					TxnBody.Status = "pending"
-					Done = false
-				} else {
-					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
-					TxnBody.TxnHash = response1.TXNID
+// 				//SUBMIT THE GATEWAY'S SIGNED XDR
+// 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+// 				response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
-					upd := model.TransactionCollectionBody{
-						TxnHash: response1.TXNID,
-						Status:  "done",
-					}
-					err2 := object.UpdateTransaction(copy[i], upd)
-					if err2 != nil {
-						TxnBody.Status = "pending"
-					} else {
-						TxnBody.Status = "done"
-					}
-					Done = true
-				}
-			}
+// 				if response1.Error.Code == 404 {
+// 					TxnBody.Status = "pending"
+// 					Done = false
+// 				} else {
+// 					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+// 					TxnBody.TxnHash = response1.TXNID
 
-			return nil
-		}).Catch(func(error error) error {
-			///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
-			fmt.Println("Sending to Orphanage!")
-			AP.TxnBody[i].Orphan = true
-			// TxnBody.Orphan = true
+// 					upd := model.TransactionCollectionBody{
+// 						TxnHash: response1.TXNID,
+// 						Status:  "done",
+// 					}
+// 					err2 := object.UpdateTransaction(copy[i], upd)
+// 					if err2 != nil {
+// 						TxnBody.Status = "pending"
+// 					} else {
+// 						TxnBody.Status = "done"
+// 					}
+// 					Done = true
+// 				}
+// 			}
 
-			//INSERT THE TXN INTO THE BUFFER
-			err1 := object.InsertToOrphan(TxnBody)
-			if err1 != nil {
-				TDP.Status = "failed"
-			} else {
-				Done = true
+// 			return nil
+// 		}).Catch(func(error error) error {
+// 			///ASSIGN PREVIOUS MANAGE DATA BUILDER - LEAVE IT EMPTY
+// 			fmt.Println("Sending to Orphanage!")
+// 			AP.TxnBody[i].Orphan = true
+// 			// TxnBody.Orphan = true
 
-			}
+// 			//INSERT THE TXN INTO THE BUFFER
+// 			err1 := object.InsertToOrphan(TxnBody)
+// 			if err1 != nil {
+// 				TDP.Status = "failed"
+// 			} else {
+// 				Done = true
 
-			return error
-		})
-		p.Await()
+// 			}
 
-	}
+// 			return error
+// 		})
+// 		p.Await()
 
-	return Done
-}
+// 	}
+
+// 	return Done
+// }
+
 
 /*XDRSubmitter - Deprecated
 @author - Azeem Ashraf
@@ -248,7 +250,9 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 				tx, err := build.Transaction(
 					build.TestNetwork,
 					build.SourceAccount{publicKey},
+
 					build.AutoSequence{horizon.DefaultPublicNetClient},
+
 					build.SetData("Type", []byte("G"+TDP[i].TxnType)),
 					PreviousTXNBuilder,
 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
