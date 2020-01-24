@@ -3,21 +3,22 @@ package businessFacades
 import (
 	"encoding/base64"
 	"io/ioutil"
-
 	"github.com/stellar/go/xdr"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+
 
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"regexp"
+
 	"strconv"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-
+	"github.com/stellar/go/strkey"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/strkey"
+
 )
 
 type transaction struct {
@@ -412,6 +413,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			TxnHash := TxnBody.TxnHash
+
 			var txe xdr.Transaction
 			status := "success"
 			timestamp := ""
@@ -462,6 +464,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := (string(encoded))
+
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
 				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
@@ -479,6 +482,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: getProofName(TxnBody.TxnType),
 				To:             to}
 
+
 			result = append(result, temp)
 		}
 
@@ -495,6 +499,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
+
 
 /*GetCOCByTxn - WORKING MODEL
 @author - Azeem Ashraf
@@ -702,3 +707,4 @@ func getProofName(Type string) string {
 	}
 	return Type
 }
+

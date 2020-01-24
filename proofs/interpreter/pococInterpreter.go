@@ -1,12 +1,14 @@
 package interpreter
 
 import (
+
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/model"
+
 
 	"strings"
 
@@ -21,12 +23,14 @@ import (
 )
 
 type AbstractPOCOC struct {
+
 	ProofHash string
 	Txn       string
 	DBCOC     xdr.Transaction
 	BCCOC     xdr.Transaction
 	XDR       string
 	COCStatus string
+
 }
 
 /*InterpretPOCOC - Working Model
@@ -35,6 +39,7 @@ type AbstractPOCOC struct {
 @params - ResponseWriter,Request
 */
 func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) {
+  
 	var result []model.POCOCResponse
 	FromSigned := true
 	ToSigned := false
@@ -104,12 +109,14 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 		COCStatus:      AP.COCStatus}
 	result = append(result, temp)
 	json.NewEncoder(w).Encode(result)
+
 	return
 
 }
 
 func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
 	var result apiModel.SubmitXDRSuccess
+
 
 	fmt.Println(strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10), "0"))
 	fmt.Println(strings.TrimLeft(fmt.Sprintf("%s", bc.Operations[4].Body.ManageDataOp.DataValue), "&"))
@@ -144,6 +151,7 @@ func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSucces
 
 	} else {
 		result.Status = "Success, COC in Gateway and Blockchain matches"
+
 
 	}
 

@@ -261,6 +261,12 @@ var routes = Routes{
 		businessFacades.GetTransactionsForPK, //Test
 	},
 	Route{
+		"RetriveTransactionId",
+		"GET",
+		"/GetTransactionId/{id}",
+		businessFacades.RetriveTransactionId, //Test
+	},
+	Route{
 		"QueryTransactionsByKey",
 		"GET",
 		"/GetTransactions/{key}",
@@ -283,5 +289,11 @@ var routes = Routes{
 		"GET",
 		"/RetrievePreviousTranasctions/{limit}",
 		businessFacades.RetrievePreviousTranasctions, //Test
+  },
+  Route{
+		"ArtifactTransactions",
+		"POST",
+		"/Insert/ArtifactTransactions",
+		businessFacades.ArtifactTransactions, //Test
 	},
 }

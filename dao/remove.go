@@ -17,7 +17,9 @@ func (cd *Connection) RemoveFromOrphanage(Identifier string) error {
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Orphan")
+
+	c := session.DB("tracified-gateway").C("Orphan")
+
 	err1 := c.Remove(bson.M{"identifier": Identifier})
 	if err1 != nil {
 		fmt.Println(err1)

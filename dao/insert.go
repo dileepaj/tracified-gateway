@@ -58,7 +58,8 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("TempOrphan")
+
+	c := session.DB("tracified-gateway").C("TempOrphan")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -78,7 +79,8 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Orphan")
+
+	c := session.DB("tracified-gateway").C("Orphan")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -98,7 +100,8 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Profiles")
+
+	c := session.DB("tracified-gateway").C("Profiles")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -118,7 +121,7 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Certificates")
+	c := session.DB("tracified-gateway").C("Certificates")
 	err1 := c.Insert(Cert)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -126,3 +129,21 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 
 	return err
 }
+
+func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("Artifacts")
+	err1 := c.Insert(artifacts)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	return err
+}
+

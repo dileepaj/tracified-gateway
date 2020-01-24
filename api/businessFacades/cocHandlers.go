@@ -102,8 +102,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.TestNetwork.Passphrase}
-	fmt.Println(build.TestNetwork.Passphrase)
+
+	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.PublicNetwork.Passphrase}
+	fmt.Println(build.PublicNetwork.Passphrase)
+
 	t, _ := brr.Hash()
 	test := fmt.Sprintf("%x", t)
 
@@ -112,8 +114,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.TestNetwork.Passphrase}
-	fmt.Println(build.TestNetwork.Passphrase)
+
+	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.PublicNetwork.Passphrase}
+	fmt.Println(build.PublicNetwork.Passphrase)
+
 	t1, _ := brr1.Hash()
 	test1 := fmt.Sprintf("%x", t1)
 

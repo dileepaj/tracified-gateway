@@ -29,6 +29,7 @@ type AbstractXDRSubmiter struct {
 /*SubmitTransfer - Deprecated
 @author - Azeem Ashraf
 */
+
 // func (AP *AbstractXDRSubmiter) SubmitTransfer() bool {
 // 	var Done bool
 // 	object := dao.Connection{}
@@ -178,6 +179,7 @@ type AbstractXDRSubmiter struct {
 // 	return Done
 // }
 
+
 /*XDRSubmitter - Deprecated
 @author - Azeem Ashraf
 */
@@ -248,7 +250,9 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 				tx, err := build.Transaction(
 					build.TestNetwork,
 					build.SourceAccount{publicKey},
-					build.AutoSequence{horizon.DefaultTestNetClient},
+
+					build.AutoSequence{horizon.DefaultPublicNetClient},
+
 					build.SetData("Type", []byte("G"+TDP[i].TxnType)),
 					PreviousTXNBuilder,
 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),

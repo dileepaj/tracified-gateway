@@ -151,7 +151,7 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Certificates")
+	c := session.DB("tracified-gateway").C("Certificates")
 	err1 := c.Update(selector, update)
 	if err1 != nil {
 		fmt.Println(err1)

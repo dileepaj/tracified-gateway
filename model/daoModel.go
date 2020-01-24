@@ -125,6 +125,7 @@ type POGResponse struct {
 	Identifier     string
 	BlockchainName string
 	Timestamp      string
+
 }
 
 type COCCollectionList struct {
@@ -136,4 +137,14 @@ type TransactionCollectionList struct {
 type TransactionUpdate struct {
 	Selector TransactionCollectionBody
 	Update   TransactionCollectionBody
+}
+
+type ArtifactTransaction struct {
+	TenantId       string `json:"tenantId"`
+	ArtifactId     string `json:"artifactId"`
+	ArtifactDataId string `json:"artifactDataId"`
+	CellId         string `json:"cellId"`
+	PublicKey      string `json:"publicKey"`
+	XDR            string `json:"XDR"`
+	Txnhash        string `json:"Txnhash"`
 }

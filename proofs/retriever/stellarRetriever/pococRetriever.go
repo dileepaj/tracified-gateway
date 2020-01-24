@@ -22,12 +22,14 @@ type ConcretePOCOC struct {
 @desc - Retrieves the COC Txn from stellar using the TXN ID
 @params - XDR
 */
+
 func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 
 	var CurrentTxn string
 	CurrentTxn = db.Txn
 
 	timestamp := ""
+
 	var txe xdr.Transaction
 	//RETRIEVE GATEWAY SIGNED TXN
 	// result, err := http.Get("https://horizon.stellar.org/transactions/" + db.Txn + "/operations")
@@ -52,6 +54,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 	// 		// Gtype:=Base64DecEnc("Decode", keys[0].Value)
 	// 		// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 	// 		CurrentTxn = Base64DecEnc("Decode", keys[2].Value)
+
 	//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
 	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
 	if err != nil {
@@ -81,4 +84,5 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 	// }
 
 	return txe, true, timestamp
+
 }

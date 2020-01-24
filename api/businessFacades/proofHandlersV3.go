@@ -145,13 +145,16 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 
 	//checks the gateway DB for a TXN with the TdpID in the parameter
 	p := object.GetTransactionByTxnhash(vars["TdpID"])
+
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
 		// fmt.Println(result)
 
+
 		//using the identifier retrieved from the gateway DB for the particular TdpID
+
 		//retrieve all the transactions.
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
@@ -182,6 +185,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				keysBody := out1
 				keys := make([]PublicKeyPOC, 0)
 				json.Unmarshal(keysBody, &keys)
+
 
 				Current := Base64DecEnc("Decode", keys[2].Value)
 				// GatewayTXNType := Base64DecEnc("Decode", keys[0].Value)
@@ -216,6 +220,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 						// fmt.Printf("%x", h.Sum(nil))
 
+
 						DataStoreTXN := model.Current{
 							TType:      res[i].TxnType,
 							TXNID:      Current,
@@ -225,7 +230,9 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 					}
 				} else {
+
 					//this should be wear all future TXN types and their fields should be assigned
+
 					//when retrieving from the gateway DB
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
@@ -478,6 +485,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 
 }
 
+
 /*CheckPOGV3Rewrite - WORKING MODEL
 @author - Azeem Ashraf, Jajeththanan Sabapathipillai
 @desc - Handles the Proof of Genesis  Retrieves the TXN ID and calls POG Interpreter
@@ -566,6 +574,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 }
 
+
 /*CheckPOCOCV3 - WORKING MODEL
 @author - Azeem Ashraf
 @desc - Handles the Proof of Change of Custody by using the last COC TXN ID as Param,
@@ -605,16 +614,19 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			//ignore error
 		}
+
 		proofhash := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		fmt.Println(proofhash)
 		COCStatus := COC.Status
 		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus}
+
 		display.InterpretPOCOC(w, r)
 	}
 
 	return
 
 }
+
 
 type PublicKeyPOC struct {
 	Name  string

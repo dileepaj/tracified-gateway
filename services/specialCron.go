@@ -25,8 +25,21 @@ func CheckTempOrphan() {
 	//if multiple clients do exist then query and append them
 	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
 	clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
-	//test
-	// clientList = append(clientList, "GDNMRYEJ6NI2CVOPU3SDL4HYZWY535CZV7SC5MKEU2Z5PGTULMLAF2L5")
+	clientList = append(clientList, "GBCBEUOCIYWD7TF3BPPYT66EJSIDO2ITRDWP4SQSBPAMEORKDRRHPKCF")
+	
+	//new keys
+	clientList = append(clientList, "GDYMWT6NSLBTAXV6CJJH2MFVQZZ7DNEM5J3OVMIEA6LQ3TBRR2GIQZXN")
+	clientList = append(clientList, "GCY4TYJOER457PGOS6DQNBCULUHA6EALXG6DRKBUAI44ORRIFDNMKYXB")
+	clientList = append(clientList, "GA4RORXUCHI6HPUHKWMKN6SGYUHJVN2D5K3NBDPN7YE33HLIDGAGMBUY")
+	clientList = append(clientList, "GDDTPYXF7VWV54GVOAVM2IPOA2HZYCYYEZYM5BI6NMGDYRUNXWPAS2XY")
+	clientList = append(clientList, "GA4LVTLFF5377F3KXYPCONMN35HWEDTWQCEIHZBWZCZFFE354UISIE5F")
+	clientList = append(clientList, "GCKTRM6BP2ZJSN7DAYNTPGH6BDWIQMH7OMHEGCSMSMHCTMQ4LUHCPDFX")
+	clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
+	clientList = append(clientList, "GAHVESB27GLES6YONUBTZDBKJYAQIK57KQJNCDKMKK5T5A6G76HPZEOY")
+
+	//06-11-2019
+	clientList = append(clientList, "GCYQRGGEB2W5V6VXN5OJFOIQOH7MDINX5RQMATVJUWKPC2A7PNQNTVU6")
+
 	object := dao.Connection{}
 
 	//loop through clients
@@ -46,7 +59,9 @@ func CheckTempOrphan() {
 
 		stop := false //for infinite loop
 		//loop through sequence incrementally and see match
+
 		for i := seq + 1; ; i++ {
+
 
 			p := object.GetSpecialForPkAndSeq(address, int64(i))
 			p.Then(func(data interface{}) interface{} {
@@ -116,6 +131,7 @@ func CheckTempOrphan() {
 						///ASSIGN PREVIOUS MANAGE DATA BUILDER
 						res := data.(model.TransactionCollectionBody)
 						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
+
 						result.PreviousTxnHash = res.TxnHash
 						return nil
 					}).Catch(func(error error) error {
@@ -178,6 +194,7 @@ func CheckTempOrphan() {
 						res := data.(model.TransactionCollectionBody)
 						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
 						result.PreviousTxnHash = res.TxnHash
+
 						return nil
 					}).Catch(func(error error) error {
 
@@ -228,8 +245,7 @@ func CheckTempOrphan() {
 					if err2 != nil {
 						break
 					}
-				
-				
+
 				}
 				return nil
 			}).Catch(func(error error) error {
