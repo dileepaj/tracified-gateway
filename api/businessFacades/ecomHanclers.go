@@ -636,14 +636,10 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 			result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
-
-				return nil
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
 			if result1.StatusCode != 200 {
 				status = "Txn Id Not Found in Stellar Public Net"
-
-				return nil
 			}
 
 			if status == "success" {
