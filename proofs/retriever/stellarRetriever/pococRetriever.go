@@ -23,13 +23,14 @@ type ConcretePOCOC struct {
 @params - XDR
 */
 
-func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
+func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,string) {
 
 	var CurrentTxn string
 	CurrentTxn = db.Txn
 
 	timestamp := ""
-
+	ledger := ""
+	feePaid := ""
 	var txe xdr.Transaction
 	//RETRIEVE GATEWAY SIGNED TXN
 	// result, err := http.Get("https://horizon.stellar.org/transactions/" + db.Txn + "/operations")
@@ -58,7 +59,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 	//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
 	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
 	if err != nil {
-		return txe, false, timestamp
+		return txe, false, timestamp,ledger,feePaid
 	} else {
 		data, _ := ioutil.ReadAll(result.Body)
 
@@ -69,12 +70,15 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 			fmt.Println(raw["envelope_xdr"])
 			fmt.Println("HAHAHAHAAHAHAH")
 			timestamp = fmt.Sprintf("%s", raw["created_at"])
+			ledger = fmt.Sprintf("%.0f", raw["ledger"])
+			feePaid = fmt.Sprintf("%.0f", raw["fee_paid"])
+
 			err := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 			if err != nil {
 			}
 
 		} else {
-			return txe, false, timestamp
+			return txe, false, timestamp,ledger,feePaid
 
 		}
 
@@ -83,6 +87,6 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string) {
 
 	// }
 
-	return txe, true, timestamp
+	return txe, true, timestamp,ledger,feePaid
 
 }

@@ -104,6 +104,8 @@ type PrevTxnResponse struct {
 type POCOCResponse struct {
 	Status         string
 	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
 	Url            string
 	Identifier     string
 	Quantity       string
@@ -115,17 +117,38 @@ type POCOCResponse struct {
 	BlockchainName string
 	COCStatus      string
 	Timestamp      string
+	Ledger         string
+	FeePaid        string
 }
 
 type POGResponse struct {
 	Status         string
 	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
 	Url            string
 	SourceAccount  string
 	Identifier     string
 	BlockchainName string
 	Timestamp      string
+	Ledger         string
+	FeePaid        string
+}
 
+type POEResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Url            string
+	SourceAccount  string
+	Identifier     string
+	BlockchainName string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	DbHash         string
+	BcHash         string
 }
 
 type COCCollectionList struct {

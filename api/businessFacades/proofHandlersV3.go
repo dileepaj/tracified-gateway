@@ -81,6 +81,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	CurrentTxn = string(byteData)
 	fmt.Println("THE TXN OF THE USER TXN: " + CurrentTxn)
 
+	var finalResult []model.POEResponse
+
 	var response model.POE
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
@@ -120,7 +122,66 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	response = display.InterpretPOE()
 
 	w.WriteHeader(response.RetrievePOE.Error.Code)
-	json.NewEncoder(w).Encode(response.RetrievePOE)
+
+	var txe xdr.Transaction
+	TxnHash := CurrentTxn
+	PublicKey := result.PublicKey
+
+	result2, err2 := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+	if err2 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+		json.NewEncoder(w).Encode(response)
+		return 
+
+	}
+
+	data2, _ := ioutil.ReadAll(result2.Body)
+
+	if result2.StatusCode != 200 {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+		json.NewEncoder(w).Encode(response)
+		return 
+	}
+	var raw3 map[string]interface{}
+	json.Unmarshal(data2, &raw3)
+
+	fmt.Println(raw3["envelope_xdr"])
+	fmt.Println("HAHAHAHAAHAHAH")
+	timestamp := fmt.Sprintf("%s", raw3["created_at"])
+	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
+	feePaid := fmt.Sprintf("%.0f", raw3["fee_paid"])
+	errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw3["envelope_xdr"]), &txe)
+	if errXDR != nil {
+	}
+
+	mapD := map[string]string{"transaction": TxnHash}
+	mapB, _ := json.Marshal(mapD)
+	fmt.Println(string(mapB))
+
+	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+	text := (string(encoded))
+	temp := model.POEResponse{
+		Txnhash: TxnHash,
+		Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=public",
+		Identifier:     result.Identifier,
+		SequenceNo:     result.SequenceNo,
+		TxnType:        "tdp",
+		Status:         response.RetrievePOE.Error.Message,
+		BlockchainName: "Stellar",
+		Timestamp:      timestamp,
+		Ledger:         ledger,
+		FeePaid:        feePaid,
+		SourceAccount:  PublicKey,
+		DbHash	 :   response.RetrievePOE.DBHash,
+		BcHash	 :   response.RetrievePOE.BCHash}
+	
+		finalResult = append(finalResult, temp)
+
+
+	json.NewEncoder(w).Encode(finalResult)
 
 	return
 
@@ -531,6 +592,8 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(raw["envelope_xdr"])
 		fmt.Println("HAHAHAHAAHAHAH")
 		timestamp := fmt.Sprintf("%s", raw["created_at"])
+		ledger := fmt.Sprintf("%.0f", raw["ledger"])
+		feePaid := fmt.Sprintf("%.0f", raw["fee_paid"])
 		errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 		if errXDR != nil {
 		}
@@ -556,9 +619,13 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
 			Identifier:     res.Identifier,
-			Status:         "Success!",
+			SequenceNo:     res.SequenceNo,
+			TxnType:        "genesis",
+			Status:         "Success",
 			BlockchainName: "Stellar",
 			Timestamp:      timestamp,
+			Ledger:         ledger,
+			FeePaid:        feePaid,
 			SourceAccount:  PublicKey}
 		result = append(result, temp)
 
@@ -618,7 +685,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		proofhash := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		fmt.Println(proofhash)
 		COCStatus := COC.Status
-		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus}
+		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus,SequenceNo:COC.SequenceNo}
 
 		display.InterpretPOCOC(w, r)
 	}

@@ -1,14 +1,12 @@
 package interpreter
 
 import (
-
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/model"
-
 
 	"strings"
 
@@ -23,14 +21,13 @@ import (
 )
 
 type AbstractPOCOC struct {
-
-	ProofHash string
-	Txn       string
-	DBCOC     xdr.Transaction
-	BCCOC     xdr.Transaction
-	XDR       string
-	COCStatus string
-
+	ProofHash  string
+	Txn        string
+	DBCOC      xdr.Transaction
+	BCCOC      xdr.Transaction
+	XDR        string
+	COCStatus  string
+	SequenceNo string
 }
 
 /*InterpretPOCOC - Working Model
@@ -39,7 +36,7 @@ type AbstractPOCOC struct {
 @params - ResponseWriter,Request
 */
 func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) {
-  
+
 	var result []model.POCOCResponse
 	FromSigned := true
 	ToSigned := false
@@ -47,6 +44,10 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 		ToSigned = true
 	}
 
+	SequenceNo, errSequence := strconv.ParseInt(AP.SequenceNo, 10, 64)
+	if errSequence == nil {
+		fmt.Printf("%d of type %T", SequenceNo,SequenceNo)
+	}
 	mapD := map[string]string{"transaction": AP.Txn}
 	mapB, _ := json.Marshal(mapD)
 	fmt.Println(string(mapB))
@@ -57,7 +58,7 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 	text := (string(encoded))
 
 	object := stellarRetriever.ConcretePOCOC{Txn: AP.ProofHash}
-	bcCOC, state, timestamp := object.RetrievePOCOC()
+	bcCOC, state, timestamp, ledger, feePaid := object.RetrievePOCOC()
 	if !state {
 		// w.WriteHeader(http.StatusBadRequest)
 		// response := model.Error{Message: "Failed to retrieve blockchain proof transaction"}
@@ -72,6 +73,10 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 			From:           AP.DBCOC.Operations[1].SourceAccount.Address(),
 			To:             AP.DBCOC.Operations[3].Body.PaymentOp.Destination.Address(),
 			Timestamp:      timestamp,
+			Ledger:         ledger,
+			FeePaid:        feePaid,
+			TxnType:        "coc",
+			SequenceNo:     SequenceNo,
 			Quantity:       strings.TrimRight(strconv.FormatInt(int64(AP.DBCOC.Operations[3].Body.PaymentOp.Amount), 10), "0"),
 			AssetCode:      strings.TrimRight(fmt.Sprintf("%s", AP.DBCOC.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode), "\u0000"),
 			Status:         "Failed to retrieve blockchain proof transaction from Stellar",
@@ -100,6 +105,10 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 		From:           AP.DBCOC.Operations[1].SourceAccount.Address(),
 		To:             AP.DBCOC.Operations[3].Body.PaymentOp.Destination.Address(),
 		Timestamp:      timestamp,
+		Ledger:         ledger,
+		FeePaid:        feePaid,
+		TxnType:        "coc",
+		SequenceNo:     SequenceNo,
 		Quantity:       strings.TrimRight(strconv.FormatInt(int64(AP.DBCOC.Operations[3].Body.PaymentOp.Amount), 10), "0"),
 		AssetCode:      strings.TrimRight(fmt.Sprintf("%s", AP.DBCOC.Operations[3].Body.PaymentOp.Asset.AlphaNum12.AssetCode), "\u0000"),
 		Status:         res.Status,
@@ -116,7 +125,6 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 
 func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
 	var result apiModel.SubmitXDRSuccess
-
 
 	fmt.Println(strings.TrimRight(strconv.FormatInt(int64(db.Operations[3].Body.PaymentOp.Amount), 10), "0"))
 	fmt.Println(strings.TrimLeft(fmt.Sprintf("%s", bc.Operations[4].Body.ManageDataOp.DataValue), "&"))
@@ -150,8 +158,7 @@ func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSucces
 		return result
 
 	} else {
-		result.Status = "Success, COC in Gateway and Blockchain matches"
-
+		result.Status = "Success"
 
 	}
 
