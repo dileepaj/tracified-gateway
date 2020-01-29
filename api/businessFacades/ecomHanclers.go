@@ -339,13 +339,13 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
 					Timestamp:      timestamp,
-					TxnType:        getTransactiontype(TxnBody.TxnType),
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
 					FeePaid:        feePaid,
 					Ledger:         ledger,
 					SourceAccount:  TxnBody.PublicKey,
 					From:           from,
 					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: getProofName(TxnBody.TxnType),
+					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to}
 
 				result = append(result, temp)
@@ -421,13 +421,13 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
 					Timestamp:      timestamp,
-					TxnType:        getTransactiontype(TxnBody.TxnType),
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
 					FeePaid:        feePaid,
 					Ledger:         ledger,
 					SourceAccount:  TxnBody.PublicKey,
 					From:           from,
 					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: getProofName(TxnBody.TxnType),
+					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to}
 
 				result = append(result, temp)
@@ -474,8 +474,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
 					feePaid = fmt.Sprintf("%.0f", raw["fee_paid"])
-					from = fmt.Sprintf("%s", raw["source_account"])
-					to = fmt.Sprintf("%s", raw["source_account"])
+					// from = fmt.Sprintf("%s", raw["source_account"])
+					// to = fmt.Sprintf("%s", raw["source_account"])
 
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 
@@ -505,13 +505,13 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
 					Timestamp:      timestamp,
-					TxnType:        getTransactiontype(TxnBody.TxnType),
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
 					FeePaid:        feePaid,
 					Ledger:         ledger,
 					SourceAccount:  TxnBody.PublicKey,
 					From:           from,
 					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: getProofName(TxnBody.TxnType),
+					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to}
 
 				result = append(result, temp)
@@ -587,13 +587,13 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
 					Timestamp:      timestamp,
-					TxnType:        getTransactiontype(TxnBody.TxnType),
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
 					FeePaid:        feePaid,
 					Ledger:         ledger,
 					SourceAccount:  TxnBody.PublicKey,
 					From:           from,
 					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: getProofName(TxnBody.TxnType),
+					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to}
 
 				result = append(result, temp)
@@ -680,13 +680,13 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
-				TxnType:        getTransactiontype(TxnBody.TxnType),
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
 				Ledger:         ledger,
 				SourceAccount:  TxnBody.PublicKey,
 				From:           from,
 				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: getProofName(TxnBody.TxnType),
+				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to}
 
 			result = append(result, temp)
@@ -850,13 +850,13 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
-				TxnType:        getTransactiontype(TxnBody.TxnType),
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
 				Ledger:         ledger,
 				SourceAccount:  TxnBody.PublicKey,
 				From:           from,
 				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: getProofName(TxnBody.TxnType),
+				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to}
 
 			result = append(result, temp)
@@ -877,7 +877,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func getTransactiontype(Type string) string {
+func GetTransactiontype(Type string) string {
 	switch Type {
 	case "0":
 		return "genesis"
@@ -895,7 +895,7 @@ func getTransactiontype(Type string) string {
 	return Type
 }
 
-func getProofName(Type string) string {
+func GetProofName(Type string) string {
 	switch Type {
 	case "0":
 		return "pog"

@@ -60,25 +60,41 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	//for split child we realise that the identifier will change for parent
 	//thus on the child we look at the profile created
 	//and get the txn id of the previous profile and get the last TXN ID
-	case "G6":
-		var PreviousIdentifier string
-		PreviousProfile := Base64DecEnc("Decode", keys[4].Value)
-		p := object.GetProfilebyProfileID(PreviousProfile)
-		p.Then(func(data interface{}) interface{} {
-			result := data.(model.ProfileCollectionBody)
-			PreviousIdentifier = result.Identifier
-			return nil
-		}).Catch(func(error error) error {
-			PreviousIdentifier = ""
-			return error
-		})
-		p.Await()
+	// case "G6":
+	// 	var PreviousIdentifier string
+	// 	PreviousProfile := Base64DecEnc("Decode", keys[4].Value)
+	// 	p := object.GetProfilebyProfileID(PreviousProfile)
+	// 	p.Then(func(data interface{}) interface{} {
+	// 		result := data.(model.ProfileCollectionBody)
+	// 		PreviousIdentifier = result.Identifier
+	// 		return nil
+	// 	}).Catch(func(error error) error {
+	// 		PreviousIdentifier = ""
+	// 		return error
+	// 	})
+	// 	p.Await()
 
-		p1 := object.GetLastTransactionbyIdentifier(PreviousIdentifier)
+	// 	p1 := object.GetLastTransactionbyIdentifier(PreviousIdentifier)
+	// 	p1.Then(func(data interface{}) interface{} {
+	// 		///ASSIGN PREVIOUS MANAGE DATA BUILDER
+	// 		result := data.(model.TransactionCollectionBody)
+	// 		bcPreHash = result.TxnHash
+	// 		return nil
+	// 	}).Catch(func(error error) error {
+	// 		///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+	// 		//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+	// 		return error
+	// 	})
+	// 	p1.Await()
+	case "G5":
+
+		p1 := object.GetTransactionByTxnhash(db.POCStruct.Txn)
 		p1.Then(func(data interface{}) interface{} {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER
 			result := data.(model.TransactionCollectionBody)
-			bcPreHash = result.TxnHash
+			
+			bcPreHash = result.PreviousTxnHash
+			fmt.Println(result.PreviousTxnHash)
 			return nil
 		}).Catch(func(error error) error {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
@@ -128,15 +144,15 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			//initially checks for the transaction type then decideds on the other fields
 			if keys[0] != (PublicKeyPOC{}) {
 				transactionType = Base64DecEnc("Decode", keys[0].Value)
-				fmt.Println("transactionType")
-				fmt.Println(transactionType)
+				// fmt.Println("transactionType")
+				// fmt.Println(transactionType)
 			}
 			switch transactionType {
 			//genesis
 			case "0":
 				identifier := Base64DecEnc("Decode", keys[1].Value)
 				temp = model.Current{
-					TXNID:      db.POCStruct.Txn,
+					TXNID:      Current,
 					TType:      transactionType,
 					Identifier: identifier}
 			//dataPacket
@@ -150,7 +166,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				fmt.Println(TDPHash)
 
 				temp = model.Current{
-					TXNID:      db.POCStruct.Txn,
+					TXNID:      Current,
 					TType:      transactionType,
 					DataHash:   TDPHash,
 					ProfileID:  Profile,
@@ -161,7 +177,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				identifier := Base64DecEnc("Decode", keys[1].Value)
 
 				temp = model.Current{
-					TXNID:      db.POCStruct.Txn,
+					TXNID:      Current,
 					TType:      transactionType,
 					Identifier: identifier}
 
@@ -170,11 +186,16 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				identifier := Base64DecEnc("Decode", keys[1].Value)
 
 				temp = model.Current{
-					TXNID:      db.POCStruct.Txn,
+					TXNID:      Current,
 					TType:      transactionType,
 					Identifier: identifier}
 			default:
+				identifier := Base64DecEnc("Decode", keys[1].Value)
 
+				temp = model.Current{
+					TXNID:      Current,
+					TType:      transactionType,
+					Identifier: identifier}
 			}
 
 			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)

@@ -10,6 +10,8 @@ type PocSuccess struct {
 	Chain   []model.Current
 }
 
+
+
 //poc Failure response
 type PocFailure struct {
 	RootHash string
