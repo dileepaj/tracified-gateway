@@ -17,7 +17,7 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("COC")
+	c := session.DB("tracified-gateway").C("COC")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -37,7 +37,7 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	}
 	defer session.Close()
 
-	c := session.DB("tracified-gateway-staging").C("Transactions")
+	c := session.DB("tracified-gateway").C("Transactions")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -45,7 +45,6 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 
 	return err
 }
-
 
 /*InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
 @author - Azeem Ashraf
@@ -57,7 +56,6 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 		fmt.Println(err)
 	}
 	defer session.Close()
-
 
 	c := session.DB("tracified-gateway").C("TempOrphan")
 	err1 := c.Insert(Coc)
@@ -79,7 +77,6 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	}
 	defer session.Close()
 
-
 	c := session.DB("tracified-gateway").C("Orphan")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
@@ -99,7 +96,6 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 		fmt.Println(err)
 	}
 	defer session.Close()
-
 
 	c := session.DB("tracified-gateway").C("Profiles")
 	err1 := c.Insert(Coc)
@@ -146,4 +142,3 @@ func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error 
 
 	return err
 }
-

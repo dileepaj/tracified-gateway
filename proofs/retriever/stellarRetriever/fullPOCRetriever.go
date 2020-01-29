@@ -92,7 +92,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 		p1.Then(func(data interface{}) interface{} {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER
 			result := data.(model.TransactionCollectionBody)
-			
+
 			bcPreHash = result.PreviousTxnHash
 			fmt.Println(result.PreviousTxnHash)
 			return nil
@@ -189,13 +189,21 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 					TXNID:      Current,
 					TType:      transactionType,
 					Identifier: identifier}
-			default:
+
+			case "10":
 				identifier := Base64DecEnc("Decode", keys[1].Value)
 
 				temp = model.Current{
 					TXNID:      Current,
 					TType:      transactionType,
 					Identifier: identifier}
+			default:
+				// identifier := Base64DecEnc("Decode", keys[1].Value)
+
+				// temp = model.Current{
+				// 	TXNID:      Current,
+				// 	TType:      transactionType,
+				// 	Identifier: identifier}
 			}
 
 			db.POCStruct.BCTree = append(db.POCStruct.BCTree, temp)
