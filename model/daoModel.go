@@ -157,22 +157,21 @@ type POCResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Identifier     string
+	DataHash       string
+	BlockchainName string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	Url            string
+	SourceAccount  string
+	AvailableProof string
+	COCStatus      string
 	Quantity       string
 	AssetCode      string
 	From           string
 	To             string
 	FromSigned     bool
 	ToSigned       bool
-	BlockchainName string
-	COCStatus      string
-	Timestamp      string
-	Ledger         string
-	FeePaid        string
-	Url            string
-	SourceAccount  string
-	TdpId          string
-	AvailableProof string
-	DataHash       string
 }
 type COCCollectionList struct {
 	List []COCCollectionBody

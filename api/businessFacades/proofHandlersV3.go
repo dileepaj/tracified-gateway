@@ -356,6 +356,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			SourceAccount := txe.SourceAccount.Address()
 			temp := model.POCResponse{
 				Status:         "success",
+				BlockchainName: "Stellar",
 				Txnhash:        tree.TXNID,
 				TxnType:        GetTransactiontype(Type),
 				AvailableProof: GetProofName(Type),
