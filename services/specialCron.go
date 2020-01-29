@@ -22,7 +22,7 @@ import (
 func CheckTempOrphan() {
 	var clientList []string
 
-	//if multiple clients do exist then query and append them
+	// if multiple clients do exist then query and append them
 	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
 	clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
 	clientList = append(clientList, "GBCBEUOCIYWD7TF3BPPYT66EJSIDO2ITRDWP4SQSBPAMEORKDRRHPKCF")
@@ -135,6 +135,7 @@ func CheckTempOrphan() {
 						result.PreviousTxnHash = res.TxnHash
 						return nil
 					}).Catch(func(error error) error {
+						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 
 						return error
 					})
@@ -197,6 +198,7 @@ func CheckTempOrphan() {
 
 						return nil
 					}).Catch(func(error error) error {
+						PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 
 						return error
 					})
