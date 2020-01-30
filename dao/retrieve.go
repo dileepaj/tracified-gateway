@@ -68,7 +68,6 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		}
 		defer session.Close()
 
-
 		c := session.DB("tracified-gateway").C("COC")
 
 		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
@@ -287,7 +286,6 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 
 }
 
-
 /*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
 @author - Azeem Ashraf
 */
@@ -375,7 +373,6 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		}
 		defer session.Close()
 
-
 		c := session.DB("tracified-gateway").C("Transactions")
 
 		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
@@ -462,7 +459,6 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 
 }
 
-
 func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -488,7 +484,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 
 		if count > limit {
 			err1 := f.Skip(count - limit).All(&result)
-			if err1 != nil {
+			if err1 != nil || len(result) == 0 {
 				// fmt.Println(err1)
 				reject(err1)
 
@@ -500,7 +496,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 		}
 
 		err1 := f.All(&result)
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -514,7 +510,6 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 	return p
 
 }
-
 
 func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
@@ -568,7 +563,7 @@ func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 
 		c := session.DB("tracified-gateway").C("Transactions")
 		err1 := c.Find(bson.M{"tdpid": TdpId}).All(&result)
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -807,7 +802,7 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 
 		c := session.DB("tracified-gateway").C("Certificates")
 		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -839,9 +834,8 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 
 		c := session.DB("tracified-gateway").C("Transactions")
 		err1 := c.Find(bson.M{"tdpid": tdpid}).All(&result)
-		fmt.Println(result)
 
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -905,11 +899,11 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 
 		c := session.DB("tracified-gateway").C("Transactions")
 		err1 := c.Find(bson.M{"publickey": Publickey}).All(&result)
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
-		} else {
+		}else {
 			resolve(result)
 
 		}
@@ -937,7 +931,7 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 
 		c := session.DB("tracified-gateway").C("Transactions")
 		err1 := c.Find(bson.M{"txnhash": Txnhash}).All(&result)
-		if err1 != nil {
+		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -984,7 +978,6 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 	return p
 
 }
-
 
 //GetTransactionByTxnhash ..
 func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {

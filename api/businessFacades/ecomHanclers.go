@@ -282,6 +282,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		p := object.GetAllTransactionForPK(vars["key"])
 		p.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
+			fmt.Println(res)
 			for _, TxnBody := range res {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
