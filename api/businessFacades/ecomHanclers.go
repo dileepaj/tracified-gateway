@@ -896,20 +896,26 @@ func GetTransactiontype(Type string) string {
 	return Type
 }
 
-func GetProofName(Type string) string {
+func GetProofName(Type string) []string {
+	var result []string
 	switch Type {
 	case "0":
-		return "pog"
+		result = append(result, "pog")
 	case "2":
-		return "poe"
+		result = append(result, "poe")
+		result = append(result, "poc")
+
 	case "5":
-		return "poc"
+		result = append(result, "poc")
 	case "6":
-		return "poc"
+		result = append(result, "poc")
+
 	case "10":
-		return "pococ"
+		result = append(result, "pococ")
+		result = append(result, "poc")
+
 	case "11":
-		return "poc"
+		result = append(result, "pococ")
 	}
-	return Type
+	return result
 }

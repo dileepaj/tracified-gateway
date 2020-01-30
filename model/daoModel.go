@@ -97,7 +97,7 @@ type PrevTxnResponse struct {
 	Timestamp      string
 	Ledger         string
 	FeePaid        string
-	AvailableProof string
+	AvailableProof []string
 	DataHash       string
 }
 
@@ -164,7 +164,7 @@ type POCResponse struct {
 	FeePaid        string
 	Url            string
 	SourceAccount  string
-	AvailableProof string
+	AvailableProof []string
 	COCStatus      string
 	Quantity       string
 	AssetCode      string
