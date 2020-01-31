@@ -511,7 +511,7 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
