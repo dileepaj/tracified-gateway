@@ -793,74 +793,78 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
-			TxnHash := TxnBody.TxnHash
-			var txe xdr.Transaction
-			status := "success"
-			timestamp := ""
-			ledger := ""
-			feePaid := ""
-			from := ""
-			to := ""
 
-			result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
-			if err != nil {
-				status = "Txn Id Not Found in Stellar Public Net"
-				return nil
-			}
-			data, _ := ioutil.ReadAll(result1.Body)
-			if result1.StatusCode != 200 {
-				status = "Txn Id Not Found in Stellar Public Net"
+			if TxnBody.TxnType != "10" {
+				TxnHash := TxnBody.TxnHash
+				var txe xdr.Transaction
+				status := "success"
+				timestamp := ""
+				ledger := ""
+				feePaid := ""
+				from := ""
+				to := ""
 
-				return nil
-			}
+				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				if err != nil {
+					status = "Txn Id Not Found in Stellar Public Net"
+					return nil
+				}
+				data, _ := ioutil.ReadAll(result1.Body)
+				if result1.StatusCode != 200 {
+					status = "Txn Id Not Found in Stellar Public Net"
 
-			if status == "success" {
-
-				var raw map[string]interface{}
-				json.Unmarshal(data, &raw)
-				timestamp = fmt.Sprintf("%s", raw["created_at"])
-				ledger = fmt.Sprintf("%.0f", raw["ledger"])
-				feePaid = fmt.Sprintf("%.0f", raw["fee_paid"])
-				from = fmt.Sprintf("%s", raw["source_account"])
-				to = fmt.Sprintf("%s", raw["source_account"])
-
-				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
-
-				if errXDR != nil {
-					//ignore error
+					return nil
 				}
 
-				if TxnBody.TxnType == "10" {
-					to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+				if status == "success" {
+
+					var raw map[string]interface{}
+					json.Unmarshal(data, &raw)
+					timestamp = fmt.Sprintf("%s", raw["created_at"])
+					ledger = fmt.Sprintf("%.0f", raw["ledger"])
+					feePaid = fmt.Sprintf("%.0f", raw["fee_paid"])
+					from = fmt.Sprintf("%s", raw["source_account"])
+					to = fmt.Sprintf("%s", raw["source_account"])
+
+					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
+
+					if errXDR != nil {
+						//ignore error
+					}
+
+					if TxnBody.TxnType == "10" {
+						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+					}
 				}
+
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
+				fmt.Println(string(mapB))
+				// trans := transaction{transaction:TxnHash}
+				// s := fmt.Sprintf("%v", trans)
+
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := (string(encoded))
+				temp := model.PrevTxnResponse{
+					Status: status, Txnhash: TxnHash,
+					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+						text + "%3D%3D&network=public",
+					Identifier:     TxnBody.Identifier,
+					TdpId:          TxnBody.TdpId,
+					DataHash:       TxnBody.DataHash,
+					Timestamp:      timestamp,
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
+					FeePaid:        feePaid,
+					Ledger:         ledger,
+					SourceAccount:  TxnBody.PublicKey,
+					From:           from,
+					SequenceNo:     TxnBody.SequenceNo,
+					AvailableProof: GetProofName(TxnBody.TxnType),
+					To:             to}
+
+				result = append(result, temp)
+
 			}
-
-			mapD := map[string]string{"transaction": TxnHash}
-			mapB, _ := json.Marshal(mapD)
-			fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
-
-			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
-			temp := model.PrevTxnResponse{
-				Status: status, Txnhash: TxnHash,
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-					text + "%3D%3D&network=public",
-				Identifier:     TxnBody.Identifier,
-				TdpId:          TxnBody.TdpId,
-				DataHash:       TxnBody.DataHash,
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to}
-
-			result = append(result, temp)
 
 		}
 

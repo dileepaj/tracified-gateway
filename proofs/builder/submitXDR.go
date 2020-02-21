@@ -207,7 +207,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		TDP[i].Identifier = Identifier
 		TDP[i].TxnType = TxnType
-		TDP[i].Status = "pending"
+		TDP[i].Status = "success"
 
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TDP[i].XDR}
 
