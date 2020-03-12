@@ -151,7 +151,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("HAHAHAHAAHAHAH")
 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
-	feePaid := fmt.Sprintf("%.0f", raw3["fee_paid"])
+	feePaid := fmt.Sprintf("%.0f", raw3["fee_charged"])
 	errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw3["envelope_xdr"]), &txe)
 	if errXDR != nil {
 	}
@@ -337,7 +337,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("HAHAHAHAAHAHAH")
 			timestamp := fmt.Sprintf("%s", raw["created_at"])
 			ledger := fmt.Sprintf("%.0f", raw["ledger"])
-			feePaid := fmt.Sprintf("%.0f", raw["fee_paid"])
+			feePaid := fmt.Sprintf("%.0f", raw["fee_charged"])
 			errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 			if errXDR != nil {
 			}
@@ -657,7 +657,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("HAHAHAHAAHAHAH")
 		timestamp := fmt.Sprintf("%s", raw["created_at"])
 		ledger := fmt.Sprintf("%.0f", raw["ledger"])
-		feePaid := fmt.Sprintf("%.0f", raw["fee_paid"])
+		feePaid := fmt.Sprintf("%.0f", raw["fee_charged"])
 		errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 		if errXDR != nil {
 		}
