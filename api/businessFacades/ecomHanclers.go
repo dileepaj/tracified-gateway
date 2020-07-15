@@ -325,7 +325,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(string(mapB))
+				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 
@@ -407,7 +407,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(string(mapB))
+				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 
@@ -491,7 +491,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(string(mapB))
+				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 
@@ -573,7 +573,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(string(mapB))
+				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 
@@ -666,7 +666,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			fmt.Println(string(mapB))
+			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
@@ -841,7 +841,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(string(mapB))
+				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 
