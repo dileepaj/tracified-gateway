@@ -41,7 +41,7 @@ func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 
 		mapD := map[string]string{"transaction": TxnHash}
 		mapB, _ := json.Marshal(mapD)
-		fmt.Println(string(mapB))
+		// fmt.Println(string(mapB))
 		// trans := transaction{transaction:TxnHash}
 		// s := fmt.Sprintf("%v", trans)
 
@@ -80,7 +80,7 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			fmt.Println(string(mapB))
+			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
@@ -164,7 +164,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				Txn := data.(model.TransactionCollectionBody)
 				mapD := map[string]string{"transaction": Txn.TxnHash}
 				mapB, _ := json.Marshal(mapD)
-				fmt.Println(Txn.ProfileID)
+				// fmt.Println(Txn.ProfileID)
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 				identifer = Txn.Identifier
@@ -198,7 +198,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			Txn := data.(model.TransactionCollectionBody)
 			mapD := map[string]string{"transaction": Txn.TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			fmt.Println(Txn.TxnHash)
+			// fmt.Println(Txn.TxnHash)
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
@@ -234,7 +234,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 	var result []model.TransactionIds
 	object := dao.Connection{}
 	p := object.GetAllTransactionForPK(vars["id"])
-	fmt.Println(vars["id"])
+	// fmt.Println(vars["id"])
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
@@ -242,7 +242,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			fmt.Println(string(mapB))
+			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
@@ -282,7 +282,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		p := object.GetAllTransactionForPK(vars["key"])
 		p.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
-			fmt.Println(res)
+			// fmt.Println(res)
 			for _, TxnBody := range res {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
@@ -447,7 +447,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 	case "tdpid":
 		p := object.GetAllTransactionForTdpId(vars["key"])
-		fmt.Println(vars["id"])
+		// fmt.Println(vars["id"])
 		p.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
 			for _, TxnBody := range res {
