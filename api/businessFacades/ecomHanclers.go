@@ -308,7 +308,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					json.Unmarshal(data, &raw)
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					from = fmt.Sprintf("%s", raw["source_account"])
 					to = fmt.Sprintf("%s", raw["source_account"])
 
@@ -390,7 +390,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					json.Unmarshal(data, &raw)
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					from = fmt.Sprintf("%s", raw["source_account"])
 					to = fmt.Sprintf("%s", raw["source_account"])
 
@@ -474,7 +474,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					json.Unmarshal(data, &raw)
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					// from = fmt.Sprintf("%s", raw["source_account"])
 					// to = fmt.Sprintf("%s", raw["source_account"])
 
@@ -556,7 +556,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					json.Unmarshal(data, &raw)
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					from = fmt.Sprintf("%s", raw["source_account"])
 					to = fmt.Sprintf("%s", raw["source_account"])
 
@@ -649,7 +649,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				json.Unmarshal(data, &raw)
 				timestamp = fmt.Sprintf("%s", raw["created_at"])
 				ledger = fmt.Sprintf("%.0f", raw["ledger"])
-				feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+				feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 				from = fmt.Sprintf("%s", raw["source_account"])
 				to = fmt.Sprintf("%s", raw["source_account"])
 
@@ -824,7 +824,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%.0f", raw["fee_charged"])
+					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					from = fmt.Sprintf("%s", raw["source_account"])
 					to = fmt.Sprintf("%s", raw["source_account"])
 
