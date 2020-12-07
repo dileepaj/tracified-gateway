@@ -49,6 +49,10 @@ func CheckTempOrphan() {
 	clientList = append(clientList, "GC6ELFQGPY42OSU43XPBTYS4KJR7GE74ZVM26JPYKC6P5FCO2K2GNEUI")
 	clientList = append(clientList, "GA4XZCQCLIKJ2BAVPWZ2ES3V7V5TDBZFF6DLVOTXK5CT755XGNU2ARSL")
 
+	//7-12-2020 - for new client demo(Japanese)
+	clientList = append(clientList, "GDUNYX4IKO7VUFWOEFPZUO5L2CNHHETAE2XVEZQYZ4ALOJMM3QDB5MAH")
+	clientList = append(clientList, "GDYKQZAHXCCSJ7CVQPLVYQM4MFIJVGSEYMY7PTTU5PGZ5SY2AQPLPYJN")
+
 	object := dao.Connection{}
 
 	//loop through clients
