@@ -2,6 +2,10 @@ package main
 
 import (
 	"fmt"
+	"github.com/astaxie/beego/core/config"
+	"github.com/dileepaj/tracified-gateway/commons"
+	"log"
+
 	// "log"
 	"net/http"
 	"os"
@@ -31,8 +35,14 @@ func getPort() string {
 
 func main() {
 
-	// getEnvironment()
+	//Read conf/app.conf file
+	conf, err := config.NewConfig("ini", "conf/app.conf")
+	if err != nil {
+		log.Fatalf("failed to parse config file err: %s", err.Error())
+	}
+	commons.ConstructConnectionPool(conf)
 
+	// getEnvironment()
 	port := getPort()
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
