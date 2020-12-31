@@ -19,6 +19,11 @@ type AbstractPOG struct {
 	// Identifier string
 }
 
+/*InterpretPOG - Working Model
+@author - Azeem Ashraf
+@desc - Interprets All the required fields necessary to perform POG
+@params - ResponseWriter,Request
+*/
 func (AP *AbstractPOG) InterpretPOG() model.POG {
 	var pogObj model.POG
 

@@ -1,45 +1,43 @@
 
 node {
-    def root = tool name: 'Go 1.11.2', type: 'go'
-    // ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/") {
-        withEnv(["GOROOT=${root}", "GOPATH=${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/", "PATH+GO=${root}/bin"]) {
+    def root = tool name: 'Go 1.10.3', type: 'go'
+        withEnv(["GOROOT=${root}", "GOPATH=${workspace}/", "PATH+GO=${root}/bin"]) {
             env.PATH="${GOPATH}/bin:$PATH"
-            
-            sh 'mkdir bin'
-            sh 'mkdir src'
-            sh 'mkdir src/github.com'
-            sh 'mkdir src/github.com/tracified-gateway'
+            sh "echo ${workspace}"
+            sh 'mkdir -p bin'
+            sh 'mkdir -p src/github.com/dileepaj/tracified-gateway'
             sh 'ls'
-            ws("${JENKINS_HOME}/jobs/${JOB_NAME}/builds/${BUILD_ID}/src/github.com/tracified-gateway") {
-              stage('Checkout'){
-                  echo 'Checking out SCM'
-                  // sh 'cd src'
-                  checkout scm
-              }  
+            ws("${workspace}/src/github.com/dileepaj/tracified-gateway") {
+                stage('Checkout'){
+                    echo 'Checking out SCM'
+                    // sh 'cd src'
+                    checkout scm
+                }  
           
-              stage 'preTest'
-              sh 'go version'
-              sh 'go env'
+                stage 'preTest'
+                sh 'go version'
+                sh 'go env'
 
-              stage 'Test'
+                stage 'Test'
 
-              
-              stage 'Build'
-              sh 'pwd'
-              sh 'ls -la'
-              sh 'go get -u github.com/golang/dep/cmd/dep'
-              sh 'dep ensure'
-              sh 'ls ./../'
-              // sh 'ls ./../github.com@tmp'
-              sh 'go build'
-              sh 'ls -l'
-              // sh "usermod -a -G jenkins jenkins"
-              // sh "cd ${GOPATH}src/main/"
-              // sh 'ls -l'
-              // sh "go get ${GOPATH}src/main/"
-              // sh "go build ${GOPATH}src/main/"
-              
-              stage 'Deploy'
+
+                stage 'Build'
+                sh 'pwd'
+                sh 'ls -la'
+                sh 'go get -u github.com/golang/dep/cmd/dep'
+                sh 'dep ensure'
+                sh 'ls ./../'
+                // sh 'ls ./../github.com@tmp'
+                sh 'go build'
+                sh 'ls -l'
+                // sh "usermod -a -G jenkins jenkins"
+                // sh "cd ${GOPATH}src/main/"
+                // sh 'ls -l'
+                // sh "go get ${GOPATH}src/main/"
+                // sh "go build ${GOPATH}src/main/"
+
+                stage 'Deploy'
+                ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu'
               // Do nothing.
             }
         }

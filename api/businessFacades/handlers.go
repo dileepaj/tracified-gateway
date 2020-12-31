@@ -1,35 +1,28 @@
 package businessFacades
 
 import (
-	"strings"
 	"crypto/sha256"
-	"github.com/dileepaj/tracified-gateway/constants"
-	"io/ioutil"
-	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
-
-	// "gopkg.in/mgo.v2/bson"
-	// "github.com/fanliao/go-promise"
-
-	// "gopkg.in/mgo.v2"
-	// "github.com/stellar/go/build"
-	// "github.com/stellar/go/xdr"
-
 	"encoding/json"
 	"fmt"
-	// "gopkg.in/mgo.v2"
-
+	"io/ioutil"
 	"net/http"
-
-	// "github.com/fanliao/go-promise"
-	"github.com/gorilla/mux"
+	"strings"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/proofs/builder"
-	// "github.com/dileepaj/tracified-gateway/proofs/interpreter"
+	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/gorilla/mux"
+	// "github.com/hpcloud/tail"
+	// "github.com/dileepaj/tracified-gateway/proofs/builder"
 )
 
+/*CreateTrust deprecated
+@author - Sharmilan Somasundaram
+*/
 func CreateTrust(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -47,7 +40,7 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTrustline{TrustlineStruct: TObj}
+		display := &deprecatedBuilder.AbstractTrustline{TrustlineStruct: TObj}
 		result := display.Trustline()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -58,6 +51,10 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+/*SendAssests deprecated
+@author - Sharmilan Somasundaram
+*/
 func SendAssests(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -75,7 +72,7 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractAssetTransfer{SendAssest: TObj}
+		display := &deprecatedBuilder.AbstractAssetTransfer{SendAssest: TObj}
 		response := display.AssetTransfer()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -87,6 +84,9 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*MultisigAccount deprecated
+@author - Sharmilan Somasundaram
+*/
 func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.RegistrarAccount
@@ -106,7 +106,7 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 		// var response model.POE
 
-		display := &builder.AbstractCreateRegistrar{RegistrarAccount: TObj}
+		display := &deprecatedBuilder.AbstractCreateRegistrar{RegistrarAccount: TObj}
 		result := display.CreateRegistrarAcc()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -119,6 +119,9 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*AppointRegistrar deprecated
+@author - Sharmilan Somasundaram
+*/
 func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.AppointRegistrar
@@ -136,7 +139,7 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		display := &builder.AbstractAppointRegistrar{AppointRegistrar: TObj}
+		display := &deprecatedBuilder.AbstractAppointRegistrar{AppointRegistrar: TObj}
 		result := display.AppointReg()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -147,6 +150,10 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+/*TransformV2 deprecated
+@author - Sharmilan Somasundaram
+*/
 func TransformV2(w http.ResponseWriter, r *http.Request) {
 	// vars := mux.Vars(r)
 
@@ -165,7 +172,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractTransformAssets{AssetTransfer: TObj}
+		display := &deprecatedBuilder.AbstractTransformAssets{AssetTransfer: TObj}
 		result := display.TransformAssets()
 		// display := &builder.AbstractTransformAssets{Code1: vars["code1"], Limit1: vars["limit1"], Code2: vars["code2"], Limit2: vars["limit2"], Code3: vars["code3"], Limit3: vars["limit3"], Code4: vars["code4"], Limit4: vars["limit4"]}
 		// display := &builder.AbstractTransformAssets{Code1: TObj.Asset[0].Code, Limit1: TObj.Asset[0].Limit, Code2: TObj.Asset[1].Code, Limit2: TObj.Asset[1].Limit, Code3: TObj.Asset[2].Code, Limit3: TObj.Asset[2].Limit, Code4: TObj.Asset[3].Code, Limit4: TObj.Asset[3].Limit}
@@ -180,6 +187,9 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 
 }
 
+/*COC deprecated
+@author - Sharmilan Somasundaram
+*/
 func COC(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -197,7 +207,7 @@ func COC(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractCoCTransaction{ChangeOfCustody: TObj}
+		display := &deprecatedBuilder.AbstractCoCTransaction{ChangeOfCustody: TObj}
 		response := display.CoCTransaction()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -209,6 +219,9 @@ func COC(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*COCLink deprecated
+@author - Sharmilan Somasundaram
+*/
 func COCLink(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
@@ -226,7 +239,7 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 			return
 		}
-		display := &builder.AbstractcocLink{ChangeOfCustodyLink: TObj}
+		display := &deprecatedBuilder.AbstractcocLink{ChangeOfCustodyLink: TObj}
 		result := display.CoCLink()
 
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -238,6 +251,9 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+/*DeveloperRetriever testing
+@author - Azeem Ashraf
+*/
 func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -248,7 +264,6 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 	// display := &stellarRetriever.ConcretePOC{Txn: vars["Txn"]}
 	response.RetrievePOC = display.RetrieveFullPOC()
 	// response.RetrievePOC = display.RetrievePOC()
-
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
@@ -263,6 +278,43 @@ func DeveloperRetriever(w http.ResponseWriter, r *http.Request) {
 
 }
 
+type logBody struct {
+	Data []string
+}
+
+/*RetrieveLogsForToday testing
+@author - Azeem Ashraf
+*/
+func RetrieveLogsForToday(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	s := time.Now().UTC().String()
+	dat, err := ioutil.ReadFile("GatewayLogs" + s[:10])
+
+	if err != nil {
+		fmt.Println(err)
+		w.WriteHeader(400)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Log File is not found",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+
+	} else {
+		stuff := strings.Split(string(dat), "\n")
+		w.WriteHeader(200)
+		result := logBody{
+			Data: stuff[:len(stuff)-1],
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+}
+
+/*GatewayRetriever testing
+@author - Azeem Ashraf
+*/
 func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -283,21 +335,21 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			pocStructObj.Txn = res[len(res)-1].TxnHash
 
 			for i := len(res) - 1; i >= 0; i-- {
-				if res[i].TxnType=="2"{
+				if res[i].TxnType == "2" {
 					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
 					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
 					bearer := "Bearer " + constants.BackendToken
 					// Create a new request using http
 					req, er := http.NewRequest("GET", url, nil)
-	
+
 					req.Header.Add("Authorization", bearer)
 					client := &http.Client{}
 					resq, er := client.Do(req)
-	
+
 					if er != nil {
 						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	
+
 						w.WriteHeader(http.StatusOK)
 						response := model.Error{Message: "Connection to the DataStore was interupted"}
 						json.NewEncoder(w).Encode(response)
@@ -306,23 +358,23 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 						body, _ := ioutil.ReadAll(resq.Body)
 						var raw map[string]interface{}
 						json.Unmarshal(body, &raw)
-	
+
 						h := sha256.New()
 						base64 := raw["data"]
 						// fmt.Println(base64)
-	
-						h.Write([]byte(fmt.Sprintf("%s", base64)+result.Identifier))
+
+						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 						// fmt.Printf("%x", h.Sum(nil))
-	
+
 						DataStoreTXN := model.Current{
 							TType:      res[i].TxnType,
 							TXNID:      res[i].TxnHash,
 							Identifier: res[i].Identifier,
 							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-	
+
 						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 					}
-				}else{
+				} else {
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
@@ -330,7 +382,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 					}
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
-				
+
 			}
 
 			// pocStructObj = apiModel.POCStruct{
@@ -345,9 +397,8 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
 
-
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
+
 			result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
 			// fmt.Println(result)
 			// fmt.Println(response.RetrievePOC.Error.Message)
@@ -378,11 +429,13 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
-
 	return
 
 }
 
+/*GatewayRetrieverWithIdentifier testing
+@author - Azeem Ashraf
+*/
 func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
@@ -395,97 +448,96 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// p.Then(func(data interface{}) interface{} {
 
 	// 	result := data.(model.TransactionCollectionBody)
-		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
-		g := object.GetTransactionsbyIdentifier(vars["Identifier"])
-		g.Then(func(data interface{}) interface{} {
-			res := data.([]model.TransactionCollectionBody)
-			pocStructObj.Txn = res[len(res)-1].TxnHash
+	pocStructObj.DBTree = []model.Current{}
+	// fmt.Println(result)
+	g := object.GetTransactionsbyIdentifier(vars["Identifier"])
+	g.Then(func(data interface{}) interface{} {
+		res := data.([]model.TransactionCollectionBody)
+		pocStructObj.Txn = res[len(res)-1].TxnHash
 
-			for i := len(res) - 1; i >= 0; i-- {
-				if res[i].TxnType=="2"{
-					// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-					url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
+		for i := len(res) - 1; i >= 0; i-- {
+			if res[i].TxnType == "2" {
+				// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
+				url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
-					bearer := "Bearer " + constants.BackendToken
-										// Create a new request using http
-					req, er := http.NewRequest("GET", url, nil)
-	
-					req.Header.Add("Authorization", bearer)
-					client := &http.Client{}
-					resq, er := client.Do(req)
-	
-					if er != nil {
-						w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	
-						w.WriteHeader(http.StatusOK)
-						response := model.Error{Message: "Connection to the DataStore was interupted"}
-						json.NewEncoder(w).Encode(response)
-					} else {
-						// fmt.Println(req)
-						body, _ := ioutil.ReadAll(resq.Body)
-						var raw map[string]interface{}
-						json.Unmarshal(body, &raw)
-	
-						h := sha256.New()
-						base64 := raw["data"]
-						// fmt.Println(base64)
-	
-						h.Write([]byte(fmt.Sprintf("%s", base64)+res[i].Identifier))
-						// fmt.Printf("%x", h.Sum(nil))
-	
-						DataStoreTXN := model.Current{
-							TType:      res[i].TxnType,
-							TXNID:      res[i].TxnHash,
-							Identifier: res[i].Identifier,
-							DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-	
-						pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
-					}
-				}else{
+				bearer := "Bearer " + constants.BackendToken
+				// Create a new request using http
+				req, er := http.NewRequest("GET", url, nil)
+
+				req.Header.Add("Authorization", bearer)
+				client := &http.Client{}
+				resq, er := client.Do(req)
+
+				if er != nil {
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+					w.WriteHeader(http.StatusOK)
+					response := model.Error{Message: "Connection to the DataStore was interupted"}
+					json.NewEncoder(w).Encode(response)
+				} else {
+					// fmt.Println(req)
+					body, _ := ioutil.ReadAll(resq.Body)
+					var raw map[string]interface{}
+					json.Unmarshal(body, &raw)
+
+					h := sha256.New()
+					base64 := raw["data"]
+					// fmt.Println(base64)
+
+					h.Write([]byte(fmt.Sprintf("%s", base64) + res[i].Identifier))
+					// fmt.Printf("%x", h.Sum(nil))
+
 					DataStoreTXN := model.Current{
 						TType:      res[i].TxnType,
 						TXNID:      res[i].TxnHash,
 						Identifier: res[i].Identifier,
-					}
+						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
-				
+			} else {
+				DataStoreTXN := model.Current{
+					TType:      res[i].TxnType,
+					TXNID:      res[i].TxnHash,
+					Identifier: res[i].Identifier,
+				}
+				pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 			}
 
-			// pocStructObj = apiModel.POCStruct{
+		}
 
-			// // }
-			// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
-			// response = display.InterpretPOC()
+		// pocStructObj = apiModel.POCStruct{
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
+		// // }
+		// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
+		// response = display.InterpretPOC()
 
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(200)
-			// w.WriteHeader(http.StatusBadRequest)
+		// fmt.Println(response.RetrievePOC.Error.Message)
 
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(200)
+		// w.WriteHeader(http.StatusBadRequest)
 
-			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
-			
-			result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
-			// fmt.Println(result)
-			// fmt.Println(response.RetrievePOC.Error.Message)
-			json.NewEncoder(w).Encode(result)
-			// 		return
+		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
-			return data
-		}).Catch(func(error error) error {
-			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
+		// fmt.Println(result)
+		// fmt.Println(response.RetrievePOC.Error.Message)
+		json.NewEncoder(w).Encode(result)
+		// 		return
 
-			w.WriteHeader(http.StatusOK)
-			response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
-			json.NewEncoder(w).Encode(response)
-			return error
-		})
-		g.Await()
+		return data
+	}).Catch(func(error error) error {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-		// return data
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	g.Await()
+
+	// return data
 
 	// }).Catch(func(error error) error {
 	// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -498,9 +550,6 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// })
 	// p.Await()
 
-
 	return
 
 }
-
-

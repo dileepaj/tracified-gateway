@@ -1,0 +1,24 @@
+---
+  - hosts: staging
+    environment:
+      PYTHONPATH: /home/{{ ansible_user }}/.local/lib/python2.7/site-packages
+    tasks:
+      - name: Copy service file
+        become: true
+        copy:
+          src: tracified-gateway.service
+          dest: /etc/systemd/system/tracified-gateway.service
+      - name: Create directory
+        shell: "mkdir -p /home/{{ ansible_user }}/tracified-gateway"
+      # - file:
+      #   path: /home/{{ ansible_user }}/tracified-gateway
+      - name: Copy tracified-gateway binary
+        copy:
+          src: ../tracified-gateway
+          dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
+          owner: ubuntu
+          group: ubuntu
+          mode: 7777
+      - name: Run service file
+        become: true
+        shell: "systemctl start tracified-gateway.service"

@@ -10,8 +10,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+// CheckCOCStatus
 func CheckCOCStatus() {
-	fmt.Println("NEW STUFF")
+	// fmt.Println("NEW STUFF")
 	object := dao.Connection{}
 	p := object.GetCOCbyStatus("pending")
 	p.Then(func(data interface{}) interface{} {
@@ -26,7 +27,7 @@ func CheckCOCStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXdr, &txe)
 				if err != nil {
-					fmt.Println(err)
+					// fmt.Println(err)
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -36,7 +37,7 @@ func CheckCOCStatus() {
 					if err1!= nil{
 						fmt.Println(err1)
 					}
-					// fmt.Println("Expired")
+					fmt.Println("Expired")
 				}else{
 					// fmt.Println("Not Expired")
 				}
@@ -66,7 +67,7 @@ func CheckCOCExpired() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXdr, &txe)
 				if err != nil {
-					fmt.Println(err)
+					// fmt.Println(err)
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -89,3 +90,4 @@ func CheckCOCExpired() {
 	})
 	p.Await()
 }
+
