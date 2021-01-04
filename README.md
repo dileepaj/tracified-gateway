@@ -50,7 +50,7 @@ Steps to contribute:
 - Run
 
 ```
-    go run main.go
+    go run main.go -env=local
 ```
 
 # Folder Structure

@@ -1,20 +1,16 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/astaxie/beego/core/config"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"log"
-
-	// "log"
 	"net/http"
 	"os"
-
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
-
-	// "github.com/joho/godotenv"
 	"github.com/robfig/cron"
 )
 
@@ -35,8 +31,12 @@ func getPort() string {
 
 func main() {
 
-	//Read conf/app.conf file
-	conf, err := config.NewConfig("ini", "conf/app.conf")
+	var env string
+	flag.StringVar(&env, "env", "bar", "a string var")
+	flag.Parse()
+
+	//Read conf/{env} file
+	conf, err := config.NewConfig("ini", "conf/"+env+".conf")
 	if err != nil {
 		log.Fatalf("failed to parse config file err: %s", err.Error())
 	}
@@ -59,7 +59,7 @@ func main() {
 	c.Start()
 
 	router := routes.NewRouter()
-	fmt.Println("Gateway Started @port " + port)
+	fmt.Println("Gateway Started @port " + port + " with " + env + " conf")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
 }
