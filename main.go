@@ -1,17 +1,16 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"github.com/astaxie/beego/core/config"
-	"github.com/dileepaj/tracified-gateway/commons"
-	"log"
-	"net/http"
-	"os"
 	"github.com/dileepaj/tracified-gateway/api/routes"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
+	"log"
+	"net/http"
+	"os"
 )
 
 func getPort() string {
@@ -32,8 +31,9 @@ func getPort() string {
 func main() {
 
 	var env string
-	flag.StringVar(&env, "env", "bar", "a string var")
-	flag.Parse()
+	//flag.StringVar(&env, "env", "bar", "a string var")
+	//flag.Parse()
+	env = os.Getenv("env")
 
 	//Read conf/{env} file
 	conf, err := config.NewConfig("ini", "conf/"+env+".conf")
