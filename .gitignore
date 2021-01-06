@@ -1,2 +1,5 @@
 /vendor
 **.exe
+local.env
+prod.env
+stg.env
