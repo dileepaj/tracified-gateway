@@ -53,6 +53,12 @@ Steps to contribute:
     go run main.go -env=local
 ```
 
+- Run using Docker
+
+```
+    docker run -e env=local -p 8000:8000 <image>
+```
+
 # Folder Structure
 
 | Name | Description |
