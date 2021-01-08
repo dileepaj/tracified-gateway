@@ -22,6 +22,12 @@ type Routes []Route
 var routes = Routes{
 
 	Route{
+		"Get server health",
+		"GET",
+		"/health",
+		businessFacades.HealthCheck,
+	},
+	Route{
 		"POC",
 		"GET",
 		"/proof/poc/{Txn}",

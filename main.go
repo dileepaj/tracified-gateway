@@ -30,13 +30,9 @@ func getPort() string {
 
 func main() {
 
-	var env string
-	//flag.StringVar(&env, "env", "bar", "a string var")
-	//flag.Parse()
-	env = os.Getenv("env")
-
-	//Read conf/{env} file
-	conf, err := config.NewConfig("ini", "conf/"+env+".conf")
+	env := os.Getenv("env")
+	//Read env/{env} file
+	conf, err := config.NewConfig("ini", "env/"+env+".env")
 	if err != nil {
 		log.Fatalf("failed to parse config file err: %s", err.Error())
 	}
@@ -59,7 +55,7 @@ func main() {
 	c.Start()
 
 	router := routes.NewRouter()
-	fmt.Println("Gateway Started @port " + port + " with " + env + " conf")
+	fmt.Println("Gateway Started @port " + port + " with " + env + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
 }
