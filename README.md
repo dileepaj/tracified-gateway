@@ -56,7 +56,9 @@ Steps to contribute:
 - Run
 
 ```
-    go run main.go -env=local
+    ./tracified-gateway
+
+    for windows run :- tracified-gateway.exe
 ```
 
 - Run using Docker
