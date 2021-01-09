@@ -1,24 +1,82 @@
 ---
-  - hosts: staging
-    environment:
-      PYTHONPATH: /home/{{ ansible_user }}/.local/lib/python2.7/site-packages
-    tasks:
-      - name: Copy service file
-        become: true
-        copy:
-          src: tracified-gateway.service
-          dest: /etc/systemd/system/tracified-gateway.service
-      - name: Create directory
-        shell: "mkdir -p /home/{{ ansible_user }}/tracified-gateway"
-      # - file:
-      #   path: /home/{{ ansible_user }}/tracified-gateway
-      - name: Copy tracified-gateway binary
-        copy:
-          src: ../tracified-gateway
-          dest: /home/{{ ansible_user }}/tracified-gateway/tracified-gateway
-          owner: ubuntu
-          group: ubuntu
-          mode: 7777
-      - name: Run service file
-        become: true
-        shell: "systemctl start tracified-gateway.service"
+- hosts: staging
+  environment:
+    PYTHONPATH: /home/{{ ansible_user }}/.local/lib/python2.7/site-packages
+  tasks:
+    - name: Add docker gpg key
+      become: true
+      apt_key:
+        id: 9DC858229FC7DD38854AE2D88D81803C0EBFCD88
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+    - name: Check if docker repository is present
+      become: true
+      apt_repository:
+        repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable
+        state: present
+    - name: Install docker CE
+      become: true
+      apt:
+        name: docker-ce
+        state: present
+        update_cache: yes
+    - name: Install pip
+      become: true
+      apt:
+        name: python-pip
+        state: present
+        update_cache: yes
+    - name: Install docker-py
+      pip:
+        name: docker
+    - name: Install AWS CLI
+      pip:
+        name: awscli
+    - name: Get ECR login credentials and login with Docker
+      become: true
+      shell: "$(/home/{{ ansible_user }}/.local/bin/aws ecr get-login --no-include-email --region ap-south-1)"
+      environment:
+        AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
+        AWS_SECRET_ACCESS_KEY : "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+    - name: Create volume for docker
+      become: true
+      docker_volume:
+        name: backend_logs
+    - name: Create volume for IPC named pipes
+      become: true
+      docker_volume:
+        name: ipc_named_pipes
+    - name: Run docker
+      become: true
+      docker_container:
+        name: tracified-backend
+        image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
+        published_ports: "{{ lookup('env','BE_PORT') }}:{{ lookup('env','BE_PORT') }},9229:9229"
+        restart: yes
+        restart_policy: on-failure
+        state: started
+        pull: yes
+        env:
+          BE_PORT: "{{ lookup('env','BE_PORT') }}"
+          BE_MONGOLAB_URI: "{{ lookup('env','BE_MONGOLAB_URI') }}"
+          BE_MONGOLAB_URI_TEST: "{{ lookup('env','BE_MONGOLAB_URI_TEST') }}"
+          BE_JWT_SECRET: "{{ lookup('env','BE_JWT_SECRET') }}"
+          BE_WORKFLOW_URI: "{{ lookup('env','BE_WORKFLOW_URI') }}"
+          BE_CUSTGEN_URI: "{{ lookup('env','BE_CUSTGEN_URI') }}"
+          BE_ECOMGEN_URI: "{{ lookup('env','BE_ECOMGEN_URI') }}"
+          BE_DEFAULTTRACEABILITYPROFILEQUERYLIMIT: "{{ lookup('env','BE_DEFAULTTRACEABILITYPROFILEQUERYLIMIT') }}"
+          BE_DEFAULTTRACEABILITYPROFILEQUERYPAGE: "{{ lookup('env','BE_DEFAULTTRACEABILITYPROFILEQUERYPAGE') }}"
+          BE_BLOCKCHAIN_GATEWAY_URI: "{{ lookup('env','BE_BLOCKCHAIN_GATEWAY_URI') }}"
+          BE_PIPE_FIFO_IN: "{{ lookup('env','BE_PIPE_FIFO_IN') }}"
+          BE_PIPE_FIFO_OUT: "{{ lookup('env','BE_PIPE_FIFO_OUT') }}"
+          BE_QL_DOCKER_IMAGE_NAME: "{{ lookup('env','BE_QL_DOCKER_IMAGE_NAME') }}"
+          BE_API_VERSION: "{{ lookup('env','BE_API_VERSION') }}"
+          BE_WEBVIEW_URL: "{{ lookup('env','BE_WEBVIEW_URL') }}"
+          BE_AWS_REGION: "{{ lookup('env','BE_AWS_REGION') }}"
+          BE_MOBILELOG_S3_BUCKET: "{{ lookup('env','BE_MOBILELOG_S3_BUCKET') }}"
+          BE_MOBILELOG_ACCESS_KEY: "{{ lookup('env','BE_MOBILELOG_ACCESS_KEY') }}"
+          BE_MOBILELOG_SECRET_KEY: "{{ lookup('env','BE_MOBILELOG_SECRET_KEY') }}"
+        volumes:
+
+          - backend_logs:/app/logs
+          - ipc_named_pipes:/tmp
