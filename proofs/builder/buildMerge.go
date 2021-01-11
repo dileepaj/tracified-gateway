@@ -84,7 +84,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-		result := display.SubmitXDR()
+		result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 		UserMergeTxnHashes = append(UserMergeTxnHashes, result.TXNID)
 
 		if result.Error.Code == 400 {
@@ -135,9 +135,9 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.TestNetwork,
+				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultTestNetClient},
+				build.AutoSequence{horizon.DefaultPublicNetClient},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
@@ -170,7 +170,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR()
+			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].TxnHash = UserMergeTxnHashes[i]

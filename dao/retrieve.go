@@ -1,6 +1,9 @@
 package dao
 
 import (
+	"fmt"
+	"strconv"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 
@@ -66,6 +69,7 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		defer session.Close()
 
 		c := session.DB("tracified-gateway").C("COC")
+
 		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
 		if er != nil {
 			// fmt.Println(er)
@@ -79,7 +83,13 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 
 		}
 		result2.Receiver = result.Receiver
-		result2.SequenceNo = result.SequenceNo
+		bumpSeq, err := strconv.Atoi(result.SequenceNo)
+		if err == nil {
+			fmt.Println(bumpSeq)
+			bumpSeq = bumpSeq
+			fmt.Println(bumpSeq)
+		}
+		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
 		if result.Status == "pending" {
 			result2.Available = false
@@ -114,6 +124,7 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 
 		c := session.DB("tracified-gateway").C("COC")
 		err1 := c.Find(bson.M{"receiver": receiver}).All(&result)
+
 		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
@@ -220,6 +231,7 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 		err1 := c.Find(bson.M{"status": status}).All(&result)
 		if err1 != nil || len(result) == 0 {
 			// fmt.Println(err1)
+
 			reject(err1)
 
 		} else {
@@ -262,7 +274,42 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		err1 := c.Find(bson.M{"identifier": identifier}).Skip(count - 1).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
+
 			reject(err1)
+		}
+
+		resolve(result)
+
+	})
+
+	return p
+
+}
+
+/*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
+@author - Azeem Ashraf
+*/
+func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
+	result := model.COCCollectionBody{}
+	// result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("COC")
+		er := c.Find(bson.M{"txnhash": txnHash}).One(&result)
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
 		}
 
 		resolve(result)
@@ -327,6 +374,7 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		defer session.Close()
 
 		c := session.DB("tracified-gateway").C("Transactions")
+
 		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
@@ -401,6 +449,125 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 			reject(err1)
 
 		} else {
+
+			resolve(result)
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		f := c.Find(bson.M{})
+		count, er := f.Count()
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		if count > limit {
+			err1 := f.Skip(count - limit).All(&result)
+			if err1 != nil || len(result) == 0 {
+				// fmt.Println(err1)
+				reject(err1)
+
+			} else {
+				resolve(result)
+
+			}
+
+		}
+
+		err1 := f.All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"identifier": Identifer, "tdpid": ""}).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+@author - Azeem Ashraf
+*/
+func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"tdpid": TdpId}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
 			resolve(result)
 
 		}
@@ -413,7 +580,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 
 /*GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
 @author - Azeem Ashraf
-*/ 
+*/
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -499,6 +666,39 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 
 		c := session.DB("tracified-gateway").C("Profiles")
 		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		}
+		resolve(result)
+
+	})
+
+	return p
+
+}
+
+/*GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
+@author - Azeem Ashraf
+*/
+func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
+	result := model.ProfileCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Profiles")
+		err1 := c.Find(bson.M{"profileid": ProfileID}).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -602,6 +802,201 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 
 		c := session.DB("tracified-gateway").C("Certificates")
 		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
+	result := []model.TransactionId{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"tdpid": tdpid}).All(&result)
+
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer string) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"tdpid": TdpId, "identifer": identifer}).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"publickey": Publickey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		}else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"txnhash": Txnhash}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+//GetSpecialForPkAndSeq ...
+func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("TempOrphan")
+		err1 := c.Find(bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
+}
+
+//GetTransactionByTxnhash ..
+func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB("tracified-gateway").C("Transactions")
+		err1 := c.Find(bson.M{"txnhash": Txnhash}).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)

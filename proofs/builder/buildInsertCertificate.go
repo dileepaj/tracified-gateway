@@ -60,7 +60,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-		result := display.SubmitXDR()
+		result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 		UserTxnHashes = append(UserTxnHashes, result.TXNID)
 
 		if result.Error.Code == 400 {
@@ -95,9 +95,9 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.TestNetwork,
+				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultTestNetClient},
+				build.AutoSequence{horizon.DefaultPublicNetClient},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
@@ -130,7 +130,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 			}
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR()
+			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]

@@ -40,6 +40,12 @@ Steps to contribute:
 
    
 ```
+- Make env files 
+
+```
+    Create a copy of default.env file.
+    Rename it with your environment name and add your environment info
+```
 
 - Build 
 
@@ -50,7 +56,21 @@ Steps to contribute:
 - Run
 
 ```
-    go run main.go
+    ./tracified-gateway
+
+    for windows run :- tracified-gateway.exe
+```
+
+- Run using Docker
+
+```
+    docker run -e env=local -p 8000:8000 <image>
+```
+
+- Health Check
+```
+http://localhost:8000/health
+
 ```
 
 # Folder Structure

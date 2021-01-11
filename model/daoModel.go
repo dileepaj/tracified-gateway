@@ -8,7 +8,7 @@ type COCCollectionBody struct {
 	TxnHash    string
 	Sender     string
 	SubAccount string
-	SequenceNo int
+	SequenceNo string
 	Receiver   string
 	AcceptXdr  string
 	RejectXdr  string
@@ -20,6 +20,7 @@ type COCCollectionBody struct {
 type TransactionCollectionBody struct {
 	Identifier      string
 	TdpId           string
+	SequenceNo      int64
 	ProfileID       string
 	TxnHash         string
 	PreviousTxnHash string
@@ -34,6 +35,10 @@ type TransactionCollectionBody struct {
 	Status          string
 	MergeID         string
 	Orphan          bool
+	PreviousStage   string
+	CurrentStage    string
+	AppAccount      string
+	DataHash        string
 }
 
 type ProfileCollectionBody struct {
@@ -65,6 +70,109 @@ type LastTxnResponse struct {
 	LastTxn string
 }
 
+type TransactionId struct {
+	Txnhash string
+	Url     string
+}
+
+type TransactionIds struct {
+	Status     string
+	Txnhash    string
+	Url        string
+	Identifier string
+	TdpId      string
+}
+
+type PrevTxnResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Url            string
+	From           string
+	To             string
+	SourceAccount  string
+	Identifier     string
+	TdpId          string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	AvailableProof []string
+	DataHash       string
+}
+
+type POCOCResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Url            string
+	Identifier     string
+	Quantity       string
+	AssetCode      string
+	From           string
+	To             string
+	FromSigned     bool
+	ToSigned       bool
+	BlockchainName string
+	COCStatus      string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+}
+
+type POGResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Url            string
+	SourceAccount  string
+	Identifier     string
+	BlockchainName string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+}
+
+type POEResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Url            string
+	SourceAccount  string
+	Identifier     string
+	BlockchainName string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	DbHash         string
+	BcHash         string
+}
+
+type POCResponse struct {
+	Status         string
+	Txnhash        string
+	TxnType        string
+	SequenceNo     int64
+	Identifier     string
+	DataHash       string
+	BlockchainName string
+	Timestamp      string
+	Ledger         string
+	FeePaid        string
+	Url            string
+	SourceAccount  string
+	AvailableProof []string
+	COCStatus      string
+	Quantity       string
+	AssetCode      string
+	From           string
+	To             string
+	FromSigned     bool
+	ToSigned       bool
+}
 type COCCollectionList struct {
 	List []COCCollectionBody
 }
@@ -74,4 +182,14 @@ type TransactionCollectionList struct {
 type TransactionUpdate struct {
 	Selector TransactionCollectionBody
 	Update   TransactionCollectionBody
+}
+
+type ArtifactTransaction struct {
+	TenantId       string `json:"tenantId"`
+	ArtifactId     string `json:"artifactId"`
+	ArtifactDataId string `json:"artifactDataId"`
+	CellId         string `json:"cellId"`
+	PublicKey      string `json:"publicKey"`
+	XDR            string `json:"XDR"`
+	Txnhash        string `json:"Txnhash"`
 }

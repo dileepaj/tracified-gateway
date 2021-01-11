@@ -27,7 +27,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 	var PreviousTxn string
 
 	//RETRIEVE INITIAL GATEWAY SIGNED TXN
-	result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
+	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOG"
@@ -54,7 +54,7 @@ func (db *ConcretePOG) RetrievePOG() model.RetrievePOG {
 			PreviousTxn=Base64DecEnc("Decode", keys[1].Value)
 			CurrentTxn=Base64DecEnc("Decode", keys[2].Value)
 			//Retrive Current TXN DATA
-			result1, err1 := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn + "/operations")
+			result1, err1 := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn + "/operations")
 			if err1 != nil {
 				Rerr.Code = result1.StatusCode
 				Rerr.Message = "The HTTP request failed for RetrievePOG"

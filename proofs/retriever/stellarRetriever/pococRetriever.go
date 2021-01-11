@@ -22,14 +22,18 @@ type ConcretePOCOC struct {
 @desc - Retrieves the COC Txn from stellar using the TXN ID
 @params - XDR
 */
-func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
+
+func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,string) {
 
 	var CurrentTxn string
-	CurrentTxn=db.Txn
+	CurrentTxn = db.Txn
 
+	timestamp := ""
+	ledger := ""
+	feePaid := ""
 	var txe xdr.Transaction
 	//RETRIEVE GATEWAY SIGNED TXN
-	// result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + db.Txn + "/operations")
+	// result, err := http.Get("https://horizon.stellar.org/transactions/" + db.Txn + "/operations")
 	// if err != nil {
 
 	// } else {
@@ -51,32 +55,38 @@ func (db *ConcretePOCOC) RetrievePOCOC() xdr.Transaction {
 	// 		// Gtype:=Base64DecEnc("Decode", keys[0].Value)
 	// 		// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 	// 		CurrentTxn = Base64DecEnc("Decode", keys[2].Value)
-			//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
-			result, err := http.Get("https://horizon-testnet.stellar.org/transactions/" + CurrentTxn)
+
+	//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
+	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
+	if err != nil {
+		return txe, false, timestamp,ledger,feePaid
+	} else {
+		data, _ := ioutil.ReadAll(result.Body)
+
+		if result.StatusCode == 200 {
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+
+			fmt.Println(raw["envelope_xdr"])
+			fmt.Println("HAHAHAHAAHAHAH")
+			timestamp = fmt.Sprintf("%s", raw["created_at"])
+			ledger = fmt.Sprintf("%.0f", raw["ledger"])
+			feePaid = fmt.Sprintf("%.0f", raw["fee_paid"])
+
+			err := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 			if err != nil {
-
-			} else {
-				data, _ := ioutil.ReadAll(result.Body)
-
-				if result.StatusCode == 200 {
-					var raw map[string]interface{}
-					json.Unmarshal(data, &raw)
-
-					fmt.Println(raw["envelope_xdr"])
-					fmt.Println("HAHAHAHAAHAHAH")
-					err := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s",raw["envelope_xdr"]), &txe)
-					if err != nil {
-					} 
-
-				} else {
-
-				}
-
 			}
-	// 	}
 
+		} else {
+			return txe, false, timestamp,ledger,feePaid
+
+		}
+
+	}
+	// 	}
 
 	// }
 
-	return txe
+	return txe, true, timestamp,ledger,feePaid
+
 }

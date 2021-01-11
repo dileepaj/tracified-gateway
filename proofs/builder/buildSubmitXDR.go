@@ -21,8 +21,8 @@ import (
 
 /*SubmitXDR - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds any with generic TXN Type for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds any with generic TXN Type for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -94,7 +94,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 		for i, _ := range AP.TxnBody {
 			//SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-			result1 := display.SubmitXDR()
+			result1 := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result1.TXNID)
 
 			if result1.Error.Code == 400 {
@@ -185,7 +185,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR()
+				response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
+	"time"
 	"strconv"
 	"strings"
 
@@ -21,8 +21,8 @@ import (
 
 /*SubmitSplit - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type 5 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type 5 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -42,6 +42,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// var result model.SubmitXDRResponse
+
+	time.Sleep(4 * time.Second)
 
 	for i, TxnBody := range AP.TxnBody {
 
@@ -78,6 +80,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}).Catch(func(error error) error {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+				
 				AP.TxnBody[i].PreviousTxnHash = ""
 				return error
 			})
@@ -86,7 +89,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
-		result := display.SubmitXDR()
+		result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 		UserSplitTxnHashes = append(UserSplitTxnHashes, result.TXNID)
 
 		if result.Error.Code == 400 {
@@ -97,8 +100,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}
 			json.NewEncoder(w).Encode(response)
 			return
-		}else{
-			fmt.Println((i+1)," Submitted")
+		} else {
+			fmt.Println((i + 1), " Submitted")
 		}
 	}
 	go func() {
@@ -120,9 +123,9 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.TestNetwork,
+				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultTestNetClient},
+				build.AutoSequence{horizon.DefaultPublicNetClient},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserSplitTxnHashes[i])),
@@ -156,7 +159,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR()
+			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].TxnHash = UserSplitTxnHashes[i]

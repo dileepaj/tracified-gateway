@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -37,6 +38,26 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	defer session.Close()
 
 	c := session.DB("tracified-gateway").C("Transactions")
+	err1 := c.Insert(Coc)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	return err
+}
+
+/*InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
+@author - Azeem Ashraf
+*/
+func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("TempOrphan")
 	err1 := c.Insert(Coc)
 	if err1 != nil {
 		fmt.Println(err1)
@@ -98,6 +119,23 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 
 	c := session.DB("tracified-gateway").C("Certificates")
 	err1 := c.Insert(Cert)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+
+	return err
+}
+
+func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error {
+
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer session.Close()
+
+	c := session.DB("tracified-gateway").C("Artifacts")
+	err1 := c.Insert(artifacts)
 	if err1 != nil {
 		fmt.Println(err1)
 	}

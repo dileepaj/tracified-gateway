@@ -19,11 +19,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 )
 
-
 /*SubmitData - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type 2 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type 2 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -31,6 +30,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	var Done []bool
 	Done = append(Done, NotOrphan)
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	object := dao.Connection{}
@@ -53,6 +53,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].Status = "pending"
 
@@ -95,17 +96,20 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		for i, _ := range AP.TxnBody {
 			//SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-			result1 := display.SubmitXDR()
+			result1 := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result1.TXNID)
 
 			if result1.Error.Code == 400 {
 				Done = append(Done, false)
-				w.WriteHeader(result1.Error.Code)
-				response := apiModel.SubmitXDRSuccess{
-					Status: "Index[" + strconv.Itoa(i) + "] TXN: Blockchain Transaction Failed!",
+				if NotOrphan {
+					w.WriteHeader(result1.Error.Code)
+					response := apiModel.SubmitXDRSuccess{
+						Status: "Index[" + strconv.Itoa(i) + "] TXN: Blockchain Transaction Failed!",
+					}
+					json.NewEncoder(w).Encode(response)
+					return
 				}
-				json.NewEncoder(w).Encode(response)
-				return
+
 			}
 		}
 	}
@@ -151,14 +155,15 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.TestNetwork,
+					build.PublicNetwork,
 					build.SourceAccount{publicKey},
-					build.AutoSequence{horizon.DefaultTestNetClient},
+					build.AutoSequence{horizon.DefaultPublicNetClient},
 					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
 					PreviousTXNBuilder,
 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 				)
 
+				
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {
@@ -186,7 +191,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR()
+				response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
@@ -218,7 +223,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 			Status: "Success",
 		}
 		json.NewEncoder(w).Encode(result)
+		return
 	}
 
-	return
 }
