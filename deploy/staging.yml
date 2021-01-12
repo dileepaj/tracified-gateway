@@ -49,7 +49,7 @@
     - name: Run docker
       become: true
       docker_container:
-        name: tracified-backend
+        name: gateway
         image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
         published_ports: "{{ lookup('env','BE_PORT') }}:{{ lookup('env','BE_PORT') }},9229:9229"
         restart: yes

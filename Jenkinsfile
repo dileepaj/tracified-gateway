@@ -9,9 +9,11 @@ node {
     docker.image('golang:latest').inside('-u root') {
         stage('Setup') {
                    echo 'Setting up environment'
+                   echo scm.branches
+                   echo env.BRANCH_NAME
                    if (env.BRANCH_NAME == 'staging') {
                         configFileProvider([configFile(fileId: '4e86e233-697c-4371-aad3-dae58c04a62a', targetLocation: './')]) {
-                        load './stg.properties'
+                        load './staging.properties'
                         }
                    }
         }
@@ -22,6 +24,7 @@ node {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
+                  echo ${env.BUILD_ID}
                   def releaseImage = docker.build("tracified/gateway-staging:${env.BUILD_ID}")
                   releaseImage.push()
                   releaseImage.push('latest')
