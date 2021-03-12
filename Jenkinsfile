@@ -47,6 +47,7 @@ node {
     catch (exc) {
         currentBuild.result = "FAILURE"
         echo 'Something went wrong'
+        echo exc.toString()
     }
     finally {
         echo 'All done. Cleaning up docker'
