@@ -30,13 +30,14 @@ func getPort() string {
 
 func main() {
 
-	env := os.Getenv("env")
+	//env := os.Getenv("env")
 	//Read env/{env} file
-	conf, err := config.NewConfig("ini", "env/"+env+".env")
+	conf, err := config.NewConfig("ini", ".env")
 	if err != nil {
 		log.Fatalf("failed to parse config file err: %s", err.Error())
 	}
 	commons.ConstructConnectionPool(conf)
+	env,err :=     conf.String("datastore" + "::env")
 
 	// getEnvironment()
 	port := getPort()
