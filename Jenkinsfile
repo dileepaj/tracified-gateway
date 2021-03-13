@@ -6,7 +6,7 @@ node {
 
     checkout scm
 
-    docker.image('golang:latest').inside('-u root') {
+    docker.image('golang:1.15.6').inside('-u root') {
         stage('Setup') {
                    echo 'Setting up environment'
                    echo scm.branches

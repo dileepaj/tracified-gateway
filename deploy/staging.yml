@@ -41,7 +41,7 @@
     - name: Create volume for docker
       become: true
       docker_volume:
-        name: backend_logs
+        name: gateway_logs
     - name: Create volume for IPC named pipes
       become: true
       docker_volume:
@@ -51,31 +51,18 @@
       docker_container:
         name: gateway
         image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
-        published_ports: "{{ lookup('env','BE_PORT') }}:{{ lookup('env','BE_PORT') }},9229:9229"
+        published_ports: "{{ lookup('env','BE_PORT') }}:{{ lookup('env','BE_PORT') }},8000:8000"
         restart: yes
         restart_policy: on-failure
         state: started
         pull: yes
         env:
-          BE_PORT: "{{ lookup('env','BE_PORT') }}"
-          BE_MONGOLAB_URI: "{{ lookup('env','BE_MONGOLAB_URI') }}"
-          BE_MONGOLAB_URI_TEST: "{{ lookup('env','BE_MONGOLAB_URI_TEST') }}"
-          BE_JWT_SECRET: "{{ lookup('env','BE_JWT_SECRET') }}"
-          BE_WORKFLOW_URI: "{{ lookup('env','BE_WORKFLOW_URI') }}"
-          BE_CUSTGEN_URI: "{{ lookup('env','BE_CUSTGEN_URI') }}"
-          BE_ECOMGEN_URI: "{{ lookup('env','BE_ECOMGEN_URI') }}"
-          BE_DEFAULTTRACEABILITYPROFILEQUERYLIMIT: "{{ lookup('env','BE_DEFAULTTRACEABILITYPROFILEQUERYLIMIT') }}"
-          BE_DEFAULTTRACEABILITYPROFILEQUERYPAGE: "{{ lookup('env','BE_DEFAULTTRACEABILITYPROFILEQUERYPAGE') }}"
-          BE_BLOCKCHAIN_GATEWAY_URI: "{{ lookup('env','BE_BLOCKCHAIN_GATEWAY_URI') }}"
-          BE_PIPE_FIFO_IN: "{{ lookup('env','BE_PIPE_FIFO_IN') }}"
-          BE_PIPE_FIFO_OUT: "{{ lookup('env','BE_PIPE_FIFO_OUT') }}"
-          BE_QL_DOCKER_IMAGE_NAME: "{{ lookup('env','BE_QL_DOCKER_IMAGE_NAME') }}"
-          BE_API_VERSION: "{{ lookup('env','BE_API_VERSION') }}"
-          BE_WEBVIEW_URL: "{{ lookup('env','BE_WEBVIEW_URL') }}"
-          BE_AWS_REGION: "{{ lookup('env','BE_AWS_REGION') }}"
-          BE_MOBILELOG_S3_BUCKET: "{{ lookup('env','BE_MOBILELOG_S3_BUCKET') }}"
-          BE_MOBILELOG_ACCESS_KEY: "{{ lookup('env','BE_MOBILELOG_ACCESS_KEY') }}"
-          BE_MOBILELOG_SECRET_KEY: "{{ lookup('env','BE_MOBILELOG_SECRET_KEY') }}"
+          env: "{{ lookup('env','env') }}"
+          username: "{{ lookup('env','username') }}"
+          password: "{{ lookup('env','password') }}"
+          host: "{{ lookup('env','host') }}"
+          port: "{{ lookup('env','port') }}"
+          dbName: "{{ lookup('env','dbName') }}"
         volumes:
 
           - backend_logs:/app/logs
