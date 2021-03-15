@@ -37,7 +37,7 @@ func main() {
 		log.Fatalf("failed to parse config file err: %s", err.Error())
 	}
 	commons.ConstructConnectionPool(conf)
-	env,err :=     conf.String("datastore" + "::env")
+	env,err :=     conf.String("envinfo" + "::BRANCH_NAME")
 
 	// getEnvironment()
 	port := getPort()
