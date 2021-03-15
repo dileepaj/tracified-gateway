@@ -29,11 +29,11 @@ func GetMongoSession() (*mgo.Session, error) {
 }
 
 func ConstructConnectionPool(conf config.Configer) {
-	username,err :=     conf.String("datastore" + "::username")
-	password,err :=     conf.String("datastore" + "::password")
-	dbName,err :=     conf.String("datastore" + "::dbName")
-	host,err :=     conf.String("datastore" + "::host")
-	port,err :=     conf.String("datastore" + "::port")
+	username,err :=     conf.String("datastore" + "::DBUSERNAME")
+	password,err :=     conf.String("datastore" + "::DBPASSWORD")
+	dbName,err :=     conf.String("datastore" + "::DBNAME")
+	host,err :=     conf.String("datastore" + "::DBHOST")
+	port,err :=     conf.String("datastore" + "::DBPORT")
 	if err != nil {
 		fmt.Println(err.Error())
 	}

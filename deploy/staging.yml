@@ -51,19 +51,18 @@
       docker_container:
         name: gateway
         image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
-        published_ports: "{{ lookup('env','BE_PORT') }}:{{ lookup('env','BE_PORT') }},8000:8000"
+        published_ports: "{{ lookup('env','GATEWAY_PORT') }}:{{ lookup('env','GATEWAY_PORT') }},8000:8000"
         restart: yes
         restart_policy: on-failure
         state: started
         pull: yes
         env:
-          env: "{{ lookup('env','env') }}"
-          username: "{{ lookup('env','username') }}"
-          password: "{{ lookup('env','password') }}"
-          host: "{{ lookup('env','host') }}"
-          port: "{{ lookup('env','port') }}"
-          dbName: "{{ lookup('env','dbName') }}"
+          GATEWAY_PORT: "{{ lookup('env','GATEWAY_PORT') }}"
+          DBUSERNAME: "{{ lookup('env','USERNAME') }}"
+          DBPASSWORD: "{{ lookup('env','PASSWORD') }}"
+          DBHOST: "{{ lookup('env','HOST') }}"
+          DBPORT: "{{ lookup('env','PORT') }}"
+          DBNAME: "{{ lookup('env','DBNAME') }}"
         volumes:
-
-          - backend_logs:/app/logs
+          - gateway_logs:/app/logs
           - ipc_named_pipes:/tmp

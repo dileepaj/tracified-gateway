@@ -9,7 +9,6 @@ node {
     docker.image('golang:1.15.6').inside('-u root') {
         stage('Setup') {
                    echo 'Setting up environment'
-                   echo scm.branches
                    echo env.BRANCH_NAME
                    if (env.BRANCH_NAME == 'staging') {
                         configFileProvider([configFile(fileId: '4e86e233-697c-4371-aad3-dae58c04a62a', targetLocation: './')]) {
