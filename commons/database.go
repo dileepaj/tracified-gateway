@@ -1,8 +1,6 @@
 package commons
 
 import (
-	"fmt"
-	"github.com/astaxie/beego/core/config"
 	"gopkg.in/mgo.v2"
 )
 
@@ -28,15 +26,12 @@ func GetMongoSession() (*mgo.Session, error) {
 	return mgoSession.Clone(), nil
 }
 
-func ConstructConnectionPool(conf config.Configer) {
-	username,err :=     conf.String("datastore" + "::DBUSERNAME")
-	password,err :=     conf.String("datastore" + "::DBPASSWORD")
-	dbName,err :=     conf.String("datastore" + "::DBNAME")
-	host,err :=     conf.String("datastore" + "::DBHOST")
-	port,err :=     conf.String("datastore" + "::DBPORT")
-	if err != nil {
-		fmt.Println(err.Error())
-	}
+func ConstructConnectionPool() {
+	username:=     GoDotEnvVariable("DBUSERNAME")
+	password:=     GoDotEnvVariable("DBPASSWORD")
+	dbName:=     GoDotEnvVariable("DBNAME")
+	host:=     GoDotEnvVariable("DBHOST")
+	port:=     GoDotEnvVariable("DBPORT")
 	mongoConnectionUrl = "mongodb://"+username+":"+password+"@"+host+":"+port+"/"+dbName
 }
 

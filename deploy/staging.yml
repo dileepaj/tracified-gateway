@@ -42,10 +42,6 @@
       become: true
       docker_volume:
         name: gateway_logs
-    - name: Create volume for IPC named pipes
-      become: true
-      docker_volume:
-        name: ipc_named_pipes
     - name: Run docker
       become: true
       docker_container:
@@ -65,4 +61,3 @@
           DBNAME: "{{ lookup('env','DBNAME') }}"
         volumes:
           - gateway_logs:/app/logs
-          - ipc_named_pipes:/tmp
