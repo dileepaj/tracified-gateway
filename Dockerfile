@@ -1,4 +1,4 @@
-FROM golang:latest
+FROM golang:1.15.6
 LABEL maintainer = "Nisal Perera <nisaledu@gmail.com>"
 RUN mkdir -p /go/src/github.com/dileepaj/tracified-gateway/
 COPY . /go/src/github.com/dileepaj/tracified-gateway/
