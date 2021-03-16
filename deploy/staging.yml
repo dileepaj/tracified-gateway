@@ -52,12 +52,5 @@
         restart_policy: on-failure
         state: started
         pull: yes
-        env:
-          GATEWAY_PORT: "{{ lookup('env','GATEWAY_PORT') }}"
-          DBUSERNAME: "{{ lookup('env','USERNAME') }}"
-          DBPASSWORD: "{{ lookup('env','PASSWORD') }}"
-          DBHOST: "{{ lookup('env','HOST') }}"
-          DBPORT: "{{ lookup('env','PORT') }}"
-          DBNAME: "{{ lookup('env','DBNAME') }}"
         volumes:
           - gateway_logs:/app/logs
