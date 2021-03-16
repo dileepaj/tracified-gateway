@@ -29,6 +29,7 @@ func main() {
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+	commons.ConstructConnectionPool()
 
 	c := cron.New()
 	c.AddFunc("@every 30m", func() {
