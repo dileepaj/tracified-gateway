@@ -42,14 +42,10 @@
       become: true
       docker_volume:
         name: gateway_logs
-    - name: Create volume for IPC named pipes
-      become: true
-      docker_volume:
-        name: ipc_named_pipes
     - name: Run docker
       become: true
       docker_container:
-        name: gateway
+        name: tracified-gateway
         image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
         published_ports: "{{ lookup('env','GATEWAY_PORT') }}:{{ lookup('env','GATEWAY_PORT') }},8000:8000"
         restart: yes
@@ -65,4 +61,3 @@
           DBNAME: "{{ lookup('env','DBNAME') }}"
         volumes:
           - gateway_logs:/app/logs
-          - ipc_named_pipes:/tmp

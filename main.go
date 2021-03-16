@@ -2,13 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/astaxie/beego/core/config"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
-	"log"
 	"net/http"
 	"os"
 )
@@ -21,23 +19,10 @@ func getPort() string {
 	return ":8000"
 }
 
-// func getEnvironment() {
-// 	err := godotenv.Load()
-// 	  if err != nil {
-// 	    log.Fatal("Error loading .env file")
-// 	  }
-// }
-
 func main() {
 
-	//env := os.Getenv("env")
-	//Read env/{env} file
-	conf, err := config.NewConfig("ini", ".env")
-	if err != nil {
-		log.Fatalf("failed to parse config file err: %s", err.Error())
-	}
-	commons.ConstructConnectionPool(conf)
-	env,err :=     conf.String("envinfo" + "::BRANCH_NAME")
+	// godotenv package
+	envName := commons.GoDotEnvVariable("BRANCH_NAME")
 
 	// getEnvironment()
 	port := getPort()
@@ -56,7 +41,7 @@ func main() {
 	c.Start()
 
 	router := routes.NewRouter()
-	fmt.Println("Gateway Started @port " + port + " with " + env + " environment")
+	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
 }
