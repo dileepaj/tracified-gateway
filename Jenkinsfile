@@ -27,6 +27,7 @@ node {
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
                   echo ${env.BUILD_ID}
+                  echo 'Building image 2'
                   def releaseImage = docker.build("tracified/gateway-staging:${env.BUILD_ID}")
                   releaseImage.push()
                   releaseImage.push('latest')
