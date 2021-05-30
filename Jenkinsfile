@@ -13,6 +13,7 @@ node {
                    if (env.BRANCH_NAME == 'staging') {
                         configFileProvider([configFile(fileId: '4e86e233-697c-4371-aad3-dae58c04a62a', targetLocation: './')]) {
                         load './staging.properties'
+                        echo 'load ./staging.properties'
                         }
                    }
         }
