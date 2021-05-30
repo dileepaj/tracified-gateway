@@ -19,6 +19,7 @@ node {
 
     }
     stage('Deploy to Staging') {
+              echo env.BRANCH_NAME
               if (env.BRANCH_NAME == 'staging') {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
