@@ -11,6 +11,7 @@ node {
                    echo 'Setting up environment'
                    echo env.BRANCH_NAME
                    if (env.BRANCH_NAME == 'staging') {
+                        echo './staging.properties going to load.'
                         configFileProvider([configFile(fileId: '4e86e233-697c-4371-aad3-dae58c04a62a', targetLocation: './')]) {
                         load './staging.properties'
                         echo 'load ./staging.properties'
