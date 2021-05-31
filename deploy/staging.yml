@@ -49,7 +49,7 @@
         name: tracified-gateway
         image: 453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
         #msg: "########################## '{{ lookup('env','GATEWAY_PORT') }}' is the GATEWAY_PORT environment variable."
-        published_ports: "8000:8000"
+        published_ports: "{{ lookup('env','GATEWAY_PORT') }}:{{ lookup('env','GATEWAY_PORT') }}"
         restart: yes
         restart_policy: on-failure
         state: started
