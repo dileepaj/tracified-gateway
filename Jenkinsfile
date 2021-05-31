@@ -39,7 +39,7 @@ node {
                   credentialsId: 'aws-ecr-credentials',
                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                  ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu'
+                  ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu -vvvv'
                 }
               }
     }
