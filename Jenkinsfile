@@ -13,8 +13,7 @@ node {
                    if (env.BRANCH_NAME == 'staging') {
                         echo './staging.properties going to load.'
                         configFileProvider([configFile(fileId: 'staging-env-file', targetLocation: './')]) {
-                        load './staging.properties'
-                        echo 'load ./staging.properties'
+                        load './staging.properties'                        
                         }
                    }
         }
@@ -26,8 +25,7 @@ node {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
-                  echo "${env.BUILD_ID}"
-                  echo 'Building image 2'
+                  echo "${env.BUILD_ID}"                  
                   def releaseImage = docker.build("tracified/gateway-staging:${env.BUILD_ID}")
                   releaseImage.push()
                   releaseImage.push('latest')
@@ -39,7 +37,7 @@ node {
                   credentialsId: 'aws-ecr-credentials',
                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                  ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu -vvvv -e GATEWAY_PORT=$GATEWAY_PORT'
+                  ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/staging.yml', extras: '-u ubuntu -e GATEWAY_PORT=$GATEWAY_PORT'
                 }
               }
     }
