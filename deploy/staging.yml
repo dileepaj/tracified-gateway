@@ -48,8 +48,8 @@
       docker_container:
         name: tracified-gateway
         image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
-        msg: "########################## '{{ lookup('env','GATEWAY_PORT') }}' is the GATEWAY_PORT environment variable."
-        published_ports: "{{ lookup('env','GATEWAY_PORT') }}:{{ lookup('env','GATEWAY_PORT') }}"
+        #msg: "########################## '{{ lookup('env','GATEWAY_PORT') }}' is the GATEWAY_PORT environment variable."
+        published_ports: "8000:8000"
         restart: yes
         restart_policy: on-failure
         state: started
