@@ -56,3 +56,5 @@
         pull: yes
         volumes:
           - gateway_logs:/app/logs
+        env:
+            GATEWAY_PORT: "{{ lookup('env','GATEWAY_PORT') }}"
