@@ -44,13 +44,16 @@
         name: gateway_logs
     - name: Run docker
       become: true
+      debugger: on_failed
       docker_container:
         name: tracified-gateway
-        image: https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
-        published_ports: "{{ lookup('env','GATEWAY_PORT') }}:{{ lookup('env','GATEWAY_PORT') }},8000:8000"
+        image: 453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging        
+        published_ports: "8000:8000"
         restart: yes
         restart_policy: on-failure
         state: started
         pull: yes
         volumes:
           - gateway_logs:/app/logs
+        env:
+            GATEWAY_PORT: "{{ lookup('env','GATEWAY_PORT') }}"
