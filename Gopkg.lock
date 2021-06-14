@@ -13,6 +13,17 @@
   revision = "5312a61534124124185d41f09206b9fef1d88403"
 
 [[projects]]
+  digest = "1:5eb515a83ad8c697f9a7341d4c1d6f9838829fe7262cc7f0b302774de2555ec7"
+  name = "github.com/astaxie/beego"
+  packages = [
+    "core/config",
+    "core/logs",
+  ]
+  pruneopts = "UT"
+  revision = "fb12e1f743d67a4adbe4751cffbdd6113fde525f"
+  version = "v2.0.0-beta"
+
+[[projects]]
   branch = "master"
   digest = "1:56fc91481a1d6f8fb6cfac454c3ff2314c6996903273ac9ac5571db6699a064a"
   name = "github.com/chebyrash/promise"
@@ -80,6 +91,14 @@
   revision = "ee05b128a739a0fb76c7ebd3ae4810c1de808d6d"
 
 [[projects]]
+  digest = "1:2a3c9556884d94bdbcdcdc62350f8cf466cf7eb39669fe7a0640f2600f61ceaf"
+  name = "github.com/mitchellh/mapstructure"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8ebf2d61a8b4adcce25fc9fc9b76e8452a00672f"
+  version = "v1.4.1"
+
+[[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -110,6 +129,14 @@
   pruneopts = "UT"
   revision = "3e0cec4266ddf583aecef51bb8e9badc3cca5314"
   version = "v0.5.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:0f10f73342d955228c69329d3ee5cb9abdc92e7f4162f320fb93bc5781ccb57b"
+  name = "github.com/shiena/ansicolor"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c7312218db184c554578219828d6c9498d02dcb1"
 
 [[projects]]
   digest = "1:622a93cd4d5e98d0fc84d61f8a70968cecbbd781dc62f1917ac59f9f36308378"
@@ -201,6 +228,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/astaxie/beego/core/config",
     "github.com/chebyrash/promise",
     "github.com/gorilla/handlers",
     "github.com/gorilla/mux",
