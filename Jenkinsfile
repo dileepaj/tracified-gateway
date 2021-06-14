@@ -10,16 +10,18 @@ node {
         stage('Setup') {
                    echo 'Setting up environment'
                    echo env.BRANCH_NAME
-                   if (env.BRANCH_NAME == 'staging') {
-                        configFileProvider([configFile(fileId: '4e86e233-697c-4371-aad3-dae58c04a62a', targetLocation: './')]) {
+                   if (env.BRANCH_NAME == 'deployment_automation') {
+                        echo 'load properties.'
+                        configFileProvider([configFile(fileId: 'staging-env-file', targetLocation: './')]) {
                         load './staging.properties'
                         }
+                     echo 'load properties done.'
                    }
         }
 
     }
     stage('Deploy to Staging') {
-              if (env.BRANCH_NAME == 'staging') {
+              if (env.BRANCH_NAME == 'deployment_automation') {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'

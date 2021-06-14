@@ -10,7 +10,7 @@ import (
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertCoc ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -30,7 +30,7 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertTransaction ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -50,7 +50,7 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -70,7 +70,7 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertToOrphan ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -90,7 +90,7 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertProfile ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -110,7 +110,7 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) error {
-
+	fmt.Println("--------------------------- InsertCertificate ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
@@ -127,7 +127,7 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 }
 
 func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error {
-
+	fmt.Println("--------------------------- InsertArtifact ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println(err)
