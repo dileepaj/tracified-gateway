@@ -30,6 +30,7 @@ import (
 */
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Println("------------------------- SubmitSpecial --------------------------")
 	var Done []bool           //array to decide whether the actions are done
 	Done = append(Done, true) //starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -46,7 +47,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
-		
+			fmt.Println("------------------------- err @ SafeUnmarshalBase64 --------------------------")
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -58,6 +59,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		fmt.Println(AP.TxnBody[i].Identifier)
 		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err2 != nil {
+			fmt.Println("------------------------- err @ InsertSpecialToTempOrphan --------------------------")
 			Done = append(Done, false)
 			w.WriteHeader(http.StatusBadRequest)
 			response := apiModel.SubmitXDRSuccess{

@@ -62,8 +62,8 @@ func CheckTempOrphan() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		log.Println("Current Sequence for address:", address)
-		log.Println(account.Sequence)
+		//log.Println("Current Sequence for address:", address)
+		//log.Println(account.Sequence)
 
 		seq, er := strconv.Atoi(account.Sequence)
 		if er != nil {
@@ -265,7 +265,7 @@ func CheckTempOrphan() {
 				return nil
 			}).Catch(func(error error) error {
 				// return error
-				log.Println("No transactions in the scheduler")
+				//log.Println("No transactions in the scheduler")
 				stop = true //to break loop
 				return nil
 			})

@@ -15,6 +15,7 @@ node {
                         configFileProvider([configFile(fileId: 'staging-env-file', targetLocation: './')]) {
                         load './staging.properties'                        
                         }
+                     echo 'load properties done.'
                    }
         }
 
