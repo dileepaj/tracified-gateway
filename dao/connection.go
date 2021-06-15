@@ -4,7 +4,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"gopkg.in/mgo.v2"
 )
-
+//Get db name from .env file
+var dbName = commons.GoDotEnvVariable("DBNAME")
 /*Connection The Mgo Connection
 @author - Azeem Ashraf
 */
