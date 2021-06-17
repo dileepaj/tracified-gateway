@@ -21,12 +21,14 @@ import (
 //CheckTempOrphan ...
 func CheckTempOrphan() {
 	var clientList []string
+	testNetClient := horizon.DefaultPublicNetClient
+	testNet := false
 
-	// if multiple clients do exist then query and append them
+	//// if multiple clients do exist then query and append them
 	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
 	clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
 	clientList = append(clientList, "GBCBEUOCIYWD7TF3BPPYT66EJSIDO2ITRDWP4SQSBPAMEORKDRRHPKCF")
-	
+
 	//new keys
 	clientList = append(clientList, "GDYMWT6NSLBTAXV6CJJH2MFVQZZ7DNEM5J3OVMIEA6LQ3TBRR2GIQZXN")
 	clientList = append(clientList, "GCY4TYJOER457PGOS6DQNBCULUHA6EALXG6DRKBUAI44ORRIFDNMKYXB")
@@ -42,7 +44,7 @@ func CheckTempOrphan() {
 
 	//01-05-2020
 	clientList = append(clientList, "GC23K7ED7A5UZL42ZD6XJYHHDCJ4HWJTKEHTGFEDDA4RBOCIHFGO735Z")
-	
+
 	//16-10-2020 - for PVH demo
 	clientList = append(clientList, "GANDBWSTTYGTG6VQJBUMYYG53WFOPPJRVIPYR6YP2UIKNS27GCOFD6WT")
 	clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
@@ -53,21 +55,27 @@ func CheckTempOrphan() {
 	clientList = append(clientList, "GDUNYX4IKO7VUFWOEFPZUO5L2CNHHETAE2XVEZQYZ4ALOJMM3QDB5MAH")
 	clientList = append(clientList, "GDYKQZAHXCCSJ7CVQPLVYQM4MFIJVGSEYMY7PTTU5PGZ5SY2AQPLPYJN")
 
+	//Staging wine tenant
+	clientList = append(clientList, "GDJQU6GLX2MVDA346G36FQPO52ARDG2HV3E3FMRSMML6X6JL4RX7D2KI")
+
+
 	object := dao.Connection{}
 
 	//loop through clients
 	for _, address := range clientList {
+		log.Println(address)
 		//load horizon account
-		account, err := horizon.DefaultPublicNetClient.LoadAccount(address)
+		account, err := testNetClient.LoadAccount(address)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatal("Error while loading account from horizon "+err.Error())
 		}
 		//log.Println("Current Sequence for address:", address)
 		//log.Println(account.Sequence)
-
-		seq, er := strconv.Atoi(account.Sequence)
-		if er != nil {
-
+		log.Println(account.Balances)
+		seq, err := strconv.Atoi(account.Sequence)
+		log.Println(seq)
+		if err != nil {
+			log.Fatal("Error while convert string to int "+err.Error())
 		}
 
 		stop := false //for infinite loop
@@ -80,16 +88,17 @@ func CheckTempOrphan() {
 			p.Then(func(data interface{}) interface{} {
 				result := data.(model.TransactionCollectionBody)
 				var UserTxnHash string
-
+				log.Println(result.TxnType)
 				///HARDCODED CREDENTIALS
 				publicKey := constants.PublicKey
 				secretKey := constants.SecretKey
 				switch result.TxnType {
 				case "0":
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(false, result.TxnType)
+					response := display.SubmitXDR(testNet, result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
+						log.Println("response.Error.Code 400 for SubmitXDR")
 						break
 					}
 
@@ -100,7 +109,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{horizon.DefaultPublicNetClient},
+						build.AutoSequence{testNetClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -109,20 +118,23 @@ func CheckTempOrphan() {
 					//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 					GatewayTXE, err := tx.Sign(secretKey)
 					if err != nil {
+						log.Println("Error while getting GatewayTXE by secretKey "+err.Error())
 						break
 					}
 
 					//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 					txeB64, err := GatewayTXE.Base64()
 					if err != nil {
+						log.Println("Error while converting GatewayTXE to base64 "+err.Error())
 						break
 					}
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(false, "G"+result.TxnType)
+					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
+						log.Println("Error code 400 for SubmitXDR")
 						break
 					}
 
@@ -131,6 +143,7 @@ func CheckTempOrphan() {
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(result)
 					if err2 != nil {
+						log.Println("Error while InsertTransaction " + err2.Error())
 						break
 					}
 
@@ -155,16 +168,17 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(false, result.TxnType)
+					response := display.SubmitXDR(testNet, result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
+						log.Println("Response code 400 for SubmitXDR")
 						break
 					}
 					//BUILD THE GATEWAY XDR
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{horizon.DefaultPublicNetClient},
+						build.AutoSequence{testNetClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -173,20 +187,23 @@ func CheckTempOrphan() {
 					//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 					GatewayTXE, err := tx.Sign(secretKey)
 					if err != nil {
+						log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 						break
 					}
 
 					//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 					txeB64, err := GatewayTXE.Base64()
 					if err != nil {
+						log.Println("Error while converting GatewayTXE to base64 " + err.Error())
 						break
 					}
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(false, "G"+result.TxnType)
+					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
+						log.Println("Error response code 400 while SubmitXDR")
 						break
 					}
 
@@ -195,6 +212,7 @@ func CheckTempOrphan() {
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(result)
 					if err2 != nil {
+						log.Println("Error while InsertTransaction " + err2.Error())
 						break
 					}				
 				case "9":
@@ -218,16 +236,17 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(false, result.TxnType)
+					response := display.SubmitXDR(testNet, result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
+						log.Println("400 SubmitXDR")
 						break
 					}
 					//BUILD THE GATEWAY XDR
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{horizon.DefaultPublicNetClient},
+						build.AutoSequence{testNetClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -236,20 +255,23 @@ func CheckTempOrphan() {
 					//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 					GatewayTXE, err := tx.Sign(secretKey)
 					if err != nil {
+						log.Println("Error while getting GatewayTXE " + err.Error())
 						break
 					}
 
 					//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 					txeB64, err := GatewayTXE.Base64()
 					if err != nil {
+						log.Println("Error while converting to base64 " + err.Error())
 						break
 					}
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(false, "G"+result.TxnType)
+					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
+						log.Println("400 from SubmitXDR")
 						break
 					}
 
@@ -258,6 +280,7 @@ func CheckTempOrphan() {
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(result)
 					if err2 != nil {
+						log.Println("Error while InsertTransaction " + err2.Error())
 						break
 					}
 
