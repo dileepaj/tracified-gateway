@@ -1,1 +1,4 @@
 /vendor
+**.exe
+local.env
+.env

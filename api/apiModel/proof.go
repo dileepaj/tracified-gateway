@@ -10,6 +10,8 @@ type PocSuccess struct {
 	Chain   []model.Current
 }
 
+
+
 //poc Failure response
 type PocFailure struct {
 	RootHash string
@@ -56,7 +58,7 @@ type InsertSuccess struct {
 
 // }
 type SubmitXDRSuccess struct {
-	Status string
+	Status string 
 }
 
 // type SubmitXDRSuccess struct {
@@ -297,6 +299,10 @@ type POCStruct struct {
 	DBTree    []model.Current
 	BCTree    []model.Current
 }
+
+// type POGStruct struct {
+// 	Identifier string
+// }
 
 type POGStruct struct {
 	LastTxn    string
