@@ -28,6 +28,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 @params - ResponseWriter,Request
 */
 func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("=========================== buildGenesis.go - SubmitGenesis =============================")
 	var Done []bool
 	Done = append(Done, true)
 
@@ -46,6 +47,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
+			fmt.Println("----------------------- err @SafeUnmarshalBase64 -------------------------")
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -96,7 +98,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-
+					fmt.Println("----------------------- err2 @SafeUnmarshalBase64 -------------------------")
 				}
 			}
 

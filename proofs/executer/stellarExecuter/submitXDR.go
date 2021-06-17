@@ -23,7 +23,7 @@ type ConcreteSubmitXDR struct {
 @params - XDR
 */
 func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitXDRResponse {
-
+	fmt.Println("=========================== submitXDR.go SubmitXDR =============================")
 	var response model.SubmitXDRResponse
 	s := time.Now().UTC().String()
 
@@ -37,16 +37,23 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitX
 	// log.Println("This is a test log entry")
 
 	if testnet {
+		fmt.Println("test net")
 		resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
+		fmt.Println(cd.XDR)
 		if err != nil {
+			fmt.Println("Error while SubmitTransaction to stellar test net " + err.Error())
 			error1 := err.(*horizon.Error)
-			TC, _ := error1.ResultCodes()
+			fmt.Println(error1.Problem.Detail)
+			TC, err := error1.ResultCodes()
+			if err != nil{
+				fmt.Println("Error while getting ResultCodes from horizon.Error")
+			}
 			for _, element := range TC.OperationCodes {
 				response.Error.Message = response.Error.Message + element + "? "
 			}
 
 			// log.SetOutput(f)
-			log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 
 			response.Error.Code = http.StatusBadRequest
@@ -56,15 +63,18 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitX
 
 		// fmt.Println("Successful Transaction:")
 		// fmt.Println("Ledger:", resp.Ledger)
-		log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
 		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
 
 		response.Error.Code = http.StatusOK
 		response.Error.Message = "Transaction performed in the blockchain."
+		fmt.Println("Transaction performed in the blockchain.")
 		response.TXNID = resp.Hash
 	} else {
+		fmt.Println("public net")
 		resp, err := horizon.DefaultPublicNetClient.SubmitTransaction(cd.XDR)
 		if err != nil {
+			fmt.Println("Error while SubmitTransaction to stellar public net " + err.Error())
 			error1 := err.(*horizon.Error)
 			TC, _ := error1.ResultCodes()
 			for _, element := range TC.OperationCodes {
@@ -72,7 +82,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitX
 			}
 
 			// log.SetOutput(f)
-			log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 
 			response.Error.Code = http.StatusBadRequest
@@ -82,11 +92,12 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitX
 
 		// fmt.Println("Successful Transaction:")
 		// fmt.Println("Ledger:", resp.Ledger)
-		log.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
 		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
 
 		response.Error.Code = http.StatusOK
 		response.Error.Message = "Transaction performed in the blockchain."
+		fmt.Println("Transaction performed in the blockchain.")
 		response.TXNID = resp.Hash
 	}
 
