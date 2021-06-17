@@ -44,6 +44,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
+		fmt.Println("index")
+		fmt.Println(i)
+		fmt.Println("TxnBody.XDR")
 		fmt.Println(TxnBody.XDR)
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
