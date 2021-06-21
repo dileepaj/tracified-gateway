@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/dileepaj/tracified-gateway/commons"
 	"strconv"
 	// "time"
 	// "fmt"
@@ -8,8 +9,6 @@ import (
 	"log"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-
 	// "fmt"
 
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -21,8 +20,7 @@ import (
 //CheckTempOrphan ...
 func CheckTempOrphan() {
 	var clientList []string
-	testNetClient := horizon.DefaultPublicNetClient
-	testNet := false
+	netClient := commons.GetHorizonClient()
 
 	//// if multiple clients do exist then query and append them
 	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
@@ -65,7 +63,7 @@ func CheckTempOrphan() {
 	for _, address := range clientList {
 		log.Println(address)
 		//load horizon account
-		account, err := testNetClient.LoadAccount(address)
+		account, err := netClient.LoadAccount(address)
 		if err != nil {
 			log.Fatal("Error while loading account from horizon "+err.Error())
 		}
@@ -95,7 +93,7 @@ func CheckTempOrphan() {
 				switch result.TxnType {
 				case "0":
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("response.Error.Code 400 for SubmitXDR")
@@ -109,7 +107,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -131,7 +129,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("Error code 400 for SubmitXDR")
@@ -168,7 +166,7 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("Response code 400 for SubmitXDR")
@@ -178,7 +176,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -200,7 +198,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("Error response code 400 while SubmitXDR")
@@ -236,7 +234,7 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("400 SubmitXDR")
@@ -246,7 +244,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -268,7 +266,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("400 from SubmitXDR")
