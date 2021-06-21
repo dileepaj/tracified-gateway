@@ -1,7 +1,7 @@
 package services
 
 import (
-	"fmt"
+	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 	"time"
 	// "github.com/stellar/go/clients/horizon"
@@ -12,6 +12,7 @@ import (
 
 // CheckCOCStatus
 func CheckCOCStatus() {
+	log.Debug("----------------------------------- CheckCOCStatus -------------------------------------")
 	// fmt.Println("NEW STUFF")
 	object := dao.Connection{}
 	p := object.GetCOCbyStatus("pending")
@@ -27,7 +28,7 @@ func CheckCOCStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXdr, &txe)
 				if err != nil {
-					// fmt.Println(err)
+					log.Error("Error @SafeUnmarshalBase64 @CheckCOCStatus" + err.Error())
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -35,9 +36,9 @@ func CheckCOCStatus() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{
-						fmt.Println(err1)
+						log.Error("Error @UpdateCOC" + err1.Error())
 					}
-					fmt.Println("Expired")
+					log.Info("Expired")
 				}else{
 					// fmt.Println("Not Expired")
 				}
@@ -46,13 +47,14 @@ func CheckCOCStatus() {
 		}
 		return nil
 	}).Catch(func(error error) error {
+		log.Error("Error @GetCOCbyStatus " + error.Error())
 		return error
 	})
 	p.Await()
 }
 
 func CheckCOCExpired() {
-	fmt.Println("NEW STUFF")
+	log.Debug("---------------------------- CheckCOCExpired ----------------------------")
 	object := dao.Connection{}
 	p := object.GetCOCbyStatus("pending")
 	p.Then(func(data interface{}) interface{} {
@@ -67,7 +69,7 @@ func CheckCOCExpired() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXdr, &txe)
 				if err != nil {
-					// fmt.Println(err)
+					log.Error("Error @SafeUnmarshalBase64 @CheckCOCExpired " + err.Error())
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -75,7 +77,7 @@ func CheckCOCExpired() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{
-						fmt.Println(err1)
+						log.Error("Error @UpdateCOC @CheckCOCExpired "+err1.Error())
 					}
 					// fmt.Println("Expired")
 				}else{
@@ -86,6 +88,7 @@ func CheckCOCExpired() {
 		}
 		return nil
 	}).Catch(func(error error) error {
+		log.Error("Error @GetCOCbyStatus @CheckCOCExpired "+error.Error())
 		return error
 	})
 	p.Await()
