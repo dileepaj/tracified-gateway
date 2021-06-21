@@ -3,6 +3,8 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	// "strconv"
@@ -14,7 +16,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/xdr"
 )
 
@@ -27,6 +28,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 @params - ResponseWriter,Request
 */
 func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWriter, r *http.Request) {
+	log.Debug("======================= SubmitRenewCertificate ========================")
 	var Done []bool
 	Done = append(Done, true)
 
@@ -47,6 +49,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
+			log.Error("Error while SafeUnmarshalBase64 @SubmitRenewCertificate "+errx.Error())
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
@@ -73,6 +76,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 			}
 			return nil
 		}).Catch(func(error error) error {
+			log.Error("Error while GetLastCertificatebyCertificateID @SubmitRenewCertificate "+error.Error())
 			valid = false
 			Done = append(Done, false)
 			w.WriteHeader(400)
@@ -87,10 +91,11 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 		if valid {
 			//SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-			result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
+			result := display.SubmitXDR(AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result.TXNID)
 
 			if result.Error.Code == 400 {
+				log.Error("Error got 400 for ConcreteSubmitXDR @SubmitRenewCertificate ")
 				Done = append(Done, false)
 				w.WriteHeader(result.Error.Code)
 				response := apiModel.SubmitXDRSuccess{
@@ -118,6 +123,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 				AP.TxnBody[i].PreviousCertificate = result.CertificateID
 				return nil
 			}).Catch(func(error error) error {
+				log.Error("Error while GetLastCertificatebyPublicKey @SubmitRenewCertificate "+error.Error())
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 				return error
 			})
@@ -127,7 +133,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 			tx, err := build.Transaction(
 				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultPublicNetClient},
+				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
@@ -136,13 +142,14 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
+				log.Error("Error while sign"+err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRenewCertificate "+err2.Error())
 				}
 			}
 
@@ -155,12 +162,12 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRenewCertificate "+err2.Error())
 				}
 			}
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
@@ -169,7 +176,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRenewCertificate "+err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -179,7 +186,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRenewCertificate "+err2.Error())
 				}
 			}
 		}

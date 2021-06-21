@@ -3,6 +3,9 @@ package builder
 import (
 	// "encoding/json"
 	"fmt"
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
+
 	// "net/http"
 	// "strconv"
 	"strings"
@@ -10,7 +13,6 @@ import (
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -184,6 +186,7 @@ type AbstractXDRSubmiter struct {
 @author - Azeem Ashraf
 */
 func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRResponse) {
+	log.Debug("---------------------------------- XDRSubmitter ----------------------------------")
 	var status []bool
 	object := dao.Connection{}
 	var ret model.SubmitXDRResponse
@@ -199,7 +202,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 		var txe xdr.Transaction
 		err := xdr.SafeUnmarshalBase64(TDP[i].XDR, &txe)
 		if err != nil {
-			fmt.Println(err)
+			log.Error("Error @SafeUnmarshalBase64 @XDRSubmitter "+err.Error())
 		}
 
 		TDP[i].PublicKey = txe.SourceAccount.Address()
@@ -211,9 +214,10 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TDP[i].XDR}
 
-		response := display.SubmitXDR(false,TDP[i].TxnType)
+		response := display.SubmitXDR(TDP[i].TxnType)
 		ret = response
 		if response.Error.Code == 400 {
+			log.Error("Error got 400 for SubmitXDR @XDRSubmitter ")
 			TDP[i].Status = "pending"
 			status = append(status, false)
 		} else {
@@ -239,6 +243,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	
 					return nil
 				}).Catch(func(error error) error {
+					log.Error("Error @ GetLastTransactionbyIdentifier @XDRSubmitter "+error.Error())
 					TDP[i].PreviousTxnHash = ""
 					return error
 				})
@@ -251,7 +256,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					build.TestNetwork,
 					build.SourceAccount{publicKey},
 
-					build.AutoSequence{horizon.DefaultPublicNetClient},
+					build.AutoSequence{commons.GetHorizonClient()},
 
 					build.SetData("Type", []byte("G"+TDP[i].TxnType)),
 					PreviousTXNBuilder,
@@ -261,40 +266,43 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {
+					log.Error("Error @ Sign @XDRSubmitter "+err.Error())
 					TDP[i].TxnHash = UserTxnHashes[i]
 					TDP[i].Status = "Pending"
 	
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
 					if err2 != nil {
-	
+						log.Error("Error @ InsertTransaction @XDRSubmitter "+err2.Error())
 					}
 				}
 				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 				txeB64, err := GatewayTXE.Base64()
 				if err != nil {
+					log.Error("Error while convert GatewayTXE to base64 @XDRSubmitter " +err.Error())
 					TDP[i].TxnHash = UserTxnHashes[i]
 					TDP[i].Status = "Pending"
 	
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
 					if err2 != nil {
-	
+						log.Error("Error @ InsertTransaction @XDRSubmitter "+err2.Error())
 					}
 				}
 	
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR(false,"G"+TDP[i].TxnType)
+				response1 := display1.SubmitXDR("G"+TDP[i].TxnType)
 	
 				if response1.Error.Code == 400 {
+					log.Error("Error got 400 for ConcreteSubmitXDR @XDRSubmitter")
 					TDP[i].TxnHash = UserTxnHashes[i]
 					TDP[i].Status = "Pending"
 	
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
 					if err2 != nil {
-	
+						log.Error("Error @ InsertTransaction @XDRSubmitter "+err2.Error())
 					}
 				} else {
 					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -304,7 +312,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
 					if err2 != nil {
-	
+						log.Error("Error @ InsertTransaction @XDRSubmitter "+err2.Error())
 					}
 				}
 			}
