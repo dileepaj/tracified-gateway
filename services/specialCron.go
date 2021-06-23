@@ -1,17 +1,17 @@
 package services
 
 import (
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 	// "time"
 	// "fmt"
 	// "github.com/stellar/go/xdr"
-	"log"
+
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
-
 	// "fmt"
-
+	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -20,62 +20,62 @@ import (
 
 //CheckTempOrphan ...
 func CheckTempOrphan() {
-	var clientList []string
-	testNetClient := horizon.DefaultPublicNetClient
-	testNet := false
+	log.Debug("=================== CheckTempOrphan ==================")
+	netClient := commons.GetHorizonClient()
+	//clientList := commons.CallAdminBE()
+	adminDBConnectionObj := adminDAO.Connection{}
+	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
+	log.Info("PK count : " + strconv.Itoa(len(clientList)))
 
 	//// if multiple clients do exist then query and append them
-	clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
-	clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
-	clientList = append(clientList, "GBCBEUOCIYWD7TF3BPPYT66EJSIDO2ITRDWP4SQSBPAMEORKDRRHPKCF")
-
-	//new keys
-	clientList = append(clientList, "GDYMWT6NSLBTAXV6CJJH2MFVQZZ7DNEM5J3OVMIEA6LQ3TBRR2GIQZXN")
-	clientList = append(clientList, "GCY4TYJOER457PGOS6DQNBCULUHA6EALXG6DRKBUAI44ORRIFDNMKYXB")
-	clientList = append(clientList, "GA4RORXUCHI6HPUHKWMKN6SGYUHJVN2D5K3NBDPN7YE33HLIDGAGMBUY")
-	clientList = append(clientList, "GDDTPYXF7VWV54GVOAVM2IPOA2HZYCYYEZYM5BI6NMGDYRUNXWPAS2XY")
-	clientList = append(clientList, "GA4LVTLFF5377F3KXYPCONMN35HWEDTWQCEIHZBWZCZFFE354UISIE5F")
-	clientList = append(clientList, "GCKTRM6BP2ZJSN7DAYNTPGH6BDWIQMH7OMHEGCSMSMHCTMQ4LUHCPDFX")
-	clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
-	clientList = append(clientList, "GAHVESB27GLES6YONUBTZDBKJYAQIK57KQJNCDKMKK5T5A6G76HPZEOY")
-
-	//06-11-2019
-	clientList = append(clientList, "GCYQRGGEB2W5V6VXN5OJFOIQOH7MDINX5RQMATVJUWKPC2A7PNQNTVU6")
-
-	//01-05-2020
-	clientList = append(clientList, "GC23K7ED7A5UZL42ZD6XJYHHDCJ4HWJTKEHTGFEDDA4RBOCIHFGO735Z")
-
-	//16-10-2020 - for PVH demo
-	clientList = append(clientList, "GANDBWSTTYGTG6VQJBUMYYG53WFOPPJRVIPYR6YP2UIKNS27GCOFD6WT")
-	clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
-	clientList = append(clientList, "GC6ELFQGPY42OSU43XPBTYS4KJR7GE74ZVM26JPYKC6P5FCO2K2GNEUI")
-	clientList = append(clientList, "GA4XZCQCLIKJ2BAVPWZ2ES3V7V5TDBZFF6DLVOTXK5CT755XGNU2ARSL")
-
-	//7-12-2020 - for new client demo(Japanese)
-	clientList = append(clientList, "GDUNYX4IKO7VUFWOEFPZUO5L2CNHHETAE2XVEZQYZ4ALOJMM3QDB5MAH")
-	clientList = append(clientList, "GDYKQZAHXCCSJ7CVQPLVYQM4MFIJVGSEYMY7PTTU5PGZ5SY2AQPLPYJN")
-
-	//Staging wine tenant
-	clientList = append(clientList, "GDJQU6GLX2MVDA346G36FQPO52ARDG2HV3E3FMRSMML6X6JL4RX7D2KI")
+	//clientList = append(clientList, "GDWVYNO3S4TW25LZLCXH7DU5AWDI3OEDJWLOPG6I65RO5DFDSBZNOBB2")
+	//clientList = append(clientList, "GB4CUDE7YBVI3VRC76RR4JPXI5KX62ANJWARFR47D5QTX46CSDKWRAKB")
+	//clientList = append(clientList, "GBCBEUOCIYWD7TF3BPPYT66EJSIDO2ITRDWP4SQSBPAMEORKDRRHPKCF")
+	//
+	////new keys
+	//clientList = append(clientList, "GDYMWT6NSLBTAXV6CJJH2MFVQZZ7DNEM5J3OVMIEA6LQ3TBRR2GIQZXN")
+	//clientList = append(clientList, "GCY4TYJOER457PGOS6DQNBCULUHA6EALXG6DRKBUAI44ORRIFDNMKYXB")
+	//clientList = append(clientList, "GA4RORXUCHI6HPUHKWMKN6SGYUHJVN2D5K3NBDPN7YE33HLIDGAGMBUY")
+	//clientList = append(clientList, "GDDTPYXF7VWV54GVOAVM2IPOA2HZYCYYEZYM5BI6NMGDYRUNXWPAS2XY")
+	//clientList = append(clientList, "GA4LVTLFF5377F3KXYPCONMN35HWEDTWQCEIHZBWZCZFFE354UISIE5F")
+	//clientList = append(clientList, "GCKTRM6BP2ZJSN7DAYNTPGH6BDWIQMH7OMHEGCSMSMHCTMQ4LUHCPDFX")
+	//clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
+	//clientList = append(clientList, "GAHVESB27GLES6YONUBTZDBKJYAQIK57KQJNCDKMKK5T5A6G76HPZEOY")
+	//
+	////06-11-2019
+	//clientList = append(clientList, "GCYQRGGEB2W5V6VXN5OJFOIQOH7MDINX5RQMATVJUWKPC2A7PNQNTVU6")
+	//
+	////01-05-2020
+	//clientList = append(clientList, "GC23K7ED7A5UZL42ZD6XJYHHDCJ4HWJTKEHTGFEDDA4RBOCIHFGO735Z")
+	//
+	////16-10-2020 - for PVH demo
+	//clientList = append(clientList, "GANDBWSTTYGTG6VQJBUMYYG53WFOPPJRVIPYR6YP2UIKNS27GCOFD6WT")
+	//clientList = append(clientList, "GDULLUKSH37SJKBMQXXYNJ4FAJMYKSBFGVCA2TQ5UAX7CHSAWLLQY3GL")
+	//clientList = append(clientList, "GC6ELFQGPY42OSU43XPBTYS4KJR7GE74ZVM26JPYKC6P5FCO2K2GNEUI")
+	//clientList = append(clientList, "GA4XZCQCLIKJ2BAVPWZ2ES3V7V5TDBZFF6DLVOTXK5CT755XGNU2ARSL")
+	//
+	////7-12-2020 - for new client demo(Japanese)
+	//clientList = append(clientList, "GDUNYX4IKO7VUFWOEFPZUO5L2CNHHETAE2XVEZQYZ4ALOJMM3QDB5MAH")
+	//clientList = append(clientList, "GDYKQZAHXCCSJ7CVQPLVYQM4MFIJVGSEYMY7PTTU5PGZ5SY2AQPLPYJN")
+	//
+	////Staging wine tenant
+	//clientList = append(clientList, "GDJQU6GLX2MVDA346G36FQPO52ARDG2HV3E3FMRSMML6X6JL4RX7D2KI")
 
 
 	object := dao.Connection{}
 
 	//loop through clients
 	for _, address := range clientList {
-		log.Println(address)
 		//load horizon account
-		account, err := testNetClient.LoadAccount(address)
+		account, err := netClient.LoadAccount(address)
 		if err != nil {
-			log.Fatal("Error while loading account from horizon "+err.Error())
+			log.Error("Error while loading account from horizon "+err.Error())
 		}
 		//log.Println("Current Sequence for address:", address)
 		//log.Println(account.Sequence)
-		log.Println(account.Balances)
 		seq, err := strconv.Atoi(account.Sequence)
-		log.Println(seq)
 		if err != nil {
-			log.Fatal("Error while convert string to int "+err.Error())
+			log.Error("Error while convert string to int "+err.Error())
 		}
 
 		stop := false //for infinite loop
@@ -88,14 +88,13 @@ func CheckTempOrphan() {
 			p.Then(func(data interface{}) interface{} {
 				result := data.(model.TransactionCollectionBody)
 				var UserTxnHash string
-				log.Println(result.TxnType)
 				///HARDCODED CREDENTIALS
 				publicKey := constants.PublicKey
 				secretKey := constants.SecretKey
 				switch result.TxnType {
 				case "0":
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("response.Error.Code 400 for SubmitXDR")
@@ -109,7 +108,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -131,7 +130,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("Error code 400 for SubmitXDR")
@@ -168,7 +167,7 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("Response code 400 for SubmitXDR")
@@ -178,7 +177,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -200,7 +199,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("Error response code 400 while SubmitXDR")
@@ -236,7 +235,7 @@ func CheckTempOrphan() {
 					p.Await()
 
 					display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-					response := display.SubmitXDR(testNet, result.TxnType)
+					response := display.SubmitXDR(result.TxnType)
 					UserTxnHash = response.TXNID
 					if response.Error.Code == 400 {
 						log.Println("400 SubmitXDR")
@@ -246,7 +245,7 @@ func CheckTempOrphan() {
 					tx, err := build.Transaction(
 						build.PublicNetwork,
 						build.SourceAccount{publicKey},
-						build.AutoSequence{testNetClient},
+						build.AutoSequence{netClient},
 						build.SetData("Type", []byte("G"+result.TxnType)),
 						PreviousTXNBuilder,
 						build.SetData("CurrentTXN", []byte(UserTxnHash)),
@@ -268,7 +267,7 @@ func CheckTempOrphan() {
 
 					//SUBMIT THE GATEWAY'S SIGNED XDR
 					display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-					response1 := display1.SubmitXDR(testNet, "G"+result.TxnType)
+					response1 := display1.SubmitXDR("G"+result.TxnType)
 
 					if response1.Error.Code == 400 {
 						log.Println("400 from SubmitXDR")
@@ -287,6 +286,7 @@ func CheckTempOrphan() {
 				}
 				return nil
 			}).Catch(func(error error) error {
+				log.Error("Error while GetSpecialForPkAndSeq "+error.Error())
 				// return error
 				//log.Println("No transactions in the scheduler")
 				stop = true //to break loop

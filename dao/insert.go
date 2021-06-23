@@ -3,6 +3,7 @@ package dao
 import (
 	"fmt"
 	"github.com/dileepaj/tracified-gateway/model"
+	"log"
 )
 /*InsertCoc Insert a single COC Object to COCCollection in DB
 @author - Azeem Ashraf
@@ -26,16 +27,16 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
-	fmt.Println("--------------------------- InsertTransaction ------------------------")
+	log.Println("--------------------------- InsertTransaction ------------------------")
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session "+err.Error())
+		log.Println("Error while getting session "+err.Error())
 	}
 	defer session.Close()
 	c := session.DB(dbName).C("Transactions")
 	err = c.Insert(Coc)
 	if err != nil {
-		fmt.Println("Error while inserting to Transactions "+err.Error())
+		log.Println("Error while inserting to Transactions "+err.Error())
 	}
 	return err
 }

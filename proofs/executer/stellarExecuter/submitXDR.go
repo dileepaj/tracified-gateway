@@ -1,10 +1,10 @@
 package stellarExecuter
 
 import (
-	"fmt"
-	"log"
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
+
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/stellar/go/clients/horizon"
@@ -18,88 +18,54 @@ type ConcreteSubmitXDR struct {
 }
 
 /*SubmitXDR - WORKING MODEL
+
 @author - Azeem Ashraf
 @desc - Submits the XDR to stellar horizon api and returns the TXN hash.
 @params - XDR
 */
-func (cd *ConcreteSubmitXDR) SubmitXDR(testnet bool, tType string) model.SubmitXDRResponse {
-	fmt.Println("=========================== submitXDR.go SubmitXDR =============================")
+func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
+	log.Debug("=========================== submitXDR.go SubmitXDR =============================")
+	horizonClient := commons.GetHorizonClient()
 	var response model.SubmitXDRResponse
-	s := time.Now().UTC().String()
+	//s := time.Now().UTC().String()
 
-	f, err := os.OpenFile("GatewayLogs"+s[:10], os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
-	if err != nil {
-		log.Fatalf("error opening file: %v", err)
-	}
-	defer f.Close()
+	//f, err := os.OpenFile("GatewayLogs"+s[:10], os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	//if err != nil {
+	//	log.Fatalf("error opening file: %v", err)
+	//}
+	//defer f.Close()
 
-	log.SetOutput(f)
+	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
-
-	if testnet {
-		fmt.Println("test net")
-		resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
-		fmt.Println(cd.XDR)
+	resp, err := horizonClient.SubmitTransaction(cd.XDR)
+	if err != nil {
+		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())
+		error1 := err.(*horizon.Error)
+		log.Error(error1.Problem.Detail)
+		TC, err := error1.ResultCodes()
 		if err != nil {
-			fmt.Println("Error while SubmitTransaction to stellar test net " + err.Error())
-			error1 := err.(*horizon.Error)
-			fmt.Println(error1.Problem.Detail)
-			TC, err := error1.ResultCodes()
-			if err != nil{
-				fmt.Println("Error while getting ResultCodes from horizon.Error")
-			}
-			for _, element := range TC.OperationCodes {
-				response.Error.Message = response.Error.Message + element + "? "
-			}
-
-			// log.SetOutput(f)
-			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
-			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
-
-			response.Error.Code = http.StatusBadRequest
-			// response.Error.Message = err.Error()
-			return response
+			log.Error("Error while getting ResultCodes from horizon.Error")
 		}
-
-		// fmt.Println("Successful Transaction:")
-		// fmt.Println("Ledger:", resp.Ledger)
-		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
-		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
-
-		response.Error.Code = http.StatusOK
-		response.Error.Message = "Transaction performed in the blockchain."
-		fmt.Println("Transaction performed in the blockchain.")
-		response.TXNID = resp.Hash
-	} else {
-		fmt.Println("public net")
-		resp, err := horizon.DefaultPublicNetClient.SubmitTransaction(cd.XDR)
-		if err != nil {
-			fmt.Println("Error while SubmitTransaction to stellar public net " + err.Error())
-			error1 := err.(*horizon.Error)
-			TC, _ := error1.ResultCodes()
-			for _, element := range TC.OperationCodes {
-				response.Error.Message = response.Error.Message + element + "? "
-			}
-
-			// log.SetOutput(f)
-			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
-			fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
-
-			response.Error.Code = http.StatusBadRequest
-			// response.Error.Message = err.Error()
-			return response
+		for _, element := range TC.OperationCodes {
+			response.Error.Message = response.Error.Message + element + "? "
 		}
-
-		// fmt.Println("Successful Transaction:")
-		// fmt.Println("Ledger:", resp.Ledger)
-		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
-		fmt.Println(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
-
-		response.Error.Code = http.StatusOK
-		response.Error.Message = "Transaction performed in the blockchain."
-		fmt.Println("Transaction performed in the blockchain.")
-		response.TXNID = resp.Hash
+		// log.SetOutput(f)
+		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+		response.Error.Code = http.StatusBadRequest
+		// response.Error.Message = err.Error()
+		return response
 	}
+
+	// fmt.Println("Successful Transaction:")
+	// fmt.Println("Ledger:", resp.Ledger)
+	log.Info(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+	log.Info(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+
+	response.Error.Code = http.StatusOK
+	response.Error.Message = "Transaction performed in the blockchain."
+	log.Info("Transaction performed in the blockchain.")
+	response.TXNID = resp.Hash
 
 	return response
 
