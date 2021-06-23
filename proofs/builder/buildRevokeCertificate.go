@@ -3,6 +3,8 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	// "strconv"
@@ -14,7 +16,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/xdr"
 )
 
@@ -27,6 +28,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 @params - ResponseWriter,Request
 */
 func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWriter, r *http.Request) {
+	log.Debug("============================ SubmitRevokeCertificate ==========================")
 	var Done []bool
 	Done = append(Done, true)
 
@@ -45,8 +47,9 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
 		//decode the XDR
-		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
-		if errx != nil {
+		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
+		if err != nil {
+			log.Error("Error while SafeUnmarshalBase64 @SubmitRevokeCertificate " +err.Error())
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
@@ -59,7 +62,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 		p := object.GetLastCertificatebyCertificateID(AP.TxnBody[i].CertificateID)
 		p.Then(func(data interface{}) interface{} {
 			result := data.(model.CertificateCollectionBody)
-			fmt.Println(result.PublicKey+" "+AP.TxnBody[i].PublicKey)
+			log.Info(result.PublicKey+" "+AP.TxnBody[i].PublicKey)
 			if result.PublicKey == AP.TxnBody[i].PublicKey {
 				valid = true
 			} else {
@@ -73,6 +76,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			}
 			return nil
 		}).Catch(func(error error) error {
+			log.Error("Error while GetLastCertificatebyCertificateID @SubmitRevokeCertificate "+error.Error())
 			valid = false
 			Done = append(Done, false)
 			w.WriteHeader(400)
@@ -87,10 +91,11 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 		if valid {
 			//SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-			result := display.SubmitXDR(false,AP.TxnBody[i].TxnType)
+			result := display.SubmitXDR(AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result.TXNID)
 
 			if result.Error.Code == 400 {
+				log.Error("Error got 400 for ConcreteSubmitXDR @SubmitRevokeCertificate ")
 				Done = append(Done, false)
 				w.WriteHeader(result.Error.Code)
 				response := apiModel.SubmitXDRSuccess{
@@ -118,6 +123,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				AP.TxnBody[i].PreviousCertificate = result.CertificateID
 				return nil
 			}).Catch(func(error error) error {
+				log.Error("Error while GetLastCertificatebyPublicKey @SubmitRevokeCertificate "+error.Error())
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 				return error
 			})
@@ -127,49 +133,56 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			tx, err := build.Transaction(
 				build.PublicNetwork,
 				build.SourceAccount{publicKey},
-				build.AutoSequence{horizon.DefaultPublicNetClient},
+				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 			)
 
+			if err != nil{
+				log.Error("Error while build Transaction @SubmitRevokeCertificate " + err.Error())
+			}
+
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
+				log.Error("Error while sign @SubmitRevokeCertificate "+err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
 				}
 			}
 
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {
+				log.Error("Error while convert GatewayTXE to Base64 @SubmitRevokeCertificate "+err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
 				}
 			}
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR(false,"G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
+				log.Error("Error got 400 for ConcreteSubmitXDR @SubmitRevokeCertificate ")
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -179,7 +192,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
 				}
 			}
 		}

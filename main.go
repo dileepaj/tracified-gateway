@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
@@ -30,6 +31,7 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	commons.ConstructConnectionPool()
+	adminDAO.ConstructAdminConnectionPool()
 
 	c := cron.New()
 	c.AddFunc("@every 30m", func() {
