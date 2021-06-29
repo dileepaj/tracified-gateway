@@ -2,6 +2,8 @@ package businessFacades
 
 import (
 	"encoding/base64"
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 	"io/ioutil"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -46,9 +48,9 @@ func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 		// s := fmt.Sprintf("%v", trans)
 
 		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-		text := (string(encoded))
+		text := encoded
 		result := model.TransactionId{Txnhash: TxnHash,
-			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public"}
 
 		// res := TDP{TdpId: result.TdpId}
@@ -67,7 +69,6 @@ func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 
 func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	vars := mux.Vars(r)
 	var result []model.TransactionIds
 	object := dao.Connection{}
@@ -77,23 +78,22 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			TxnHash := TxnBody.TxnHash
-
 			mapD := map[string]string{"transaction": TxnHash}
-			mapB, _ := json.Marshal(mapD)
+			mapB, err := json.Marshal(mapD)
+			if err != nil{
+				log.Error("Error while json.Marshal(mapD) " +err.Error())
+			}
 			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
-
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
+			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
 				Identifier: TxnBody.Identifier}
-
 			result = append(result, temp)
 		}
-
 		// res := TDP{TdpId: result.TdpId}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
@@ -105,7 +105,6 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
@@ -169,9 +168,9 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				// s := fmt.Sprintf("%v", trans)
 				identifer = Txn.Identifier
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public", Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 
 				resultArray = append(resultArray, temp)
@@ -203,9 +202,9 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			// s := fmt.Sprintf("%v", trans)
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
+			text := encoded
 			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public", Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 
 			resultArray = append(resultArray, temp)
@@ -247,9 +246,9 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 			// s := fmt.Sprintf("%v", trans)
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
+			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
 				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
 
@@ -293,7 +292,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 
-				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 				if err != nil {
 					status = "Txn Id Not Found in Stellar Public Net"
 				}
@@ -330,11 +329,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				// s := fmt.Sprintf("%v", trans)
 
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -376,7 +375,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 
-				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 				if err != nil {
 					status = "Txn Id Not Found in Stellar Public Net"
 				}
@@ -412,11 +411,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				// s := fmt.Sprintf("%v", trans)
 
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -459,7 +458,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				feePaid := ""
 				from := ""
 				to := ""
-				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 				if err != nil {
 					status = "Txn Id Not Found in Stellar Public Net"
 				}
@@ -496,11 +495,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				// s := fmt.Sprintf("%v", trans)
 
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -542,7 +541,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 
-				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 				if err != nil {
 					status = "Txn Id Not Found in Stellar Public Net"
 				}
@@ -578,11 +577,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				// s := fmt.Sprintf("%v", trans)
 
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -634,7 +633,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 
-			result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
 			}
@@ -671,11 +670,11 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 			// s := fmt.Sprintf("%v", trans)
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
+			text := encoded
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
@@ -776,24 +775,21 @@ func checkValidVersionByte(key string) string {
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	vars := mux.Vars(r)
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
-
 	limit, err := strconv.Atoi(vars["limit"])
 	if err != nil {
+		log.Error("Error while read limit "+err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer"}
+		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	p := object.GetPreviousTransactions(limit)
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
-
 			if TxnBody.TxnType != "10" {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
@@ -803,53 +799,47 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				feePaid := ""
 				from := ""
 				to := ""
-
-				result1, err := http.Get("https://horizon.stellar.org/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 				if err != nil {
+					log.Error("Txn Id Not Found in Stellar Public Net "+err.Error())
 					status = "Txn Id Not Found in Stellar Public Net"
 					return nil
 				}
 				data, _ := ioutil.ReadAll(result1.Body)
 				if result1.StatusCode != 200 {
 					status = "Txn Id Not Found in Stellar Public Net"
-
 					return nil
 				}
-
 				if status == "success" {
-
 					var raw map[string]interface{}
 					json.Unmarshal(data, &raw)
 					fmt.Println(raw)
-
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
 					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 					from = fmt.Sprintf("%s", raw["source_account"])
 					to = fmt.Sprintf("%s", raw["source_account"])
-
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
-
 					if errXDR != nil {
-						//ignore error
+						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
-
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
 					}
 				}
-
 				mapD := map[string]string{"transaction": TxnHash}
-				mapB, _ := json.Marshal(mapD)
+				mapB, err := json.Marshal(mapD)
+				if err != nil{
+					log.Error("Error while json.Marshal(mapD) " + err.Error())
+				}
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-
 				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := (string(encoded))
+				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=public",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -863,25 +853,21 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					SequenceNo:     TxnBody.SequenceNo,
 					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to}
-
 				result = append(result, temp)
-
 			}
-
 		}
-
 		// res := TDP{TdpId: result.TdpId}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
 	}).Catch(func(error error) error {
+		log.Error("No Transactions Found in Gateway DataStore " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "No Transactions Found in Gateway DataStore"}
+		response := model.Error{Message: "No Transactions Found in Gateway DataStore "+err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return error
 	})
 	p.Await()
-
 }
 
 func GetTransactiontype(Type string) string {
