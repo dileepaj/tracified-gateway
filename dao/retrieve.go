@@ -2,6 +2,7 @@ package dao
 
 import (
 	"fmt"
+	log "github.com/sirupsen/logrus"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -146,33 +147,24 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
+			log.Error("Error while connecting to db " + err.Error())
 			reject(err)
-
 		}
 		defer session.Close()
-
 		c := session.DB(dbName).C("COC")
 		err1 := c.Find(bson.M{"accepttxn": accepttxn}).One(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			log.Error("Error while getting COC from db " + err.Error())
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
-
 	return p
-
 }
 
 /*GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
@@ -430,85 +422,62 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
+			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
-
 		}
 		defer session.Close()
-
 		c := session.DB(dbName).C("Transactions")
 		err1 := c.Find(bson.M{"tdpid": TdpId}).One(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			log.Error("Error while retrieving Transactions by tdpid " + err1.Error())
 			reject(err1)
-
 		} else {
-
 			resolve(result)
 		}
-
 	})
-
 	return p
-
 }
 
 func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
+			log.Error("Error while getting db connection "+ err.Error())
 			reject(err)
-
 		}
 		defer session.Close()
-
 		c := session.DB(dbName).C("Transactions")
 		f := c.Find(bson.M{})
 		count, er := f.Count()
 		if er != nil {
-			// fmt.Println(er)
+			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-
 		if count > limit {
 			err1 := f.Skip(count - limit).All(&result)
 			if err1 != nil || len(result) == 0 {
-				// fmt.Println(err1)
+				log.Error("Error while f.skip "+err1.Error())
 				reject(err1)
-
 			} else {
 				resolve(result)
-
 			}
-
 		}
-
 		err1 := f.All(&result)
 		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			log.Error("Error while f.All "+err1.Error())
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
-
 	return p
-
 }
 
 func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
@@ -549,33 +518,24 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
+			log.Error("Error while connecting to the db " + err.Error())
 			reject(err)
-
 		}
 		defer session.Close()
-
 		c := session.DB(dbName).C("Transactions")
 		err1 := c.Find(bson.M{"tdpid": TdpId}).All(&result)
 		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			log.Error("Error while getting transactions " + err1.Error())
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
-
 	return p
-
 }
 
 /*GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
@@ -983,31 +943,22 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
+			log.Error("Error while fetching data from get db connection " + err.Error())
 			reject(err)
-
 		}
 		defer session.Close()
-
 		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"txnhash": Txnhash}).One(&result)
-		if err1 != nil {
-			// fmt.Println(err1)
-			reject(err1)
-
+		err = c.Find(bson.M{"txnhash": Txnhash}).One(&result)
+		if err != nil {
+			log.Error("Error while fetching data from Transactions " + err.Error())
+			reject(err)
 		} else {
 			resolve(result)
-
 		}
-
 	})
-
 	return p
-
 }
