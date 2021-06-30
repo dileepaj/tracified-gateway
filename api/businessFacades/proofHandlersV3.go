@@ -38,7 +38,7 @@ Finally Returns the Response given by the POE Interpreter
 */
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
+	w.Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 
 	var result model.TransactionCollectionBody
