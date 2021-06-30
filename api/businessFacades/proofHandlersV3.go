@@ -176,9 +176,10 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
 	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
-	errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw3["envelope_xdr"]), &txe)
+	envelopeXDR := fmt.Sprintf("%v", raw3["envelope_xdr"])
+	errXDR := xdr.SafeUnmarshalBase64(envelopeXDR, &txe)
 	if errXDR != nil {
-		log.Error("Error while SafeUnmarshalBase64 "+err2.Error())
+		log.Error("Error while SafeUnmarshalBase64 "+errXDR.Error())
 	}
 
 	mapD := map[string]string{"transaction": TxnHash}
