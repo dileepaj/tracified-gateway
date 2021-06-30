@@ -166,7 +166,10 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var raw3 map[string]interface{}
-	json.Unmarshal(data2, &raw3)
+	err = json.Unmarshal(data2, &raw3)
+	if err != nil{
+		log.Error("Error while json.Unmarshal(data2, &raw3) " + err.Error())
+	}
 
 	fmt.Println(raw3["envelope_xdr"])
 	fmt.Println("HAHAHAHAAHAHAH")
