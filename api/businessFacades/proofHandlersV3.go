@@ -37,177 +37,177 @@ Finally Returns the Response given by the POE Interpreter
 @params - ResponseWriter,Request
 */
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-// 	vars := mux.Vars(r)
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	vars := mux.Vars(r)
 
-// 	var result model.TransactionCollectionBody
-// 	object := dao.Connection{}
-// 	var CurrentTxn string
-// 	p := object.GetTransactionForTdpId(vars["Txn"])
-// 	p.Then(func(data interface{}) interface{} {
-// 		result = data.(model.TransactionCollectionBody)
-// 		return nil
-// 	}).Catch(func(error error) error {
-// 		log.Error("Error while GetTransactionForTdpId "+error.Error())
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
-// 		json.NewEncoder(w).Encode(response)
-// 		fmt.Println(response)
-// 		return error
-// 	})
-// 	p.Await()
+	var result model.TransactionCollectionBody
+	object := dao.Connection{}
+	var CurrentTxn string
+	p := object.GetTransactionForTdpId(vars["Txn"])
+	p.Then(func(data interface{}) interface{} {
+		result = data.(model.TransactionCollectionBody)
+		return nil
+	}).Catch(func(error error) error {
+		log.Error("Error while GetTransactionForTdpId "+error.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
+		json.NewEncoder(w).Encode(response)
+		fmt.Println(response)
+		return error
+	})
+	p.Await()
 
-// 	result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + result.TxnHash + "/operations")
-// 	if err != nil {
-// 		log.Error("Error while getting transactions by txnhash " + err.Error())
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
-// 		json.NewEncoder(w).Encode(response)
-// 		return
-// 	}
+	result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + result.TxnHash + "/operations")
+	if err != nil {
+		log.Error("Error while getting transactions by txnhash " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-// 	data,err := ioutil.ReadAll(result1.Body)
-// 	if err != nil{
-// 		log.Error("Error while read response "+err.Error())
-// 	}
-// 	var raw map[string]interface{}
-// 	json.Unmarshal(data, &raw)
+	data,err := ioutil.ReadAll(result1.Body)
+	if err != nil{
+		log.Error("Error while read response "+err.Error())
+	}
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
 
-// 	out,err := json.Marshal(raw["_embedded"])
-// 	if err != nil{
-// 		log.Error("Error while json marshal _embedded " + err.Error())
-// 	}
-// 	var raw1 map[string]interface{}
-// 	json.Unmarshal(out, &raw1)
-// 	out1, err := json.Marshal(raw1["records"])
-// 	if err != nil{
-// 		log.Error("Error while json marshal records " + err.Error())
-// 	}
-// 	keysBody := out1
-// 	keys := make([]PublicKey, 0)
-// 	json.Unmarshal(keysBody, &keys)
+	out,err := json.Marshal(raw["_embedded"])
+	if err != nil{
+		log.Error("Error while json marshal _embedded " + err.Error())
+	}
+	var raw1 map[string]interface{}
+	json.Unmarshal(out, &raw1)
+	out1, err := json.Marshal(raw1["records"])
+	if err != nil{
+		log.Error("Error while json marshal records " + err.Error())
+	}
+	keysBody := out1
+	keys := make([]PublicKey, 0)
+	json.Unmarshal(keysBody, &keys)
 
-// 	byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
-// 	if err != nil{
-// 		log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
-// 	}
-// 	CurrentTxn = string(byteData)
-// 	log.Info("THE TXN OF THE USER TXN: " + CurrentTxn)
+	byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+	if err != nil{
+		log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+	}
+	CurrentTxn = string(byteData)
+	log.Info("THE TXN OF THE USER TXN: " + CurrentTxn)
 
-// 	var finalResult []model.POEResponse
+	var finalResult []model.POEResponse
 
-// 	var response model.POE
-// 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
-// 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
+	var response model.POE
+	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
+	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-// 	bearer := "Bearer " + constants.BackendToken
+	bearer := "Bearer " + constants.BackendToken
 
-// 	// Create a new request using http
-// 	req, er := http.NewRequest("GET", url, nil)
-// 	if er != nil{
-// 		log.Error("Error while create new request using http " + er.Error())
-// 	}
-// 	req.Header.Add("Authorization", bearer)
-// 	client := &http.Client{}
-// 	resq, er := client.Do(req)
-// 	if er != nil {
-// 		log.Error("Error while getting response " + er.Error())
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "+er.Error()}
-// 		json.NewEncoder(w).Encode(response)
-// 		return
-// 	}
+	// Create a new request using http
+	req, er := http.NewRequest("GET", url, nil)
+	if er != nil{
+		log.Error("Error while create new request using http " + er.Error())
+	}
+	req.Header.Add("Authorization", bearer)
+	client := &http.Client{}
+	resq, er := client.Do(req)
+	if er != nil {
+		log.Error("Error while getting response " + er.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "+er.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-// 	body, err := ioutil.ReadAll(resq.Body)
-// 	if err != nil{
-// 		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
-// 	}
-// 	var raw2 map[string]interface{}
-// 	json.Unmarshal(body, &raw2)
+	body, err := ioutil.ReadAll(resq.Body)
+	if err != nil{
+		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
+	}
+	var raw2 map[string]interface{}
+	json.Unmarshal(body, &raw2)
 
-// 	h := sha256.New()
-// 	lol := raw2["data"]
+	h := sha256.New()
+	lol := raw2["data"]
 
-// 	fmt.Println(raw2["data"])
+	fmt.Println(raw2["data"])
 
-// 	h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
-// 	fmt.Println("RAW BASE64 + IDENTIFIER")
+	h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
+	fmt.Println("RAW BASE64 + IDENTIFIER")
 
-// 	fmt.Printf("%x\n", h.Sum(nil))
+	fmt.Printf("%x\n", h.Sum(nil))
 
-// 	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash,
-// 		Hash: strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-// 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
-// 	response = display.InterpretPOE()
+	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash,
+		Hash: strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
+	response = display.InterpretPOE()
 
-// 	w.WriteHeader(response.RetrievePOE.Error.Code)
+	w.WriteHeader(response.RetrievePOE.Error.Code)
 
-// 	var txe xdr.Transaction
-// 	TxnHash := CurrentTxn
-// 	PublicKey := result.PublicKey
+	var txe xdr.Transaction
+	TxnHash := CurrentTxn
+	PublicKey := result.PublicKey
 
-// 	result2, err2 := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
-// 	if err2 != nil {
-// 		log.Error("Error while get transactions by TxnHash "+err2.Error())
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net "+err2.Error()}
-// 		json.NewEncoder(w).Encode(response)
-// 		return
-// 	}
+	result2, err2 := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
+	if err2 != nil {
+		log.Error("Error while get transactions by TxnHash "+err2.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net "+err2.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-// 	data2, err := ioutil.ReadAll(result2.Body)
-// 	if err != nil{
-// 		log.Error("Error while ioutil.ReadAll(result2.Body) " + err.Error())
-// 	}
-// 	if result2.StatusCode != 200 {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
-// 		json.NewEncoder(w).Encode(response)
-// 		return
-// 	}
-// 	var raw3 map[string]interface{}
-// 	json.Unmarshal(data2, &raw3)
+	data2, err := ioutil.ReadAll(result2.Body)
+	if err != nil{
+		log.Error("Error while ioutil.ReadAll(result2.Body) " + err.Error())
+	}
+	if result2.StatusCode != 200 {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	var raw3 map[string]interface{}
+	json.Unmarshal(data2, &raw3)
 
-// 	fmt.Println(raw3["envelope_xdr"])
-// 	fmt.Println("HAHAHAHAAHAHAH")
-// 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
-// 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
-// 	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
-// 	errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw3["envelope_xdr"]), &txe)
-// 	if errXDR != nil {
-// 		log.Error("Error while SafeUnmarshalBase64 "+err2.Error())
-// 	}
+	fmt.Println(raw3["envelope_xdr"])
+	fmt.Println("HAHAHAHAAHAHAH")
+	timestamp := fmt.Sprintf("%s", raw3["created_at"])
+	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
+	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
+	errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw3["envelope_xdr"]), &txe)
+	if errXDR != nil {
+		log.Error("Error while SafeUnmarshalBase64 "+err2.Error())
+	}
 
-// 	mapD := map[string]string{"transaction": TxnHash}
-// 	mapB, err := json.Marshal(mapD)
-// 	if err != nil{
-// 		log.Error("Error while json.Marshal(mapD) " + err.Error())
-// 	}
-// 	fmt.Println(string(mapB))
+	mapD := map[string]string{"transaction": TxnHash}
+	mapB, err := json.Marshal(mapD)
+	if err != nil{
+		log.Error("Error while json.Marshal(mapD) " + err.Error())
+	}
+	fmt.Println(string(mapB))
 
-// 	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-// 	text := encoded
-// 	temp := model.POEResponse{
-// 		Txnhash: TxnHash,
-// 		Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-// 			text + "%3D%3D&network=public",
-// 		Identifier:     result.Identifier,
-// 		SequenceNo:     result.SequenceNo,
-// 		TxnType:        "tdp",
-// 		Status:         response.RetrievePOE.Error.Message,
-// 		BlockchainName: "Stellar",
-// 		Timestamp:      timestamp,
-// 		Ledger:         ledger,
-// 		FeePaid:        feePaid,
-// 		SourceAccount:  PublicKey,
-// 		DbHash:         response.RetrievePOE.DBHash,
-// 		BcHash:         response.RetrievePOE.BCHash}
+	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+	text := encoded
+	temp := model.POEResponse{
+		Txnhash: TxnHash,
+		Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=public",
+		Identifier:     result.Identifier,
+		SequenceNo:     result.SequenceNo,
+		TxnType:        "tdp",
+		Status:         response.RetrievePOE.Error.Message,
+		BlockchainName: "Stellar",
+		Timestamp:      timestamp,
+		Ledger:         ledger,
+		FeePaid:        feePaid,
+		SourceAccount:  PublicKey,
+		DbHash:         response.RetrievePOE.DBHash,
+		BcHash:         response.RetrievePOE.BCHash}
 
-// 	finalResult = append(finalResult, temp)
+	finalResult = append(finalResult, temp)
 
-// 	json.NewEncoder(w).Encode(finalResult)
+	json.NewEncoder(w).Encode(finalResult)
 
-// 	return
+	return
 
 }
 
