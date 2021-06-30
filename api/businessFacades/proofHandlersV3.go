@@ -71,22 +71,30 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error while read response "+err.Error())
 	}
 	var raw map[string]interface{}
-	json.Unmarshal(data, &raw)
+	err = json.Unmarshal(data, &raw)
+	if err != nil{
+		log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+	}
 
 	out,err := json.Marshal(raw["_embedded"])
 	if err != nil{
 		log.Error("Error while json marshal _embedded " + err.Error())
 	}
 	var raw1 map[string]interface{}
-	json.Unmarshal(out, &raw1)
+	err = json.Unmarshal(out, &raw1)
+	if err != nil{
+		log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+	}
 	out1, err := json.Marshal(raw1["records"])
 	if err != nil{
 		log.Error("Error while json marshal records " + err.Error())
 	}
 	keysBody := out1
 	keys := make([]PublicKey, 0)
-	json.Unmarshal(keysBody, &keys)
-
+	err = json.Unmarshal(keysBody, &keys)
+	if err != nil{
+		log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+	}
 	byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 	if err != nil{
 		log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
@@ -142,7 +150,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
-	var txe xdr.Transaction
+	//var txe xdr.Transaction
 	TxnHash := CurrentTxn
 	PublicKey := result.PublicKey
 
@@ -176,11 +184,11 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
 	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
-	envelopeXDR := fmt.Sprintf("%v", raw3["envelope_xdr"])
-	errXDR := xdr.SafeUnmarshalBase64(envelopeXDR, &txe)
-	if errXDR != nil {
-		log.Error("Error while SafeUnmarshalBase64 "+errXDR.Error())
-	}
+	//envelopeXDR := fmt.Sprintf("%v", raw3["envelope_xdr"])
+	//errXDR := xdr.SafeUnmarshalBase64(envelopeXDR, &txe)
+	//if errXDR != nil {
+	//	log.Error("Error while SafeUnmarshalBase64 "+errXDR.Error())
+	//}
 
 	mapD := map[string]string{"transaction": TxnHash}
 	mapB, err := json.Marshal(mapD)
@@ -193,7 +201,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+		Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=public",
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
