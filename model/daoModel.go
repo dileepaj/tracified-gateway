@@ -100,6 +100,7 @@ type PrevTxnResponse struct {
 	FeePaid        string
 	AvailableProof []string
 	DataHash       string
+	ProductName    string
 }
 
 type POCOCResponse struct {
