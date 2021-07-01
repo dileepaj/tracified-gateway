@@ -722,7 +722,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		text := encoded
 		temp := model.POGResponse{
 			Txnhash: TxnHash,
-			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
 			Identifier:     res.Identifier,
 			SequenceNo:     res.SequenceNo,

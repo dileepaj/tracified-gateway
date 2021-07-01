@@ -39,6 +39,7 @@ type TransactionCollectionBody struct {
 	CurrentStage    string
 	AppAccount      string
 	DataHash        string
+	ProductName		string
 }
 
 type ProfileCollectionBody struct {
