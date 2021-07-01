@@ -852,7 +852,8 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					From:           from,
 					SequenceNo:     TxnBody.SequenceNo,
 					AvailableProof: GetProofName(TxnBody.TxnType),
-					To:             to}
+					To:             to,
+					ProductName:    TxnBody.ProductName}
 				result = append(result, temp)
 			}
 		}
