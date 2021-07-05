@@ -38,7 +38,6 @@ Finally Returns the Response given by the POE Interpreter
 */
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	vars := mux.Vars(r)
 
 	var result model.TransactionCollectionBody
@@ -175,7 +174,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var raw3 map[string]interface{}
-	err =json.Unmarshal(data2, &raw3)
+	err = json.Unmarshal(data2, &raw3)
 	if err != nil{
 		log.Error("Error while json.Unmarshal(data2, &raw3) " + err.Error())
 	}
@@ -723,7 +722,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		text := encoded
 		temp := model.POGResponse{
 			Txnhash: TxnHash,
-			Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
 			Identifier:     res.Identifier,
 			SequenceNo:     res.SequenceNo,

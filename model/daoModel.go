@@ -39,6 +39,7 @@ type TransactionCollectionBody struct {
 	CurrentStage    string
 	AppAccount      string
 	DataHash        string
+	ProductName		string
 }
 
 type ProfileCollectionBody struct {
@@ -99,6 +100,7 @@ type PrevTxnResponse struct {
 	FeePaid        string
 	AvailableProof []string
 	DataHash       string
+	ProductName    string
 }
 
 type POCOCResponse struct {
