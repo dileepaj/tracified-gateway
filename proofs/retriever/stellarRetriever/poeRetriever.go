@@ -89,8 +89,8 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 					keysBody := out1
 					keys := make([]PublicKey, 0)
 					json.Unmarshal(keysBody, &keys)
-					bcHash = Base64DecEnc("Decode", keys[2].Value)
-					Identifier := Base64DecEnc("Decode", keys[1].Value)
+					bcHash = Base64DecEnc("Decode", keys[4].Value)
+					Identifier := Base64DecEnc("Decode", keys[3].Value)
 
 					Rerr.Code = http.StatusOK
 					Rerr.Message = "Txn Hash retrieved from the blockchain."
