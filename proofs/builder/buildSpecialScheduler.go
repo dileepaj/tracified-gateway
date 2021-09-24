@@ -61,6 +61,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].Status = "pending"
+		AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
 		log.Debug(AP.TxnBody[i].Identifier)
 		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
