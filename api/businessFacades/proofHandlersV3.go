@@ -29,6 +29,29 @@ type KeysResponse struct {
 	Collection []PublicKey
 }
 
+type Item struct {
+	ItemID   string `json:"itemID"`
+	ItemName string `json:"itemName"`
+}
+
+type TdpHeader struct {
+	Identifiers    []string `json:"identifiers"`
+	Item 			 Item	`json:"item"`
+	StageID			 string `json:"stageID"`
+	TimeStamp		 string `json:"timeStamp"`
+	WorkflowRevision string `json:"workflowRevision"`
+}
+
+type TdpData struct {
+	Data  		map[string]interface{} `json:"data"`
+	TdpHeader 	TdpHeader			   `json:"header"`
+}
+
+type Identifier struct {
+	Id  		string `json:"id"`
+	Type 	    string `json:"type"`
+}
+
 /*CheckPOEV3 - WORKING MODEL
 @author - Azeem Ashraf, Jajeththanan Sabapathipillai
 @desc - Handles the Proof of Existance by retrieving the Raw Data from the Traceability Data Store
@@ -108,7 +131,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-	bearer := "Bearer " + constants.BackendToken
+  	bearer := "Bearer " + constants.BackendToken
 
 	// Create a new request using http
 	req, er := http.NewRequest("GET", url, nil)
@@ -135,16 +158,15 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	h := sha256.New()
 	lol := raw2["data"]
-
-	fmt.Println(raw2["data"])
-
-	h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
-	fmt.Println("RAW BASE64 + IDENTIFIER")
-
-	fmt.Printf("%x\n", h.Sum(nil))
-
-	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash,
-		Hash: strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+	encodedString := raw2["data"].(string)
+	decodedString, err := base64.StdEncoding.DecodeString(encodedString)
+	var tdpJson TdpData
+	json.Unmarshal(decodedString, &tdpJson )
+	decodedIdentifier, err := base64.StdEncoding.DecodeString(tdpJson.TdpHeader.Identifiers[0])
+	var identifierObj Identifier
+	json.Unmarshal(decodedIdentifier, &identifierObj )
+	h.Write([]byte(fmt.Sprintf("%s", lol) + identifierObj.Id))
+	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: result.DataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE()
 
@@ -668,8 +690,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 		if err != nil {
 			log.Error("Error while getting transactions by TxnHash " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
+ 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return nil
 		}

@@ -733,13 +733,9 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 
 		} else {
 			resolve(result[len(result)-1])
-
 		}
-
 	})
-
 	return p
-
 }
 
 /*GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
@@ -943,9 +939,10 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
+	session, err := cd.connect()
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
-		session, err := cd.connect()
+
 		if err != nil {
 			log.Error("Error while fetching data from get db connection " + err.Error())
 			reject(err)
