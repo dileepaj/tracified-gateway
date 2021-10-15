@@ -3,11 +3,12 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/stellar/go/support/log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/support/log"
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
@@ -51,8 +52,8 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		//decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
-			log.Debug("XDR : "+TxnBody.XDR)
-			log.Error("Error @SafeUnmarshalBase64 @SubmitData "+errx.Error())
+			log.Debug("XDR : " + TxnBody.XDR)
+			log.Error("Error @SafeUnmarshalBase64 @SubmitData " + errx.Error())
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -167,7 +168,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 					PreviousTXNBuilder,
 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 				)
-				if err != nil{
+				if err != nil {
 					log.Error("Error while build Transaction @SubmitData " + err.Error())
 				}
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -198,7 +199,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+				response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
