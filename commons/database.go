@@ -1,44 +1,37 @@
 package commons
 
 import (
-	"context"
-
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	"gopkg.in/mgo.v2"
 )
 
 type Store struct {
-	Host     string
-	Port     string
-	Username string
-	Password string
-	DBName   string
+	Host          string
+	Port          string
+	Username      string
+	Password      string
+	DBName        string
 }
 
-var mgoSession mongo.Session
+var mgoSession *mgo.Session
 var mongoConnectionUrl string
 
-func GetMongoSession() (mongo.Session, error) {
+func GetMongoSession() (*mgo.Session, error) {
 	if mgoSession == nil {
 		var err error
-		mongoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionUrl))
-		if err != nil {
-			return nil, err
-		}
-		mgoSession, err = mongoClient.StartSession()
+		mgoSession, err = mgo.Dial(mongoConnectionUrl)
 		if err != nil {
 			return nil, err
 		}
 	}
-
-	return mgoSession, nil
+	return mgoSession.Clone(), nil
 }
 
 func ConstructConnectionPool() {
-	username := GoDotEnvVariable("DBUSERNAME")
-	password := GoDotEnvVariable("DBPASSWORD")
-	dbName := GoDotEnvVariable("DBNAME")
-	host := GoDotEnvVariable("DBHOST")
-	port := GoDotEnvVariable("DBPORT")
-	mongoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/" + dbName
+	username:=     GoDotEnvVariable("DBUSERNAME")
+	password:=     GoDotEnvVariable("DBPASSWORD")
+	dbName:=     GoDotEnvVariable("DBNAME")
+	host:=     GoDotEnvVariable("DBHOST")
+	port:=     GoDotEnvVariable("DBPORT")
+	mongoConnectionUrl = "mongodb://"+username+":"+password+"@"+host+":"+port+"/"+dbName
 }
+
