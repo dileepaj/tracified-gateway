@@ -2,18 +2,16 @@ package dao
 
 import (
 	"github.com/dileepaj/tracified-gateway/commons"
-	"go.mongodb.org/mongo-driver/mongo"
+	"gopkg.in/mgo.v2"
 )
-
 //Get db name from .env file
 var dbName = commons.GoDotEnvVariable("DBNAME")
-
 /*Connection The Mgo Connection
 @author - Azeem Ashraf
 */
 type Connection struct {
 }
 
-func (cd *Connection) connect() (mongo.Session, error) {
+func (cd *Connection) connect()(*mgo.Session,error) {
 	return commons.GetMongoSession()
 }
