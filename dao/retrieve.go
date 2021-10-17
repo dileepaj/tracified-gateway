@@ -1,14 +1,17 @@
 package dao
 
 import (
+	"context"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 
 	// "fmt"
 
@@ -31,17 +34,20 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		err1 := c.Find(bson.M{"sender": sender}).All(&result)
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"sender": sender})
+
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result)
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -67,17 +73,21 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
 
-		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
 		if er != nil {
 			// fmt.Println(er)
 			reject(er)
 		}
 
-		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count - 1).One(&result)
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+
+		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -121,18 +131,20 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		err1 := c.Find(bson.M{"receiver": receiver}).All(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"receiver": receiver})
 
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result)
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -154,9 +166,11 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 			log.Error("Error while connecting to db " + err.Error())
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("COC")
-		err1 := c.Find(bson.M{"accepttxn": accepttxn}).One(&result)
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		err1 := c.FindOne(context.TODO(), bson.M{"accepttxn": accepttxn}).Decode(&result)
+
 		if err1 != nil {
 			log.Error("Error while getting COC from db " + err.Error())
 			reject(err1)
@@ -183,10 +197,11 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		err1 := c.Find(bson.M{"rejecttxn": rejecttxn}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		err1 := c.FindOne(context.TODO(), bson.M{"rejecttxn": rejecttxn}).Decode(&result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -217,18 +232,20 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		err1 := c.Find(bson.M{"status": status}).All(&result)
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
 
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result)
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -254,16 +271,20 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		count, er := c.Find(bson.M{"identifier": identifier}).Count()
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"identifier": identifier})
+
 		if er != nil {
 			// fmt.Println(er)
 			reject(er)
 		}
 
-		err1 := c.Find(bson.M{"identifier": identifier}).Skip(count - 1).One(&result)
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}, options).Decode(result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 
@@ -295,10 +316,11 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("COC")
-		er := c.Find(bson.M{"txnhash": txnHash}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("COC")
+		er := c.FindOne(context.TODO(), bson.M{"txnhash": txnHash}).Decode(&result)
+
 		if er != nil {
 			// fmt.Println(er)
 			reject(er)
@@ -328,17 +350,20 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"identifier": identifier}).All(&result)
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier})
+
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result[len(result)-1])
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -363,11 +388,11 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 
-		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -397,11 +422,13 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"identifier": identifier}).All(&result)
-		if err1 != nil || len(result) == 0 {
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier})
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -429,9 +456,11 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"tdpid": TdpId}).One(&result)
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		err1 := c.FindOne(context.TODO(), bson.M{"tdpid": TdpId}).Decode(&result)
+
 		if err1 != nil {
 			log.Error("Error while retrieving Transactions by tdpid " + err1.Error())
 			reject(err1)
@@ -449,29 +478,39 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error while getting db connection "+ err.Error())
+			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("Transactions")
-		f := c.Find(bson.M{})
-		count, er := f.Count()
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+
+		count, er := c.CountDocuments(context.TODO(), bson.M{})
+
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if count > limit {
-			err1 := f.Skip(count - limit).All(&result)
-			if err1 != nil || len(result) == 0 {
-				log.Error("Error while f.skip "+err1.Error())
+		if count > int64(limit) {
+
+			options := options.Find()
+			options.SetSkip(count - int64(limit))
+			cursor, err1 := c.Find(context.TODO(), bson.M{}, options)
+			err2 := cursor.All(context.TODO(), &result)
+
+			if err1 != nil || err2 != nil || len(result) == 0 {
+				log.Error("Error while f.skip " + err1.Error())
 				reject(err1)
 			} else {
 				resolve(result)
 			}
 		}
-		err1 := f.All(&result)
-		if err1 != nil || len(result) == 0 {
-			log.Error("Error while f.All "+err1.Error())
+
+		cursor, err1 := c.Find(context.TODO(), bson.M{})
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
+			log.Error("Error while f.All " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -493,10 +532,11 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"identifier": Identifer, "tdpid": ""}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": Identifer, "tdpid": ""}).Decode(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -525,10 +565,14 @@ func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 			log.Error("Error while connecting to the db " + err.Error())
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"tdpid": TdpId}).All(&result)
-		if err1 != nil || len(result) == 0 {
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+
+		cursor, err1 := c.Find(context.TODO(), bson.M{"tdpid": TdpId})
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
 			log.Error("Error while getting transactions " + err1.Error())
 			reject(err1)
 		} else {
@@ -554,10 +598,11 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"txnhash": Txn}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+
+		err1 := c.FindOne(context.TODO(), bson.M{"txnhash": Txn}).Decode(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -589,10 +634,11 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Orphan")
-		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Orphan")
+
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -622,10 +668,11 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Profiles")
-		err1 := c.Find(bson.M{"identifier": identifier}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Profiles")
+
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -655,10 +702,11 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Profiles")
-		err1 := c.Find(bson.M{"profileid": ProfileID}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Profiles")
+
+		err1 := c.FindOne(context.TODO(), bson.M{"profileid": ProfileID}).Decode(&result)
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -688,11 +736,14 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Certificates")
-		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
-		if err1 != nil || len(result) == 0 {
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Certificates")
+
+		cursor, err1 := c.Find(context.TODO(), bson.M{"publickey": PublicKey})
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -723,11 +774,15 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Certificates")
-		err1 := c.Find(bson.M{"certificateid": CertificateID}).All(&result)
-		if err1 != nil || len(result) == 0 {
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Certificates")
+
+		cursor, err1 := c.Find(context.TODO(), bson.M{"certificateid": CertificateID})
+
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -754,11 +809,15 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Certificates")
-		err1 := c.Find(bson.M{"publickey": PublicKey}).All(&result)
-		if err1 != nil || len(result) == 0 {
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Certificates")
+
+		cursor, err1 := c.Find(context.TODO(), bson.M{"publickey": PublicKey})
+
+		err2 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
 
@@ -786,18 +845,19 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 			reject(err)
 
 		}
-		defer session.Close()
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"tdpid": tdpid})
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"tdpid": tdpid}).All(&result)
-
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result)
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -819,10 +879,11 @@ func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer s
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"tdpid": TdpId, "identifer": identifer}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		err1 := c.FindOne(context.TODO(), bson.M{"tdpid": TdpId, "identifer": identifer}).Decode(&result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -851,17 +912,19 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 			reject(err)
 
 		}
-		defer session.Close()
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"publickey": Publickey})
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"publickey": Publickey}).All(&result)
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		if err1 != nil {
 			reject(err1)
-
-		}else {
-			resolve(result)
-
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -883,17 +946,20 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("Transactions")
-		err1 := c.Find(bson.M{"txnhash": Txnhash}).All(&result)
-		if err1 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"txnhash": Txnhash})
+
+		if err1 != nil {
 			reject(err1)
-
 		} else {
-			resolve(result)
-
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
 		}
 
 	})
@@ -916,10 +982,11 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 			reject(err)
 
 		}
-		defer session.Close()
 
-		c := session.DB(dbName).C("TempOrphan")
-		err1 := c.Find(bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).One(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TempOrphan")
+		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
@@ -947,9 +1014,11 @@ func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 			log.Error("Error while fetching data from get db connection " + err.Error())
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("Transactions")
-		err = c.Find(bson.M{"txnhash": Txnhash}).One(&result)
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		err = c.FindOne(context.TODO(), bson.M{"txnhash": Txnhash}).Decode(&result)
+
 		if err != nil {
 			log.Error("Error while fetching data from Transactions " + err.Error())
 			reject(err)

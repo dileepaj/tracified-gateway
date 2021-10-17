@@ -2,16 +2,18 @@ package adminDAO
 
 import (
 	"github.com/dileepaj/tracified-gateway/commons"
-	"gopkg.in/mgo.v2"
+	"go.mongodb.org/mongo-driver/mongo"
 )
+
 //Get db name from .env file
 var adminDBName = commons.GoDotEnvVariable("ADMINDBNAME")
+
 /*Connection The Mgo Connection
 @author - Azeem Ashraf
 */
 type Connection struct {
 }
 
-func (cd *Connection) adminConnect()(*mgo.Session,error) {
+func (cd *Connection) adminConnect() (mongo.Session, error) {
 	return GetAdminMongoSession()
 }

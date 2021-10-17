@@ -1,38 +1,45 @@
 package adminDAO
 
 import (
+	"context"
+
 	"github.com/dileepaj/tracified-gateway/commons"
-	"gopkg.in/mgo.v2"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type AdminStore struct {
-	Host          string
-	Port          string
-	Username      string
-	Password      string
-	DBName        string
+	Host     string
+	Port     string
+	Username string
+	Password string
+	DBName   string
 }
 
-var adminMgoSession *mgo.Session
+var adminMgoSession mongo.Session
 var adminMgoConnectionUrl string
 
-func GetAdminMongoSession() (*mgo.Session, error) {
+func GetAdminMongoSession() (mongo.Session, error) {
 	if adminMgoSession == nil {
 		var err error
-		adminMgoSession, err = mgo.Dial(adminMgoConnectionUrl)
+		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(adminMgoConnectionUrl))
+		if err != nil {
+			return nil, err
+		}
+		adminMgoSession, err = adminMgoClient.StartSession()
 		if err != nil {
 			return nil, err
 		}
 	}
-	return adminMgoSession.Clone(), nil
+
+	return adminMgoSession, nil
 }
 
 func ConstructAdminConnectionPool() {
-	username:=     commons.GoDotEnvVariable("ADMINDBUSERNAME")
-	password:=     commons.GoDotEnvVariable("ADMINDBPASSWORD")
-	dbName:=     commons.GoDotEnvVariable("ADMINDBNAME")
-	host:=     commons.GoDotEnvVariable("ADMINDBHOST")
-	port:=     commons.GoDotEnvVariable("ADMINDBPORT")
-	adminMgoConnectionUrl = "mongodb://"+username+":"+password+"@"+host+":"+port+"/?authSource="+dbName
+	username := commons.GoDotEnvVariable("ADMINDBUSERNAME")
+	password := commons.GoDotEnvVariable("ADMINDBPASSWORD")
+	dbName := commons.GoDotEnvVariable("ADMINDBNAME")
+	host := commons.GoDotEnvVariable("ADMINDBHOST")
+	port := commons.GoDotEnvVariable("ADMINDBPORT")
+	adminMgoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/?authSource=" + dbName
 }
-
