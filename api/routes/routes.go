@@ -289,17 +289,65 @@ var routes = Routes{
 		"GET",
 		"/GetTransactionId/{id}",
 		businessFacades.RetriveTransactionId, //Test
-	},	
+	},
 	Route{
 		"RetrievePreviousTranasctions",
 		"GET",
 		"/RetrievePreviousTranasctions/{limit}",
 		businessFacades.RetrievePreviousTranasctions, //Test
-  },
-  Route{
+	},
+	Route{
 		"ArtifactTransactions",
 		"POST",
 		"/Insert/ArtifactTransactions",
 		businessFacades.ArtifactTransactions, //Test
+	},
+	Route{
+		"InsertOrganization",
+		"POST",
+		"/organization",
+		businessFacades.InsertOrganization, //Test
+	},
+	Route{
+		"GetAllOrganizations",
+		"GET",
+		"/organization",
+		businessFacades.GetAllOrganizations, //Test
+	},
+	Route{
+		"GetOrganizationByPublicKey",
+		"GET",
+		"/organization/{PK}",
+		businessFacades.GetOrganizationByPublicKey, //Test
+	},
+	Route{
+		"InsertOrganization",
+		"PUT",
+		"/organization",
+		businessFacades.UpdateOrganization, //Test
+	},
+	Route{
+		"InsertTestimonial",
+		"POST",
+		"/testimonial",
+		businessFacades.InsertTestimonial, //Test
+	},
+	Route{
+		"GetTestimonialBySender",
+		"GET",
+		"/testimonial/sender/{PK}",
+		businessFacades.GetTestimonialBySender, //Test
+	},
+	Route{
+		"GetTestimonialByReciever",
+		"GET",
+		"/testimonial/reciever/{PK}",
+		businessFacades.GetTestimonialByReciever, //Test
+	},
+	Route{
+		"UpdateTestimonial",
+		"PUT",
+		"/testimonial",
+		businessFacades.UpdateTestimonial, //Test
 	},
 }
