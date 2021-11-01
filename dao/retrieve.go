@@ -2,17 +2,13 @@ package dao
 
 import (
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 
+	"github.com/chebyrash/promise"
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/mgo.v2/bson"
-
-	// "fmt"
-
-	"github.com/chebyrash/promise"
 )
 
 /*GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
@@ -449,7 +445,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error while getting db connection "+ err.Error())
+			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
 		defer session.Close()
@@ -463,7 +459,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 		if count > limit {
 			err1 := f.Skip(count - limit).All(&result)
 			if err1 != nil || len(result) == 0 {
-				log.Error("Error while f.skip "+err1.Error())
+				log.Error("Error while f.skip " + err1.Error())
 				reject(err1)
 			} else {
 				resolve(result)
@@ -471,7 +467,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 		}
 		err1 := f.All(&result)
 		if err1 != nil || len(result) == 0 {
-			log.Error("Error while f.All "+err1.Error())
+			log.Error("Error while f.All " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -859,7 +855,7 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 			// fmt.Println(err1)
 			reject(err1)
 
-		}else {
+		} else {
 			resolve(result)
 
 		}
@@ -953,6 +949,191 @@ func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 		if err != nil {
 			log.Error("Error while fetching data from Transactions " + err.Error())
 			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
+	result := []model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Organizations")
+		err1 := c.Find(bson.M{"status": "Approved"}).All(&result)
+
+		if err1 != nil || len(result) == 0 {
+			log.Error("Error while getting organizations from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+
+	})
+	return p
+}
+
+func (cd *Connection) GetOrganizationByAuthor(publickey string) *promise.Promise {
+	result := model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Organizations")
+		err1 := c.Find(bson.M{"author": publickey}).One(&result)
+		if err1 != nil {
+			log.Error("Error while getting organization from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetOrganizationByAcceptTxn(acceptTxn string) *promise.Promise {
+	result := model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Organizations")
+		err1 := c.Find(bson.M{"accepttxn": acceptTxn}).One(&result)
+		if err1 != nil {
+			log.Error("Error while getting organization from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetOrganizationByRejectTxn(rejectTxn string) *promise.Promise {
+	result := model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Organizations")
+		err1 := c.Find(bson.M{"rejecttxn": rejectTxn}).One(&result)
+		if err1 != nil {
+			log.Error("Error while getting organization from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTestimonialBySenderPublickey(publickey string) *promise.Promise {
+	result := []model.Testimonial{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Testimonials")
+		err1 := c.Find(bson.M{"sender": publickey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			log.Error("Error while getting Testimonial from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTestimonialByRecieverPublickey(publickey string) *promise.Promise {
+	result := []model.Testimonial{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Testimonials")
+		err1 := c.Find(bson.M{"reciever": publickey}).All(&result)
+		if err1 != nil || len(result) == 0 {
+			log.Error("Error while getting Testimonial from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTestimonialByAcceptTxn(acceptTxn string) *promise.Promise {
+	result := model.Testimonial{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Testimonials")
+		err1 := c.Find(bson.M{"accepttxn": acceptTxn}).One(&result)
+		if err1 != nil {
+			log.Error("Error while getting Testimonials from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promise {
+	result := model.Testimonial{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Testimonials")
+		err1 := c.Find(bson.M{"rejecttxn": rejectTxn}).One(&result)
+		if err1 != nil {
+			log.Error("Error while getting organization from db " + err.Error())
+			reject(err1)
 		} else {
 			resolve(result)
 		}
