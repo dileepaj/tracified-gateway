@@ -390,7 +390,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
@@ -538,7 +538,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
