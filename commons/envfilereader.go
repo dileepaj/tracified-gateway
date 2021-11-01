@@ -2,7 +2,7 @@ package commons
 
 import (
 	"github.com/joho/godotenv"
-	"log"
+	//"log"
 	"os"
 )
 
