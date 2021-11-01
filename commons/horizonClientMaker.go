@@ -10,3 +10,14 @@ func GetHorizonClient() *horizon.Client {
 		return horizon.DefaultTestNetClient
 	}
 }
+
+//get the connected stellar networ(public or test)
+func GetHorizonClientNetworkName() string {
+	clientNetworkName := GoDotEnvVariable("HORIZONCLIENT")
+	return clientNetworkName
+}
+
+func GetStellarLaboratoryClient() string {
+	clientUrl := GoDotEnvVariable("STELLARLABORATORYCLIENT")
+	return clientUrl
+}

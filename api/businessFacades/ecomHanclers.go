@@ -390,7 +390,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
+						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
@@ -405,8 +405,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=public",
+					Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
+						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -538,7 +538,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
+						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
@@ -646,8 +646,8 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-					text + "%3D%3D&network=public",
+				Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
