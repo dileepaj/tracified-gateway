@@ -321,7 +321,7 @@ var routes = Routes{
 		businessFacades.GetOrganizationByPublicKey, //Test
 	},
 	Route{
-		"InsertOrganization",
+		"UpdateOrganization",
 		"PUT",
 		"/organization",
 		businessFacades.UpdateOrganization, //Test

@@ -33,11 +33,6 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 	var accept xdr.Transaction
 	var reject xdr.Transaction
 
-	err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
-	if err != nil {
-		fmt.Println(err)
-	}
-
 	if commons.GoDotEnvVariable("NETWORKPASSPHRASE") == "test" {
 
 		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.TestNetwork.Passphrase}
@@ -167,7 +162,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "Accepted":
+	case "Approved":
 
 		p := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -194,11 +189,16 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 					json.NewEncoder(w).Encode(result)
 
 				} else {
-					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-					w.WriteHeader(http.StatusOK)
+					result := model.TestimonialOrganizationResponse{
+						AcceptTxn: Obj.AcceptTxn,
+						AcceptXDR: Obj.AcceptXDR,
+						RejectTxn: Obj.RejectTxn,
+						RejectXDR: Obj.RejectXDR,
+						TxnHash:   response.TXNID,
+						Status:    Obj.Status}
 
-					result := apiModel.SubmitXDRSuccess{
-						Status: "Success"}
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					//w.WriteHeader(http.StatusOK)
 					json.NewEncoder(w).Encode(result)
 				}
 			}
@@ -206,7 +206,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(error)
+			json.NewEncoder(w).Encode("Error while fetch data from db or AcceptTxn Not exist in db")
 			return error
 		})
 		p.Await()
@@ -230,7 +230,14 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				err1 := object.UpdateOrganization(selection, Obj)
 				if err1 == nil {
 
-					result := apiModel.SubmitXDRSuccess{Status: "Success"}
+					result := model.TestimonialOrganizationResponse{
+						AcceptTxn: Obj.AcceptTxn,
+						AcceptXDR: Obj.AcceptXDR,
+						RejectTxn: Obj.RejectTxn,
+						RejectXDR: Obj.RejectXDR,
+						TxnHash:   response.TXNID,
+						Status:    Obj.Status}
+
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
 					err2 := json.NewEncoder(w).Encode(result)
@@ -241,7 +248,6 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(400)
 					result := apiModel.SubmitXDRSuccess{Status: "Failed"}
-
 					json.NewEncoder(w).Encode(result)
 
 				}
@@ -250,8 +256,8 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(http.StatusBadRequest)
-			result := apiModel.SubmitXDRSuccess{
-				Status: "PublicKey Not Found in Gateway DataStore",
+			result := apiModel.InsertTestimonialCollectionResponse{
+				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
 			return error
@@ -262,8 +268,8 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(400)
-		result := apiModel.InsertCOCCollectionResponse{
-			Message: "Failed, Status invalid"}
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Failed, Status invalid"}
 		json.NewEncoder(w).Encode(result)
 	}
 

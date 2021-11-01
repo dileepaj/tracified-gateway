@@ -166,7 +166,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "Accepted":
+	case "Approved":
 
 		p := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -196,8 +196,11 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
 
-					result := apiModel.SubmitXDRSuccess{
-						Status: "Success"}
+					result := model.TestimonialResponse{
+						TxnHash:     response.TXNID,
+						Status:      Obj.Status,
+						Testimonial: Obj.Testimonial,
+					}
 					json.NewEncoder(w).Encode(result)
 				}
 			}
@@ -205,7 +208,9 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(400)
-			result := apiModel.SubmitXDRSuccess{Status: "Failed"}
+			result := apiModel.InsertTestimonialCollectionResponse{
+				Message: "Error while fetch data from db or AcceptTxn Not exist in DB",
+			}
 			json.NewEncoder(w).Encode(result)
 			return error
 		})
@@ -230,7 +235,11 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				err1 := object.UpdateTestimonial(selection, Obj)
 				if err1 == nil {
 
-					result := apiModel.SubmitXDRSuccess{Status: "Success"}
+					result := model.TestimonialResponse{
+						TxnHash:     response.TXNID,
+						Status:      Obj.Status,
+						Testimonial: Obj.Testimonial,
+					}
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
 					err2 := json.NewEncoder(w).Encode(result)
@@ -250,7 +259,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(http.StatusBadRequest)
 			result := apiModel.InsertTestimonialCollectionResponse{
-				Message: "PublicKey Not Found in Gateway DataStore",
+				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
 			return error

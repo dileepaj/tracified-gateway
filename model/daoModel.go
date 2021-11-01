@@ -244,6 +244,7 @@ type Testimonial struct {
 }
 
 type TestimonialResponse struct {
+	TxnHash     string
 	Status      string
 	Testimonial RawData
 }
