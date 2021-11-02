@@ -39,7 +39,7 @@ type TransactionCollectionBody struct {
 	CurrentStage    string
 	AppAccount      string
 	DataHash        string
-	ProductName		string
+	ProductName     string
 }
 
 type ProfileCollectionBody struct {
@@ -194,4 +194,57 @@ type ArtifactTransaction struct {
 	PublicKey      string `json:"publicKey"`
 	XDR            string `json:"XDR"`
 	Txnhash        string `json:"Txnhash"`
+}
+type TestimonialOrganization struct {
+	Name           string
+	Description    string
+	Logo           string
+	Email          string
+	Phone          string
+	PhoneSecondary string
+	AcceptTxn      string
+	AcceptXDR      string
+	RejectTxn      string
+	RejectXDR      string
+	TxnHash        string
+	Author         string
+	SubAccount     string
+	Status         string
+	ApprovedBy     string
+	ApprovedOn     string
+}
+
+type TestimonialOrganizationResponse struct {
+	AcceptTxn string
+	AcceptXDR string
+	RejectTxn string
+	RejectXDR string
+	TxnHash   string
+	Status    string
+}
+
+type RawData struct {
+	Name        string
+	Title       string
+	Description string
+	Image       string
+}
+
+type Testimonial struct {
+	Sender      string
+	Reciever    string
+	AcceptTxn   string
+	AcceptXDR   string
+	RejectTxn   string
+	RejectXDR   string
+	TxnHash     string
+	Subaccount  string
+	Status      string
+	Testimonial RawData
+}
+
+type TestimonialResponse struct {
+	TxnHash     string
+	Status      string
+	Testimonial RawData
 }

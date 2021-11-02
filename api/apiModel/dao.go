@@ -39,3 +39,11 @@ type GetSubAccountStatusResponse struct {
 	SequenceNo string `json:"sequenceNo"`
 	Available  bool   `json:"available"`
 }
+
+type InsertorganizationCollectionResponse struct {
+	Message string
+}
+
+type InsertTestimonialCollectionResponse struct {
+	Message string
+}
