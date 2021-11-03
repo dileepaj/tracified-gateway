@@ -131,7 +131,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-  	bearer := "Bearer " + constants.BackendToken
+	bearer := "Bearer " + constants.BackendToken
 
 	// Create a new request using http
 	req, er := http.NewRequest("GET", url, nil)
@@ -223,8 +223,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-			text + "%3D%3D&network=public",
+		Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -690,7 +690,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
 		if err != nil {
 			log.Error("Error while getting transactions by TxnHash " + err.Error())
- 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
+			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return nil
 		}
