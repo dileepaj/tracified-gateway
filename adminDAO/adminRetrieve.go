@@ -3,6 +3,7 @@ package adminDAO
 import (
 	"context"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -20,7 +21,8 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 	}
 	if session != nil {
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database("admin-db").Collection("userkeys")
+		dbName := commons.GoDotEnvVariable("ADMINDBNAME")
+		c := session.Client().Database(dbName).Collection("userkeys")
 
 		findCursor, err1 := c.Find(context.TODO(), bson.M{"accounts.FO": true})
 		if err1 != nil {
