@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/model"
@@ -16,7 +17,9 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
+
+	defer session.EndSession(context.TODO())
+
 	Previous := selector.PreviousTxnHash
 	if update.PreviousTxnHash != "" {
 		Previous = update.PreviousTxnHash
@@ -36,8 +39,8 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		ItemAmount:      selector.ItemAmount,
 		ItemCode:        selector.ItemCode,
 	}
-	c := session.DB(dbName).C("Transactions")
-	err = c.Update(selector, up)
+	c := session.Client().Database(dbName).Collection("Transactions")
+	_, err = c.UpdateOne(context.TODO(), selector, up)
 	if err != nil {
 		fmt.Println("Error while updating Transactions " + err.Error())
 	}
@@ -54,7 +57,9 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
+
+	defer session.EndSession(context.TODO())
+
 	fmt.Println(update.Status)
 	switch update.Status {
 	case "accepted":
@@ -71,8 +76,9 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), selector, up)
 		if err != nil {
 			fmt.Println("Error while updating COC case accepted" + err.Error())
 			return err
@@ -92,8 +98,10 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), selector, up)
+
 		if err != nil {
 			fmt.Println("Error while updating COC case rejected" + err.Error())
 			return err
@@ -113,8 +121,10 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), selector, up)
+
 		if err != nil {
 			fmt.Println("Error while updating COC case expired " + err.Error())
 			return err
@@ -134,9 +144,11 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Certificates")
-	err = c.Update(selector, update)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Certificates")
+	_, err = c.UpdateOne(context.TODO(), selector, update)
+
 	if err != nil {
 		fmt.Println("Error while updating certificates " + err.Error())
 	}
@@ -150,7 +162,7 @@ func (cd *Connection) UpdateOrganization(selector model.TestimonialOrganization,
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
+	defer session.EndSession(context.TODO())
 
 	up := model.TestimonialOrganization{
 		Name:           selector.Name,
@@ -171,8 +183,9 @@ func (cd *Connection) UpdateOrganization(selector model.TestimonialOrganization,
 		ApprovedOn:     update.ApprovedOn,
 	}
 
-	c := session.DB(dbName).C("Organizations")
-	err = c.Update(selector, up)
+	c := session.Client().Database(dbName).Collection("Organizations")
+	_, err = c.UpdateOne(context.TODO(), selector, up)
+
 	if err != nil {
 		fmt.Println("Error while updating Organization " + err.Error())
 	}
@@ -186,7 +199,8 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
+
+	defer session.EndSession(context.TODO())
 
 	up := model.Testimonial{
 		Sender:      selector.Sender,
@@ -201,8 +215,9 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		Testimonial: selector.Testimonial,
 	}
 
-	c := session.DB(dbName).C("Testimonials")
-	err = c.Update(selector, up)
+	c := session.Client().Database(dbName).Collection("Testimonials")
+	_, err = c.UpdateOne(context.TODO(), selector, up)
+
 	if err != nil {
 		fmt.Println("Error while updating Testimonials " + err.Error())
 	}
