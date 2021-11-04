@@ -1,13 +1,14 @@
 package services
 
 import (
+	"strconv"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
-	"strconv"
+
 	// "time"
 	// "fmt"
 	// "github.com/stellar/go/xdr"
-
 
 	"github.com/stellar/go/build"
 	// "fmt"
@@ -32,13 +33,13 @@ func CheckTempOrphan() {
 		//load horizon account
 		account, err := netClient.LoadAccount(address)
 		if err != nil {
-			log.Error("Error while loading account from horizon "+err.Error())
-		}else {
+			log.Error("Error while loading account from horizon " + err.Error())
+		} else {
 			//log.Println("Current Sequence for address:", address)
 			//log.Println(account.Sequence)
 			seq, err := strconv.Atoi(account.Sequence)
 			if err != nil {
-				log.Error("Error while convert string to int "+err.Error())
+				log.Error("Error while convert string to int " + err.Error())
 			}
 			stop := false //for infinite loop
 			//loop through sequence incrementally and see match
@@ -76,20 +77,20 @@ func CheckTempOrphan() {
 						//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 						GatewayTXE, err := tx.Sign(secretKey)
 						if err != nil {
-							log.Println("Error while getting GatewayTXE by secretKey "+err.Error())
+							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
 						}
 
 						//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 						txeB64, err := GatewayTXE.Base64()
 						if err != nil {
-							log.Println("Error while converting GatewayTXE to base64 "+err.Error())
+							log.Println("Error while converting GatewayTXE to base64 " + err.Error())
 							break
 						}
 
 						//SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-						response1 := display1.SubmitXDR("G"+result.TxnType)
+						response1 := display1.SubmitXDR("G" + result.TxnType)
 
 						if response1.Error.Code == 400 {
 							log.Println("Error code 400 for SubmitXDR")
@@ -158,7 +159,7 @@ func CheckTempOrphan() {
 
 						//SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-						response1 := display1.SubmitXDR("G"+result.TxnType)
+						response1 := display1.SubmitXDR("G" + result.TxnType)
 
 						if response1.Error.Code == 400 {
 							log.Println("Error response code 400 while SubmitXDR")
@@ -226,7 +227,7 @@ func CheckTempOrphan() {
 
 						//SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-						response1 := display1.SubmitXDR("G"+result.TxnType)
+						response1 := display1.SubmitXDR("G" + result.TxnType)
 
 						if response1.Error.Code == 400 {
 							log.Println("400 from SubmitXDR")
@@ -245,7 +246,7 @@ func CheckTempOrphan() {
 					}
 					return nil
 				}).Catch(func(error error) error {
-					log.Error("Error while GetSpecialForPkAndSeq "+error.Error())
+					log.Error("Error while GetSpecialForPkAndSeq " + error.Error())
 					// return error
 					//log.Println("No transactions in the scheduler")
 					stop = true //to break loop

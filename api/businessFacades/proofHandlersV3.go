@@ -5,11 +5,12 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/stellar/go/support/log"
 	"io/ioutil"
 	"net/http"
 	"strings"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/support/log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -35,21 +36,21 @@ type Item struct {
 }
 
 type TdpHeader struct {
-	Identifiers    []string `json:"identifiers"`
-	Item 			 Item	`json:"item"`
-	StageID			 string `json:"stageID"`
-	TimeStamp		 string `json:"timeStamp"`
-	WorkflowRevision string `json:"workflowRevision"`
+	Identifiers      []string `json:"identifiers"`
+	Item             Item     `json:"item"`
+	StageID          string   `json:"stageID"`
+	TimeStamp        string   `json:"timeStamp"`
+	WorkflowRevision string   `json:"workflowRevision"`
 }
 
 type TdpData struct {
-	Data  		map[string]interface{} `json:"data"`
-	TdpHeader 	TdpHeader			   `json:"header"`
+	Data      map[string]interface{} `json:"data"`
+	TdpHeader TdpHeader              `json:"header"`
 }
 
 type Identifier struct {
-	Id  		string `json:"id"`
-	Type 	    string `json:"type"`
+	Id   string `json:"id"`
+	Type string `json:"type"`
 }
 
 /*CheckPOEV3 - WORKING MODEL
@@ -71,7 +72,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		result = data.(model.TransactionCollectionBody)
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("Error while GetTransactionForTdpId "+error.Error())
+		log.Error("Error while GetTransactionForTdpId " + error.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(w).Encode(response)
@@ -80,7 +81,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
-	result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + result.TxnHash + "/operations")
+	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + result.TxnHash + "/operations")
 	if err != nil {
 		log.Error("Error while getting transactions by txnhash " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -89,37 +90,37 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data,err := ioutil.ReadAll(result1.Body)
-	if err != nil{
-		log.Error("Error while read response "+err.Error())
+	data, err := ioutil.ReadAll(result1.Body)
+	if err != nil {
+		log.Error("Error while read response " + err.Error())
 	}
 	var raw map[string]interface{}
 	err = json.Unmarshal(data, &raw)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
 	}
 
-	out,err := json.Marshal(raw["_embedded"])
-	if err != nil{
+	out, err := json.Marshal(raw["_embedded"])
+	if err != nil {
 		log.Error("Error while json marshal _embedded " + err.Error())
 	}
 	var raw1 map[string]interface{}
 	err = json.Unmarshal(out, &raw1)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
 	}
 	out1, err := json.Marshal(raw1["records"])
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json marshal records " + err.Error())
 	}
 	keysBody := out1
 	keys := make([]PublicKey, 0)
 	err = json.Unmarshal(keysBody, &keys)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
 	}
 	byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
 	}
 	CurrentTxn = string(byteData)
@@ -131,11 +132,11 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
 
-  	bearer := "Bearer " + constants.BackendToken
+	bearer := "Bearer " + constants.BackendToken
 
 	// Create a new request using http
 	req, er := http.NewRequest("GET", url, nil)
-	if er != nil{
+	if er != nil {
 		log.Error("Error while create new request using http " + er.Error())
 	}
 	req.Header.Add("Authorization", bearer)
@@ -144,13 +145,13 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		log.Error("Error while getting response " + er.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "+er.Error()}
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	body, err := ioutil.ReadAll(resq.Body)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
 	}
 	var raw2 map[string]interface{}
@@ -161,10 +162,10 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	encodedString := raw2["data"].(string)
 	decodedString, err := base64.StdEncoding.DecodeString(encodedString)
 	var tdpJson TdpData
-	json.Unmarshal(decodedString, &tdpJson )
+	json.Unmarshal(decodedString, &tdpJson)
 	decodedIdentifier, err := base64.StdEncoding.DecodeString(tdpJson.TdpHeader.Identifiers[0])
 	var identifierObj Identifier
-	json.Unmarshal(decodedIdentifier, &identifierObj )
+	json.Unmarshal(decodedIdentifier, &identifierObj)
 	h.Write([]byte(fmt.Sprintf("%s", lol) + identifierObj.Id))
 	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: result.DataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
@@ -176,17 +177,17 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	TxnHash := CurrentTxn
 	PublicKey := result.PublicKey
 
-	result2, err2 := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
+	result2, err2 := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 	if err2 != nil {
-		log.Error("Error while get transactions by TxnHash "+err2.Error())
+		log.Error("Error while get transactions by TxnHash " + err2.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net "+err2.Error()}
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err2.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 
 	data2, err := ioutil.ReadAll(result2.Body)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while ioutil.ReadAll(result2.Body) " + err.Error())
 	}
 	if result2.StatusCode != 200 {
@@ -197,7 +198,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	}
 	var raw3 map[string]interface{}
 	err = json.Unmarshal(data2, &raw3)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json.Unmarshal(data2, &raw3) " + err.Error())
 	}
 
@@ -214,7 +215,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	mapD := map[string]string{"transaction": TxnHash}
 	mapB, err := json.Marshal(mapD)
-	if err != nil{
+	if err != nil {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
 	}
 	fmt.Println(string(mapB))
@@ -223,8 +224,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-			text + "%3D%3D&network=public",
+		Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -370,7 +371,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		var POCTree []model.POCResponse
 		for _, tree := range response.RetrievePOC.BCHash {
 			var txe xdr.Transaction
-			result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + tree.TXNID)
+			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + tree.TXNID)
 			if err != nil {
 				// w.WriteHeader(http.StatusBadRequest)
 				// response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
@@ -378,7 +379,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				// return nil
 			}
 			data, err := ioutil.ReadAll(result1.Body)
-			if err != nil{
+			if err != nil {
 				log.Error("Error while read result1 body " + err.Error())
 			}
 			if result1.StatusCode != 200 {
@@ -401,7 +402,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			}
 			mapD := map[string]string{"transaction": tree.TXNID}
 			mapB, err := json.Marshal(mapD)
-			if err != nil{
+			if err != nil {
 				log.Error("Error while json.Marshal(mapD) " + err.Error())
 			}
 			fmt.Println(string(mapB))
@@ -687,16 +688,16 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		res := dat.(model.TransactionCollectionBody)
 		TxnHash := res.TxnHash
 		PublicKey := res.PublicKey
-		result1, err := http.Get(commons.GetHorizonClient().URL+"/transactions/" + TxnHash)
+		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 		if err != nil {
 			log.Error("Error while getting transactions by TxnHash " + err.Error())
- 			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
+			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return nil
 		}
 
 		data, err := ioutil.ReadAll(result1.Body)
-		if err != nil{
+		if err != nil {
 			log.Error("Error while ReadAll " + err.Error())
 		}
 
@@ -734,8 +735,8 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 
 		mapD := map[string]string{"transaction": TxnHash}
 		mapB, err := json.Marshal(mapD)
-		if err != nil{
-			log.Error("Error while json.Marshal(mapD) "+err.Error())
+		if err != nil {
+			log.Error("Error while json.Marshal(mapD) " + err.Error())
 		}
 		fmt.Println(string(mapB))
 
@@ -743,7 +744,7 @@ func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
 		text := encoded
 		temp := model.POGResponse{
 			Txnhash: TxnHash,
-			Url: commons.GetHorizonClient().URL+"/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public",
 			Identifier:     res.Identifier,
 			SequenceNo:     res.SequenceNo,
@@ -794,7 +795,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error while GetCOCbyAcceptTxn " + error.Error())
 		COCAvailable = false
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE " +error.Error()}
+		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE " + error.Error()}
 		json.NewEncoder(w).Encode(response)
 		fmt.Println(response)
 		return error
