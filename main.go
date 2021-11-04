@@ -2,18 +2,19 @@ package main
 
 import (
 	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
-	"net/http"
-	"os"
 )
 
 func getPort() string {
-	p := os.Getenv("PORT")
+	p := os.Getenv("GATEWAY_PORT")
 	if p != "" {
 		return ":" + p
 	}
