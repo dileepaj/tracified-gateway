@@ -350,4 +350,16 @@ var routes = Routes{
 		"/testimonial",
 		businessFacades.UpdateTestimonial, //Test
 	},
+	Route{
+		"SubAccountStatusExtended",
+		"POST",
+		"/transaction/subAccountStatus",
+		businessFacades.CheckAccountsStatusExtended, //Test
+	},
+	Route{
+		"GetAllPendingAndRejectedOrganizations",
+		"GET",
+		"/prorganization",
+		businessFacades.GetAllPendingAndRejectedOrganizations,
+	},
 }

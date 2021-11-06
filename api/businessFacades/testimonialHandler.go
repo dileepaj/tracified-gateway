@@ -87,6 +87,31 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		Obj.RejectTxn = validReject
 	}
 
+	var txe xdr.Transaction
+	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+	useSentSequence := false
+
+	for i := 0; i < len(txe.Operations); i++ {
+
+		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+			fmt.Println("HAHAHAHA BUMPY")
+			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+			fmt.Println(v)
+			Obj.SequenceNo = v
+			useSentSequence = true
+
+		}
+	}
+	if !useSentSequence {
+		fmt.Println("seq")
+		fmt.Println(txe.SeqNum)
+		v := fmt.Sprint(txe.SeqNum)
+		Obj.SequenceNo = v
+	}
+
 	object := dao.Connection{}
 	err2 := object.InsertTestimonial(Obj)
 
@@ -100,6 +125,7 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		result := model.TestimonialResponse{
+			SequenceNo:  Obj.SequenceNo,
 			Status:      Obj.Status,
 			Testimonial: Obj.Testimonial}
 		json.NewEncoder(w).Encode(result)
@@ -171,7 +197,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "Approved":
+	case "APPROVED":
 
 		p := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -202,6 +228,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusOK)
 
 					result := model.TestimonialResponse{
+						SequenceNo:  Obj.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
 						Testimonial: Obj.Testimonial,
@@ -221,7 +248,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 		})
 		p.Await()
 		break
-	case "Rejected":
+	case "REJECTED":
 		p := object.GetTestimonialByRejectTxn(Obj.RejectTxn)
 		p.Then(func(data interface{}) interface{} {
 
@@ -241,6 +268,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				if err1 == nil {
 
 					result := model.TestimonialResponse{
+						SequenceNo:  Obj.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
 						Testimonial: Obj.Testimonial,

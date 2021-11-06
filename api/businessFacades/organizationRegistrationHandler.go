@@ -86,6 +86,31 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		Obj.RejectTxn = validReject
 	}
 
+	var txe xdr.Transaction
+	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+	useSentSequence := false
+
+	for i := 0; i < len(txe.Operations); i++ {
+
+		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+			fmt.Println("HAHAHAHA BUMPY")
+			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+			fmt.Println(v)
+			Obj.SequenceNo = v
+			useSentSequence = true
+
+		}
+	}
+	if !useSentSequence {
+		fmt.Println("seq")
+		fmt.Println(txe.SeqNum)
+		v := fmt.Sprint(txe.SeqNum)
+		Obj.SequenceNo = v
+	}
+
 	object := dao.Connection{}
 	err2 := object.InsertOrganization(Obj)
 
@@ -100,11 +125,12 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		result := model.TestimonialOrganizationResponse{
-			AcceptTxn: Obj.AcceptTxn,
-			AcceptXDR: Obj.AcceptXDR,
-			RejectTxn: Obj.RejectTxn,
-			RejectXDR: Obj.RejectXDR,
-			Status:    Obj.Status}
+			AcceptTxn:  Obj.AcceptTxn,
+			AcceptXDR:  Obj.AcceptXDR,
+			RejectTxn:  Obj.RejectTxn,
+			RejectXDR:  Obj.RejectXDR,
+			SequenceNo: Obj.SequenceNo,
+			Status:     Obj.Status}
 		json.NewEncoder(w).Encode(result)
 		return
 	}
@@ -173,7 +199,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "Approved":
+	case "APPROVED":
 
 		p := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -201,12 +227,13 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 				} else {
 					result := model.TestimonialOrganizationResponse{
-						AcceptTxn: Obj.AcceptTxn,
-						AcceptXDR: Obj.AcceptXDR,
-						RejectTxn: Obj.RejectTxn,
-						RejectXDR: Obj.RejectXDR,
-						TxnHash:   response.TXNID,
-						Status:    Obj.Status}
+						AcceptTxn:  Obj.AcceptTxn,
+						AcceptXDR:  Obj.AcceptXDR,
+						RejectTxn:  Obj.RejectTxn,
+						RejectXDR:  Obj.RejectXDR,
+						SequenceNo: Obj.SequenceNo,
+						TxnHash:    response.TXNID,
+						Status:     Obj.Status}
 
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
@@ -222,7 +249,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		})
 		p.Await()
 		break
-	case "Rejected":
+	case "REJECTED":
 		p := object.GetOrganizationByRejectTxn(Obj.RejectTxn)
 		p.Then(func(data interface{}) interface{} {
 
@@ -242,12 +269,13 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				if err1 == nil {
 
 					result := model.TestimonialOrganizationResponse{
-						AcceptTxn: Obj.AcceptTxn,
-						AcceptXDR: Obj.AcceptXDR,
-						RejectTxn: Obj.RejectTxn,
-						RejectXDR: Obj.RejectXDR,
-						TxnHash:   response.TXNID,
-						Status:    Obj.Status}
+						AcceptTxn:  Obj.AcceptTxn,
+						AcceptXDR:  Obj.AcceptXDR,
+						RejectTxn:  Obj.RejectTxn,
+						RejectXDR:  Obj.RejectXDR,
+						TxnHash:    response.TXNID,
+						SequenceNo: Obj.SequenceNo,
+						Status:     Obj.Status}
 
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
@@ -285,4 +313,25 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	}
 
 	return
+}
+
+func GetAllPendingAndRejectedOrganizations(w http.ResponseWriter, r *http.Request) {
+
+	object := dao.Connection{}
+	p := object.GetPendingAndRejectedOrganizations()
+	p.Then(func(data interface{}) interface{} {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+		return data
+	}).Catch(func(error error) error {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Pending or Rejected organizations were found",
+		}
+		json.NewEncoder(w).Encode(result)
+		return error
+	})
+	p.Await()
 }

@@ -90,8 +90,10 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		result2.SubAccount = result.SubAccount
 		if result.Status == "pending" {
 			result2.Available = false
+			result2.Operation = "COC"
 		} else {
 			result2.Available = true
+			result2.Operation = "COC"
 		}
 		resolve(result2)
 
@@ -1137,6 +1139,138 @@ func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promi
 		} else {
 			resolve(result)
 		}
+	})
+	return p
+}
+
+func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promise.Promise {
+	result := model.TestimonialOrganization{}
+	result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB(dbName).C("Organizations")
+
+		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count - 1).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		}
+		result2.Receiver = result.ApprovedBy
+		bumpSeq, err := strconv.Atoi(result.SequenceNo)
+		if err == nil {
+			fmt.Println(bumpSeq)
+			bumpSeq = bumpSeq
+			fmt.Println(bumpSeq)
+		}
+		result2.SequenceNo = strconv.Itoa(bumpSeq)
+		result2.SubAccount = result.SubAccount
+		if result.Status == "pending" {
+			result2.Available = false
+			result2.Operation = "Organization"
+		} else {
+			result2.Available = true
+			result2.Operation = "Organization"
+		}
+		resolve(result2)
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise.Promise {
+	result := model.Testimonial{}
+	result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.Close()
+
+		c := session.DB(dbName).C("Testimonials")
+
+		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count - 1).One(&result)
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		}
+		result2.Receiver = result.Reciever
+		bumpSeq, err := strconv.Atoi(result.SequenceNo)
+		if err == nil {
+			fmt.Println(bumpSeq)
+			bumpSeq = bumpSeq
+			fmt.Println(bumpSeq)
+		}
+		result2.SequenceNo = strconv.Itoa(bumpSeq)
+		result2.SubAccount = result.Subaccount
+		if result.Status == "pending" {
+			result2.Available = false
+			result2.Operation = "Testimonial"
+		} else {
+			result2.Available = true
+			result2.Operation = "Testimonial"
+		}
+		resolve(result2)
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
+	result := []model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.Close()
+		c := session.DB(dbName).C("Organizations")
+		err1 := c.Find(bson.M{"status": bson.M{"$in": []string{"REJECTED", "PENDING"}}}).All(&result)
+
+		if err1 != nil || len(result) == 0 {
+			log.Error("Error while getting organizations from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+
 	})
 	return p
 }

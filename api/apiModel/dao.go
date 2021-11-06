@@ -38,6 +38,7 @@ type GetSubAccountStatusResponse struct {
 	Receiver   string `json:"receiver"`
 	SequenceNo string `json:"sequenceNo"`
 	Available  bool   `json:"available"`
+	Operation  string `json:"operation"`
 }
 
 type InsertorganizationCollectionResponse struct {
