@@ -197,7 +197,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "APPROVED":
+	case model.Approved.String():
 
 		p := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -248,7 +248,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 		})
 		p.Await()
 		break
-	case "REJECTED":
+	case model.Rejected.String():
 		p := object.GetTestimonialByRejectTxn(Obj.RejectTxn)
 		p.Then(func(data interface{}) interface{} {
 

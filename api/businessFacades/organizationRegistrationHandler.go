@@ -199,7 +199,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "APPROVED":
+	case model.Approved.String():
 
 		p := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
@@ -249,7 +249,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		})
 		p.Await()
 		break
-	case "REJECTED":
+	case model.Rejected.String():
 		p := object.GetOrganizationByRejectTxn(Obj.RejectTxn)
 		p.Then(func(data interface{}) interface{} {
 

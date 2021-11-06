@@ -252,3 +252,17 @@ type TestimonialResponse struct {
 	Status      string
 	Testimonial RawData
 }
+
+type Option int
+
+const (
+	Undefined Option = iota
+	Approved
+	Rejected
+	Expired
+	Pending
+)
+
+func (O Option) String() string {
+	return [...]string{"UNDEFINED", "APPROVED", "REJECTED", "EXPIRED", "PENDING"}[O]
+}
