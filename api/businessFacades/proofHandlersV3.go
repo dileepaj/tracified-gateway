@@ -676,98 +676,127 @@ and calls FullPOC Interpreter sending the tree in as a Param
 Finally Returns the Response given by the FullPOC Interpreter
 @params - ResponseWriter,Request
 */
-func CheckPOGV3Rewrite(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var txe xdr.Transaction
+func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
+	writer.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	// var txe TransactionEnvelope
 
 	vars := mux.Vars(r)
 	var result []model.POGResponse
+	var res model.TransactionCollectionBody
 	object := dao.Connection{}
 	p := object.GetTransactionByTxnhash(vars["Txn"])
-	p.Then(func(dat interface{}) interface{} {
-		res := dat.(model.TransactionCollectionBody)
-		TxnHash := res.TxnHash
-		PublicKey := res.PublicKey
-		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
-		if err != nil {
-			log.Error("Error while getting transactions by TxnHash " + err.Error())
-			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
-			json.NewEncoder(w).Encode(response)
-			return nil
-		}
-
-		data, err := ioutil.ReadAll(result1.Body)
-		if err != nil {
-			log.Error("Error while ReadAll " + err.Error())
-		}
-
-		if result1.StatusCode != 200 {
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
-			json.NewEncoder(w).Encode(response)
-			return nil
-		}
-		var raw map[string]interface{}
-		json.Unmarshal(data, &raw)
-
-		timestamp := fmt.Sprintf("%s", raw["created_at"])
-		ledger := fmt.Sprintf("%.0f", raw["ledger"])
-		feePaid := fmt.Sprintf("%s", raw["fee_charged"])
-		envelopeXDR := fmt.Sprintf("%s", raw["envelope_xdr"])
-		errXDR := xdr.SafeUnmarshalBase64(envelopeXDR, &txe)
-		if errXDR != nil {
-			log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Error while SafeUnmarshalBase64 " + errXDR.Error()}
-			json.NewEncoder(w).Encode(response)
-			return nil
-		}
-		//GET THE USER SIGNED GENESIS TXN
-		Type := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		Previous := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-
-		if Type != "0" && Previous != "" {
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "This Transaction is not a Genesis Txn"}
-			json.NewEncoder(w).Encode(response)
-			return nil
-		}
-
-		mapD := map[string]string{"transaction": TxnHash}
-		mapB, err := json.Marshal(mapD)
-		if err != nil {
-			log.Error("Error while json.Marshal(mapD) " + err.Error())
-		}
-		fmt.Println(string(mapB))
-
-		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-		text := encoded
-		temp := model.POGResponse{
-			Txnhash: TxnHash,
-			Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-				text + "%3D%3D&network=public",
-			Identifier:     res.Identifier,
-			SequenceNo:     res.SequenceNo,
-			TxnType:        "genesis",
-			Status:         "Success",
-			BlockchainName: "Stellar",
-			Timestamp:      timestamp,
-			Ledger:         ledger,
-			FeePaid:        feePaid,
-			SourceAccount:  PublicKey}
-		result = append(result, temp)
-
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
+	p.Then(func(data interface{}) interface{} {
+		res = data.(model.TransactionCollectionBody)
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("Error while GetTransactionByTxnhash " + error.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Txn Id Not Found in Gateway DataStore"}
-		json.NewEncoder(w).Encode(response)
+		log.Error("Error while GetTransactionForTdpId " + error.Error())
+		writer.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
+		json.NewEncoder(writer).Encode(response)
+		fmt.Println(response)
 		return error
 	})
 	p.Await()
+
+	TxnHash := res.TxnHash
+	PublicKey := res.PublicKey
+	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+	if err != nil {
+		log.Error("Error while getting transactions by TxnHash " + err.Error())
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
+		json.NewEncoder(writer).Encode(response)
+		return
+	}
+
+	data, err := ioutil.ReadAll(result1.Body)
+	if err != nil {
+		log.Error("Error while ReadAll " + err.Error())
+	}
+
+	if result1.StatusCode != 200 {
+		writer.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
+		json.NewEncoder(writer).Encode(response)
+		return
+	}
+	var raw map[string]interface{}
+	json.Unmarshal(data, &raw)
+
+	timestamp := fmt.Sprintf("%s", raw["created_at"])
+	ledger := fmt.Sprintf("%.0f", raw["ledger"])
+	feePaid := fmt.Sprintf("%s", raw["fee_charged"])
+
+	// envelopeXDR := fmt.Sprintf("%s", raw["envelope_xdr"])
+	// errXDR := xdr.SafeUnmarshalBase64(envelopeXDR, &txe)
+	// if errXDR != nil {
+	// 	log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	response := model.Error{Message: "Error while SafeUnmarshalBase64 " + errXDR.Error()}
+	// 	json.NewEncoder(w).Encode(response)
+	// 	return nil
+	// }
+
+	result2, _ := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+	data2, _ := ioutil.ReadAll(result2.Body)
+	var raw2 map[string]interface{}
+	json.Unmarshal(data2, &raw2)
+	out1, _ := json.Marshal(raw2["_embedded"])
+	json.Unmarshal(out1, &raw2)
+
+	var raw3 []interface{}
+	out3, _ := json.Marshal(raw2["records"])
+	json.Unmarshal(out3, &raw3)
+
+	out4, _ := json.Marshal(raw3[1])
+	json.Unmarshal(out4, &raw2)
+
+	//GET THE USER SIGNED GENESIS TXN
+	// Type := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	// Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+
+	Previous := raw2["value"]
+
+	if Previous != "" {
+		writer.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "This Transaction is not a Genesis Txn"}
+		json.NewEncoder(writer).Encode(response)
+		return
+	}
+
+	mapD := map[string]string{"transaction": TxnHash}
+	mapB, err := json.Marshal(mapD)
+	if err != nil {
+		log.Error("Error while json.Marshal(mapD) " + err.Error())
+	}
+	fmt.Println(string(mapB))
+
+	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+	text := encoded
+	temp := model.POGResponse{
+		Txnhash: TxnHash,
+		Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=public",
+		Identifier:     res.Identifier,
+		SequenceNo:     res.SequenceNo,
+		TxnType:        "genesis",
+		Status:         "Success",
+		BlockchainName: "Stellar",
+		Timestamp:      timestamp,
+		Ledger:         ledger,
+		FeePaid:        feePaid,
+		SourceAccount:  PublicKey}
+	result = append(result, temp)
+	fmt.Println(result)
+	// writer.WriteHeader(http.StatusOK)
+	json.NewEncoder(writer).Encode(result)
+	return
+
+	// log.Error("Error while GetTransactionByTxnhash " + error.Error())
+	// // writer.WriteHeader(http.StatusBadRequest)
+	// response := model.Error{Message: "Txn Id Not Found in Gateway DataStore"}
+	// json.NewEncoder(writer).Encode(response)
+	// return
+
 }
 
 /*CheckPOCOCV3 - WORKING MODEL
