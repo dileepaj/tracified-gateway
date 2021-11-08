@@ -70,3 +70,6 @@
             ADMINDBPORT: "{{ lookup('env','ADMINDBPORT') }}"
             ADMINDBNAME: "{{ lookup('env','ADMINDBNAME') }}"
             HORIZONCLIENT: "{{ lookup('env','HORIZONCLIENT') }}"
+            ADMIN_ATLAS: "{{ lookup('env','ADMIN_ATLAS') }}"
+            GATEWAY_ATLAS: "{{ lookup('env','GATEWAY_ATLAS') }}"
+            STELLARLABORATORYCLIENT: "{{ lookup('env','STELLARLABORATORYCLIENT') }}"
