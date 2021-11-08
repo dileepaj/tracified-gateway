@@ -4,7 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+<<<<<<< HEAD
 	"strconv"
+=======
+	"strings"
+>>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 
@@ -193,30 +197,31 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	switch GObj.Status {
 	case "accepted":
-		p := object.GetCOCbyAcceptTxn(GObj.AcceptTxn)
-		p.Then(func(data interface{}) interface{} {
-
+		_, err := object.GetCOCbyAcceptTxn(GObj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
-
 			var TXNS []model.TransactionCollectionBody
 			TXN := model.TransactionCollectionBody{
 				XDR: GObj.AcceptXdr,
 			}
 			TXNS = append(TXNS, TXN)
 			fmt.Println(TXNS)
+
 			status, response := builder.XDRSubmitter(TXNS)
 
 			if !status {
-				w.WriteHeader(400)
-				result = apiModel.InsertCOCCollectionResponse{
-					Message: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
-
 				GObj.TxnHash = response.TXNID
 				fmt.Println(response.TXNID)
 
 				err1 := object.UpdateCOC(selection, GObj)
+
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(400)
@@ -237,13 +242,12 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(error)
-			return error
-		})
-		p.Await()
+			json.NewEncoder(w).Encode(err)
+		}
 		break
 	case "rejected":
 		p := object.GetCOCbyRejectTxn(GObj.RejectTxn)
@@ -299,7 +303,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			Message: "Failed, Status invalid"}
 		json.NewEncoder(w).Encode(result)
 	}
-	return
 }
 
 /*CheckAccountsStatus - WORKING MODEL

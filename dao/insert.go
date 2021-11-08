@@ -1,6 +1,7 @@
 package dao
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -16,9 +17,9 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("COC")
-	err = c.Insert(Coc)
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("COC")
+	_, err = c.InsertOne(context.TODO(), Coc)
 	if err != nil {
 		fmt.Println("Error while inserting to COC " + err.Error())
 	}
@@ -34,9 +35,9 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	if err != nil {
 		log.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Transactions")
-	err = c.Insert(Coc)
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("Transactions")
+	_, err = c.InsertOne(context.TODO(), Coc)
 	if err != nil {
 		log.Println("Error while inserting to Transactions " + err.Error())
 	}
@@ -52,9 +53,11 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("TempOrphan")
-	err = c.Insert(Coc)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("TempOrphan")
+	_, err = c.InsertOne(context.TODO(), Coc)
+
 	if err != nil {
 		fmt.Println("Error while inserting to TempOrphan " + err.Error())
 	}
@@ -70,9 +73,11 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Orphan")
-	err = c.Insert(Coc)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Orphan")
+	_, err = c.InsertOne(context.TODO(), Coc)
+
 	if err != nil {
 		fmt.Println("Error while inserting to Orphan " + err.Error())
 	}
@@ -88,9 +93,12 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Profiles")
-	err = c.Insert(Coc)
+
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Profiles")
+	_, err = c.InsertOne(context.TODO(), Coc)
+
 	if err != nil {
 		fmt.Println("Error while inserting to Profiles " + err.Error())
 	}
@@ -106,9 +114,11 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Certificates")
-	err = c.Insert(Cert)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Certificates")
+	_, err = c.InsertOne(context.TODO(), Cert)
+
 	if err != nil {
 		fmt.Println("Error while inserting to Certificates " + err.Error())
 	}
@@ -121,9 +131,11 @@ func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error 
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Artifacts")
-	err = c.Insert(artifacts)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Artifacts")
+	_, err = c.InsertOne(context.TODO(), artifacts)
+
 	if err != nil {
 		fmt.Println("Error while inserting to Artifacts " + err.Error())
 	}
@@ -136,9 +148,10 @@ func (cd *Connection) InsertOrganization(Org model.TestimonialOrganization) erro
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Organizations")
-	err = c.Insert(Org)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Organizations")
+	_, err = c.InsertOne(context.TODO(), Org)
 	if err != nil {
 		fmt.Println("Error while inserting to organizations " + err.Error())
 	}
@@ -151,9 +164,11 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Testimonials")
-	err = c.Insert(Tes)
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Testimonials")
+	_, err = c.InsertOne(context.TODO(), Tes)
+
 	if err != nil {
 		fmt.Println("Error while inserting to organizations " + err.Error())
 	}

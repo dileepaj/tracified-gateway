@@ -1,9 +1,11 @@
 package dao
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 /*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
@@ -16,7 +18,9 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
+
+	defer session.EndSession(context.TODO())
+
 	Previous := selector.PreviousTxnHash
 	if update.PreviousTxnHash != "" {
 		Previous = update.PreviousTxnHash
@@ -36,8 +40,31 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		ItemAmount:      selector.ItemAmount,
 		ItemCode:        selector.ItemCode,
 	}
-	c := session.DB(dbName).C("Transactions")
-	err = c.Update(selector, up)
+	c := session.Client().Database(dbName).Collection("Transactions")
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
 		fmt.Println("Error while updating Transactions " + err.Error())
 	}
@@ -54,8 +81,20 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
-	fmt.Println(update.Status)
+
+	defer session.EndSession(context.TODO())
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
 	switch update.Status {
 	case "accepted":
 		up := model.COCCollectionBody{
@@ -71,8 +110,20 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 		if err != nil {
 			fmt.Println("Error while updating COC case accepted" + err.Error())
 			return err
@@ -92,8 +143,21 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
+
 		if err != nil {
 			fmt.Println("Error while updating COC case rejected" + err.Error())
 			return err
@@ -113,8 +177,21 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SubAccount: selector.SubAccount,
 			SequenceNo: selector.SequenceNo,
 		}
-		c := session.DB(dbName).C("COC")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("COC")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
+
 		if err != nil {
 			fmt.Println("Error while updating COC case expired " + err.Error())
 			return err
@@ -134,9 +211,33 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-	defer session.Close()
-	c := session.DB(dbName).C("Certificates")
-	err = c.Update(selector, update)
+	defer session.EndSession(context.TODO())
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(update)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("Certificates")
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
 	if err != nil {
 		fmt.Println("Error while updating certificates " + err.Error())
 	}
@@ -150,6 +251,7 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
+<<<<<<< HEAD
 	defer session.Close()
 	fmt.Println(update.Status)
 	switch update.Status {
@@ -208,6 +310,56 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 			return err
 		}
 		break
+=======
+	defer session.EndSession(context.TODO())
+
+	up := model.TestimonialOrganization{
+		Name:           selector.Name,
+		Description:    selector.Description,
+		Logo:           selector.Logo,
+		Email:          selector.Email,
+		Phone:          selector.Phone,
+		PhoneSecondary: selector.PhoneSecondary,
+		AcceptTxn:      selector.AcceptTxn,
+		AcceptXDR:      update.AcceptXDR,
+		RejectTxn:      selector.RejectTxn,
+		RejectXDR:      update.RejectXDR,
+		TxnHash:        update.TxnHash,
+		Author:         selector.Author,
+		SubAccount:     selector.SubAccount,
+		Status:         update.Status,
+		ApprovedBy:     update.ApprovedBy,
+		ApprovedOn:     update.ApprovedOn,
+	}
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("Organizations")
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+	if err != nil {
+		fmt.Println("Error while updating Organization " + err.Error())
+>>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 	}
 	return err
 }
@@ -219,6 +371,7 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
+<<<<<<< HEAD
 	defer session.Close()
 	fmt.Println(update.Status)
 	switch update.Status {
@@ -266,5 +419,51 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		break
 	}
 
+=======
+
+	defer session.EndSession(context.TODO())
+
+	up := model.Testimonial{
+		Sender:      selector.Sender,
+		Reciever:    selector.Reciever,
+		AcceptTxn:   selector.AcceptTxn,
+		RejectTxn:   selector.RejectTxn,
+		AcceptXDR:   update.AcceptXDR,
+		RejectXDR:   update.RejectXDR,
+		TxnHash:     update.TxnHash,
+		Subaccount:  selector.Subaccount,
+		Status:      update.Status,
+		Testimonial: selector.Testimonial,
+	}
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("Testimonials")
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+	if err != nil {
+		fmt.Println("Error while updating Testimonials " + err.Error())
+	}
+>>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 	return err
 }
