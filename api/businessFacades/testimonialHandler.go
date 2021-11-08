@@ -123,7 +123,7 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(201)
 		result := model.TestimonialResponse{
 			SequenceNo:  Obj.SequenceNo,
 			Status:      Obj.Status,
@@ -147,7 +147,7 @@ func GetTestimonialBySender(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Sender PublicKey Not Found in Gateway DataStore",
 		}
@@ -171,7 +171,7 @@ func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Reciever PublicKey Not Found in Gateway DataStore",
 		}
@@ -239,7 +239,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(400)
+			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or AcceptTxn Not exist in DB",
 			}
@@ -290,7 +290,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}

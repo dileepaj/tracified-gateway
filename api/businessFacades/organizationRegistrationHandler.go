@@ -123,7 +123,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(201)
 		result := model.TestimonialOrganizationResponse{
 			AcceptTxn:  Obj.AcceptTxn,
 			AcceptXDR:  Obj.AcceptXDR,
@@ -148,7 +148,7 @@ func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Approved organizations were found",
 		}
@@ -171,7 +171,7 @@ func GetOrganizationByPublicKey(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "PublicKey Not Found in Gateway DataStore",
 		}
@@ -243,7 +243,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(400)
+			w.WriteHeader(204)
 			json.NewEncoder(w).Encode("Error while fetch data from db or AcceptTxn Not exist in db")
 			return error
 		})
@@ -294,7 +294,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}
@@ -326,7 +326,7 @@ func GetAllPendingAndRejectedOrganizations(w http.ResponseWriter, r *http.Reques
 		return data
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Pending or Rejected organizations were found",
 		}
