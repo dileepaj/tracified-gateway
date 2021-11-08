@@ -256,13 +256,12 @@ type TestimonialResponse struct {
 type Option int
 
 const (
-	Undefined Option = iota
-	Approved
+	Approved Option = iota + 1
 	Rejected
 	Expired
 	Pending
 )
 
 func (O Option) String() string {
-	return [...]string{"UNDEFINED", "APPROVED", "REJECTED", "EXPIRED", "PENDING"}[O]
+	return [...]string{"undefined", "approved", "rejected", "expired", "pending"}[O]
 }

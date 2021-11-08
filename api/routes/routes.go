@@ -311,7 +311,7 @@ var routes = Routes{
 	Route{
 		"GetAllOrganizations",
 		"GET",
-		"/organization",
+		"/approved/organization",
 		businessFacades.GetAllOrganizations, //Test
 	},
 	Route{
@@ -359,7 +359,7 @@ var routes = Routes{
 	Route{
 		"GetAllPendingAndRejectedOrganizations",
 		"GET",
-		"/prorganization",
+		"/notapproved/organization",
 		businessFacades.GetAllPendingAndRejectedOrganizations,
 	},
 }

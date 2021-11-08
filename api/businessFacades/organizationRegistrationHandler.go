@@ -200,7 +200,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 	switch Obj.Status {
 	case model.Approved.String():
-
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		p := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn)
 		p.Then(func(data interface{}) interface{} {
 			selection = data.(model.TestimonialOrganization)
@@ -208,6 +208,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
+				//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(400)
 				result := apiModel.SubmitXDRSuccess{
 					Status: "Failed"}
@@ -217,9 +218,10 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				Obj.TxnHash = response.TXNID
 				fmt.Println(response.TXNID)
 
-				err1 := object.UpdateOrganization(selection, Obj)
+				err1 := object.Updateorganization(selection, Obj)
+
 				if err1 != nil {
-					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(400)
 					result := apiModel.SubmitXDRSuccess{
 						Status: "Failed"}
@@ -235,9 +237,10 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 						TxnHash:    response.TXNID,
 						Status:     Obj.Status}
 
-					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-					w.WriteHeader(http.StatusOK)
+					//w.WriteHeader(200)
+					//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					json.NewEncoder(w).Encode(result)
+
 				}
 			}
 			return data
@@ -257,15 +260,18 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.RejectXDR}
 			response := display.TDPInsert()
-
+			fmt.Println("Hi")
+			fmt.Println(response)
 			if response.Error.Code == 400 {
+
 				w.WriteHeader(400)
 				result := apiModel.SubmitXDRSuccess{
 					Status: "Failed"}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				Obj.TxnHash = response.TXNID
-				err1 := object.UpdateOrganization(selection, Obj)
+				err1 := object.Updateorganization(selection, Obj)
+
 				if err1 == nil {
 
 					result := model.TestimonialOrganizationResponse{

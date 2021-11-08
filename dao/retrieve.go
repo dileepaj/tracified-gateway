@@ -88,7 +88,7 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
-		if result.Status == "pending" {
+		if result.Status == model.Pending.String() {
 			result2.Available = false
 			result2.Operation = "COC"
 		} else {
@@ -969,7 +969,7 @@ func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 		}
 		defer session.Close()
 		c := session.DB(dbName).C("Organizations")
-		err1 := c.Find(bson.M{"status": "Approved"}).All(&result)
+		err1 := c.Find(bson.M{"status": model.Approved.String()}).All(&result)
 
 		if err1 != nil || len(result) == 0 {
 			log.Error("Error while getting organizations from db " + err.Error())
@@ -1182,7 +1182,7 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
-		if result.Status == "pending" {
+		if result.Status == model.Pending.String() {
 			result2.Available = false
 			result2.Operation = "Organization"
 		} else {
@@ -1236,7 +1236,7 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.Subaccount
-		if result.Status == "pending" {
+		if result.Status == model.Pending.String() {
 			result2.Available = false
 			result2.Operation = "Testimonial"
 		} else {
@@ -1262,7 +1262,7 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 		}
 		defer session.Close()
 		c := session.DB(dbName).C("Organizations")
-		err1 := c.Find(bson.M{"status": bson.M{"$in": []string{"REJECTED", "PENDING"}}}).All(&result)
+		err1 := c.Find(bson.M{"status": bson.M{"$in": []string{model.Pending.String(), model.Rejected.String()}}}).All(&result)
 
 		if err1 != nil || len(result) == 0 {
 			log.Error("Error while getting organizations from db " + err.Error())

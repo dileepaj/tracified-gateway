@@ -143,7 +143,7 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 	return err
 }
 
-func (cd *Connection) UpdateOrganization(selector model.TestimonialOrganization, update model.TestimonialOrganization) error {
+func (cd *Connection) Updateorganization(selector model.TestimonialOrganization, update model.TestimonialOrganization) error {
 	fmt.Println("----------------------------------- UpdateOrganization---------------------------------")
 	session, err := cd.connect()
 	if err != nil {
@@ -151,31 +151,63 @@ func (cd *Connection) UpdateOrganization(selector model.TestimonialOrganization,
 		return err
 	}
 	defer session.Close()
+	fmt.Println(update.Status)
+	switch update.Status {
+	case model.Approved.String():
+		up := model.TestimonialOrganization{
+			Name:           selector.Name,
+			Description:    selector.Description,
+			Logo:           selector.Logo,
+			Email:          selector.Email,
+			Phone:          selector.Phone,
+			PhoneSecondary: selector.PhoneSecondary,
+			AcceptTxn:      update.AcceptTxn,
+			AcceptXDR:      update.AcceptXDR,
+			RejectTxn:      selector.RejectTxn,
+			RejectXDR:      selector.RejectXDR,
+			TxnHash:        update.TxnHash,
+			Author:         selector.Author,
+			SubAccount:     selector.SubAccount,
+			SequenceNo:     selector.SequenceNo,
+			Status:         update.Status,
+			ApprovedBy:     update.ApprovedBy,
+			ApprovedOn:     update.ApprovedOn,
+		}
 
-	up := model.TestimonialOrganization{
-		Name:           selector.Name,
-		Description:    selector.Description,
-		Logo:           selector.Logo,
-		Email:          selector.Email,
-		Phone:          selector.Phone,
-		PhoneSecondary: selector.PhoneSecondary,
-		AcceptTxn:      selector.AcceptTxn,
-		AcceptXDR:      update.AcceptXDR,
-		RejectTxn:      selector.RejectTxn,
-		RejectXDR:      update.RejectXDR,
-		TxnHash:        update.TxnHash,
-		Author:         selector.Author,
-		SubAccount:     selector.SubAccount,
-		SequenceNo:     selector.SequenceNo,
-		Status:         update.Status,
-		ApprovedBy:     update.ApprovedBy,
-		ApprovedOn:     update.ApprovedOn,
-	}
-
-	c := session.DB(dbName).C("Organizations")
-	err = c.Update(selector, up)
-	if err != nil {
-		fmt.Println("Error while updating Organization " + err.Error())
+		c := session.DB(dbName).C("Organizations")
+		err = c.Update(selector, up)
+		if err != nil {
+			fmt.Println("Error while updating Organization " + err.Error())
+			return err
+		}
+		break
+	case model.Rejected.String():
+		up := model.TestimonialOrganization{
+			Name:           selector.Name,
+			Description:    selector.Description,
+			Logo:           selector.Logo,
+			Email:          selector.Email,
+			Phone:          selector.Phone,
+			PhoneSecondary: selector.PhoneSecondary,
+			AcceptTxn:      selector.AcceptTxn,
+			AcceptXDR:      selector.AcceptXDR,
+			RejectTxn:      update.RejectTxn,
+			RejectXDR:      update.RejectXDR,
+			TxnHash:        update.TxnHash,
+			Author:         selector.Author,
+			SubAccount:     selector.SubAccount,
+			SequenceNo:     selector.SequenceNo,
+			Status:         update.Status,
+			ApprovedBy:     update.ApprovedBy,
+			ApprovedOn:     update.ApprovedOn,
+		}
+		c := session.DB(dbName).C("Organizations")
+		err = c.Update(selector, up)
+		if err != nil {
+			fmt.Println("Error while updating Organization " + err.Error())
+			return err
+		}
+		break
 	}
 	return err
 }
@@ -188,25 +220,51 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		return err
 	}
 	defer session.Close()
-
-	up := model.Testimonial{
-		Sender:      selector.Sender,
-		Reciever:    selector.Reciever,
-		AcceptTxn:   selector.AcceptTxn,
-		RejectTxn:   selector.RejectTxn,
-		AcceptXDR:   update.AcceptXDR,
-		RejectXDR:   update.RejectXDR,
-		TxnHash:     update.TxnHash,
-		SequenceNo:  selector.SequenceNo,
-		Subaccount:  selector.Subaccount,
-		Status:      update.Status,
-		Testimonial: selector.Testimonial,
+	fmt.Println(update.Status)
+	switch update.Status {
+	case model.Approved.String():
+		up := model.Testimonial{
+			Sender:      selector.Sender,
+			Reciever:    selector.Reciever,
+			AcceptTxn:   update.AcceptTxn,
+			RejectTxn:   selector.RejectTxn,
+			AcceptXDR:   update.AcceptXDR,
+			RejectXDR:   selector.RejectXDR,
+			TxnHash:     update.TxnHash,
+			SequenceNo:  selector.SequenceNo,
+			Subaccount:  selector.Subaccount,
+			Status:      update.Status,
+			Testimonial: selector.Testimonial,
+		}
+		c := session.DB(dbName).C("Testimonials")
+		err = c.Update(selector, up)
+		if err != nil {
+			fmt.Println("Error while updating Testimonials " + err.Error())
+			return err
+		}
+		break
+	case model.Rejected.String():
+		up := model.Testimonial{
+			Sender:      selector.Sender,
+			Reciever:    selector.Reciever,
+			AcceptTxn:   selector.AcceptTxn,
+			RejectTxn:   update.RejectTxn,
+			AcceptXDR:   selector.AcceptXDR,
+			RejectXDR:   update.RejectXDR,
+			TxnHash:     update.TxnHash,
+			SequenceNo:  selector.SequenceNo,
+			Subaccount:  selector.Subaccount,
+			Status:      update.Status,
+			Testimonial: selector.Testimonial,
+		}
+		c := session.DB(dbName).C("Testimonials")
+		err = c.Update(selector, up)
+		if err != nil {
+			fmt.Println("Error while updating Testimonials " + err.Error())
+			return err
+		}
+		break
 	}
 
-	c := session.DB(dbName).C("Testimonials")
-	err = c.Update(selector, up)
-	if err != nil {
-		fmt.Println("Error while updating Testimonials " + err.Error())
-	}
 	return err
 }
