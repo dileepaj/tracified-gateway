@@ -34,7 +34,7 @@ func ConstructAdminConnectionPool() {
 	dbName:=     commons.GoDotEnvVariable("ADMINDBNAME")
 	host:=     commons.GoDotEnvVariable("ADMINDBHOST")
 	port:=     commons.GoDotEnvVariable("ADMINDBPORT")
-	fmt.Println("DBHOST is :",DBHOST)
+	fmt.Println("DBHOST is :", commons.GoDotEnvVariable("DBHOST") )
 	adminMgoConnectionUrl = "mongodb://"+username+":"+password+"@"+host+":"+port+"/"+dbName+"?authSource="+dbName
 }
 
