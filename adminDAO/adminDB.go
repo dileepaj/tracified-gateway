@@ -3,6 +3,7 @@ package adminDAO
 import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"gopkg.in/mgo.v2"
+	 "fmt"
 )
 
 type AdminStore struct {
@@ -32,7 +33,8 @@ func ConstructAdminConnectionPool() {
 	password:=     commons.GoDotEnvVariable("ADMINDBPASSWORD")
 	dbName:=     commons.GoDotEnvVariable("ADMINDBNAME")
 	host:=     commons.GoDotEnvVariable("ADMINDBHOST")
-	port:=     commons.GoDotEnvVariable("ADMINDBPORT")	
+	port:=     commons.GoDotEnvVariable("ADMINDBPORT")
+	fmt.Println("DBHOST is :",DBHOST)
 	adminMgoConnectionUrl = "mongodb://"+username+":"+password+"@"+host+":"+port+"/"+dbName+"?authSource="+dbName
 }
 
