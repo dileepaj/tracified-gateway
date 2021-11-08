@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 /*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
@@ -40,7 +41,30 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 		ItemCode:        selector.ItemCode,
 	}
 	c := session.Client().Database(dbName).Collection("Transactions")
-	_, err = c.UpdateOne(context.TODO(), selector, up)
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
 		fmt.Println("Error while updating Transactions " + err.Error())
 	}
@@ -60,7 +84,17 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 
 	defer session.EndSession(context.TODO())
 
-	fmt.Println(update.Status)
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
 	switch update.Status {
 	case "accepted":
 		up := model.COCCollectionBody{
@@ -77,8 +111,19 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SequenceNo: selector.SequenceNo,
 		}
 
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
 		c := session.Client().Database(dbName).Collection("COC")
-		_, err = c.UpdateOne(context.TODO(), selector, up)
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 		if err != nil {
 			fmt.Println("Error while updating COC case accepted" + err.Error())
 			return err
@@ -99,8 +144,19 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SequenceNo: selector.SequenceNo,
 		}
 
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
 		c := session.Client().Database(dbName).Collection("COC")
-		_, err = c.UpdateOne(context.TODO(), selector, up)
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 
 		if err != nil {
 			fmt.Println("Error while updating COC case rejected" + err.Error())
@@ -122,8 +178,19 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 			SequenceNo: selector.SequenceNo,
 		}
 
+		pByte, err := bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var update bson.M
+		err = bson.Unmarshal(pByte, &update)
+		if err != nil {
+			return err
+		}
+
 		c := session.Client().Database(dbName).Collection("COC")
-		_, err = c.UpdateOne(context.TODO(), selector, up)
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 
 		if err != nil {
 			fmt.Println("Error while updating COC case expired " + err.Error())
@@ -146,8 +213,30 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 	}
 	defer session.EndSession(context.TODO())
 
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(update)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
 	c := session.Client().Database(dbName).Collection("Certificates")
-	_, err = c.UpdateOne(context.TODO(), selector, update)
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {
 		fmt.Println("Error while updating certificates " + err.Error())
@@ -183,8 +272,30 @@ func (cd *Connection) UpdateOrganization(selector model.TestimonialOrganization,
 		ApprovedOn:     update.ApprovedOn,
 	}
 
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
 	c := session.Client().Database(dbName).Collection("Organizations")
-	_, err = c.UpdateOne(context.TODO(), selector, up)
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {
 		fmt.Println("Error while updating Organization " + err.Error())
@@ -215,8 +326,30 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		Testimonial: selector.Testimonial,
 	}
 
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
 	c := session.Client().Database(dbName).Collection("Testimonials")
-	_, err = c.UpdateOne(context.TODO(), selector, up)
+	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {
 		fmt.Println("Error while updating Testimonials " + err.Error())
