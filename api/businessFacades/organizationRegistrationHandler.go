@@ -31,6 +31,16 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if Obj.Status != model.Pending.String() {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "invalid Status",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
 	var accept xdr.Transaction
 	var reject xdr.Transaction
 
@@ -99,17 +109,15 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(txe.Operations); i++ {
 
 		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			fmt.Println("HAHAHAHA BUMPY")
+
 			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
-			fmt.Println(v)
+
 			Obj.SequenceNo = v
 			useSentSequence = true
 
 		}
 	}
 	if !useSentSequence {
-		fmt.Println("seq")
-		fmt.Println(txe.SeqNum)
 		v := fmt.Sprint(txe.SeqNum)
 		Obj.SequenceNo = v
 	}
@@ -206,7 +214,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			selection = data.(model.TestimonialOrganization)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.AcceptXDR}
 			response := display.TDPInsert()
-
+			fmt.Println(selection.SequenceNo)
 			if response.Error.Code == 400 {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(400)
@@ -229,11 +237,11 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 				} else {
 					result := model.TestimonialOrganizationResponse{
-						AcceptTxn:  Obj.AcceptTxn,
+						AcceptTxn:  selection.AcceptTxn,
 						AcceptXDR:  Obj.AcceptXDR,
-						RejectTxn:  Obj.RejectTxn,
+						RejectTxn:  selection.RejectTxn,
 						RejectXDR:  Obj.RejectXDR,
-						SequenceNo: Obj.SequenceNo,
+						SequenceNo: selection.SequenceNo,
 						TxnHash:    response.TXNID,
 						Status:     Obj.Status}
 
@@ -274,12 +282,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				if err1 == nil {
 
 					result := model.TestimonialOrganizationResponse{
-						AcceptTxn:  Obj.AcceptTxn,
+						AcceptTxn:  selection.AcceptTxn,
 						AcceptXDR:  Obj.AcceptXDR,
-						RejectTxn:  Obj.RejectTxn,
+						RejectTxn:  selection.RejectTxn,
 						RejectXDR:  Obj.RejectXDR,
 						TxnHash:    response.TXNID,
-						SequenceNo: Obj.SequenceNo,
+						SequenceNo: selection.SequenceNo,
 						Status:     Obj.Status}
 
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")

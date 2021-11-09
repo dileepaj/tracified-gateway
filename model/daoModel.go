@@ -256,7 +256,8 @@ type TestimonialResponse struct {
 type Option int
 
 const (
-	Approved Option = iota + 1
+	Undefined Option = iota
+	Approved
 	Rejected
 	Expired
 	Pending

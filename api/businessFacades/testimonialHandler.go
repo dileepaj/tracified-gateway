@@ -30,6 +30,16 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if Obj.Status != model.Pending.String() {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "invalid Status",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
 	var accept xdr.Transaction
 	var reject xdr.Transaction
 
@@ -97,17 +107,16 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(txe.Operations); i++ {
 
 		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			fmt.Println("HAHAHAHA BUMPY")
+
 			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
-			fmt.Println(v)
+
 			Obj.SequenceNo = v
 			useSentSequence = true
 
 		}
 	}
 	if !useSentSequence {
-		fmt.Println("seq")
-		fmt.Println(txe.SeqNum)
+
 		v := fmt.Sprint(txe.SeqNum)
 		Obj.SequenceNo = v
 	}
@@ -225,10 +234,10 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusOK)
 
 					result := model.TestimonialResponse{
-						SequenceNo:  Obj.SequenceNo,
+						SequenceNo:  selection.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
-						Testimonial: Obj.Testimonial,
+						Testimonial: selection.Testimonial,
 					}
 					json.NewEncoder(w).Encode(result)
 				}
@@ -265,10 +274,10 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				if err1 == nil {
 
 					result := model.TestimonialResponse{
-						SequenceNo:  Obj.SequenceNo,
+						SequenceNo:  selection.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
-						Testimonial: Obj.Testimonial,
+						Testimonial: selection.Testimonial,
 					}
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
