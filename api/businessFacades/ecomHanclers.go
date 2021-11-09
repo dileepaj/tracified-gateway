@@ -330,8 +330,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=public",
+					Url: commons.GetStellarLaboratoryClient() + "/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -405,7 +405,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
+					Url: commons.GetStellarLaboratoryClient() + "/#explorer?resource=operations&endpoint=for_transaction&values=" +
 						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
@@ -479,8 +479,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=public",
+					Url: commons.GetStellarLaboratoryClient() + "/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -553,8 +553,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=public",
+					Url: commons.GetStellarLaboratoryClient() + "/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -646,8 +646,8 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
-					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+				Url: commons.GetStellarLaboratoryClient() + "/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
