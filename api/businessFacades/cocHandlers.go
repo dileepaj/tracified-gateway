@@ -4,11 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-<<<<<<< HEAD
 	"strconv"
-=======
 	"strings"
->>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 

@@ -60,6 +60,8 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		Obj.AcceptTxn = validAccept
 		Obj.RejectTxn = validReject
 
+		fmt.Println(validAccept)
+
 	} else if commons.GoDotEnvVariable("NETWORKPASSPHRASE") == "public" {
 
 		err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
@@ -84,6 +86,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 		Obj.AcceptTxn = validAccept
 		Obj.RejectTxn = validReject
+
 	}
 
 	var txe xdr.Transaction
@@ -140,22 +143,22 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 func GetAllOrganizations(w http.ResponseWriter, r *http.Request) {
 
 	object := dao.Connection{}
-	p := object.GetAllApprovedOrganizations()
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetAllApprovedOrganizations().Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Approved organizations were found",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
+	}
+
 }
 
 func GetOrganizationByPublicKey(w http.ResponseWriter, r *http.Request) {
@@ -163,23 +166,21 @@ func GetOrganizationByPublicKey(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-	p := object.GetOrganizationByAuthor(vars["PK"])
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetOrganizationByAuthor(vars["PK"]).Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
-
+	}
 }
 
 func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
@@ -200,15 +201,14 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 	switch Obj.Status {
 	case model.Approved.String():
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		p := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn)
-		p.Then(func(data interface{}) interface{} {
+
+		_, err := object.GetOrganizationByAcceptTxn(Obj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.TestimonialOrganization)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.AcceptXDR}
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(400)
 				result := apiModel.SubmitXDRSuccess{
 					Status: "Failed"}
@@ -221,7 +221,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				err1 := object.Updateorganization(selection, Obj)
 
 				if err1 != nil {
-					//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(400)
 					result := apiModel.SubmitXDRSuccess{
 						Status: "Failed"}
@@ -237,33 +237,32 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 						TxnHash:    response.TXNID,
 						Status:     Obj.Status}
 
-					//w.WriteHeader(200)
-					//w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+					w.WriteHeader(200)
 					json.NewEncoder(w).Encode(result)
 
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(204)
-			json.NewEncoder(w).Encode("Error while fetch data from db or AcceptTxn Not exist in db")
-			return error
-		})
-		p.Await()
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(err)
+		}
 		break
 	case model.Rejected.String():
-		p := object.GetOrganizationByRejectTxn(Obj.RejectTxn)
-		p.Then(func(data interface{}) interface{} {
+
+		_, err := object.GetOrganizationByRejectTxn(Obj.RejectTxn).Then(func(data interface{}) interface{} {
 
 			selection = data.(model.TestimonialOrganization)
 
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.RejectXDR}
 			response := display.TDPInsert()
-			fmt.Println("Hi")
-			fmt.Println(response)
-			if response.Error.Code == 400 {
 
+			if response.Error.Code == 400 {
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(400)
 				result := apiModel.SubmitXDRSuccess{
 					Status: "Failed"}
@@ -298,16 +297,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(204)
-			result := apiModel.InsertTestimonialCollectionResponse{
-				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
-			}
-			json.NewEncoder(w).Encode(result)
-			return error
-		})
-		p.Await()
+			w.WriteHeader(400)
+			json.NewEncoder(w).Encode(err)
+		}
 		break
 
 	default:
@@ -324,20 +319,19 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 func GetAllPendingAndRejectedOrganizations(w http.ResponseWriter, r *http.Request) {
 
 	object := dao.Connection{}
-	p := object.GetPendingAndRejectedOrganizations()
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetPendingAndRejectedOrganizations().Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Pending or Rejected organizations were found",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
+	}
 }

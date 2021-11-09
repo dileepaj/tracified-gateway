@@ -251,9 +251,7 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-<<<<<<< HEAD
-	defer session.Close()
-	fmt.Println(update.Status)
+	defer session.EndSession(context.TODO())
 	switch update.Status {
 	case model.Approved.String():
 		up := model.TestimonialOrganization{
@@ -263,26 +261,48 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 			Email:          selector.Email,
 			Phone:          selector.Phone,
 			PhoneSecondary: selector.PhoneSecondary,
-			AcceptTxn:      update.AcceptTxn,
+			AcceptTxn:      selector.AcceptTxn,
 			AcceptXDR:      update.AcceptXDR,
 			RejectTxn:      selector.RejectTxn,
 			RejectXDR:      selector.RejectXDR,
 			TxnHash:        update.TxnHash,
 			Author:         selector.Author,
 			SubAccount:     selector.SubAccount,
-			SequenceNo:     selector.SequenceNo,
 			Status:         update.Status,
 			ApprovedBy:     update.ApprovedBy,
 			ApprovedOn:     update.ApprovedOn,
 		}
 
-		c := session.DB(dbName).C("Organizations")
-		err = c.Update(selector, up)
+		pByte, err := bson.Marshal(selector)
 		if err != nil {
-			fmt.Println("Error while updating Organization " + err.Error())
 			return err
 		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Organizations")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+		if err != nil {
+			fmt.Println("Error while updating Organization " + err.Error())
+		}
 		break
+
 	case model.Rejected.String():
 		up := model.TestimonialOrganization{
 			Name:           selector.Name,
@@ -293,73 +313,46 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 			PhoneSecondary: selector.PhoneSecondary,
 			AcceptTxn:      selector.AcceptTxn,
 			AcceptXDR:      selector.AcceptXDR,
-			RejectTxn:      update.RejectTxn,
+			RejectTxn:      selector.RejectTxn,
 			RejectXDR:      update.RejectXDR,
 			TxnHash:        update.TxnHash,
 			Author:         selector.Author,
 			SubAccount:     selector.SubAccount,
-			SequenceNo:     selector.SequenceNo,
 			Status:         update.Status,
 			ApprovedBy:     update.ApprovedBy,
 			ApprovedOn:     update.ApprovedOn,
 		}
-		c := session.DB(dbName).C("Organizations")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(selector)
 		if err != nil {
-			fmt.Println("Error while updating Organization " + err.Error())
 			return err
 		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Organizations")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+		if err != nil {
+			fmt.Println("Error while updating Organization " + err.Error())
+		}
 		break
-=======
-	defer session.EndSession(context.TODO())
 
-	up := model.TestimonialOrganization{
-		Name:           selector.Name,
-		Description:    selector.Description,
-		Logo:           selector.Logo,
-		Email:          selector.Email,
-		Phone:          selector.Phone,
-		PhoneSecondary: selector.PhoneSecondary,
-		AcceptTxn:      selector.AcceptTxn,
-		AcceptXDR:      update.AcceptXDR,
-		RejectTxn:      selector.RejectTxn,
-		RejectXDR:      update.RejectXDR,
-		TxnHash:        update.TxnHash,
-		Author:         selector.Author,
-		SubAccount:     selector.SubAccount,
-		Status:         update.Status,
-		ApprovedBy:     update.ApprovedBy,
-		ApprovedOn:     update.ApprovedOn,
-	}
-
-	pByte, err := bson.Marshal(selector)
-	if err != nil {
-		return err
-	}
-
-	var filter bson.M
-	err = bson.Unmarshal(pByte, &filter)
-	if err != nil {
-		return err
-	}
-
-	pByte, err = bson.Marshal(up)
-	if err != nil {
-		return err
-	}
-
-	var updateNew bson.M
-	err = bson.Unmarshal(pByte, &updateNew)
-	if err != nil {
-		return err
-	}
-
-	c := session.Client().Database(dbName).Collection("Organizations")
-	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
-
-	if err != nil {
-		fmt.Println("Error while updating Organization " + err.Error())
->>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 	}
 	return err
 }
@@ -371,99 +364,97 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		fmt.Println("Error while getting session " + err.Error())
 		return err
 	}
-<<<<<<< HEAD
-	defer session.Close()
-	fmt.Println(update.Status)
+
+	defer session.EndSession(context.TODO())
 	switch update.Status {
 	case model.Approved.String():
 		up := model.Testimonial{
 			Sender:      selector.Sender,
 			Reciever:    selector.Reciever,
-			AcceptTxn:   update.AcceptTxn,
+			AcceptTxn:   selector.AcceptTxn,
 			RejectTxn:   selector.RejectTxn,
 			AcceptXDR:   update.AcceptXDR,
 			RejectXDR:   selector.RejectXDR,
 			TxnHash:     update.TxnHash,
-			SequenceNo:  selector.SequenceNo,
 			Subaccount:  selector.Subaccount,
 			Status:      update.Status,
 			Testimonial: selector.Testimonial,
 		}
-		c := session.DB(dbName).C("Testimonials")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(selector)
 		if err != nil {
-			fmt.Println("Error while updating Testimonials " + err.Error())
 			return err
 		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+		if err != nil {
+			fmt.Println("Error while updating Testimonials " + err.Error())
+		}
 		break
+
 	case model.Rejected.String():
 		up := model.Testimonial{
 			Sender:      selector.Sender,
 			Reciever:    selector.Reciever,
 			AcceptTxn:   selector.AcceptTxn,
-			RejectTxn:   update.RejectTxn,
+			RejectTxn:   selector.RejectTxn,
 			AcceptXDR:   selector.AcceptXDR,
 			RejectXDR:   update.RejectXDR,
 			TxnHash:     update.TxnHash,
-			SequenceNo:  selector.SequenceNo,
 			Subaccount:  selector.Subaccount,
 			Status:      update.Status,
 			Testimonial: selector.Testimonial,
 		}
-		c := session.DB(dbName).C("Testimonials")
-		err = c.Update(selector, up)
+
+		pByte, err := bson.Marshal(selector)
+		if err != nil {
+			return err
+		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
 		if err != nil {
 			fmt.Println("Error while updating Testimonials " + err.Error())
-			return err
 		}
 		break
 	}
 
-=======
-
-	defer session.EndSession(context.TODO())
-
-	up := model.Testimonial{
-		Sender:      selector.Sender,
-		Reciever:    selector.Reciever,
-		AcceptTxn:   selector.AcceptTxn,
-		RejectTxn:   selector.RejectTxn,
-		AcceptXDR:   update.AcceptXDR,
-		RejectXDR:   update.RejectXDR,
-		TxnHash:     update.TxnHash,
-		Subaccount:  selector.Subaccount,
-		Status:      update.Status,
-		Testimonial: selector.Testimonial,
-	}
-
-	pByte, err := bson.Marshal(selector)
-	if err != nil {
-		return err
-	}
-
-	var filter bson.M
-	err = bson.Unmarshal(pByte, &filter)
-	if err != nil {
-		return err
-	}
-
-	pByte, err = bson.Marshal(up)
-	if err != nil {
-		return err
-	}
-
-	var updateNew bson.M
-	err = bson.Unmarshal(pByte, &updateNew)
-	if err != nil {
-		return err
-	}
-
-	c := session.Client().Database(dbName).Collection("Testimonials")
-	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
-
-	if err != nil {
-		fmt.Println("Error while updating Testimonials " + err.Error())
-	}
->>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 	return err
 }

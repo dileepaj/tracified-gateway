@@ -1039,16 +1039,10 @@ func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 		if err != nil {
 			reject(err)
 		}
-<<<<<<< HEAD
-		defer session.Close()
-		c := session.DB(dbName).C("Organizations")
-		err1 := c.Find(bson.M{"status": model.Approved.String()}).All(&result)
-=======
 		defer session.EndSession(context.TODO())
->>>>>>> aa39307546625fc940c129b4e3bd3ccef1596e02
 
 		c := session.Client().Database(dbName).Collection("Organizations")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"status": "Approved"})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": model.Approved.String()})
 
 		if err1 != nil {
 			reject(err1)
@@ -1263,19 +1257,19 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 			reject(err)
 
 		}
-		defer session.Close()
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Organizations")
 
-		c := session.DB(dbName).C("Organizations")
-
-		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
+		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
 		if er != nil {
-			// fmt.Println(er)
 			reject(er)
 		}
 
-		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count - 1).One(&result)
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+
+		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
 			reject(err1)
 
 		}
@@ -1317,22 +1311,26 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 			reject(err)
 
 		}
-		defer session.Close()
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
 
-		c := session.DB(dbName).C("Testimonials")
-
-		count, er := c.Find(bson.M{"subaccount": subAccount}).Count()
 		if er != nil {
 			// fmt.Println(er)
 			reject(er)
 		}
 
-		err1 := c.Find(bson.M{"subaccount": subAccount}).Skip(count - 1).One(&result)
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+
+		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
+
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
 
 		}
+
 		result2.Receiver = result.Reciever
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
 		if err == nil {
@@ -1366,9 +1364,11 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 		if err != nil {
 			reject(err)
 		}
-		defer session.Close()
-		c := session.DB(dbName).C("Organizations")
-		err1 := c.Find(bson.M{"status": bson.M{"$in": []string{model.Pending.String(), model.Rejected.String()}}}).All(&result)
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Organizations")
+
+		cursor, err := c.Find(context.TODO(), bson.M{"status": bson.M{"$in": []string{model.Pending.String(), model.Rejected.String()}}})
+		err1 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || len(result) == 0 {
 			log.Error("Error while getting organizations from db " + err.Error())

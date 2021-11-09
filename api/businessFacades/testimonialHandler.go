@@ -139,23 +139,21 @@ func GetTestimonialBySender(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-	p := object.GetTestimonialBySenderPublickey(vars["PK"])
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetTestimonialBySenderPublickey(vars["PK"]).Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Sender PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
-
+	}
 }
 
 func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
@@ -163,22 +161,22 @@ func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-	p := object.GetTestimonialByRecieverPublickey(vars["PK"])
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetTestimonialByRecieverPublickey(vars["PK"]).Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Reciever PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
+	}
 
 }
 
@@ -199,8 +197,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	switch Obj.Status {
 	case model.Approved.String():
 
-		p := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn)
-		p.Then(func(data interface{}) interface{} {
+		_, err := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.Testimonial)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.AcceptXDR}
 			response := display.TDPInsert()
@@ -237,20 +234,20 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or AcceptTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
-			return error
-		})
-		p.Await()
+		}
 		break
 	case model.Rejected.String():
-		p := object.GetTestimonialByRejectTxn(Obj.RejectTxn)
-		p.Then(func(data interface{}) interface{} {
+
+		_, err := object.GetTestimonialByRejectTxn(Obj.RejectTxn).Then(func(data interface{}) interface{} {
 
 			selection = data.(model.Testimonial)
 
@@ -288,18 +285,16 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
-			return error
-		})
-		p.Await()
+		}
 		break
-
 	default:
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(400)
