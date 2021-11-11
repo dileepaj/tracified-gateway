@@ -66,7 +66,7 @@ func CheckTempOrphan() {
 
 						//BUILD THE GATEWAY XDR
 						tx, err := build.Transaction(
-							build.PublicNetwork,
+							commons.GetHorizonNetwork(),
 							build.SourceAccount{publicKey},
 							build.AutoSequence{netClient},
 							build.SetData("Type", []byte("G"+result.TxnType)),
@@ -135,7 +135,7 @@ func CheckTempOrphan() {
 						}
 						//BUILD THE GATEWAY XDR
 						tx, err := build.Transaction(
-							build.PublicNetwork,
+							commons.GetHorizonNetwork(),
 							build.SourceAccount{publicKey},
 							build.AutoSequence{netClient},
 							build.SetData("Type", []byte("G"+result.TxnType)),
@@ -203,7 +203,7 @@ func CheckTempOrphan() {
 						}
 						//BUILD THE GATEWAY XDR
 						tx, err := build.Transaction(
-							build.PublicNetwork,
+							commons.GetHorizonNetwork(),
 							build.SourceAccount{publicKey},
 							build.AutoSequence{netClient},
 							build.SetData("Type", []byte("G"+result.TxnType)),

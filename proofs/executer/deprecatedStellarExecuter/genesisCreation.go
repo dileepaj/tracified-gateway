@@ -5,10 +5,10 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 )
 
 type ConcreteGenesis struct {
@@ -30,9 +30,9 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 
 	// save data
 	tx, err := build.Transaction(
-		build.TestNetwork,
+		commons.GetHorizonNetwork(),
 		build.SourceAccount{publicKey},
-		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.AutoSequence{commons.GetHorizonClient()},
 		build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
 		build.SetData("PreviousTXNID", []byte("")),
 		build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
@@ -63,7 +63,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
