@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -44,8 +44,8 @@ func (cd *ConcreteTrustline) CreateTrustline() string {
 	// First, the receiving account must trust the asset
 	trustTx, err := build.Transaction(
 		build.SourceAccount{recipient.Address()},
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
-		build.TestNetwork,
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
+		commons.GetHorizonNetwork(),
 		build.Trust(Asset.Code, Asset.Issuer, build.Limit(cd.TrustlineStruct.Limit)),
 	)
 	if err != nil {
@@ -59,7 +59,7 @@ func (cd *ConcreteTrustline) CreateTrustline() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(trustTxeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(trustTxeB64)
 	if err != nil {
 		log.Fatal(err)
 	}

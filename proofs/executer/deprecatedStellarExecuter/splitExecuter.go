@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 )
 
 type ConcreteSplit struct {
@@ -33,9 +33,9 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
 	// save data
 	tx, err := build.Transaction(
-		build.TestNetwork,
+		commons.GetHorizonNetwork(),
 		build.SourceAccount{secretKey},
-		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.AutoSequence{commons.GetHorizonClient()},
 		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
@@ -70,7 +70,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound

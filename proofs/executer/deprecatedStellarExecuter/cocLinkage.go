@@ -4,9 +4,9 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -40,8 +40,8 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 
 	paymentTx, err := build.Transaction(
 		build.SourceAccount{signerSeed.Address()},
-		build.TestNetwork,
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+		commons.GetHorizonNetwork(),
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 		build.SetData("Transaction Type", []byte(cd.ChangeOfCustodyLink.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.ProfileId)),
 		build.SetData("ProfileID", []byte(cd.ProfileId)),
@@ -60,7 +60,7 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 		log.Fatal(err)
 	}
 
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(paymentTxeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(paymentTxeB64)
 	if err != nil {
 		log.Fatal(err)
 	}

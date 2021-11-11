@@ -50,7 +50,7 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.TestNetwork.Passphrase}
+		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
 
 		acc, _ := acceptBuild.Hash()
 		validAccept := fmt.Sprintf("%x", acc)
@@ -60,8 +60,8 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.TestNetwork.Passphrase}
-		fmt.Println(build.TestNetwork.Passphrase)
+		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+		fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 		rej, _ := rejectBuild.Hash()
 		validReject := fmt.Sprintf("%x", rej)
@@ -76,7 +76,7 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.PublicNetwork.Passphrase}
+		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
 
 		acc, _ := acceptBuild.Hash()
 		validAccept := fmt.Sprintf("%x", acc)
@@ -87,8 +87,8 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(err)
 		}
 
-		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.PublicNetwork.Passphrase}
-		fmt.Println(build.TestNetwork.Passphrase)
+		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+		fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 		rej, _ := rejectBuild.Hash()
 		validReject := fmt.Sprintf("%x", rej)

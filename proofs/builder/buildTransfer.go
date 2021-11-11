@@ -3,11 +3,12 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -48,7 +49,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @SafeUnmarshalBase64 @SubmitTransfer "+err.Error())
+			log.Error("Error @SafeUnmarshalBase64 @SubmitTransfer " + err.Error())
 		}
 		//GET THE TYPE,IDENTIFIER,PREVIOUSSTAGE, CURRENTSTAGE, APPACCOUNT FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -68,7 +69,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 			log.Info("Adopting from Orphanage! or Just Submitting")
 			return nil
 		}).Catch(func(error error) error {
-			log.Error("Error @GetLastTransactionbyIdentifier @SubmitTransfer "+error.Error())
+			log.Error("Error @GetLastTransactionbyIdentifier @SubmitTransfer " + error.Error())
 			log.Info("Sending to Orphanage!")
 			OrphanBoolArray = append(OrphanBoolArray, true)
 			AP.TxnBody[i].Orphan = true
@@ -158,7 +159,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.PublicNetwork,
+					commons.GetHorizonNetwork(),
 					build.SourceAccount{publicKey},
 					build.AutoSequence{commons.GetHorizonClient()},
 					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
@@ -166,41 +167,40 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 				)
 
-				if err != nil{
-					log.Error("Error @ build.Transaction @SubmitTransfer " +err.Error())
+				if err != nil {
+					log.Error("Error @ build.Transaction @SubmitTransfer " + err.Error())
 				}
 
-				
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {
-					log.Error("Error @sign"+err.Error())
+					log.Error("Error @sign" + err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitTransfer " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitTransfer " + err2.Error())
 					}
 				}
 				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 				txeB64, err := GatewayTXE.Base64()
 				if err != nil {
-					log.Error("Error @GatewayTXE.Base64 @SubmitTransfer "+err.Error())
+					log.Error("Error @GatewayTXE.Base64 @SubmitTransfer " + err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitTransfer " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitTransfer " + err2.Error())
 					}
 				}
 
 				//SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+				response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					log.Error("Error got 400 for SubmitXDR @SubmitTransfer ")
@@ -210,7 +210,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitTransfer " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitTransfer " + err2.Error())
 					}
 				} else {
 					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -220,7 +220,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitTransfer " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitTransfer " + err2.Error())
 					}
 				}
 			}

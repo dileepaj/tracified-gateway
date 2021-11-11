@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/stellar/go/clients/horizon"
-
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -24,9 +23,9 @@ func (cd *ConcreteInsertData) InsertDataHash() model.SubmitXDRResponse {
 
 	// // save data
 	// tx, err := build.Transaction(
-	// 	build.TestNetwork,
+	// 	commons.GetHorizonNetwork(),
 	// 	build.SourceAccount{publicKey},
-	// 	build.AutoSequence{horizon.DefaultTestNetClient},
+	// 	build.AutoSequence{commons.GetHorizonClient()},
 	// 	build.SetData("Transaction Type", []byte(cd.InsertTDP.Type)),
 	// 	build.SetData("PreviousTXNID", []byte(cd.InsertTDP.PreviousTXNID)),
 	// 	build.SetData("ProfileID", []byte(cd.InsertTDP.ProfileID)),
@@ -59,7 +58,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.SubmitXDRResponse {
 	// }
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(cd.XDR)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(cd.XDR)
 	if err != nil {
 		// panic(err)
 		fmt.Println(err.Error())

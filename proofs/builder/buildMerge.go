@@ -3,10 +3,11 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 
@@ -23,8 +24,8 @@ import (
 
 /*SubmitMerge - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type 6 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type 6 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -76,7 +77,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
 				return nil
 			}).Catch(func(error error) error {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+error.Error())
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + error.Error())
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				AP.TxnBody[i].PreviousTxnHash = ""
@@ -128,7 +129,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 					fmt.Println(AP.TxnBody[i].MergeID)
 					return nil
 				}).Catch(func(error error) error {
-					log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ error.Error())
+					log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + error.Error())
 					///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 					//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 					AP.TxnBody[i].MergeID = ""
@@ -139,7 +140,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.PublicNetwork,
+				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
@@ -151,33 +152,33 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
-				log.Error("Error while build Transaction @SubmitMerge "+err.Error())
+				log.Error("Error while build Transaction @SubmitMerge " + err.Error())
 				AP.TxnBody[i].TxnHash = UserMergeTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			}
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {
-				log.Error("Error while convert GatewayTXE to base64 @SubmitMerge "+err.Error())
+				log.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
 				AP.TxnBody[i].TxnHash = UserMergeTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			}
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				log.Error("Error got 400 from ConcreteSubmitXDR @SubmitMerge ")
@@ -187,7 +188,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -198,7 +199,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err.Error())
 				} else if i == 0 {
 
 					var PreviousProfile string
@@ -209,7 +210,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 						PreviousProfile = result.ProfileTxn
 						return nil
 					}).Catch(func(error error) error {
-						log.Error("Error while GetProfilebyIdentifier @SubmitMerge "+error.Error())
+						log.Error("Error while GetProfilebyIdentifier @SubmitMerge " + error.Error())
 						PreviousProfile = ""
 						return error
 					})
@@ -225,7 +226,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 					}
 					err3 := object.InsertProfile(Profile)
 					if err3 != nil {
-						log.Error("Error while InsertProfile @SubmitMerge "+err3.Error())
+						log.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
 					}
 
 				}

@@ -3,11 +3,12 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -19,11 +20,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 )
 
-
 /*SubmitGenesis - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type 0 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type 0 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore.
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -83,7 +83,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.PublicNetwork,
+				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
@@ -91,7 +91,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 			)
 
-			if err != nil{
+			if err != nil {
 				log.Error("Error while build Transaction @SubmitGenesis " + err.Error())
 			}
 
@@ -124,7 +124,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				log.Error("Error while SubmitXDR in ConcreteSubmitXDR @SubmitGenesis ")
@@ -134,7 +134,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				///INSERT INTO TRANSACTION COLLECTION
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
-					log.Error("Error while InsertTransaction @SubmitGenesis " +err.Error())
+					log.Error("Error while InsertTransaction @SubmitGenesis " + err.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -144,7 +144,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				///INSERT INTO TRANSACTION COLLECTION
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
-					log.Error("Error while InsertTransaction @SubmitGenesis " +err.Error())
+					log.Error("Error while InsertTransaction @SubmitGenesis " + err.Error())
 				} else {
 					// var PreviousProfile string
 					// p := object.GetProfilebyIdentifier(AP.TxnBody[i].Identifier)
@@ -186,7 +186,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				Orphans = append(Orphans, result)
 				err := object.RemoveFromOrphanage(TxnBody.Identifier)
 				if err != nil {
-					log.Error("Error while RemoveFromOrphanage @SubmitGenesis " +err.Error())
+					log.Error("Error while RemoveFromOrphanage @SubmitGenesis " + err.Error())
 				}
 				return nil
 			}).Catch(func(error error) error {
@@ -198,7 +198,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 		}
 
 		display := AbstractXDRSubmiter{TxnBody: Orphans}
-		display.SubmitData(w, r,false)
+		display.SubmitData(w, r, false)
 	}()
 
 	if checkBoolArray(Done) {

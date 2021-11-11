@@ -3,9 +3,10 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
-	"net/http"
 
 	// "strconv"
 	"strings"
@@ -21,8 +22,8 @@ import (
 
 /*SubmitRevokeCertificate - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type C3 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type C3 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -37,8 +38,8 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 	object := dao.Connection{}
 	var UserTxnHashes []string
 
-	valid:=false
-	
+	valid := false
+
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
@@ -49,7 +50,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error while SafeUnmarshalBase64 @SubmitRevokeCertificate " +err.Error())
+			log.Error("Error while SafeUnmarshalBase64 @SubmitRevokeCertificate " + err.Error())
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
@@ -62,7 +63,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 		p := object.GetLastCertificatebyCertificateID(AP.TxnBody[i].CertificateID)
 		p.Then(func(data interface{}) interface{} {
 			result := data.(model.CertificateCollectionBody)
-			log.Info(result.PublicKey+" "+AP.TxnBody[i].PublicKey)
+			log.Info(result.PublicKey + " " + AP.TxnBody[i].PublicKey)
 			if result.PublicKey == AP.TxnBody[i].PublicKey {
 				valid = true
 			} else {
@@ -76,7 +77,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			}
 			return nil
 		}).Catch(func(error error) error {
-			log.Error("Error while GetLastCertificatebyCertificateID @SubmitRevokeCertificate "+error.Error())
+			log.Error("Error while GetLastCertificatebyCertificateID @SubmitRevokeCertificate " + error.Error())
 			valid = false
 			Done = append(Done, false)
 			w.WriteHeader(400)
@@ -123,7 +124,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				AP.TxnBody[i].PreviousCertificate = result.CertificateID
 				return nil
 			}).Catch(func(error error) error {
-				log.Error("Error while GetLastCertificatebyPublicKey @SubmitRevokeCertificate "+error.Error())
+				log.Error("Error while GetLastCertificatebyPublicKey @SubmitRevokeCertificate " + error.Error())
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 				return error
 			})
@@ -131,7 +132,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.PublicNetwork,
+				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
@@ -139,40 +140,40 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 			)
 
-			if err != nil{
+			if err != nil {
 				log.Error("Error while build Transaction @SubmitRevokeCertificate " + err.Error())
 			}
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
-				log.Error("Error while sign @SubmitRevokeCertificate "+err.Error())
+				log.Error("Error while sign @SubmitRevokeCertificate " + err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate " + err2.Error())
 				}
 			}
 
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {
-				log.Error("Error while convert GatewayTXE to Base64 @SubmitRevokeCertificate "+err.Error())
+				log.Error("Error while convert GatewayTXE to Base64 @SubmitRevokeCertificate " + err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate " + err2.Error())
 				}
 			}
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				log.Error("Error got 400 for ConcreteSubmitXDR @SubmitRevokeCertificate ")
@@ -182,7 +183,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate " + err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -192,7 +193,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitRevokeCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitRevokeCertificate " + err2.Error())
 				}
 			}
 		}

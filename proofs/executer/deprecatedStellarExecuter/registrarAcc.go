@@ -3,11 +3,12 @@ package deprecatedStellarExecuter
 import (
 	"fmt"
 	"log"
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
+
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -40,7 +41,7 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 		return "Account not found"
 	}
 	// Make sure destination account exists
-	if _, err := horizon.DefaultTestNetClient.LoadAccount(destination); err != nil {
+	if _, err := commons.GetHorizonClient().LoadAccount(destination); err != nil {
 		panic(err)
 		return "Account not found"
 	}
@@ -89,8 +90,8 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 
 	muts := []build.TransactionMutator{
 		build.SourceAccount{registrar.Address()},
-		build.TestNetwork,
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+		commons.GetHorizonNetwork(),
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 	}
 	arrSize := len(cd.RegistrarAccount.SignerKeys)
 	fmt.Println(arrSize)
@@ -127,9 +128,9 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 	muts = append(muts, opsHigh...)
 
 	// tx, err := build.Transaction(
-	// 	build.TestNetwork,
+	// 	commons.GetHorizonNetwork(),
 	// 	build.SourceAccount{registrar.Address()},
-	// 	build.AutoSequence{horizon.DefaultTestNetClient},
+	// 	build.AutoSequence{commons.GetHorizonClient()},
 	// 	build.AddSigner(cd.RegistrarAccount.SignerKeys[0].Publickey, weight1), //TA
 	// 	build.AddSigner(cd.RegistrarAccount.SignerKeys[1].Publickey, weight2), //QC
 	// 	build.AddSigner(cd.RegistrarAccount.SignerKeys[2].Publickey, weight3), //QC
@@ -163,7 +164,7 @@ func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
 	if err != nil {
 		panic(err)
 	}

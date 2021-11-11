@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
@@ -214,7 +215,6 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
-
 
 /*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
 @author - Azeem Ashraf
@@ -505,7 +505,6 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 /*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
@@ -732,8 +731,8 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err1)
 	}
 
-	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: build.TestNetwork.Passphrase}
-	fmt.Println(build.TestNetwork.Passphrase)
+	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	fmt.Println(commons.GetHorizonNetwork().Passphrase)
 	// fmt.Println(brr.Hash())
 	t, _ := brr.Hash()
 	test := fmt.Sprintf("%x", t)

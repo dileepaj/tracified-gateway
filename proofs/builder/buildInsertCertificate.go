@@ -3,9 +3,11 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
-	"net/http"
+
 	// "strconv"
 	"strings"
 
@@ -24,8 +26,8 @@ type AbstractCertificateSubmiter struct {
 
 /*SubmitInsertCertificate - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type C1 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type C1 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -80,8 +82,8 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 	go func() {
 
-		for i, TxnBody := range AP.TxnBody {			
-			
+		for i, TxnBody := range AP.TxnBody {
+
 			var PreviousTXNBuilder build.ManageDataBuilder
 
 			//GET THE PREVIOUS CERTIFICATE FOR THE PUBLIC KEY
@@ -99,14 +101,14 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.PublicNetwork,
+				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
 			)
-			if err != nil{
+			if err != nil {
 				log.Error("Error while build Transaction @SubmitInsertCertificate " + err.Error())
 			}
 
@@ -119,7 +121,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitInsertCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitInsertCertificate " + err2.Error())
 				}
 			}
 
@@ -132,12 +134,12 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitInsertCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitInsertCertificate " + err2.Error())
 				}
 			}
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
@@ -146,7 +148,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitInsertCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitInsertCertificate " + err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -156,7 +158,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertCertificate(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertCertificate @SubmitInsertCertificate "+err2.Error())
+					log.Error("Error while InsertCertificate @SubmitInsertCertificate " + err2.Error())
 				}
 			}
 		}

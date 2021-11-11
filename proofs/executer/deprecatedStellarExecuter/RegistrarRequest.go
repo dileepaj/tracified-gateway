@@ -3,11 +3,12 @@ package deprecatedStellarExecuter
 import (
 	"fmt"
 	"log"
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
+
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -35,7 +36,7 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 		log.Fatal(err)
 	}
 	// Make sure destination account exists
-	if _, err := horizon.DefaultTestNetClient.LoadAccount(Registrar); err != nil {
+	if _, err := commons.GetHorizonClient().LoadAccount(Registrar); err != nil {
 		panic(err)
 	}
 
@@ -63,9 +64,9 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 	}
 
 	tx, err := build.Transaction(
-		build.TestNetwork,
+		commons.GetHorizonNetwork(),
 		build.SourceAccount{signerAcc.Address()},
-		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.AutoSequence{commons.GetHorizonClient()},
 		build.AddSigner(Registrar, weight),
 		build.SetHighThreshold(high),
 		build.SetLowThreshold(low),
@@ -88,7 +89,7 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 	}
 
 	// // And finally, send it off to Stellar!
-	// resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
+	// resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
 	// if err != nil {
 	// 	panic(err)
 	// }
