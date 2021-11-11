@@ -102,10 +102,12 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
-		if result.Status == "pending" {
+		if result.Status == model.Pending.String() {
 			result2.Available = false
+			result2.Operation = "COC"
 		} else {
 			result2.Available = true
+			result2.Operation = "COC"
 		}
 		resolve(result2)
 
@@ -1040,7 +1042,7 @@ func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("Organizations")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"status": "Approved"})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": model.Approved.String()})
 
 		if err1 != nil {
 			reject(err1)
@@ -1237,6 +1239,144 @@ func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promi
 		} else {
 			resolve(result)
 		}
+	})
+	return p
+}
+
+func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promise.Promise {
+	result := model.TestimonialOrganization{}
+	result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Organizations")
+
+		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
+		if er != nil {
+			reject(er)
+		}
+
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+
+		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
+		if err1 != nil {
+			reject(err1)
+
+		}
+		result2.Receiver = result.ApprovedBy
+		bumpSeq, err := strconv.Atoi(result.SequenceNo)
+		if err == nil {
+			fmt.Println(bumpSeq)
+			bumpSeq = bumpSeq
+			fmt.Println(bumpSeq)
+		}
+		result2.SequenceNo = strconv.Itoa(bumpSeq)
+		result2.SubAccount = result.SubAccount
+		if result.Status == model.Pending.String() {
+			result2.Available = false
+			result2.Operation = "Organization"
+		} else {
+			result2.Available = true
+			result2.Operation = "Organization"
+		}
+		resolve(result2)
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise.Promise {
+	result := model.Testimonial{}
+	result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
+
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+
+		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
+
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+
+		}
+
+		result2.Receiver = result.Reciever
+		bumpSeq, err := strconv.Atoi(result.SequenceNo)
+		if err == nil {
+			fmt.Println(bumpSeq)
+			bumpSeq = bumpSeq
+			fmt.Println(bumpSeq)
+		}
+		result2.SequenceNo = strconv.Itoa(bumpSeq)
+		result2.SubAccount = result.Subaccount
+		if result.Status == model.Pending.String() {
+			result2.Available = false
+			result2.Operation = "Testimonial"
+		} else {
+			result2.Available = true
+			result2.Operation = "Testimonial"
+		}
+		resolve(result2)
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
+	result := []model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Organizations")
+
+		cursor, err := c.Find(context.TODO(), bson.M{"status": bson.M{"$in": []string{model.Pending.String(), model.Rejected.String()}}})
+		err1 := cursor.All(context.TODO(), &result)
+
+		if err1 != nil || len(result) == 0 {
+			log.Error("Error while getting organizations from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+
 	})
 	return p
 }

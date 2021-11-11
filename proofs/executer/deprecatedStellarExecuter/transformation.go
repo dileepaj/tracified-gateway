@@ -6,7 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/keypair"
 )
 
@@ -38,8 +38,8 @@ import (
 // 	// Second, the issuing account actually sends a payment using the asset
 // 	paymentTx, err := build.Transaction(
 // 		build.SourceAccount{recipient.Address()},
-// 		build.TestNetwork,
-// 		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+// 		commons.GetHorizonNetwork(),
+// 		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 // 		build.Payment(
 // 			build.Destination{AddressOrSeed: reciver2},
 // 			build.CreditAmount{code1, issuerSeed, limit1},
@@ -117,8 +117,8 @@ func (cd *ConcreteTransform) TransformMerge() string {
 
 	muts := []build.TransactionMutator{
 		build.SourceAccount{recipient.Address()},
-		build.TestNetwork,
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+		commons.GetHorizonNetwork(),
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 	}
 	opsType := []build.TransactionMutator{
 		build.SetData("Transaction Type", []byte(cd.AssetTransfer.Type)),

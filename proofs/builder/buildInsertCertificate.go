@@ -24,8 +24,8 @@ type AbstractCertificateSubmiter struct {
 
 /*SubmitInsertCertificate - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type C1 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type C1 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -80,8 +80,8 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 	go func() {
 
-		for i, TxnBody := range AP.TxnBody {			
-			
+		for i, TxnBody := range AP.TxnBody {
+
 			var PreviousTXNBuilder build.ManageDataBuilder
 
 			//GET THE PREVIOUS CERTIFICATE FOR THE PUBLIC KEY
@@ -99,7 +99,7 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 
 			//BUILD THE GATEWAY XDR
 			tx, err := build.Transaction(
-				build.PublicNetwork,
+				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
 				build.SetData("Type", []byte("G"+TxnBody.TxnType)),

@@ -224,8 +224,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
-			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
+		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",

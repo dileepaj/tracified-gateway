@@ -1,6 +1,9 @@
 package commons
 
-import "github.com/stellar/go/clients/horizon"
+import (
+	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizon"
+)
 
 func GetHorizonClient() *horizon.Client {
 	client := GoDotEnvVariable("HORIZONCLIENT")
@@ -8,6 +11,15 @@ func GetHorizonClient() *horizon.Client {
 		return horizon.DefaultPublicNetClient
 	} else {
 		return horizon.DefaultTestNetClient
+	}
+}
+
+func GetHorizonNetwork() build.Network {
+	client := GoDotEnvVariable("HORIZONCLIENT")
+	if client == "public" {
+		return build.PublicNetwork
+	} else {
+		return build.TestNetwork
 	}
 }
 

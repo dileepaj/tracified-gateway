@@ -160,7 +160,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.PublicNetwork,
+					commons.GetHorizonNetwork(),
 					build.SourceAccount{publicKey},
 					build.AutoSequence{horizonClient},
 					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),

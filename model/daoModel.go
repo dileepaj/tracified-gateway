@@ -209,18 +209,20 @@ type TestimonialOrganization struct {
 	TxnHash        string
 	Author         string
 	SubAccount     string
+	SequenceNo     string
 	Status         string
 	ApprovedBy     string
 	ApprovedOn     string
 }
 
 type TestimonialOrganizationResponse struct {
-	AcceptTxn string
-	AcceptXDR string
-	RejectTxn string
-	RejectXDR string
-	TxnHash   string
-	Status    string
+	AcceptTxn  string
+	AcceptXDR  string
+	RejectTxn  string
+	RejectXDR  string
+	TxnHash    string
+	SequenceNo string
+	Status     string
 }
 
 type RawData struct {
@@ -239,12 +241,28 @@ type Testimonial struct {
 	RejectXDR   string
 	TxnHash     string
 	Subaccount  string
+	SequenceNo  string
 	Status      string
 	Testimonial RawData
 }
 
 type TestimonialResponse struct {
 	TxnHash     string
+	SequenceNo  string
 	Status      string
 	Testimonial RawData
+}
+
+type Option int
+
+const (
+	Undefined Option = iota
+	Approved
+	Rejected
+	Expired
+	Pending
+)
+
+func (O Option) String() string {
+	return [...]string{"undefined", "approved", "rejected", "expired", "pending"}[O]
 }
