@@ -30,6 +30,16 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if Obj.Status != model.Pending.String() {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "invalid Status",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
 	var accept xdr.Transaction
 	var reject xdr.Transaction
 
@@ -87,6 +97,30 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		Obj.RejectTxn = validReject
 	}
 
+	var txe xdr.Transaction
+	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
+	if err1 != nil {
+		fmt.Println(err1)
+	}
+	useSentSequence := false
+
+	for i := 0; i < len(txe.Operations); i++ {
+
+		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+
+			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+
+			Obj.SequenceNo = v
+			useSentSequence = true
+
+		}
+	}
+	if !useSentSequence {
+
+		v := fmt.Sprint(txe.SeqNum)
+		Obj.SequenceNo = v
+	}
+
 	object := dao.Connection{}
 	err2 := object.InsertTestimonial(Obj)
 
@@ -98,8 +132,9 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
+		w.WriteHeader(201)
 		result := model.TestimonialResponse{
+			SequenceNo:  Obj.SequenceNo,
 			Status:      Obj.Status,
 			Testimonial: Obj.Testimonial}
 		json.NewEncoder(w).Encode(result)
@@ -113,23 +148,21 @@ func GetTestimonialBySender(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-	p := object.GetTestimonialBySenderPublickey(vars["PK"])
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetTestimonialBySenderPublickey(vars["PK"]).Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Sender PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
-
+	}
 }
 
 func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
@@ -137,22 +170,22 @@ func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
-	p := object.GetTestimonialByRecieverPublickey(vars["PK"])
-	p.Then(func(data interface{}) interface{} {
+
+	_, err := object.GetTestimonialByRecieverPublickey(vars["PK"]).Then(func(data interface{}) interface{} {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(data)
 		return data
-	}).Catch(func(error error) error {
+	}).Await()
+
+	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(204)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Reciever PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
+	}
 
 }
 
@@ -171,10 +204,9 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	switch Obj.Status {
-	case "Approved":
+	case model.Approved.String():
 
-		p := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn)
-		p.Then(func(data interface{}) interface{} {
+		_, err := object.GetTestimonialByAcceptTxn(Obj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.Testimonial)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.AcceptXDR}
 			response := display.TDPInsert()
@@ -202,28 +234,29 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusOK)
 
 					result := model.TestimonialResponse{
+						SequenceNo:  selection.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
-						Testimonial: Obj.Testimonial,
+						Testimonial: selection.Testimonial,
 					}
 					json.NewEncoder(w).Encode(result)
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(400)
+			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or AcceptTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
-			return error
-		})
-		p.Await()
+		}
 		break
-	case "Rejected":
-		p := object.GetTestimonialByRejectTxn(Obj.RejectTxn)
-		p.Then(func(data interface{}) interface{} {
+	case model.Rejected.String():
+
+		_, err := object.GetTestimonialByRejectTxn(Obj.RejectTxn).Then(func(data interface{}) interface{} {
 
 			selection = data.(model.Testimonial)
 
@@ -241,9 +274,10 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				if err1 == nil {
 
 					result := model.TestimonialResponse{
+						SequenceNo:  selection.SequenceNo,
 						TxnHash:     response.TXNID,
 						Status:      Obj.Status,
-						Testimonial: Obj.Testimonial,
+						Testimonial: selection.Testimonial,
 					}
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
@@ -260,18 +294,16 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				}
 			}
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(204)
 			result := apiModel.InsertTestimonialCollectionResponse{
 				Message: "Error while fetch data from db or RejectTxn Not exist in DB",
 			}
 			json.NewEncoder(w).Encode(result)
-			return error
-		})
-		p.Await()
+		}
 		break
-
 	default:
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(400)

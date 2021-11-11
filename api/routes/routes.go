@@ -311,7 +311,7 @@ var routes = Routes{
 	Route{
 		"GetAllOrganizations",
 		"GET",
-		"/organization",
+		"/approved/organization",
 		businessFacades.GetAllOrganizations, //Test
 	},
 	Route{
@@ -349,5 +349,17 @@ var routes = Routes{
 		"PUT",
 		"/testimonial",
 		businessFacades.UpdateTestimonial, //Test
+	},
+	Route{
+		"SubAccountStatusExtended",
+		"POST",
+		"/transaction/subAccountStatus",
+		businessFacades.CheckAccountsStatusExtended, //Test
+	},
+	Route{
+		"GetAllPendingAndRejectedOrganizations",
+		"GET",
+		"/notapproved/organization",
+		businessFacades.GetAllPendingAndRejectedOrganizations,
 	},
 }

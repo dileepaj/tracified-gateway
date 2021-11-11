@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
@@ -367,5 +368,98 @@ func LastCOC(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
+
+}
+
+func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var GObj apiModel.GetSubAccountStatus
+	var result []apiModel.GetSubAccountStatusResponse
+	var Coc apiModel.GetSubAccountStatusResponse
+	var Org apiModel.GetSubAccountStatusResponse
+	var Testimonial apiModel.GetSubAccountStatusResponse
+
+	err := json.NewDecoder(r.Body).Decode(&GObj)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while Decoding the body")
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(GObj)
+	object := dao.Connection{}
+	for i := 0; i < len(GObj.SubAccounts); i++ {
+
+		p := object.GetLastCOCbySubAccount(GObj.SubAccounts[i])
+		p.Then(func(data interface{}) interface{} {
+			//result = append(result, data.(apiModel.GetSubAccountStatusResponse))
+			Coc = data.(apiModel.GetSubAccountStatusResponse)
+			return data
+		}).Catch(func(error error) error {
+			//result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
+
+			Coc = apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true, Operation: "COC"}
+			return error
+		})
+		p.Await()
+
+		p2 := object.GetLastOrganizationbySubAccount(GObj.SubAccounts[i])
+		p2.Then(func(data interface{}) interface{} {
+			//result = append(result, data.(apiModel.GetSubAccountStatusResponse))
+			Org = data.(apiModel.GetSubAccountStatusResponse)
+			return data
+		}).Catch(func(error error) error {
+			//result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
+
+			Org = apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true, Operation: "Organization"}
+			return error
+		})
+		p2.Await()
+
+		p3 := object.GetLastTestimonialbySubAccount(GObj.SubAccounts[i])
+		p3.Then(func(data interface{}) interface{} {
+			//result = append(result, data.(apiModel.GetSubAccountStatusResponse))
+			Testimonial = data.(apiModel.GetSubAccountStatusResponse)
+			return data
+		}).Catch(func(error error) error {
+			//result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
+
+			Testimonial = apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true, Operation: "Testimonial"}
+			return error
+		})
+		p3.Await()
+
+		Cocseq, err := strconv.Atoi(Coc.SequenceNo)
+		if err != nil {
+			println(err)
+		}
+		Testimonialseq, err := strconv.Atoi(Testimonial.SequenceNo)
+		if err != nil {
+			println(err)
+		}
+		Orgseq, err := strconv.Atoi(Org.SequenceNo)
+		if err != nil {
+			println(err)
+		}
+
+		if Coc.Available && Org.Available && Testimonial.Available {
+
+			if (Cocseq > Testimonialseq) && (Cocseq >= Orgseq) {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Cocseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Coc.Operation, Receiver: Coc.Receiver})
+			} else if (Testimonialseq > Cocseq) && (Testimonialseq > Orgseq) {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Testimonialseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver})
+			} else if (Orgseq > Cocseq) && (Orgseq > Testimonialseq) {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Orgseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Org.Operation, Receiver: Org.Receiver})
+			} else {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
+			}
+		} else {
+			result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false})
+		}
+
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+	return
 
 }
