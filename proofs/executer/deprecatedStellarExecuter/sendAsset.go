@@ -6,7 +6,7 @@ import (
 	"net/http"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/keypair"
 )
 
@@ -44,8 +44,8 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 
 	paymentTx, err := build.Transaction(
 		build.SourceAccount{cd.Assest.Issuerkey},
-		build.TestNetwork,
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+		commons.GetHorizonNetwork(),
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 		build.SetData("Transaction Type", []byte(cd.Assest.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.Assest.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.Assest.ProfileID)),
@@ -74,7 +74,7 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 		response.Error.Message = "Transaction Converter Issues"
 		return response
 	}
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(paymentTxeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(paymentTxeB64)
 	if err != nil {
 		// log.Fatal(err)
 		response.Error.Code = http.StatusNotFound
