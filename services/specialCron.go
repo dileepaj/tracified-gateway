@@ -44,8 +44,7 @@ func CheckTempOrphan() {
 			stop := false //for infinite loop
 			//loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
-				p := object.GetSpecialForPkAndSeq(address, int64(i))
-				p.Then(func(data interface{}) interface{} {
+				_, errorAsync := object.GetSpecialForPkAndSeq(address, int64(i)).Then(func(data interface{}) interface{} {
 					result := data.(model.TransactionCollectionBody)
 					var UserTxnHash string
 					///HARDCODED CREDENTIALS
@@ -111,20 +110,18 @@ func CheckTempOrphan() {
 						var PreviousTXNBuilder build.ManageDataBuilder
 
 						// var PreviousTxn string
-						p := object.GetLastTransactionbyIdentifier(result.Identifier)
-						p.Then(func(data interface{}) interface{} {
+						data, errorLastTXN := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
+							return data
+						}).Await()
+							
+						if errorLastTXN != nil || data == nil {
+								PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
+						} else {
 							///ASSIGN PREVIOUS MANAGE DATA BUILDER
 							res := data.(model.TransactionCollectionBody)
 							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
-
 							result.PreviousTxnHash = res.TxnHash
-							return nil
-						}).Catch(func(error error) error {
-							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
-
-							return error
-						})
-						p.Await()
+						}
 
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
@@ -179,20 +176,18 @@ func CheckTempOrphan() {
 						var PreviousTXNBuilder build.ManageDataBuilder
 
 						// var PreviousTxn string
-						p := object.GetLastTransactionbyIdentifier(result.Identifier)
-						p.Then(func(data interface{}) interface{} {
+						data, errorLastTXN := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
+							return data
+						}).Await()
+
+						if errorLastTXN != nil || data == nil{
+							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
+						}else {
 							///ASSIGN PREVIOUS MANAGE DATA BUILDER
 							res := data.(model.TransactionCollectionBody)
 							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
 							result.PreviousTxnHash = res.TxnHash
-
-							return nil
-						}).Catch(func(error error) error {
-							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
-
-							return error
-						})
-						p.Await()
+						}
 
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
@@ -245,14 +240,14 @@ func CheckTempOrphan() {
 
 					}
 					return nil
-				}).Catch(func(error error) error {
-					log.Error("Error while GetSpecialForPkAndSeq " + error.Error())
+				}).Await()
+				if errorAsync != nil {
+					log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
 					// return error
 					//log.Println("No transactions in the scheduler")
 					stop = true //to break loop
-					return nil
-				})
-				p.Await()
+				}
+			
 				if stop {
 					break
 				}
