@@ -78,8 +78,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		fmt.Println(response)
 		return error
-	})
-	p.Await()
+	}).Await()
 
 	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + result.TxnHash + "/operations")
 	if err != nil {
@@ -465,8 +464,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		response := model.Error{Message: "Txn Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
-	})
-	p.Await()
+	}).Await()
 	// return
 }
 
@@ -695,8 +693,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(writer).Encode(response)
 		fmt.Println(response)
 		return error
-	})
-	p.Await()
+	}).Await()
 
 	TxnHash := res.TxnHash
 	PublicKey := res.PublicKey

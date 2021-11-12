@@ -356,8 +356,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "Public Key Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		p.Await()
+		}).Await()
 	case "txn":
 		q := object.GetAllTransactionForTxId(vars["key"])
 		q.Then(func(data interface{}) interface{} {
@@ -431,8 +430,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "TxnHash Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		q.Await()
+		}).Await()
 	case "tdpid":
 		p := object.GetAllTransactionForTdpId(vars["key"])
 		p.Then(func(data interface{}) interface{} {
@@ -505,8 +503,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "TDP ID Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		p.Await()
+		}).Await()
 	case "":
 		p := object.GetTransactionsbyIdentifier(vars["key"])
 		p.Then(func(data interface{}) interface{} {
@@ -579,8 +576,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		p.Await()
+		}).Await()
 	}
 }
 
@@ -839,8 +835,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		response := model.Error{Message: "No Transactions Found in Gateway DataStore " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return error
-	})
-	p.Await()
+	}).Await()
 }
 
 func GetTransactiontype(Type string) string {
