@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -212,9 +213,13 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 
@@ -264,9 +269,13 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				Obj.TxnHash = response.TXNID
