@@ -768,14 +768,19 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 				result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
-				if err != nil {
-					log.Error("Txn Id Not Found in Stellar Public Net " + err.Error())
+				if err != nil {		
+					log.Error("Txn Id Not Found in Stellar Public Net")		
+					w.WriteHeader(http.StatusNotFound)
 					status = "Txn Id Not Found in Stellar Public Net"
+					json.NewEncoder(w).Encode(status)
 					return nil
 				}
 				data, _ := ioutil.ReadAll(result1.Body)
-				if result1.StatusCode != 200 {
+				if result1== nil || result1.StatusCode != 200 {	
+					log.Error("Txn Id Not Found in Stellar Public Net")
+					w.WriteHeader(http.StatusNotFound)
 					status = "Txn Id Not Found in Stellar Public Net"
+					json.NewEncoder(w).Encode(status)
 					return nil
 				}
 				if status == "success" {
@@ -798,7 +803,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				mapD := map[string]string{"transaction": TxnHash}
 				mapB, err := json.Marshal(mapD)
 				if err != nil {
-					log.Error("Error while json.Marshal(mapD) " + err.Error())
+					log.Error("Error while json.Marshal(mapD) ")
 				}
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
@@ -830,9 +835,9 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("No Transactions Found in Gateway DataStore " + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "No Transactions Found in Gateway DataStore " + err.Error()}
+		log.Error("No Transactions Found in Gateway DataStore ")
+		w.WriteHeader(http.StatusNotFound)
+		response := model.Error{Message: "No Transactions Found in Gateway DataStore "}
 		json.NewEncoder(w).Encode(response)
 		return error
 	}).Await()
