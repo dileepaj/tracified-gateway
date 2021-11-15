@@ -455,7 +455,18 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
 			}
 		} else {
-			result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false})
+			if Org.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo})
+			}
+
+			if Testimonial.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo})
+			}
+
+			if Coc.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo})
+			}
+
 		}
 
 	}
