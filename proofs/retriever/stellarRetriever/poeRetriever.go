@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -39,7 +40,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 	var CurrentTxn string
 
 	//RETRIEVE GATEWAY SIGNED TXN
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + db.POEStruct.Txn + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + db.POEStruct.Txn + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOE"
@@ -66,7 +67,7 @@ func (db *ConcretePOE) RetrievePOE() model.RetrievePOE {
 			// PreviousTxn = Base64DecEnc("Decode", keys[1].Value)
 			CurrentTxn = Base64DecEnc("Decode", keys[2].Value) 
 			//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
-			result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn + "/operations")
+			result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn + "/operations")
 			if err != nil {
 				Rerr.Code = result.StatusCode
 				Rerr.Message = "The HTTP request failed for RetrievePOE"
