@@ -228,9 +228,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Url:     commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -812,10 +812,10 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	text := encoded
 
 	temp := model.POGResponse{
-		Txnhash:        TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Txnhash: TxnHash,
+		Url:     commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     res.Identifier,
 		SequenceNo:     res.SequenceNo,
 		TxnType:        "genesis",

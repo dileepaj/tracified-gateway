@@ -266,7 +266,7 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 	mapB, err := json.Marshal(mapD)
 	if err != nil {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
-	}	
+	}
 	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 	text := encoded
 	if !state {
@@ -276,8 +276,8 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 			Txnhash: AP.Txn,
 			Url: commons.GetHorizonClient().URL + "/transactions/" +
 				AP.Txn + "/operations",
-			LabUrl:	commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+			LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 			Identifier:     AP.DBCOC.Identifier,
 			From:           AP.DBCOC.SourceAccount,
 			To:             AP.DBCOC.Destination,
@@ -314,8 +314,8 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 		Txnhash: AP.Txn,
 		Url: commons.GetHorizonClient().URL + "/transactions/" +
 			AP.Txn + "/operations",
-		LabUrl:	commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     AP.DBCOC.Identifier,
 		From:           AP.DBCOC.SourceAccount,
 		To:             AP.DBCOC.Destination,
