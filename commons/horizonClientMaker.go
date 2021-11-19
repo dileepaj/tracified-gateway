@@ -23,6 +23,15 @@ func GetHorizonNetwork() build.Network {
 	}
 }
 
+func GetHorizonNetworkUrl() string {
+	client := GoDotEnvVariable("HORIZONCLIENT")
+	if client == "public" {
+		return "https://horizon.stellar.org"
+	} else {
+		return "https://horizon-testnet.stellar.org"
+	}
+}
+
 //get the connected stellar networ(public or test)
 func GetHorizonClientNetworkName() string {
 	clientNetworkName := GoDotEnvVariable("HORIZONCLIENT")

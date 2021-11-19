@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 
@@ -29,7 +30,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	// output := make([]string, 20)
 
 	//calls stellar to retrieve the gateway transaction
-	result1, err1 := http.Get("https://horizon.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	result1, err1 := http.Get(commons.GetHorizonNetworkUrl() + "/transactions/" + db.POCStruct.Txn + "/operations")
 	if err1 != nil {
 		Rerr.Code = result1.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -39,6 +40,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	}
 
 	data, _ := ioutil.ReadAll(result1.Body)
+
 	var raw map[string]interface{}
 	json.Unmarshal(data, &raw)
 	out, _ := json.Marshal(raw["_embedded"])
@@ -105,14 +107,12 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	default:
 		if keys[1] != (PublicKeyPOC{}) {
 			bcPreHash = Base64DecEnc("Decode", keys[1].Value)
-			fmt.Println("bcPreHash")
-			fmt.Println(bcPreHash)
 		}
 
 	}
 
 	//calls stellar to retrieve the user transaction
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + Current + "/operations")
+	result, err := http.Get(commons.GetHorizonNetworkUrl() + "/transactions/" + Current + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -161,9 +161,6 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 				// Profile = Base64DecEnc("Decode", keys[2].Value)
 				identifier := Base64DecEnc("Decode", keys[1].Value)
 				TDPHash = Base64DecEnc("Decode", keys[2].Value)
-
-				fmt.Println("TDPHash")
-				fmt.Println(TDPHash)
 
 				temp = model.Current{
 					TXNID:      Current,

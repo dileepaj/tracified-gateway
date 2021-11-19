@@ -413,8 +413,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		g.Await()
+		}).Await()
 
 		return data
 
@@ -426,8 +425,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return error
 
-	})
-	p.Await()
+	}).Await()
 
 	return
 
@@ -450,92 +448,94 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// 	result := data.(model.TransactionCollectionBody)
 	pocStructObj.DBTree = []model.Current{}
 	// fmt.Println(result)
-	g := object.GetTransactionsbyIdentifier(vars["Identifier"])
-	g.Then(func(data interface{}) interface{} {
-		res := data.([]model.TransactionCollectionBody)
-		pocStructObj.Txn = res[len(res)-1].TxnHash
+	gData, err := object.GetTransactionsbyIdentifier(vars["Identifier"]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
 
-		for i := len(res) - 1; i >= 0; i-- {
-			if res[i].TxnType == "2" {
-				// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + res[i].TdpId
-				url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
+	if err != nil || gData == nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-				bearer := "Bearer " + constants.BackendToken
-				// Create a new request using http
-				req, er := http.NewRequest("GET", url, nil)
+	res := gData.([]model.TransactionCollectionBody)
+	pocStructObj.Txn = res[len(res)-1].TxnHash
 
-				req.Header.Add("Authorization", bearer)
-				client := &http.Client{}
-				resq, er := client.Do(req)
+	for i := len(res) - 1; i >= 0; i-- {
+		if res[i].TxnType == "2" {
+			url := "http://localhost:3001/api/v2/dataPackets/raw?id=" + res[i].TdpId
+			// url := constants.TracifiedBackend + constants.RawTDP + res[i].TdpId
 
-				if er != nil {
-					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+			bearer := "Bearer " + constants.BackendToken
+			// Create a new request using http
+			req, er := http.NewRequest("GET", url, nil)
 
-					w.WriteHeader(http.StatusOK)
-					response := model.Error{Message: "Connection to the DataStore was interupted"}
-					json.NewEncoder(w).Encode(response)
-				} else {
-					// fmt.Println(req)
-					body, _ := ioutil.ReadAll(resq.Body)
-					var raw map[string]interface{}
-					json.Unmarshal(body, &raw)
+			req.Header.Add("Authorization", bearer)
+			client := &http.Client{}
+			resq, er := client.Do(req)
 
-					h := sha256.New()
-					base64 := raw["data"]
-					// fmt.Println(base64)
+			if er != nil {
+				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-					h.Write([]byte(fmt.Sprintf("%s", base64) + res[i].Identifier))
-					// fmt.Printf("%x", h.Sum(nil))
-
-					DataStoreTXN := model.Current{
-						TType:      res[i].TxnType,
-						TXNID:      res[i].TxnHash,
-						Identifier: res[i].Identifier,
-						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
-
-					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
-				}
+				w.WriteHeader(http.StatusOK)
+				response := model.Error{Message: "Connection to the DataStore was interupted"}
+				json.NewEncoder(w).Encode(response)
 			} else {
+				// fmt.Println(req)
+				body, _ := ioutil.ReadAll(resq.Body)
+				var raw map[string]interface{}
+				json.Unmarshal(body, &raw)
+
+				h := sha256.New()
+				base64 := raw["data"]
+
+				h.Write([]byte(fmt.Sprintf("%s", base64) + res[i].Identifier))
+				fmt.Printf("%x", h.Sum(nil))
+				fmt.Print("-", res[i].DataHash)
+				fmt.Println("\n")
+
 				DataStoreTXN := model.Current{
 					TType:      res[i].TxnType,
 					TXNID:      res[i].TxnHash,
 					Identifier: res[i].Identifier,
-				}
+					DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+
 				pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 			}
-
+		} else {
+			DataStoreTXN := model.Current{
+				TType:      res[i].TxnType,
+				TXNID:      res[i].TxnHash,
+				Identifier: res[i].Identifier,
+			}
+			pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 		}
 
-		// pocStructObj = apiModel.POCStruct{
+	}
 
-		// // }
-		// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
-		// response = display.InterpretPOC()
+	// pocStructObj = apiModel.POCStruct{
 
-		// fmt.Println(response.RetrievePOC.Error.Message)
+	// // }
+	// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
+	// response = display.InterpretPOC()
 
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(200)
-		// w.WriteHeader(http.StatusBadRequest)
+	// fmt.Println(response.RetrievePOC.Error.Message)
 
-		// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(200)
+	// w.WriteHeader(http.StatusBadRequest)
 
-		result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
-		// fmt.Println(result)
-		// fmt.Println(response.RetrievePOC.Error.Message)
-		json.NewEncoder(w).Encode(result)
-		// 		return
+	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
-		return data
-	}).Catch(func(error error) error {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
+	// fmt.Println(result)
+	// fmt.Println(response.RetrievePOC.Error.Message)
+	json.NewEncoder(w).Encode(result)
+	// 		return
 
-		w.WriteHeader(http.StatusOK)
-		response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
-		json.NewEncoder(w).Encode(response)
-		return error
-	})
-	g.Await()
+
 
 	// return data
 
@@ -551,5 +551,4 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// p.Await()
 
 	return
-
 }

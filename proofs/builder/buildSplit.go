@@ -87,8 +87,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				
 				AP.TxnBody[i].PreviousTxnHash = ""
 				return error
-			})
-			p.Await()
+			}).Await()
 		}
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
