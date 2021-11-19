@@ -5,9 +5,9 @@ import (
 	"net/http"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -25,9 +25,9 @@ func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
 
 	// save data
 	tx, err := build.Transaction(
-		build.TestNetwork,
+		commons.GetHorizonNetwork(),
 		build.SourceAccount{publicKey},
-		build.AutoSequence{horizon.DefaultTestNetClient},
+		build.AutoSequence{commons.GetHorizonClient()},
 		build.SetData("Transaction Type", []byte(cd.InsertPOCertStruct.Type)),
 		build.SetData("CertType", []byte(cd.InsertPOCertStruct.CertType)),
 		build.SetData("CertBody", []byte(cd.InsertPOCertStruct.CertBody)),
@@ -61,7 +61,7 @@ func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := horizon.DefaultTestNetClient.SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound

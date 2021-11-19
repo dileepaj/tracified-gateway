@@ -114,9 +114,9 @@ type AbstractXDRSubmiter struct {
 
 // 				//BUILD THE GATEWAY XDR
 // 				tx, err := build.Transaction(
-// 					build.TestNetwork,
+// 					commons.GetHorizonNetwork(),
 // 					build.SourceAccount{publicKey},
-// 					build.AutoSequence{horizon.DefaultTestNetClient},
+// 					build.AutoSequence{commons.GetHorizonClient()},
 // 					build.SetData("Type", []byte("G"+TxnBody.TxnType)),
 // 					PreviousTXNBuilder,
 // 					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
@@ -254,7 +254,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.TestNetwork,
+					commons.GetHorizonNetwork(),
 					build.SourceAccount{publicKey},
 
 					build.AutoSequence{commons.GetHorizonClient()},

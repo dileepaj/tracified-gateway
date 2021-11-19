@@ -158,7 +158,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.PublicNetwork,
+					commons.GetHorizonNetwork(),
 					build.SourceAccount{publicKey},
 					build.AutoSequence{commons.GetHorizonClient()},
 					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
@@ -170,7 +170,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					log.Error("Error @ build.Transaction @SubmitTransfer " +err.Error())
 				}
 
-				
+
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {

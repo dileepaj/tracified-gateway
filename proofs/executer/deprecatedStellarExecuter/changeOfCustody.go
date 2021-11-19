@@ -4,10 +4,10 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"github.com/stellar/go/build"
-	"github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/keypair"
 )
 
@@ -43,8 +43,8 @@ func (cd *ConcreteChangeOfCustody) ChangeOfCustody() model.COCResponse {
 
 	paymentTx, err := build.Transaction(
 		build.SourceAccount{cd.COC.Reciverkey},
-		build.TestNetwork,
-		build.AutoSequence{SequenceProvider: horizon.DefaultTestNetClient},
+		commons.GetHorizonNetwork(),
+		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 		build.SetData("Transaction Type", []byte(cd.COC.Type)),
 		build.SetData("PreviousTXNID", []byte(cd.COC.PreviousTXNID)),
 		build.SetData("ProfileID", []byte(cd.COC.PreviousProfileID)),
@@ -73,7 +73,7 @@ func (cd *ConcreteChangeOfCustody) ChangeOfCustody() model.COCResponse {
 		response.Error.Message = "Transaction Converter Issues"
 		return response
 	}
-	// resp, err := horizon.DefaultTestNetClient.SubmitTransaction(paymentTxeB64)
+	// resp, err := commons.GetHorizonClient().SubmitTransaction(paymentTxeB64)
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }

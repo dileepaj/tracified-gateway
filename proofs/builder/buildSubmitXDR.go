@@ -155,7 +155,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 
 				//BUILD THE GATEWAY XDR
 				tx, err := build.Transaction(
-					build.TestNetwork,
+					commons.GetHorizonNetwork(),
 					build.SourceAccount{publicKey},
 					build.AutoSequence{commons.GetHorizonClient()},
 					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),

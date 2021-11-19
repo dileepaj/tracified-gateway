@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 
 	"github.com/stellar/go/build"
@@ -104,8 +105,8 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: build.PublicNetwork.Passphrase}
-	fmt.Println(build.PublicNetwork.Passphrase)
+	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 	t, _ := brr.Hash()
 	test := fmt.Sprintf("%x", t)
@@ -115,8 +116,8 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: build.PublicNetwork.Passphrase}
-	fmt.Println(build.PublicNetwork.Passphrase)
+	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 	t1, _ := brr1.Hash()
 	test1 := fmt.Sprintf("%x", t1)
@@ -454,7 +455,18 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
 			}
 		} else {
-			result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false})
+			if Org.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo})
+			}
+
+			if Testimonial.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo})
+			}
+
+			if Coc.Available == false {
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo})
+			}
+
 		}
 
 	}

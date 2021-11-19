@@ -64,6 +64,7 @@
             DBPASSWORD: "{{ lookup('env','DBPASSWORD') }}"
             DBHOST: "{{ lookup('env','DBHOST') }}"
             DBPORT: "{{ lookup('env','DBPORT') }}"
+            DBNAME: "{{ lookup('env','DBNAME') }}"
             ADMINDBUSERNAME: "{{ lookup('env','ADMINDBUSERNAME') }}"
             ADMINDBPASSWORD: "{{ lookup('env','ADMINDBPASSWORD') }}"
             ADMINDBHOST: "{{ lookup('env','ADMINDBHOST') }}"
