@@ -1,25 +1,20 @@
 package interpreter
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 
-	"strings"
-
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-
 	// "encoding/json"
-	"github.com/stellar/go/xdr"
-
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 )
 
+/*
 type AbstractPOCOC struct {
 	ProofHash  string
 	Txn        string
@@ -29,12 +24,13 @@ type AbstractPOCOC struct {
 	COCStatus  string
 	SequenceNo string
 }
-
+*/
 /*InterpretPOCOC - Working Model
 @author - Azeem Ashraf
 @desc - Interprets All the required fields necessary to perform POCOC
 @params - ResponseWriter,Request
 */
+/*
 func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) {
 
 	var result []model.POCOCResponse
@@ -46,7 +42,7 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 
 	SequenceNo, errSequence := strconv.ParseInt(AP.SequenceNo, 10, 64)
 	if errSequence == nil {
-		fmt.Printf("%d of type %T", SequenceNo,SequenceNo)
+		fmt.Printf("%d of type %T", SequenceNo, SequenceNo)
 	}
 	mapD := map[string]string{"transaction": AP.Txn}
 	mapB, _ := json.Marshal(mapD)
@@ -122,7 +118,9 @@ func (AP *AbstractPOCOC) InterpretPOCOC(w http.ResponseWriter, r *http.Request) 
 	return
 
 }
+*/
 
+/*
 func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSuccess {
 	var result apiModel.SubmitXDRSuccess
 
@@ -203,7 +201,7 @@ func compareCOC(db xdr.Transaction, bc xdr.Transaction) apiModel.SubmitXDRSucces
 
 	return result
 }
-
+*/
 type CocSpecialResponse struct {
 	Status string
 	Txn    string
@@ -222,4 +220,135 @@ type transaction struct {
 type operation struct {
 	name  string
 	value string
+}
+
+type AbstractPOCOCNew struct {
+	ProofHash  string
+	Txn        string
+	DBCOC      XDR
+	BCCOC      XDR
+	XDR        string
+	COCStatus  string
+	SequenceNo string
+}
+
+type XDR struct {
+	SourceAccount string
+	Identifier    string
+	AssetCode     string
+	AssetAmount   float64
+	Destination   string
+}
+
+func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Request) {
+
+	var result []model.POCOCResponse
+	FromSigned := true
+	ToSigned := false
+
+	if AP.COCStatus != model.Pending.String() && AP.COCStatus != model.Expired.String() {
+		ToSigned = true
+	}
+
+	SequenceNo, errSequence := strconv.ParseInt(AP.SequenceNo, 10, 64)
+	if errSequence == nil {
+		fmt.Printf("%d of type %T", SequenceNo, SequenceNo)
+	}
+
+	object := stellarRetriever.ConcretePOCOCNew{Txn: AP.ProofHash}
+
+	bcCOC, state, timestamp, ledger, feePaid := object.RetrievePOCOCNew()
+
+	if !state {
+
+		w.WriteHeader(http.StatusOK)
+		temp := model.POCOCResponse{
+			Txnhash: AP.Txn,
+			Url: "https://horizon.stellar.org/transactions/" +
+				AP.Txn + "/operations",
+			Identifier:     AP.DBCOC.Identifier,
+			From:           AP.DBCOC.SourceAccount,
+			To:             AP.DBCOC.Destination,
+			Timestamp:      timestamp,
+			Ledger:         ledger,
+			FeePaid:        feePaid,
+			TxnType:        "coc",
+			SequenceNo:     SequenceNo,
+			Quantity:       fmt.Sprintf("%f", AP.DBCOC.AssetAmount),
+			AssetCode:      AP.DBCOC.AssetCode,
+			Status:         "Failed to retrieve blockchain proof transaction from Stellar",
+			BlockchainName: "Stellar",
+			FromSigned:     FromSigned,
+			ToSigned:       ToSigned,
+			COCStatus:      AP.COCStatus}
+		result = append(result, temp)
+		json.NewEncoder(w).Encode(result)
+
+		return
+
+	}
+
+	AP.BCCOC.SourceAccount = bcCOC.SourceAccount
+	AP.BCCOC.Identifier = bcCOC.Identifier
+	AP.BCCOC.AssetCode = bcCOC.AssetCode
+	AP.BCCOC.AssetAmount = bcCOC.AssetAmount
+	AP.BCCOC.Destination = bcCOC.Destination
+
+	res := compareCOCNew(AP.DBCOC, AP.BCCOC)
+
+	w.WriteHeader(http.StatusOK)
+
+	temp := model.POCOCResponse{
+		Txnhash: AP.Txn,
+		Url: "https://horizon.stellar.org/transactions/" +
+			AP.Txn + "/operations",
+		Identifier:     AP.DBCOC.Identifier,
+		From:           AP.DBCOC.SourceAccount,
+		To:             AP.DBCOC.Destination,
+		Timestamp:      timestamp,
+		Ledger:         ledger,
+		FeePaid:        feePaid,
+		TxnType:        "coc",
+		SequenceNo:     SequenceNo,
+		Quantity:       fmt.Sprintf("%f", AP.DBCOC.AssetAmount),
+		AssetCode:      AP.DBCOC.AssetCode,
+		Status:         res.Status,
+		BlockchainName: "Stellar",
+		FromSigned:     FromSigned,
+		ToSigned:       ToSigned,
+		COCStatus:      AP.COCStatus}
+	result = append(result, temp)
+	json.NewEncoder(w).Encode(result)
+
+	return
+}
+
+func compareCOCNew(db XDR, bc XDR) apiModel.SubmitXDRSuccess {
+
+	var result apiModel.SubmitXDRSuccess
+
+	if db.SourceAccount != bc.SourceAccount {
+		result.Status = "Failed, Source Address in Gateway and Blockchain Doesn't match"
+		return result
+
+	} else if db.AssetCode != bc.AssetCode {
+		result.Status = "Failed, Asset Code in Gateway and Blockchain Doesn't match"
+		return result
+
+	} else if db.AssetAmount != bc.AssetAmount {
+		result.Status = "Failed, Asset Amount in Gateway and Blockchain Doesn't match"
+		return result
+
+	} else if db.Destination != bc.Destination {
+		result.Status = "Failed, Destination Address in Gateway and Blockchain Doesn't match"
+		return result
+
+	} else if db.Identifier != bc.Identifier {
+		result.Status = "Failed, Identifier in Gateway and Blockchain Doesn't match"
+		return result
+
+	} else {
+		result.Status = "Success"
+	}
+	return result
 }

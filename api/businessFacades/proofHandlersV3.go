@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -51,6 +52,10 @@ type TdpData struct {
 type Identifier struct {
 	Id   string `json:"id"`
 	Type string `json:"type"`
+}
+
+type response struct {
+	Status string
 }
 
 /*CheckPOEV3 - WORKING MODEL
@@ -225,7 +230,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
 		Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -809,29 +814,38 @@ Finally Returns the Response given by the POCOC Interpreter
 */
 func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var txe xdr.Transaction
+	//var txe xdr.Transaction
 	var COC model.COCCollectionBody
 	var COCAvailable bool
+	var txe interpreter.XDR
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetCOCbyAcceptTxn(vars["TxnId"])
-	p.Then(func(data interface{}) interface{} {
+	_, err := object.GetCOCbyAcceptTxn(vars["TxnId"]).Then(func(data interface{}) interface{} {
 		COCAvailable = true
 		COC = data.(model.COCCollectionBody)
 		fmt.Println(COC)
 		return data
-	}).Catch(func(error error) error {
-		log.Error("Error while GetCOCbyAcceptTxn " + error.Error())
+	}).Await()
+
+	if err != nil {
+		log.Error("Error while GetCOCbyTxn " + err.Error())
 		COCAvailable = false
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE " + error.Error()}
+		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		fmt.Println(response)
-		return error
-	})
-	p.Await()
+	}
+
+	if COC.Status == model.Rejected.String() || COC.Status == model.Expired.String() || COC.Status == model.Pending.String() {
+
+		w.WriteHeader(http.StatusBadRequest)
+		COCAvailable = false
+		response := response{Status: COC.Status}
+		json.NewEncoder(w).Encode(response)
+	}
+
 	if COCAvailable {
-		err := xdr.SafeUnmarshalBase64(COC.AcceptXdr, &txe)
+		/*err := xdr.SafeUnmarshalBase64(COC.AcceptXdr, &txe)
 		if err != nil {
 			log.Error("Error SafeUnmarshalBase64 COC " + err.Error())
 		}
@@ -840,6 +854,75 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		COCStatus := COC.Status
 		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
 		display.InterpretPOCOC(w, r)
+		*/
+		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + vars["TxnId"] + "/operations")
+		if err != nil {
+			log.Error("Error while getting transactions by txnhash " + err.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		data, err := ioutil.ReadAll(result1.Body)
+		if err != nil {
+			log.Error("Error while read response " + err.Error())
+		}
+		var raw map[string]interface{}
+		err = json.Unmarshal(data, &raw)
+		if err != nil {
+			log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+		}
+
+		out, err := json.Marshal(raw["_embedded"])
+		if err != nil {
+			log.Error("Error while json marshal _embedded " + err.Error())
+		}
+		var raw1 map[string]interface{}
+		err = json.Unmarshal(out, &raw1)
+		if err != nil {
+			log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+		}
+		out1, err := json.Marshal(raw1["records"])
+		if err != nil {
+			log.Error("Error while json marshal records " + err.Error())
+		}
+		keysBody := out1
+		keys := make([]PublicKeyPOCOC, 0)
+		err = json.Unmarshal(keysBody, &keys)
+		if err != nil {
+			log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+		}
+		ProofHash_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+		if err != nil {
+			log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+		}
+		Proofhash := string(ProofHash_byteData)
+		log.Info("ProofHash: " + Proofhash)
+
+		txe.SourceAccount = string(keys[1].Source_account)
+		log.Info("Source Account: " + txe.SourceAccount)
+
+		txe.AssetCode = string(keys[3].Asset_code)
+		log.Info("Asset Code: " + txe.AssetCode)
+
+		txe.AssetAmount, err = strconv.ParseFloat(string(keys[3].Amount), 64)
+		log.Info("Asset Amount: " + fmt.Sprintf("%f", txe.AssetAmount))
+
+		Identifier_byteData, err := base64.StdEncoding.DecodeString(keys[1].Value)
+		if err != nil {
+			log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+		}
+
+		txe.Identifier = string(Identifier_byteData)
+		log.Info("Identifier: " + txe.Identifier)
+
+		txe.Destination = string(keys[3].To)
+		log.Info("Asset Code: " + txe.AssetCode)
+
+		COCStatus := COC.Status
+		display := &interpreter.AbstractPOCOCNew{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: Proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
+		display.InterpretPOCOCNew(w, r)
+
 	}
 	return
 }
@@ -873,4 +956,13 @@ func Base64DecEnc(typ string, msg string) string {
 	}
 
 	return text
+}
+
+type PublicKeyPOCOC struct {
+	Name           string
+	Value          string
+	Source_account string
+	Asset_code     string
+	Amount         string
+	To             string
 }
