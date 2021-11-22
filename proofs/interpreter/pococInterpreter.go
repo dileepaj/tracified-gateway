@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	// "encoding/json"
@@ -264,7 +265,7 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusOK)
 		temp := model.POCOCResponse{
 			Txnhash: AP.Txn,
-			Url: "https://horizon.stellar.org/transactions/" +
+			Url: commons.GetHorizonClient().URL + "/transactions/" +
 				AP.Txn + "/operations",
 			Identifier:     AP.DBCOC.Identifier,
 			From:           AP.DBCOC.SourceAccount,
@@ -300,7 +301,7 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 
 	temp := model.POCOCResponse{
 		Txnhash: AP.Txn,
-		Url: "https://horizon.stellar.org/transactions/" +
+		Url: commons.GetHorizonClient().URL + "/transactions/" +
 			AP.Txn + "/operations",
 		Identifier:     AP.DBCOC.Identifier,
 		From:           AP.DBCOC.SourceAccount,

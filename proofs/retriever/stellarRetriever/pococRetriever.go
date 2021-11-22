@@ -119,8 +119,7 @@ func (db *ConcretePOCOCNew) RetrievePOCOCNew() (XDR, bool, string, string, strin
 	feePaid := ""
 
 	var txe XDR
-
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
+	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn)
 	if err != nil {
 		return txe, false, timestamp, ledger, feePaid
 	} else {
