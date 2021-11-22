@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/commons"
 
 	"net/http"
 )
@@ -101,8 +102,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 			//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 			return error
-		})
-		p1.Await()
+		}).Await()
 	default:
 		if keys[1] != (PublicKeyPOC{}) {
 			bcPreHash = Base64DecEnc("Decode", keys[1].Value)
