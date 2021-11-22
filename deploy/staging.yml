@@ -74,3 +74,4 @@
             ADMIN_ATLAS: "{{ lookup('env','ADMIN_ATLAS') }}"
             GATEWAY_ATLAS: "{{ lookup('env','GATEWAY_ATLAS') }}"
             STELLARLABORATORYCLIENT: "{{ lookup('env','STELLARLABORATORYCLIENT') }}"
+            TRACIFIEDBACKEND: "{{ lookup('env','TRACIFIEDBACKEND') }}"
