@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/commons"
 
 	"net/http"
 )
@@ -29,7 +30,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	// output := make([]string, 20)
 
 	//calls stellar to retrieve the gateway transaction
-	result1, err1 := http.Get("https://horizon.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	result1, err1 := http.Get(commons.GetHorizonClient().URL + "/transactions/" + db.POCStruct.Txn + "/operations")
 	if err1 != nil {
 		Rerr.Code = result1.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -100,8 +101,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 			//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 			return error
-		})
-		p1.Await()
+		}).Await()
 	default:
 		if keys[1] != (PublicKeyPOC{}) {
 			bcPreHash = Base64DecEnc("Decode", keys[1].Value)
@@ -112,7 +112,7 @@ func (db *ConcretePOC) RetrieveFullPOC() model.RetrievePOC {
 	}
 
 	//calls stellar to retrieve the user transaction
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + Current + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + Current + "/operations")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"

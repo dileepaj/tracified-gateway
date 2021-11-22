@@ -683,17 +683,20 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	var res model.TransactionCollectionBody
 	object := dao.Connection{}
 	p := object.GetTransactionByTxnhash(vars["Txn"])
-	p.Then(func(data interface{}) interface{} {
-		res = data.(model.TransactionCollectionBody)
-		return nil
-	}).Catch(func(error error) error {
-		log.Error("Error while GetTransactionForTdpId " + error.Error())
+	resData, err := p.Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+
+	if err != nil || resData == nil {
+		log.Error("Error while GetTransactionForTdpId " + err.Error())
 		writer.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(writer).Encode(response)
 		fmt.Println(response)
-		return error
-	}).Await()
+		return
+	}
+
+	res = resData.(model.TransactionCollectionBody)
 
 	TxnHash := res.TxnHash
 	PublicKey := res.PublicKey
@@ -736,6 +739,8 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	result2, _ := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
 	data2, _ := ioutil.ReadAll(result2.Body)
 	var raw2 map[string]interface{}
+	var raw4 map[string]interface{}
+	var raw5 map[string]interface{}
 	json.Unmarshal(data2, &raw2)
 	out1, _ := json.Marshal(raw2["_embedded"])
 	json.Unmarshal(out1, &raw2)
@@ -744,35 +749,74 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	out3, _ := json.Marshal(raw2["records"])
 	json.Unmarshal(out3, &raw3)
 
+	out5, _ := json.Marshal(raw3[0])
 	out4, _ := json.Marshal(raw3[1])
+	out6, _ := json.Marshal(raw3[2])
+	
+	json.Unmarshal(out5, &raw4)
 	json.Unmarshal(out4, &raw2)
+	json.Unmarshal(out6, &raw5)
 
 	//GET THE USER SIGNED GENESIS TXN
-	// Type := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
-	// Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	Type := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
+	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	CurrentTxn := strings.TrimLeft(fmt.Sprintf("%s", raw5["value"]), "&")
 
-	Previous := raw2["value"]
+	TypeDecoded, _ := base64.StdEncoding.DecodeString(Type)
+	PreviousDecoded, _ := base64.StdEncoding.DecodeString(Previous)
+	CurrentTxnDecoded, _ := base64.StdEncoding.DecodeString(CurrentTxn)
 
-	if Previous != "" {
+	if string(TypeDecoded) != "G0" || string(PreviousDecoded) != "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "This Transaction is not a Genesis Txn"}
 		json.NewEncoder(writer).Encode(response)
 		return
 	}
 
-	mapD := map[string]string{"transaction": TxnHash}
-	mapB, err := json.Marshal(mapD)
-	if err != nil {
-		log.Error("Error while json.Marshal(mapD) " + err.Error())
+	result3, err4 := http.Get(commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations")
+	if err4 != nil {
+		log.Error("Error while getting the current transaction by TxnHash " + err.Error())
+		response := model.Error{Message: "Current Txn Id Not Found in Stellar Public Net " + err.Error()}
+		json.NewEncoder(writer).Encode(response)
+		return
 	}
-	fmt.Println(string(mapB))
+	data5, _ := ioutil.ReadAll(result3.Body)
+	var raw6 map[string]interface{}
+	json.Unmarshal(data5, &raw6)
 
-	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-	text := encoded
+	var raw7 []interface{}
+	json.Unmarshal(data2, &raw2)
+	out8, _ := json.Marshal(raw6["_embedded"])
+	json.Unmarshal(out8, &raw6)
+	out8, _ = json.Marshal(raw6["records"])
+	json.Unmarshal(out8, &raw7)
+
+	ProductName := "N/A"
+	ProductId := "N/A"
+
+	if len(raw7) > 3 {
+		out9, _ := json.Marshal(raw7[2])
+		out10, _ := json.Marshal(raw7[3])
+		
+		var raw20 map[string]interface{}
+		var raw40 map[string]interface{}
+
+		json.Unmarshal(out9, &raw20)
+		json.Unmarshal(out10, &raw40)
+
+		ProductNameEncoded := strings.TrimLeft(fmt.Sprintf("%s", raw20["value"]), "&")
+		ProductIdEncoded := strings.TrimLeft(fmt.Sprintf("%s", raw40["value"]), "&")
+
+		ProductNameDecoded, _ := base64.StdEncoding.DecodeString(ProductNameEncoded)
+		ProductIdDecoded, _ := base64.StdEncoding.DecodeString(ProductIdEncoded)
+
+		ProductName = string(ProductNameDecoded)
+		ProductId = string(ProductIdDecoded)
+	}
+
 	temp := model.POGResponse{
 		Txnhash: TxnHash,
-		Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-			text + "%3D%3D&network=public",
+		Url: commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
 		Identifier:     res.Identifier,
 		SequenceNo:     res.SequenceNo,
 		TxnType:        "genesis",
@@ -781,9 +825,11 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		Timestamp:      timestamp,
 		Ledger:         ledger,
 		FeePaid:        feePaid,
-		SourceAccount:  PublicKey}
+		SourceAccount:  PublicKey,
+		ProductName:    ProductName,
+		ProductId:      ProductId,
+	}
 	result = append(result, temp)
-	fmt.Println(result)
 	// writer.WriteHeader(http.StatusOK)
 	json.NewEncoder(writer).Encode(result)
 	return
