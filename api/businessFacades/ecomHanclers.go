@@ -358,79 +358,83 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			return error
 		}).Await()
 	case "txn":
-		q := object.GetAllTransactionForTxId(vars["key"])
-		q.Then(func(data interface{}) interface{} {
-			res := data.([]model.TransactionCollectionBody)
-			for _, TxnBody := range res {
-				TxnHash := TxnBody.TxnHash
-				var txe xdr.Transaction
-				status := "success"
-				timestamp := ""
-				ledger := ""
-				feePaid := ""
-				from := ""
-				to := ""
-				result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
-				log.Info(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
-				if err != nil {
-					status = "Txn Id Not Found in Stellar Public Net"
-				}
-				data, _ := ioutil.ReadAll(result1.Body)
-				if result1.StatusCode != 200 {
-					status = "Txn Id Not Found in Stellar Public Net"
-				}
-				if status == "success" {
-					var raw map[string]interface{}
-					json.Unmarshal(data, &raw)
-					timestamp = fmt.Sprintf("%s", raw["created_at"])
-					ledger = fmt.Sprintf("%.0f", raw["ledger"])
-					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
-					from = fmt.Sprintf("%s", raw["source_account"])
-					to = fmt.Sprintf("%s", raw["source_account"])
-					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
-					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
-					}
-					if TxnBody.TxnType == "10" {
-						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
-					}
-				}
-				mapD := map[string]string{"transaction": TxnHash}
-				mapB, _ := json.Marshal(mapD)
-				// fmt.Println(string(mapB))
-				// trans := transaction{transaction:TxnHash}
-				// s := fmt.Sprintf("%v", trans)
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
-				temp := model.PrevTxnResponse{
-					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-					Identifier:     TxnBody.Identifier,
-					TdpId:          TxnBody.TdpId,
-					DataHash:       TxnBody.DataHash,
-					Timestamp:      timestamp,
-					TxnType:        GetTransactiontype(TxnBody.TxnType),
-					FeePaid:        feePaid,
-					Ledger:         ledger,
-					SourceAccount:  TxnBody.PublicKey,
-					From:           from,
-					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: GetProofName(TxnBody.TxnType),
-					To:             to,
-					ProductName:    TxnBody.ProductName}
-				result = append(result, temp)
-			}
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(result)
-			return nil
-		}).Catch(func(error error) error {
-			log.Error("Error while GetAllTransactionForTxId " + error.Error())
+		qdata, err := object.GetAllTransactionForTxId(vars["key"]).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+
+		if err != nil || qdata == nil {
+			log.Error("Error while GetAllTransactionForTxId " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "TxnHash Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
-			return error
-		}).Await()
+			return
+		}
+
+		res := qdata.([]model.TransactionCollectionBody)
+		for _, TxnBody := range res {
+			TxnHash := TxnBody.TxnHash
+			var txe xdr.Transaction
+			status := "success"
+			timestamp := ""
+			ledger := ""
+			feePaid := ""
+			from := ""
+			to := ""
+			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			log.Info(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			if err != nil {
+				status = "Txn Id Not Found in Stellar Public Net"
+			}
+			data, _ := ioutil.ReadAll(result1.Body)
+			if result1.StatusCode != 200 {
+				status = "Txn Id Not Found in Stellar Public Net"
+			}
+			if status == "success" {
+				var raw map[string]interface{}
+				json.Unmarshal(data, &raw)
+				timestamp = fmt.Sprintf("%s", raw["created_at"])
+				ledger = fmt.Sprintf("%.0f", raw["ledger"])
+				feePaid = fmt.Sprintf("%s", raw["fee_charged"])
+				from = fmt.Sprintf("%s", raw["source_account"])
+				to = fmt.Sprintf("%s", raw["source_account"])
+				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
+				if errXDR != nil {
+					log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
+				}
+				if TxnBody.TxnType == "10" {
+					to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+				}
+			}
+			mapD := map[string]string{"transaction": TxnHash}
+			mapB, _ := json.Marshal(mapD)
+			// fmt.Println(string(mapB))
+			// trans := transaction{transaction:TxnHash}
+			// s := fmt.Sprintf("%v", trans)
+			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+			text := encoded
+			temp := model.PrevTxnResponse{
+				Status: status, Txnhash: TxnHash,
+				Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+				Identifier:     TxnBody.Identifier,
+				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to,
+				ProductName:    TxnBody.ProductName}
+			result = append(result, temp)
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return
+
 	case "tdpid":
 		p := object.GetAllTransactionForTdpId(vars["key"])
 		p.Then(func(data interface{}) interface{} {

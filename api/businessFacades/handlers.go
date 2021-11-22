@@ -413,8 +413,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			response := model.Error{Message: "Identifier for the TDP ID Not Found in Gateway DataStore"}
 			json.NewEncoder(w).Encode(response)
 			return error
-		})
-		g.Await()
+		}).Await()
 
 		return data
 
@@ -426,8 +425,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return error
 
-	})
-	p.Await()
+	}).Await()
 
 	return
 
