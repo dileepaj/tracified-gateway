@@ -87,8 +87,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				
 				AP.TxnBody[i].PreviousTxnHash = ""
 				return error
-			})
-			p.Await()
+			}).Await()
 		}
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
@@ -202,8 +201,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 						log.Error("Error @GetProfilebyIdentifier @SubmitSplit "+error.Error())
 						PreviousProfile = ""
 						return error
-					})
-					p.Await()
+					}).Await()
 
 					Profile := model.ProfileCollectionBody{
 						ProfileTxn:         response1.TXNID,

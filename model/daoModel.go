@@ -135,6 +135,8 @@ type POGResponse struct {
 	Timestamp      string
 	Ledger         string
 	FeePaid        string
+	ProductName        string
+	ProductId        string
 }
 
 type POEResponse struct {

@@ -1,21 +1,25 @@
 package stellarRetriever
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	// "github.com/dileepaj/tracified-gateway/model"
-
-	"github.com/stellar/go/xdr"
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/support/log"
 )
 
+/*
 type ConcretePOCOC struct {
 	Txn string
 	// DBCOC xdr.Transaction
 	BCCOC xdr.Transaction
 }
+*/
 
 /*RetrievePOCOC - WORKING MODEL
 @author - Azeem Ashraf
@@ -23,7 +27,9 @@ type ConcretePOCOC struct {
 @params - XDR
 */
 
-func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,string) {
+/*
+
+func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string, string, string) {
 
 	var CurrentTxn string
 	CurrentTxn = db.Txn
@@ -59,7 +65,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,s
 	//RETRIEVE THE USER SIGNED TXN USING THE CURRENT TXN IN GATEWAY SIGNED TRANSACTION
 	result, err := http.Get("https://horizon.stellar.org/transactions/" + CurrentTxn)
 	if err != nil {
-		return txe, false, timestamp,ledger,feePaid
+		return txe, false, timestamp, ledger, feePaid
 	} else {
 		data, _ := ioutil.ReadAll(result.Body)
 
@@ -78,7 +84,7 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,s
 			}
 
 		} else {
-			return txe, false, timestamp,ledger,feePaid
+			return txe, false, timestamp, ledger, feePaid
 
 		}
 
@@ -87,6 +93,135 @@ func (db *ConcretePOCOC) RetrievePOCOC() (xdr.Transaction, bool, string,string,s
 
 	// }
 
-	return txe, true, timestamp,ledger,feePaid
+	return txe, true, timestamp, ledger, feePaid
 
+}
+*/
+type ConcretePOCOCNew struct {
+	Txn string
+	// DBCOC xdr.Transaction
+	BCCOC XDR
+}
+
+type XDR struct {
+	SourceAccount string
+	Identifier    string
+	AssetCode     string
+	AssetAmount   float64
+	Destination   string
+}
+
+func (db *ConcretePOCOCNew) RetrievePOCOCNew() (XDR, bool, string, string, string) {
+
+	CurrentTxn := db.Txn
+	timestamp := ""
+	ledger := ""
+	feePaid := ""
+
+	var txe XDR
+	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn)
+	if err != nil {
+		return txe, false, timestamp, ledger, feePaid
+	} else {
+		data, _ := ioutil.ReadAll(result.Body)
+
+		if result.StatusCode == 200 {
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+
+			timestamp = fmt.Sprintf("%s", raw["created_at"])
+			ledger = fmt.Sprintf("%.0f", raw["ledger"])
+			feePaid = fmt.Sprintf("%s", raw["fee_charged"])
+
+			result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn + "/operations")
+
+			if err != nil {
+				log.Error("Error while url failed " + err.Error())
+			}
+
+			data1, err := ioutil.ReadAll(result.Body)
+			if err != nil {
+				log.Error("Error while read response " + err.Error())
+			}
+			var raw1 map[string]interface{}
+
+			err = json.Unmarshal(data1, &raw1)
+			if err != nil {
+				log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+			}
+
+			out, err := json.Marshal(raw1["_embedded"])
+			if err != nil {
+				log.Error("Error while json marshal _embedded " + err.Error())
+			}
+			var raw2 map[string]interface{}
+			err = json.Unmarshal(out, &raw2)
+			if err != nil {
+				log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+			}
+			out1, err := json.Marshal(raw2["records"])
+			if err != nil {
+				log.Error("Error while json marshal records " + err.Error())
+			}
+			keysBody := out1
+			keys := make([]PublicKeyProofhash, 0)
+			err = json.Unmarshal(keysBody, &keys)
+
+			if err != nil {
+				log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+			}
+
+			txe.SourceAccount = string(keys[1].Source_account)
+			log.Info("Source Account: " + txe.SourceAccount)
+
+			AssetCode_byteData, err := base64.StdEncoding.DecodeString(keys[3].Value)
+			if err != nil {
+				log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+			}
+
+			txe.AssetCode = string(AssetCode_byteData)
+			log.Info("Asset Code: " + txe.AssetCode)
+
+			AssetAmount_byteData, err := base64.StdEncoding.DecodeString(keys[4].Value)
+			if err != nil {
+				log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+			}
+
+			txe.AssetAmount, err = strconv.ParseFloat(string(AssetAmount_byteData), 64)
+			if err != nil {
+				log.Error("string to float64 conversion error")
+			}
+
+			log.Info("Asset Amount: " + fmt.Sprintf("%f", txe.AssetAmount))
+
+			Identifier_byteData, err := base64.StdEncoding.DecodeString(keys[1].Value)
+			if err != nil {
+				log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+			}
+
+			txe.Identifier = string(Identifier_byteData)
+			log.Info("Identifier: " + txe.Identifier)
+
+			Receiver_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+			if err != nil {
+				log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+			}
+
+			txe.Destination = string(Receiver_byteData)
+			log.Info("Identifier: " + txe.Identifier)
+
+		} else {
+			return txe, false, timestamp, ledger, feePaid
+
+		}
+
+	}
+
+	return txe, true, timestamp, ledger, feePaid
+}
+
+type PublicKeyProofhash struct {
+	Name           string
+	Value          string
+	Source_account string
 }

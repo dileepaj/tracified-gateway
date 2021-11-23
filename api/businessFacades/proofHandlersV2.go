@@ -305,8 +305,7 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 			return data
 		}).Catch(func(error error) error {
 			return error
-		})
-		g.Await()
+		}).Await()
 
 		return data
 
@@ -318,8 +317,7 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return error
 
-	})
-	p.Await()
+	}).Await()
 
 	// return
 
