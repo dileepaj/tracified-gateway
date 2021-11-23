@@ -9,7 +9,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/commons"
 
 	"net/http"
 )
