@@ -37,7 +37,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 	var UserMergeTxnHashes []string
 	var PreviousTxn string
-	var MergeID string
+	// var MergeID string
 
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
@@ -66,23 +66,22 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		log.Debug(AP.TxnBody)
 		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if i == 0 {
-			p := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier1)
-			p.Then(func(data interface{}) interface{} {
-				///ASSIGN PREVIOUS MANAGE DATA BUILDER
-				result := data.(model.TransactionCollectionBody)
-				PreviousTxn = result.TxnHash
-				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
+			pData, errorAsync := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
 
-				log.Debug(AP.TxnBody[i].PreviousTxnHash)
-				return nil
-			}).Catch(func(error error) error {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+error.Error())
+			if errorAsync != nil || pData == nil {
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync.Error())
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				AP.TxnBody[i].PreviousTxnHash = ""
-				return error
-			})
-			p.Await()
+			} else {
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER
+				result := pData.(model.TransactionCollectionBody)
+				PreviousTxn = result.TxnHash
+				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
+				log.Debug(AP.TxnBody[i].PreviousTxnHash)
+			}
 		}
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
@@ -118,23 +117,22 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}
 
 			if i == 0 {
-				p := object.GetLastTransactionbyIdentifier(TxnBody.FromIdentifier2)
-				p.Then(func(data interface{}) interface{} {
-					///ASSIGN PREVIOUS MANAGE DATA BUILDER
-					result := data.(model.TransactionCollectionBody)
-					MergeID = result.TxnHash
-					AP.TxnBody[i].MergeID = result.TxnHash
-
-					fmt.Println(AP.TxnBody[i].MergeID)
-					return nil
-				}).Catch(func(error error) error {
-					log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ error.Error())
+				pData, errorAsync := object.GetLastTransactionbyIdentifier(TxnBody.FromIdentifier2).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				
+				if errorAsync != nil || pData == nil {
+					log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 					///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 					//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 					AP.TxnBody[i].MergeID = ""
-					return error
-				})
-				p.Await()
+				} else {
+					///ASSIGN PREVIOUS MANAGE DATA BUILDER
+					result := pData.(model.TransactionCollectionBody)
+					// MergeID = result.TxnHash
+					AP.TxnBody[i].MergeID = result.TxnHash
+					fmt.Println(AP.TxnBody[i].MergeID)
+				}
 			}
 
 			//BUILD THE GATEWAY XDR
@@ -200,20 +198,18 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				if err != nil {
 					log.Error("Error while InsertTransaction @SubmitMerge "+err.Error())
 				} else if i == 0 {
-
 					var PreviousProfile string
-					p := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1)
-					p.Then(func(data interface{}) interface{} {
+					pData, errorAsync := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+						return data
+					}).Await()
 
-						result := data.(model.ProfileCollectionBody)
-						PreviousProfile = result.ProfileTxn
-						return nil
-					}).Catch(func(error error) error {
-						log.Error("Error while GetProfilebyIdentifier @SubmitMerge "+error.Error())
+					if errorAsync != nil || pData == nil {
+						log.Error("Error while GetProfilebyIdentifier @SubmitMerge" + errorAsync.Error())
 						PreviousProfile = ""
-						return error
-					})
-					p.Await()
+					} else {
+						result := pData.(model.ProfileCollectionBody)
+						PreviousProfile = result.ProfileTxn
+					}
 
 					Profile := model.ProfileCollectionBody{
 						ProfileTxn:         response1.TXNID,
@@ -227,9 +223,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 					if err3 != nil {
 						log.Error("Error while InsertProfile @SubmitMerge "+err3.Error())
 					}
-
 				}
-
 				// Done = true
 			}
 		}
