@@ -2,9 +2,11 @@ package businessFacades
 
 import (
 	"encoding/base64"
+	"io/ioutil"
+	"sort"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
-	"io/ioutil"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/stellar/go/xdr"
@@ -399,7 +401,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				to = fmt.Sprintf("%s", raw["source_account"])
 				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 				if errXDR != nil {
-					log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
+					log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
 					to = txe.Operations[3].Body.PaymentOp.Destination.Address()
@@ -539,7 +541,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 "+errXDR.Error())
+						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
 						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
@@ -747,10 +749,15 @@ func checkValidVersionByte(key string) string {
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	vars := mux.Vars(r)
+	keys, error := r.URL.Query()["limit"]
+
+	if !error || len(keys[0]) < 1 {
+		log.Println("Url Param 'key' is missing")
+		return
+	}
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
-	limit, err := strconv.Atoi(vars["limit"])
+	limit, err := strconv.Atoi(keys[0])
 	if err != nil {
 		log.Error("Error while read limit " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -758,8 +765,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	p := object.GetPreviousTransactions(limit)
-	p.Then(func(data interface{}) interface{} {
+	_, err = object.GetPreviousTransactions(limit).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			if TxnBody.TxnType != "10" {
@@ -829,17 +835,21 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				result = append(result, temp)
 			}
 		}
+		sort.SliceStable(result, func(i, j int) bool {
+			return result[i].Timestamp > result[j].Timestamp
+		})
 		// res := TDP{TdpId: result.TdpId}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
-	}).Catch(func(error error) error {
+	}).Await()
+
+	if err != nil {
 		log.Error("No Transactions Found in Gateway DataStore " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "No Transactions Found in Gateway DataStore " + err.Error()}
 		json.NewEncoder(w).Encode(response)
-		return error
-	}).Await()
+	}
 }
 
 func GetTransactiontype(Type string) string {

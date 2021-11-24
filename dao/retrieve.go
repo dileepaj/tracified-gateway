@@ -475,7 +475,9 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 
 func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	//var result1 []model.TransactionCollectionBody
 	// p := promise.NewPromise()
+	//var page int64 = 3
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -493,27 +495,35 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if count > int64(limit) {
-			options := options.Find()
-			options.SetSkip(count - int64(limit))
-			cursor, err1 := c.Find(context.TODO(), bson.M{}, options)
+		if count < int64(limit) {
+			cursor, err1 := c.Find(context.TODO(), bson.M{})
 			err2 := cursor.All(context.TODO(), &result)
 
 			if err1 != nil || err2 != nil || len(result) == 0 {
-				log.Error("Error while f.skip " + err1.Error())
+				log.Error("Error while f.All " + err1.Error())
 				reject(err1)
 			} else {
+				//result = result1
 				resolve(result)
 			}
+
 		}
 
-		cursor, err1 := c.Find(context.TODO(), bson.M{})
-		err2 := cursor.All(context.TODO(), &result)
+		opt := options.Find().SetSkip(count - 10)
+		//options.SetSort(bson.M{"$natural": -1})
+		//options.SetHint("$natural:1")
+		//options.SetSkip(count - 10)
+		//options.SetSort(bson.M{"_id": -1})
+		//options.SetLimit(10)
 
+		cursor, err1 := c.Find(context.TODO(), bson.M{}, opt)
+		err2 := cursor.All(context.TODO(), &result)
+		fmt.Println(len(result))
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			log.Error("Error while f.All " + err1.Error())
+			log.Error("Error while f.skip " + err1.Error())
 			reject(err1)
 		} else {
+			//result = result1[len(result1)-10 : len(result1)]
 			resolve(result)
 		}
 	})
