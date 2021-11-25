@@ -493,25 +493,27 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if count > int64(limit) {
-			options := options.Find()
-			options.SetSkip(count - int64(limit))
-			cursor, err1 := c.Find(context.TODO(), bson.M{}, options)
+		if count < int64(limit) {
+
+			cursor, err1 := c.Find(context.TODO(), bson.M{})
 			err2 := cursor.All(context.TODO(), &result)
 
 			if err1 != nil || err2 != nil || len(result) == 0 {
-				log.Error("Error while f.skip " + err1.Error())
+				log.Error("Error while f.All " + err1.Error())
 				reject(err1)
 			} else {
 				resolve(result)
 			}
+
 		}
 
-		cursor, err1 := c.Find(context.TODO(), bson.M{})
+		options := options.Find()
+		options.SetSkip(count - int64(limit))
+		cursor, err1 := c.Find(context.TODO(), bson.M{}, options)
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			log.Error("Error while f.All " + err1.Error())
+			log.Error("Error while f.skip " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
