@@ -18,8 +18,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/xdr"
 )
 
 type PublicKey struct {
@@ -268,12 +268,20 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	var pocStructObj apiModel.POCStruct
 
 	//checks the gateway DB for a TXN with the TdpID in the parameter
-	p := object.GetTransactionByTxnhash(vars["Txn"])
+	pData, errAsnc := object.GetTransactionByTxnhash(vars["Txn"]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
 
-	p.Then(func(data interface{}) interface{} {
-
-		result := data.(model.TransactionCollectionBody)
-		fmt.Println(result)
+	if errAsnc != nil || pData == nil {
+		log.Error("Error while GetTransactionByTxnhash " + errAsnc.Error())
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		response := model.Error{Message: "Txn Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return
+	} else {
+		result := pData.(model.TransactionCollectionBody)
+		// fmt.Println(result)
 		pocStructObj.Txn = result.TxnHash
 
 		pocStructObj.DBTree = []model.Current{}
@@ -372,68 +380,50 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		// }
 		display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 		response = display.InterpretFullPOC()
+		// fmt.Println(response.RetrievePOC.BCHash)
 		var POCTree []model.POCResponse
 		for _, tree := range response.RetrievePOC.BCHash {
-			var txe xdr.Transaction
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + tree.TXNID)
+			sr := stellarRetriever.ConcreteStellarTransaction{Txnhash: tree.TXNID}
+			txn, err := sr.RetrieveTransaction()
 			if err != nil {
 				// w.WriteHeader(http.StatusBadRequest)
 				// response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
 				// json.NewEncoder(w).Encode(response)
 				// return nil
 			}
-			data, err := ioutil.ReadAll(result1.Body)
-			if err != nil {
-				log.Error("Error while read result1 body " + err.Error())
-			}
-			if result1.StatusCode != 200 {
-				// w.WriteHeader(http.StatusBadRequest)
-				// response := model.Error{Message: "Txn Id Not Found in Stellar Public Net"}
-				// json.NewEncoder(w).Encode(response)
-				// return nil
-			}
-			var raw map[string]interface{}
-			json.Unmarshal(data, &raw)
-
-			fmt.Println(raw["envelope_xdr"])
-			fmt.Println("HAHAHAHAAHAHAH")
-			timestamp := fmt.Sprintf("%s", raw["created_at"])
-			ledger := fmt.Sprintf("%.0f", raw["ledger"])
-			feePaid := fmt.Sprintf("%s", raw["fee_charged"])
-			errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
-			if errXDR != nil {
-				log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
-			}
-			mapD := map[string]string{"transaction": tree.TXNID}
-			mapB, err := json.Marshal(mapD)
+			timestamp := fmt.Sprintf("%s", txn.CreatedAt)
+			ledger :=  strconv.Itoa(txn.Ledger)
+			feePaid := fmt.Sprintf("%s", txn.FeeCharged)
 			if err != nil {
 				log.Error("Error while json.Marshal(mapD) " + err.Error())
 			}
-			fmt.Println(string(mapB))
+			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
-			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := (string(encoded))
 			//GET THE USER SIGNED GENESIS TXN
-			Type := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-			Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-			SourceAccount := txe.SourceAccount.Address()
+			oprn, err := sr.RetrieveOperations()
+			if err != nil {
+
+			}
+			Type, _ :=  base64.StdEncoding.DecodeString(oprn.Embedded.Records[0].Value)
+			Identifier, _ := base64.RawStdEncoding.DecodeString(oprn.Embedded.Records[1].Value)
+			SourceAccount := txn.SourceAccount
+			sequenceNo, err := strconv.Atoi(txn.SourceAccountSequence)
 			temp := model.POCResponse{
 				Status:         "success",
 				BlockchainName: "Stellar",
 				Txnhash:        tree.TXNID,
-				TxnType:        GetTransactiontype(Type),
-				AvailableProof: GetProofName(Type),
-				Url: "https://www.stellar.org/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-					text + "%3D%3D&network=public",
+				TxnType:        GetTransactiontype(string(Type)),
+				AvailableProof: GetProofName(string(Type)),
+				Url: txn.Links.Self.Href + "/operations",
 				DataHash:      tree.DataHash,
 				Timestamp:     timestamp,
 				Ledger:        ledger,
 				FeePaid:       feePaid,
-				Identifier:    Identifier,
+				Identifier:    string(Identifier),
 				SourceAccount: SourceAccount,
-				SequenceNo:    int64(txe.SeqNum),
+				SequenceNo:    int64(sequenceNo),
 			}
 
 			POCTree = append(POCTree, temp)
@@ -461,15 +451,8 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		// 	return error
 		// })
 		// g.Await()
-		return data
-	}).Catch(func(error error) error {
-		log.Error("Error while GetTransactionByTxnhash " + error.Error())
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		response := model.Error{Message: "Txn Not Found in Gateway DataStore"}
-		json.NewEncoder(w).Encode(response)
-		return error
-	}).Await()
+		return
+	}
 	// return
 }
 
