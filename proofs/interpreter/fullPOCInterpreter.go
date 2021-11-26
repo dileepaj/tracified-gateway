@@ -16,13 +16,13 @@ import (
 func (AP *AbstractPOC) InterpretFullPOC() model.POC {
 	var pocObj model.POC
 
-	fmt.Println(AP.POCStruct)
+	// fmt.Println(AP.POCStruct)
 	object := stellarRetriever.ConcretePOC{POCStruct: AP.POCStruct}
 
 	pocObj.RetrievePOC = object.RetrieveFullPOC()
 
-	fmt.Println(pocObj.RetrievePOC.BCHash)
-	fmt.Println(AP.POCStruct.DBTree)
+	// fmt.Println(pocObj.RetrievePOC.BCHash)
+	// fmt.Println(AP.POCStruct.DBTree)
 
 	if pocObj.RetrievePOC.BCHash == nil {
 		return pocObj
@@ -36,6 +36,7 @@ func (AP *AbstractPOC) InterpretFullPOC() model.POC {
 
 func fullCompare(db []model.Current, bc []model.Current) model.Error {
 	var Rerr model.Error
+	fmt.Println(len(db), len(bc))
 	// isMatch := []bool{}
 	if db != nil && bc != nil {
 		if len(db) == len(bc) {
