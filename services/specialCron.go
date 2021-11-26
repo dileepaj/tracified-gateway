@@ -44,7 +44,17 @@ func CheckTempOrphan() {
 			stop := false //for infinite loop
 			//loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
-				_, errorAsync := object.GetSpecialForPkAndSeq(address, int64(i)).Then(func(data interface{}) interface{} {
+				data, errorAsync := object.GetSpecialForPkAndSeq(address, int64(i)).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if errorAsync != nil {
+					log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
+					// return error
+					//log.Println("No transactions in the scheduler")
+					stop = true //to break loop
+				} else if data == nil {
+					stop = true
+				} else {
 					result := data.(model.TransactionCollectionBody)
 					var UserTxnHash string
 					///HARDCODED CREDENTIALS
@@ -239,13 +249,6 @@ func CheckTempOrphan() {
 						}
 
 					}
-					return nil
-				}).Await()
-				if errorAsync != nil {
-					log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
-					// return error
-					//log.Println("No transactions in the scheduler")
-					stop = true //to break loop
 				}
 			
 				if stop {
