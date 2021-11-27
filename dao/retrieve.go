@@ -473,11 +473,12 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
+func (cd *Connection) GetPreviousTransactions(perPage int, page int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
-	//var result1 []model.TransactionCollectionBody
+	filteredResults := []model.TransactionCollectionBody{}
+	NoOfPages := 3
 	// p := promise.NewPromise()
-	//var page int64 = 3
+	fmt.Println(page)
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -495,7 +496,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if count < int64(limit) {
+		if count < int64(perPage) {
 			cursor, err1 := c.Find(context.TODO(), bson.M{})
 			err2 := cursor.All(context.TODO(), &result)
 
@@ -503,28 +504,21 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 				log.Error("Error while f.All " + err1.Error())
 				reject(err1)
 			} else {
-				//result = result1
 				resolve(result)
 			}
 
 		}
 
-		opt := options.Find().SetSkip(count - 10)
-		//options.SetSort(bson.M{"$natural": -1})
-		//options.SetHint("$natural:1")
-		//options.SetSkip(count - 10)
-		//options.SetSort(bson.M{"_id": -1})
-		//options.SetLimit(10)
-
+		opt := options.Find().SetSkip(count - int64(NoOfPages)*int64(perPage))
 		cursor, err1 := c.Find(context.TODO(), bson.M{}, opt)
 		err2 := cursor.All(context.TODO(), &result)
-		fmt.Println(len(result))
+
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			log.Error("Error while f.skip " + err1.Error())
 			reject(err1)
 		} else {
-			//result = result1[len(result1)-10 : len(result1)]
-			resolve(result)
+			filteredResults = result[len(result)-perPage*page : len(result)-perPage*(page-1)]
+			resolve(filteredResults)
 		}
 	})
 	return p
