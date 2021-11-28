@@ -349,6 +349,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					ProductName:    TxnBody.ProductName}
 				result = append(result, temp)
 			}
+			sort.SliceStable(result, func(i, j int) bool {
+				return result[i].Timestamp > result[j].Timestamp
+			})
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(result)
 			return nil
@@ -573,6 +576,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					ProductName:    TxnBody.ProductName}
 				result = append(result, temp)
 			}
+			sort.SliceStable(result, func(i, j int) bool {
+				return result[i].Timestamp > result[j].Timestamp
+			})
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(result)
 			return nil
