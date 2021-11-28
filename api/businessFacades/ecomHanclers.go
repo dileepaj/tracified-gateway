@@ -874,9 +874,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				result = append(result, temp)
 			}
 		}
-		sort.SliceStable(result, func(i, j int) bool {
-			return result[i].Timestamp > result[j].Timestamp
-		})
 		// res := TDP{TdpId: result.TdpId}
 		sort.SliceStable(result, func(i, j int) bool {
 			return result[i].Timestamp > result[j].Timestamp
