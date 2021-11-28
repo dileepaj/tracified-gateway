@@ -473,10 +473,10 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetPreviousTransactions(perPage int, page int) *promise.Promise {
+func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	filteredResults := []model.TransactionCollectionBody{}
-	NoOfPages := 3
+	NoOfPages := NoPage
 	// p := promise.NewPromise()
 	fmt.Println(page)
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {

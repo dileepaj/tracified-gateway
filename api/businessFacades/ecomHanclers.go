@@ -750,15 +750,23 @@ func checkValidVersionByte(key string) string {
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["perPage"]
-	key2, error := r.URL.Query()["page"]
 
 	if !error || len(key1[0]) < 1 {
 		log.Println("Url Param 'perPage' is missing")
 		return
 	}
 
+	key2, error := r.URL.Query()["page"]
+
 	if !error || len(key2[0]) < 1 {
 		log.Println("Url Param 'page' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["NoPage"]
+
+	if !error || len(key3[0]) < 1 {
+		log.Println("Url Param 'NoPage' is missing")
 		return
 	}
 
@@ -778,11 +786,19 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
+	NoPage, err := strconv.Atoi(key3[0])
+	if err != nil {
+		log.Error("Error while read limit " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
 
-	_, err = object.GetPreviousTransactions(perPage, page).Then(func(data interface{}) interface{} {
+	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			if TxnBody.TxnType != "10" {
