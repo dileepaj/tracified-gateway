@@ -201,11 +201,11 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 						return data
 					}).Await()
 					if pData1 == nil || errorAsync1 != nil {
-						result := pData1.(model.ProfileCollectionBody)
-						PreviousProfile = result.ProfileTxn
-					} else {
 						log.Error("Error @GetProfilebyIdentifier @SubmitSplit ")
 						PreviousProfile = ""
+					} else {
+						result := pData1.(model.ProfileCollectionBody)
+						PreviousProfile = result.ProfileTxn
 					}
 					Profile := model.ProfileCollectionBody{
 						ProfileTxn:         response1.TXNID,
