@@ -478,7 +478,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 	filteredResults := []model.TransactionCollectionBody{}
 	NoOfPages := NoPage
 	// p := promise.NewPromise()
-	fmt.Println(page)
+	fmt.Println(NoOfPages)
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -509,7 +509,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 
 		}
 
-		opt := options.Find().SetSkip(count - int64(NoOfPages)*int64(perPage))
+		opt := options.Find().SetSkip(count - int64(page)*int64(perPage))
 		cursor, err1 := c.Find(context.TODO(), bson.M{}, opt)
 		err2 := cursor.All(context.TODO(), &result)
 
