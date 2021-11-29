@@ -349,6 +349,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					ProductName:    TxnBody.ProductName}
 				result = append(result, temp)
 			}
+			sort.SliceStable(result, func(i, j int) bool {
+				return result[i].Timestamp > result[j].Timestamp
+			})
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(result)
 			return nil
@@ -573,6 +576,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					ProductName:    TxnBody.ProductName}
 				result = append(result, temp)
 			}
+			sort.SliceStable(result, func(i, j int) bool {
+				return result[i].Timestamp > result[j].Timestamp
+			})
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(result)
 			return nil
@@ -749,10 +755,28 @@ func checkValidVersionByte(key string) string {
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	vars := mux.Vars(r)
-	var result []model.PrevTxnResponse
-	object := dao.Connection{}
-	limit, err := strconv.Atoi(vars["limit"])
+	key1, error := r.URL.Query()["perPage"]
+
+	if !error || len(key1[0]) < 1 {
+		log.Println("Url Param 'perPage' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["page"]
+
+	if !error || len(key2[0]) < 1 {
+		log.Println("Url Param 'page' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["NoPage"]
+
+	if !error || len(key3[0]) < 1 {
+		log.Println("Url Param 'NoPage' is missing")
+		return
+	}
+
+	perPage, err := strconv.Atoi(key1[0])
 	if err != nil {
 		log.Error("Error while read limit " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -760,8 +784,27 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	p := object.GetPreviousTransactions(limit)
-	p.Then(func(data interface{}) interface{} {
+	page, err := strconv.Atoi(key2[0])
+	if err != nil {
+		log.Error("Error while read limit " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	NoPage, err := strconv.Atoi(key3[0])
+	if err != nil {
+		log.Error("Error while read limit " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	var result []model.PrevTxnResponse
+	object := dao.Connection{}
+
+	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			if TxnBody.TxnType != "10" {
@@ -838,13 +881,14 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
-	}).Catch(func(error error) error {
+	}).Await()
+
+	if err != nil {
 		log.Error("No Transactions Found in Gateway DataStore " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "No Transactions Found in Gateway DataStore " + err.Error()}
 		json.NewEncoder(w).Encode(response)
-		return error
-	}).Await()
+	}
 }
 
 func GetTransactiontype(Type string) string {

@@ -473,9 +473,12 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
+func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	filteredResults := []model.TransactionCollectionBody{}
+	NoOfPages := NoPage
 	// p := promise.NewPromise()
+	fmt.Println(NoOfPages)
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -493,8 +496,7 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if count < int64(limit) {
-
+		if count < int64(perPage) {
 			cursor, err1 := c.Find(context.TODO(), bson.M{})
 			err2 := cursor.All(context.TODO(), &result)
 
@@ -507,16 +509,16 @@ func (cd *Connection) GetPreviousTransactions(limit int) *promise.Promise {
 
 		}
 
-		options := options.Find()
-		options.SetSkip(count - int64(limit))
-		cursor, err1 := c.Find(context.TODO(), bson.M{}, options)
+		opt := options.Find().SetSkip(count - int64(page)*int64(perPage))
+		cursor, err1 := c.Find(context.TODO(), bson.M{}, opt)
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			log.Error("Error while f.skip " + err1.Error())
 			reject(err1)
 		} else {
-			resolve(result)
+			filteredResults = result[len(result)-perPage*page : len(result)-perPage*(page-1)]
+			resolve(filteredResults)
 		}
 	})
 	return p

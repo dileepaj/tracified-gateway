@@ -293,7 +293,7 @@ var routes = Routes{
 	Route{
 		"RetrievePreviousTranasctions",
 		"GET",
-		"/RetrievePreviousTranasctions/{limit}",
+		"/RetrievePreviousTranasctions",
 		businessFacades.RetrievePreviousTranasctions, //Test
 	},
 	Route{
