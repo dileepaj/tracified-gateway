@@ -40,6 +40,10 @@ type TransactionCollectionBody struct {
 	AppAccount      string
 	DataHash        string
 	ProductName     string
+	ProductID     string
+	PreviousSplitProfile       string
+	CurrentTxnHash string
+	PreviousTxnHash2 string
 }
 
 type ProfileCollectionBody struct {

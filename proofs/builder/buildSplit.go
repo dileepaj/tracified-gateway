@@ -59,35 +59,43 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
-
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		if i == 0 {
+		
+		if AP.TxnBody[i].TxnType == "5" {
+			AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 			AP.TxnBody[i].ToIdentifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
 		} else {
+			AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 			AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
 			AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
+			AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
 		}
 
 		//FOR THE SPLIT PARENT RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
-		if i == 0 {
+		if AP.TxnBody[i].TxnType == "5" {
 			// ParentIdentifier = Identifier
-			p := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].Identifier)
-			p.Then(func(data interface{}) interface{} {
+			pData, errAsnc := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].Identifier).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+
+			if pData == nil || errAsnc != nil {
+				log.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+				//DUE TO THE CHILD HAVING A NEW IDENTIFIER	
+				PreviousTxn = ""
+				AP.TxnBody[i].PreviousTxnHash = ""
+			} else {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
-				result := data.(model.TransactionCollectionBody)
+				result := pData.(model.TransactionCollectionBody)
 				PreviousTxn = result.TxnHash
 				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
-				return nil
-			}).Catch(func(error error) error {
-				log.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit "+error.Error())
-				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
-				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
-				
-				AP.TxnBody[i].PreviousTxnHash = ""
-				return error
-			}).Await()
+			}
 		}
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
@@ -108,7 +116,6 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		}
 	}
 	go func() {
-
 		var SplitParentProfile string
 		var PreviousSplitProfile string
 		for i, TxnBody := range AP.TxnBody {
@@ -118,7 +125,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			AP.TxnBody[i].PreviousTxnHash = PreviousTxn
 
 			//ASSIGN THE PREVIOUS PROFILE ID USING THE PARENT FOR THE CHILDREN AND A DB CALL FOR PARENT
-			if i == 0 {
+			if AP.TxnBody[i].TxnType == "5" {
 				PreviousSplitProfile = ""
 				SplitParentProfile = AP.TxnBody[i].ProfileID
 			} else {
@@ -180,7 +187,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 				AP.TxnBody[i].TxnHash = response1.TXNID
-				if i == 0 {
+				if AP.TxnBody[i].TxnType == "5" {
 					PreviousTxn = response1.TXNID
 				}
 
@@ -189,20 +196,17 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				if err1 != nil {
 					log.Error("Error @InsertTransaction @SubmitSplit "+err1.Error())
 				} else if i > 0 {
-
 					var PreviousProfile string
-					p := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1)
-					p.Then(func(data interface{}) interface{} {
-
-						result := data.(model.ProfileCollectionBody)
-						PreviousProfile = result.ProfileTxn
-						return nil
-					}).Catch(func(error error) error {
-						log.Error("Error @GetProfilebyIdentifier @SubmitSplit "+error.Error())
-						PreviousProfile = ""
-						return error
+					pData1, errorAsync1 := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+						return data
 					}).Await()
-
+					if pData1 == nil || errorAsync1 != nil {
+						result := pData1.(model.ProfileCollectionBody)
+						PreviousProfile = result.ProfileTxn
+					} else {
+						log.Error("Error @GetProfilebyIdentifier @SubmitSplit ")
+						PreviousProfile = ""
+					}
 					Profile := model.ProfileCollectionBody{
 						ProfileTxn:         response1.TXNID,
 						ProfileID:          AP.TxnBody[i].ProfileID,
@@ -215,7 +219,6 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 					if err2 != nil {
 						log.Error("Error @InsertProfile @SubmitSplit "+err2.Error())
 					}
-
 				}
 			}
 		}

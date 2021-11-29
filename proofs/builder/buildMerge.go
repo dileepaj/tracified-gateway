@@ -36,7 +36,6 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 	object := dao.Connection{}
 
 	var UserMergeTxnHashes []string
-	var PreviousTxn string
 	// var MergeID string
 
 	///HARDCODED CREDENTIALS
@@ -56,16 +55,18 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 
 		//GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].FromIdentifier2 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
 
 		log.Debug(AP.TxnBody)
 		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
-		if i == 0 {
+		if AP.TxnBody[i].Identifier != AP.TxnBody[i].FromIdentifier1 {
 			pData, errorAsync := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
@@ -78,9 +79,40 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			} else {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result := pData.(model.TransactionCollectionBody)
-				PreviousTxn = result.TxnHash
 				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
+			}
+
+			pData2, errorAsync2 := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+
+			if errorAsync2 != nil || pData2 == nil {
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync.Error())
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+				AP.TxnBody[i].PreviousTxnHash2 = ""
+			} else {
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER
+				result2 := pData2.(model.TransactionCollectionBody)
+				AP.TxnBody[i].PreviousTxnHash2 = result2.TxnHash
+				log.Debug(AP.TxnBody[i].PreviousTxnHash)
+			}
+		} else {
+			pData3, errorAsync3 := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+
+			if errorAsync3 != nil || pData3 == nil {
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync3.Error())
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+				AP.TxnBody[i].PreviousTxnHash2 = ""
+			} else {
+				///ASSIGN PREVIOUS MANAGE DATA BUILDER
+				result := pData3.(model.TransactionCollectionBody)
+				AP.TxnBody[i].PreviousTxnHash2 = result.TxnHash
+				log.Debug(AP.TxnBody[i].PreviousTxnHash2)
 			}
 		}
 
@@ -101,19 +133,27 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 	}
 	go func() {
 
+		var PreviousTxn string
+
 		for i, TxnBody := range AP.TxnBody {
+			var TypeTXNBuilder build.ManageDataBuilder
 			var PreviousTXNBuilder build.ManageDataBuilder
+			var MergeIDBuilder build.ManageDataBuilder
 
 			////GET THE PREVIOUS TRANSACTION FOR THE IDENTIFIER
 			//INCASE OF FIRST MERGE BLOCK THE PREVIOUS IS TAKEN FROM IDENTIFIER
 			//&
 			//INCASE OF GREATER THAN ONE THE PREVIOUS TXN IS THE PREVIOUS MERGE
 			if i == 0 {
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
-				AP.TxnBody[i].PreviousTxnHash = PreviousTxn
+				TypeTXNBuilder = build.SetData("Type", []byte("G8"))
+				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
 			} else {
+				TypeTXNBuilder = build.SetData("Type", []byte("G7"))
 				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
-				AP.TxnBody[i].PreviousTxnHash = PreviousTxn
+				MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
 			}
 
 			if i == 0 {
@@ -140,10 +180,10 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				commons.GetHorizonNetwork(),
 				build.SourceAccount{publicKey},
 				build.AutoSequence{commons.GetHorizonClient()},
-				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
+				TypeTXNBuilder,
 				PreviousTXNBuilder,
 				build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
-				build.SetData("MergeID", []byte(AP.TxnBody[i].MergeID)),
+				MergeIDBuilder,
 			)
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -190,9 +230,8 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 				AP.TxnBody[i].TxnHash = response1.TXNID
-				if i == 0 {
-					PreviousTxn = response1.TXNID
-				}
+				PreviousTxn = response1.TXNID
+				
 				///INSERT INTO TRANSACTION COLLECTION
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
