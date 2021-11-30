@@ -81,7 +81,7 @@ func MapXDROperations(txe *model.TransactionCollectionBody, md []xdr.Operation) 
 		if operation.Body.Type != xdr.OperationTypeManageData {
 			continue
 		} else {
-			mapDataOperations(txe, string(*&operation.Body.ManageDataOp.DataName), string(*operation.Body.ManageDataOp.DataValue))
+			mapDataOperations(txe, string(*&operation.Body.ManageDataOp.DataName), string(*operation.Body.ManageDataOp.DataValue), false)
 		}
 	}
 	return txe
@@ -92,16 +92,18 @@ func mapAPIOperations(txe *model.TransactionCollectionBody, sp model.StellarOper
 		if strings.ToLower(record.Type) != "manage_data" {
 			continue
 		} else {
-			mapDataOperations(txe, record.Name, record.Value)
+			mapDataOperations(txe, record.Name, record.Value, true)
 		}
 	}
 	return txe
 }
 		
-func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, dataValue string) (*model.TransactionCollectionBody) { 
-	decoded, err := base64.StdEncoding.DecodeString(dataValue)
-	if err == nil {
-		dataValue = string(decoded)
+func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, dataValue string, isBase64Value bool) (*model.TransactionCollectionBody) { 
+	if isBase64Value {
+		decoded, err := base64.StdEncoding.DecodeString(dataValue)
+		if err == nil {
+			dataValue = string(decoded)
+		}
 	}
 	switch strings.ToLower(strings.ReplaceAll(dataType, " ", "")) {
 		case "type": 
