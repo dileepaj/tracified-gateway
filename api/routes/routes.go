@@ -362,4 +362,16 @@ var routes = Routes{
 		"/notapproved/organization",
 		businessFacades.GetAllPendingAndRejectedOrganizations,
 	},
+	Route{
+		"BlockchainRetrieverWithHash",
+		"GET",
+		"/blockchain/{txn}",
+		businessFacades.BlockchainDataRetreiverWithHash,
+	},
+	Route{
+		"BlockchainTreeRetrieverWithHash",
+		"GET",
+		"/pocv4/{txn}",
+		businessFacades.BlockchainTreeRetreiverWithHash,
+	},
 }
