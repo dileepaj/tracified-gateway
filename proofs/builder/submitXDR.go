@@ -315,6 +315,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 					TDP[i].TxnHash = response1.TXNID
 					TDP[i].Status = "done"
+					TDP[i].XDR = txeB64
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
