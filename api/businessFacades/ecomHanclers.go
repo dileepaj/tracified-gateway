@@ -318,22 +318,109 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 						log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+						data, err := ioutil.ReadAll(result1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var raw map[string]interface{}
+						err = json.Unmarshal(data, &raw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						out, err := json.Marshal(raw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var raw1 map[string]interface{}
+						err = json.Unmarshal(out, &raw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						out1, err := json.Marshal(raw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						keysBody := out1
+						keys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(keysBody, &keys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+						acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+						if err != nil {
+							log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						}
+						acceptTxn := string(acceptTxn_byteData)
+						log.Info("acceptTxn: " + acceptTxn)
+
+						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+
+						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var acceptraw map[string]interface{}
+						err = json.Unmarshal(acceptdata, &acceptraw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						acceptout, err := json.Marshal(acceptraw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var acceptraw1 map[string]interface{}
+						err = json.Unmarshal(acceptout, &acceptraw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						acceptout1, err := json.Marshal(acceptraw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						acceptkeysBody := acceptout1
+						acceptkeys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(acceptkeysBody, &acceptkeys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+
+						to = string(acceptkeys[3].To)
+						log.Info("Destination: " + to)
+
+						from = string(acceptkeys[3].From)
+						log.Info("Source: " + from)
+
 					}
 				} else {
 					log.Error("Not success")
 				}
-				mapD := map[string]string{"transaction": TxnHash}
-				mapB, _ := json.Marshal(mapD)
+				//mapD := map[string]string{"transaction": TxnHash}
+				//mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
+				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -407,20 +494,107 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					if err != nil {
+						log.Error("Error while getting transactions by txnhash " + err.Error())
+						w.WriteHeader(http.StatusBadRequest)
+						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						json.NewEncoder(w).Encode(response)
+
+					}
+					data, err := ioutil.ReadAll(result1.Body)
+					if err != nil {
+						log.Error("Error while read response " + err.Error())
+					}
+					var raw map[string]interface{}
+					err = json.Unmarshal(data, &raw)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+					}
+
+					out, err := json.Marshal(raw["_embedded"])
+					if err != nil {
+						log.Error("Error while json marshal _embedded " + err.Error())
+					}
+					var raw1 map[string]interface{}
+					err = json.Unmarshal(out, &raw1)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+					}
+					out1, err := json.Marshal(raw1["records"])
+					if err != nil {
+						log.Error("Error while json marshal records " + err.Error())
+					}
+					keysBody := out1
+					keys := make([]PublicKeyPOCOC, 0)
+					err = json.Unmarshal(keysBody, &keys)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+					}
+					acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+					if err != nil {
+						log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+					}
+					acceptTxn := string(acceptTxn_byteData)
+					log.Info("acceptTxn: " + acceptTxn)
+
+					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					if err != nil {
+						log.Error("Error while getting transactions by txnhash " + err.Error())
+						w.WriteHeader(http.StatusBadRequest)
+						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						json.NewEncoder(w).Encode(response)
+
+					}
+
+					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
+					if err != nil {
+						log.Error("Error while read response " + err.Error())
+					}
+					var acceptraw map[string]interface{}
+					err = json.Unmarshal(acceptdata, &acceptraw)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+					}
+
+					acceptout, err := json.Marshal(acceptraw["_embedded"])
+					if err != nil {
+						log.Error("Error while json marshal _embedded " + err.Error())
+					}
+					var acceptraw1 map[string]interface{}
+					err = json.Unmarshal(acceptout, &acceptraw1)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+					}
+					acceptout1, err := json.Marshal(acceptraw1["records"])
+					if err != nil {
+						log.Error("Error while json marshal records " + err.Error())
+					}
+					acceptkeysBody := acceptout1
+					acceptkeys := make([]PublicKeyPOCOC, 0)
+					err = json.Unmarshal(acceptkeysBody, &acceptkeys)
+					if err != nil {
+						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+					}
+
+					to = string(acceptkeys[3].To)
+					log.Info("Destination: " + to)
+
+					from = string(acceptkeys[3].From)
+					log.Info("Source: " + from)
+
 				}
 			}
-			mapD := map[string]string{"transaction": TxnHash}
-			mapB, _ := json.Marshal(mapD)
+			//mapD := map[string]string{"transaction": TxnHash}
+			//mapB, _ := json.Marshal(mapD)
 			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
-			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := encoded
+			//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+			//text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+				Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
@@ -474,20 +648,107 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+						data, err := ioutil.ReadAll(result1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var raw map[string]interface{}
+						err = json.Unmarshal(data, &raw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						out, err := json.Marshal(raw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var raw1 map[string]interface{}
+						err = json.Unmarshal(out, &raw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						out1, err := json.Marshal(raw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						keysBody := out1
+						keys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(keysBody, &keys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+						acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+						if err != nil {
+							log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						}
+						acceptTxn := string(acceptTxn_byteData)
+						log.Info("acceptTxn: " + acceptTxn)
+
+						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+
+						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var acceptraw map[string]interface{}
+						err = json.Unmarshal(acceptdata, &acceptraw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						acceptout, err := json.Marshal(acceptraw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var acceptraw1 map[string]interface{}
+						err = json.Unmarshal(acceptout, &acceptraw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						acceptout1, err := json.Marshal(acceptraw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						acceptkeysBody := acceptout1
+						acceptkeys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(acceptkeysBody, &acceptkeys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+
+						to = string(acceptkeys[3].To)
+						log.Info("Destination: " + to)
+
+						from = string(acceptkeys[3].From)
+						log.Info("Source: " + from)
+
 					}
 				}
-				mapD := map[string]string{"transaction": TxnHash}
-				mapB, _ := json.Marshal(mapD)
+				//mapD := map[string]string{"transaction": TxnHash}
+				//mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
+				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -547,20 +808,107 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+						data, err := ioutil.ReadAll(result1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var raw map[string]interface{}
+						err = json.Unmarshal(data, &raw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						out, err := json.Marshal(raw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var raw1 map[string]interface{}
+						err = json.Unmarshal(out, &raw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						out1, err := json.Marshal(raw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						keysBody := out1
+						keys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(keysBody, &keys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+						acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+						if err != nil {
+							log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						}
+						acceptTxn := string(acceptTxn_byteData)
+						log.Info("acceptTxn: " + acceptTxn)
+
+						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+
+						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var acceptraw map[string]interface{}
+						err = json.Unmarshal(acceptdata, &acceptraw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						acceptout, err := json.Marshal(acceptraw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var acceptraw1 map[string]interface{}
+						err = json.Unmarshal(acceptout, &acceptraw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						acceptout1, err := json.Marshal(acceptraw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						acceptkeysBody := acceptout1
+						acceptkeys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(acceptkeysBody, &acceptkeys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+
+						to = string(acceptkeys[3].To)
+						log.Info("Destination: " + to)
+
+						from = string(acceptkeys[3].From)
+						log.Info("Source: " + from)
+
 					}
 				}
-				mapD := map[string]string{"transaction": TxnHash}
-				mapB, _ := json.Marshal(mapD)
+				//mapD := map[string]string{"transaction": TxnHash}
+				//mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
+				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -807,7 +1155,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
-			if TxnBody.TxnType != "10" {
+			if TxnBody.TxnType != "11" {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
 				status := "success"
@@ -841,23 +1189,110 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						to = txe.Operations[3].Body.PaymentOp.Destination.Address()
+						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+						data, err := ioutil.ReadAll(result1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var raw map[string]interface{}
+						err = json.Unmarshal(data, &raw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						out, err := json.Marshal(raw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var raw1 map[string]interface{}
+						err = json.Unmarshal(out, &raw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						out1, err := json.Marshal(raw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						keysBody := out1
+						keys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(keysBody, &keys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+						acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+						if err != nil {
+							log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						}
+						acceptTxn := string(acceptTxn_byteData)
+						log.Info("acceptTxn: " + acceptTxn)
+
+						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						if err != nil {
+							log.Error("Error while getting transactions by txnhash " + err.Error())
+							w.WriteHeader(http.StatusBadRequest)
+							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+							json.NewEncoder(w).Encode(response)
+
+						}
+
+						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var acceptraw map[string]interface{}
+						err = json.Unmarshal(acceptdata, &acceptraw)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						}
+
+						acceptout, err := json.Marshal(acceptraw["_embedded"])
+						if err != nil {
+							log.Error("Error while json marshal _embedded " + err.Error())
+						}
+						var acceptraw1 map[string]interface{}
+						err = json.Unmarshal(acceptout, &acceptraw1)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						}
+						acceptout1, err := json.Marshal(acceptraw1["records"])
+						if err != nil {
+							log.Error("Error while json marshal records " + err.Error())
+						}
+						acceptkeysBody := acceptout1
+						acceptkeys := make([]PublicKeyPOCOC, 0)
+						err = json.Unmarshal(acceptkeysBody, &acceptkeys)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						}
+
+						to = string(acceptkeys[3].To)
+						log.Info("Destination: " + to)
+
+						from = string(acceptkeys[3].From)
+						log.Info("Source: " + from)
+
 					}
 				}
-				mapD := map[string]string{"transaction": TxnHash}
-				mapB, err := json.Marshal(mapD)
-				if err != nil {
-					log.Error("Error while json.Marshal(mapD) " + err.Error())
-				}
+				//mapD := map[string]string{"transaction": TxnHash}
+				//mapB, err := json.Marshal(mapD)
+				//if err != nil {
+				//log.Error("Error while json.Marshal(mapD) " + err.Error())
+				//}
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
+				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url: commons.GetStellarLaboratoryClient() + "#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
