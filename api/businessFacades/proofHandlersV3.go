@@ -392,7 +392,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				// return nil
 			}
 			timestamp := fmt.Sprintf("%s", txn.CreatedAt)
-			ledger :=  strconv.Itoa(txn.Ledger)
+			ledger := strconv.Itoa(txn.Ledger)
 			feePaid := fmt.Sprintf("%s", txn.FeeCharged)
 			if err != nil {
 				log.Error("Error while json.Marshal(mapD) " + err.Error())
@@ -406,7 +406,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 
 			}
-			Type, _ :=  base64.StdEncoding.DecodeString(oprn.Embedded.Records[0].Value)
+			Type, _ := base64.StdEncoding.DecodeString(oprn.Embedded.Records[0].Value)
 			Identifier, _ := base64.RawStdEncoding.DecodeString(oprn.Embedded.Records[1].Value)
 			SourceAccount := txn.SourceAccount
 			sequenceNo, err := strconv.Atoi(txn.SourceAccountSequence)
@@ -416,14 +416,14 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				Txnhash:        tree.TXNID,
 				TxnType:        GetTransactiontype(string(Type)),
 				AvailableProof: GetProofName(string(Type)),
-				Url: txn.Links.Self.Href + "/operations",
-				DataHash:      tree.DataHash,
-				Timestamp:     timestamp,
-				Ledger:        ledger,
-				FeePaid:       feePaid,
-				Identifier:    string(Identifier),
-				SourceAccount: SourceAccount,
-				SequenceNo:    int64(sequenceNo),
+				Url:            txn.Links.Self.Href + "/operations",
+				DataHash:       tree.DataHash,
+				Timestamp:      timestamp,
+				Ledger:         ledger,
+				FeePaid:        feePaid,
+				Identifier:     string(Identifier),
+				SourceAccount:  SourceAccount,
+				SequenceNo:     int64(sequenceNo),
 			}
 
 			POCTree = append(POCTree, temp)
@@ -738,7 +738,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	out5, _ := json.Marshal(raw3[0])
 	out4, _ := json.Marshal(raw3[1])
 	out6, _ := json.Marshal(raw3[2])
-	
+
 	json.Unmarshal(out5, &raw4)
 	json.Unmarshal(out4, &raw2)
 	json.Unmarshal(out6, &raw5)
@@ -783,7 +783,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	if len(raw7) > 3 {
 		out9, _ := json.Marshal(raw7[2])
 		out10, _ := json.Marshal(raw7[3])
-		
+
 		var raw20 map[string]interface{}
 		var raw40 map[string]interface{}
 
@@ -801,8 +801,8 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	}
 
 	temp := model.POGResponse{
-		Txnhash: TxnHash,
-		Url: commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
+		Txnhash:        TxnHash,
+		Url:            commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
 		Identifier:     res.Identifier,
 		SequenceNo:     res.SequenceNo,
 		TxnType:        "genesis",
@@ -843,8 +843,53 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	var COCAvailable bool
 	var txe interpreter.XDR
 	vars := mux.Vars(r)
+
+	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + vars["TxnId"] + "/operations")
+	if err != nil {
+		log.Error("Error while getting transactions by txnhash " + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	data, err := ioutil.ReadAll(result1.Body)
+	if err != nil {
+		log.Error("Error while read response " + err.Error())
+	}
+	var raw map[string]interface{}
+	err = json.Unmarshal(data, &raw)
+	if err != nil {
+		log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+	}
+
+	out, err := json.Marshal(raw["_embedded"])
+	if err != nil {
+		log.Error("Error while json marshal _embedded " + err.Error())
+	}
+	var raw1 map[string]interface{}
+	err = json.Unmarshal(out, &raw1)
+	if err != nil {
+		log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+	}
+	out1, err := json.Marshal(raw1["records"])
+	if err != nil {
+		log.Error("Error while json marshal records " + err.Error())
+	}
+	keysBody := out1
+	keys := make([]PublicKeyPOCOC, 0)
+	err = json.Unmarshal(keysBody, &keys)
+	if err != nil {
+		log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+	}
+	acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
+	if err != nil {
+		log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+	}
+	acceptTxn := string(acceptTxn_byteData)
+	log.Info("acceptTxn: " + acceptTxn)
+
 	object := dao.Connection{}
-	_, err := object.GetCOCbyAcceptTxn(vars["TxnId"]).Then(func(data interface{}) interface{} {
+	_, err = object.GetCOCbyAcceptTxn(acceptTxn).Then(func(data interface{}) interface{} {
 		COCAvailable = true
 		COC = data.(model.COCCollectionBody)
 		fmt.Println(COC)
@@ -879,7 +924,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
 		display.InterpretPOCOC(w, r)
 		*/
-		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + vars["TxnId"] + "/operations")
+		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
 		if err != nil {
 			log.Error("Error while getting transactions by txnhash " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)
@@ -944,7 +989,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		log.Info("Asset Code: " + txe.AssetCode)
 
 		COCStatus := COC.Status
-		display := &interpreter.AbstractPOCOCNew{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: Proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
+		display := &interpreter.AbstractPOCOCNew{Txn: acceptTxn, DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: Proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
 		display.InterpretPOCOCNew(w, r)
 
 	}
@@ -989,4 +1034,5 @@ type PublicKeyPOCOC struct {
 	Asset_code     string
 	Amount         string
 	To             string
+	From           string
 }
