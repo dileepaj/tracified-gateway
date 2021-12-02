@@ -488,7 +488,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		c := session.Client().Database(dbName).Collection("Transactions")
 
 		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}})
-
+                // count only genesis, TDP, splitparent, splitchild and COC transactions
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
