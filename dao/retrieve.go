@@ -508,7 +508,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 
 		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
 		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}, opt)
-		 // Tillit Explorer is going to show genesis, TDP, splitparent, splitchild and COC transactions
+		 // retrieve only genesis, TDP, splitparent, splitchild and COC transactions
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
