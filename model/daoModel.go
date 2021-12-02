@@ -94,6 +94,7 @@ type PrevTxnResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
+	LabUrl		   string
 	From           string
 	To             string
 	SourceAccount  string
@@ -113,6 +114,7 @@ type POCOCResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
+	LabUrl		   string
 	Identifier     string
 	Quantity       string
 	AssetCode      string
@@ -133,6 +135,7 @@ type POGResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
+	LabUrl         string
 	SourceAccount  string
 	Identifier     string
 	BlockchainName string
@@ -149,6 +152,7 @@ type POEResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
+	LabUrl 		   string
 	SourceAccount  string
 	Identifier     string
 	BlockchainName string

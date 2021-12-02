@@ -411,16 +411,18 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				} else {
 					log.Error("Not success")
 				}
-				//mapD := map[string]string{"transaction": TxnHash}
-				//mapB, _ := json.Marshal(mapD)
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				//text := encoded
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
 					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+					LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -585,16 +587,19 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 				}
 			}
-			//mapD := map[string]string{"transaction": TxnHash}
-			//mapB, _ := json.Marshal(mapD)
+			mapD := map[string]string{"transaction": TxnHash}
+			mapB, _ := json.Marshal(mapD)
 			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
-			//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			//text := encoded
+
+			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
 				Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
@@ -739,16 +744,18 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 					}
 				}
-				//mapD := map[string]string{"transaction": TxnHash}
-				//mapB, _ := json.Marshal(mapD)
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				//text := encoded
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
 					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+					LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -899,16 +906,18 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 					}
 				}
-				//mapD := map[string]string{"transaction": TxnHash}
-				//mapB, _ := json.Marshal(mapD)
+				mapD := map[string]string{"transaction": TxnHash}
+				mapB, _ := json.Marshal(mapD)
 				// fmt.Println(string(mapB))
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				//text := encoded
+				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
 					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+					LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 					Identifier:     TxnBody.Identifier,
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
@@ -1002,8 +1011,9 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=transactions&endpoint=single&values=" +
-					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+				Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
