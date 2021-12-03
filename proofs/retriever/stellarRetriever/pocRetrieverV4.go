@@ -10,6 +10,7 @@ type POCNode struct {
 	Parents []string
 	Children []string
 	Siblings []string
+	TrustLinks []string
 }
 
 type POCTreeV4 struct {
@@ -57,16 +58,23 @@ func (poc *POCTreeV4) generatePOCV4() {
 	if node, exists := poc.Nodes[gtxe.CurrentTxnHash]; exists {
 		node.Id = ctxe.TxnHash
 		node.Data = *ctxe
+
+		if !contains(node.TrustLinks, gtxe.TxnHash) {
+			node.TrustLinks =  append(node.TrustLinks, gtxe.TxnHash)
+		}
+
 	} else {
 		poc.Nodes[gtxe.CurrentTxnHash] = &POCNode{
 			Id: ctxe.TxnHash,
 			Data: *ctxe,
+			TrustLinks: []string{gtxe.TxnHash},
 		}
 	}
 		
 	// check type and add parents and children\
 	switch gtxe.TxnType {
 		case "0":
+
 			return
 		case "2":
 			if gtxe.PreviousTxnHash == "" {
