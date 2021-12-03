@@ -1361,7 +1361,7 @@ func GetProofName(Type string) []string {
 		result = append(result, "pog")
 	case "2":
 		result = append(result, "poe")
-		// result = append(result, "poc")
+		result = append(result, "poc")
 
 	case "5":
 		result = append(result, "poc")
