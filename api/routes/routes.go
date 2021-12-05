@@ -275,7 +275,7 @@ var routes = Routes{
 	Route{
 		"QueryTransactionsByKey",
 		"GET",
-		"/GetTransactions/{key}",
+		"/GetTransactions",
 		businessFacades.QueryTransactionsByKey, //multisearch
 	},
 	Route{

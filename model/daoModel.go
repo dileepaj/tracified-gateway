@@ -18,32 +18,32 @@ type COCCollectionBody struct {
 	Status     string
 }
 type TransactionCollectionBody struct {
-	Identifier      string
-	TdpId           string
-	SequenceNo      int64
-	ProfileID       string
-	TxnHash         string
-	PreviousTxnHash string
-	FromIdentifier1 string
-	FromIdentifier2 string
-	ToIdentifier    string
-	ItemCode        string
-	ItemAmount      string
-	PublicKey       string
-	TxnType         string
-	XDR             string
-	Status          string
-	MergeID         string
-	Orphan          bool
-	PreviousStage   string
-	CurrentStage    string
-	AppAccount      string
-	DataHash        string
-	ProductName     string
-	ProductID     string
-	PreviousSplitProfile       string
-	CurrentTxnHash string
-	PreviousTxnHash2 string
+	Identifier           string
+	TdpId                string
+	SequenceNo           int64
+	ProfileID            string
+	TxnHash              string
+	PreviousTxnHash      string
+	FromIdentifier1      string
+	FromIdentifier2      string
+	ToIdentifier         string
+	ItemCode             string
+	ItemAmount           string
+	PublicKey            string
+	TxnType              string
+	XDR                  string
+	Status               string
+	MergeID              string
+	Orphan               bool
+	PreviousStage        string
+	CurrentStage         string
+	AppAccount           string
+	DataHash             string
+	ProductName          string
+	ProductID            string
+	PreviousSplitProfile string
+	CurrentTxnHash       string
+	PreviousTxnHash2     string
 }
 
 type ProfileCollectionBody struct {
@@ -94,7 +94,7 @@ type PrevTxnResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
-	LabUrl		   string
+	LabUrl         string
 	From           string
 	To             string
 	SourceAccount  string
@@ -106,6 +106,7 @@ type PrevTxnResponse struct {
 	AvailableProof []string
 	DataHash       string
 	ProductName    string
+	Itemcount      string
 }
 
 type POCOCResponse struct {
@@ -114,7 +115,7 @@ type POCOCResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
-	LabUrl		   string
+	LabUrl         string
 	Identifier     string
 	Quantity       string
 	AssetCode      string
@@ -142,8 +143,8 @@ type POGResponse struct {
 	Timestamp      string
 	Ledger         string
 	FeePaid        string
-	ProductName        string
-	ProductId        string
+	ProductName    string
+	ProductId      string
 }
 
 type POEResponse struct {
@@ -152,7 +153,7 @@ type POEResponse struct {
 	TxnType        string
 	SequenceNo     int64
 	Url            string
-	LabUrl 		   string
+	LabUrl         string
 	SourceAccount  string
 	Identifier     string
 	BlockchainName string
@@ -275,4 +276,9 @@ const (
 
 func (O Option) String() string {
 	return [...]string{"undefined", "approved", "rejected", "expired", "pending"}[O]
+}
+
+type TransactionCollectionBodyWithCount struct {
+	Count        int64
+	Transactions []TransactionCollectionBody
 }
