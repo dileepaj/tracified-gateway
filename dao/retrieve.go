@@ -488,7 +488,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		c := session.Client().Database(dbName).Collection("Transactions")
 
 		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}})
-                // count only genesis, TDP, splitparent, splitchild and COC transactions
+		// count only genesis, TDP, splitparent, splitchild and COC transactions
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
@@ -508,7 +508,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 
 		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
 		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}, opt)
-		 // retrieve only genesis, TDP, splitparent, splitchild and COC transactions
+		// retrieve only genesis, TDP, splitparent, splitchild and COC transactions
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
@@ -1380,4 +1380,146 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 
 	})
 	return p
+}
+
+func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
+	result := model.TransactionCollectionBodyWithCount{}
+	// p := promise.NewPromise()
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("Transactions")
+		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
+		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"publickey": Publickey}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
+
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+
+		offset := int64(page) * int64(perPage)
+		if count < offset {
+			perPage = int(count + int64(perPage) - offset)
+			offset = count
+
+		}
+
+		opt := options.Find().SetSkip(count - offset).SetLimit(int64(perPage))
+		cursor, err1 := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"publickey": Publickey}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}}, opt)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &(result.Transactions))
+			result.Count = int64(count)
+			if err2 != nil || len(result.Transactions) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetAllTransactionForTdpId_Paginated(TdpId string, page int, perPage int) *promise.Promise {
+	result := model.TransactionCollectionBodyWithCount{}
+	// p := promise.NewPromise()
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to the db " + err.Error())
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"tdpid": TdpId}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
+
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+
+		offset := int64(page) * int64(perPage)
+		if count < offset {
+			perPage = int(count + int64(perPage) - offset)
+			offset = count
+
+		}
+
+		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
+		cursor, err1 := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"tdpid": TdpId}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}}, opt)
+		err2 := cursor.All(context.TODO(), &(result.Transactions))
+		result.Count = int64(count)
+		if err1 != nil || err2 != nil || len(result.Transactions) == 0 {
+			log.Error("Error while getting transactions " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, page int, perPage int) *promise.Promise {
+	result := model.TransactionCollectionBodyWithCount{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"identifier": identifier}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
+
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+
+		offset := int64(page) * int64(perPage)
+		if count < offset {
+			perPage = int(count + int64(perPage) - offset)
+			offset = count
+
+		}
+
+		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
+		cursor, err1 := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"identifier": identifier}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}}, opt)
+		err2 := cursor.All(context.TODO(), &(result.Transactions))
+		result.Count = int64(count)
+		fmt.Println(count)
+		if err1 != nil || err2 != nil || len(result.Transactions) == 0 {
+			// fmt.Println(err1)
+			reject(err1)
+
+		} else {
+			resolve(result)
+
+		}
+
+	})
+
+	return p
+
 }
