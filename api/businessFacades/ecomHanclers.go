@@ -1403,6 +1403,10 @@ func GetTransactiontype(Type string) string {
 		return "splitParent"
 	case "6":
 		return "splitChild"
+	case "7":
+		return "merge"
+	case "8":
+		return "merge"
 	case "10":
 		return "coc"
 	case "11":
@@ -1419,12 +1423,14 @@ func GetProofName(Type string) []string {
 	case "2":
 		result = append(result, "poe")
 		result = append(result, "poc")
-
 	case "5":
 		result = append(result, "poc")
 	case "6":
 		result = append(result, "poc")
-
+	case "7":
+		result = append(result, "poc")
+	case "8":
+		result = append(result, "poc")
 	case "10":
 		result = append(result, "pococ")
 		result = append(result, "poc")
