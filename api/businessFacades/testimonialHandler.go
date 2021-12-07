@@ -43,59 +43,30 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 	var accept xdr.Transaction
 	var reject xdr.Transaction
 
-	if commons.GoDotEnvVariable("NETWORKPASSPHRASE") == "test" {
-
-		err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-
-		acc, _ := acceptBuild.Hash()
-		validAccept := fmt.Sprintf("%x", acc)
-
-		err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-		fmt.Println(commons.GetHorizonNetwork().Passphrase)
-
-		rej, _ := rejectBuild.Hash()
-		validReject := fmt.Sprintf("%x", rej)
-
-		Obj.AcceptTxn = validAccept
-		Obj.RejectTxn = validReject
-
-	} else if commons.GoDotEnvVariable("NETWORKPASSPHRASE") == "public" {
-
-		err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-
-		acc, _ := acceptBuild.Hash()
-		validAccept := fmt.Sprintf("%x", acc)
-
-		err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
-
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-		fmt.Println(commons.GetHorizonNetwork().Passphrase)
-
-		rej, _ := rejectBuild.Hash()
-		validReject := fmt.Sprintf("%x", rej)
-
-		Obj.AcceptTxn = validAccept
-		Obj.RejectTxn = validReject
+	err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
+	if err != nil {
+		fmt.Println(err)
 	}
+
+	acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+
+	acc, _ := acceptBuild.Hash()
+	validAccept := fmt.Sprintf("%x", acc)
+
+	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
+
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+
+	rej, _ := rejectBuild.Hash()
+	validReject := fmt.Sprintf("%x", rej)
+
+	Obj.AcceptTxn = validAccept
+	Obj.RejectTxn = validReject
 
 	var txe xdr.Transaction
 	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
