@@ -107,6 +107,7 @@ type PrevTxnResponse struct {
 	DataHash       string
 	ProductName    string
 	Itemcount      string
+	AssetCode      string
 }
 
 type POCOCResponse struct {
