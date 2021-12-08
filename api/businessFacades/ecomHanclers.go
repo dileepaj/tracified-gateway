@@ -474,6 +474,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
+				Blockchain:		"Stellar",
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
@@ -646,6 +647,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
+				Blockchain:		"Stellar",
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
@@ -811,6 +813,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
+				Blockchain:		"Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -982,6 +985,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
+				Blockchain:		"Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
