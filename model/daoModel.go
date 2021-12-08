@@ -90,6 +90,7 @@ type TransactionIds struct {
 
 type PrevTxnResponse struct {
 	Status         string
+	Blockchain	   string
 	Txnhash        string
 	TxnType        string
 	SequenceNo     int64
@@ -107,6 +108,7 @@ type PrevTxnResponse struct {
 	DataHash       string
 	ProductName    string
 	Itemcount      string
+	AssetCode      string
 }
 
 type POCOCResponse struct {

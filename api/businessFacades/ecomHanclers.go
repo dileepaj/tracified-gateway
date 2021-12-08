@@ -342,6 +342,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			feePaid := ""
 			from := ""
 			to := ""
+			assetcode := ""
 			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
@@ -455,6 +456,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					from = string(acceptkeys[3].From)
 					log.Info("Source: " + from)
 
+					assetcode = string(acceptkeys[3].Asset_code)
+					log.Info("Asset Code: " + assetcode)
 				}
 			} else {
 				log.Error("Not success")
@@ -474,6 +477,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
+				Blockchain:		"Stellar",
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
@@ -484,7 +488,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to,
 				ProductName:    TxnBody.ProductName,
-				Itemcount:      count}
+				Itemcount:      count,
+				AssetCode:      assetcode}
 
 			result = append(result, temp)
 		}
@@ -518,6 +523,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			feePaid := ""
 			from := ""
 			to := ""
+			assetcode := ""
 			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 			log.Info(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 			if err != nil {
@@ -629,6 +635,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					from = string(acceptkeys[3].From)
 					log.Info("Source: " + from)
 
+					assetcode = string(acceptkeys[3].Asset_code)
+					log.Info("Asset Code: " + assetcode)
 				}
 			}
 			mapD := map[string]string{"transaction": TxnHash}
@@ -646,6 +654,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
 				TdpId:          TxnBody.TdpId,
+				Blockchain:		"Stellar",
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
@@ -656,7 +665,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				SequenceNo:     TxnBody.SequenceNo,
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to,
-				ProductName:    TxnBody.ProductName}
+				ProductName:    TxnBody.ProductName,
+				AssetCode:      assetcode}
 			result = append(result, temp)
 		}
 		w.WriteHeader(http.StatusOK)
@@ -686,6 +696,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			feePaid := ""
 			from := ""
 			to := ""
+			assetcode := ""
 			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
@@ -796,6 +807,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					from = string(acceptkeys[3].From)
 					log.Info("Source: " + from)
 
+					assetcode = string(acceptkeys[3].Asset_code)
+					log.Info("Asset Code: " + assetcode)
+
 				}
 			}
 			mapD := map[string]string{"transaction": TxnHash}
@@ -811,6 +825,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
+				Blockchain:		"Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -823,7 +838,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to,
 				ProductName:    TxnBody.ProductName,
-				Itemcount:      count}
+				Itemcount:      count,
+				AssetCode:      assetcode}
 			result = append(result, temp)
 		}
 		sort.SliceStable(result, func(i, j int) bool {
@@ -857,6 +873,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			feePaid := ""
 			from := ""
 			to := ""
+			assetcode := ""
 			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
@@ -967,6 +984,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					from = string(acceptkeys[3].From)
 					log.Info("Source: " + from)
 
+					assetcode = string(acceptkeys[3].Asset_code)
+					log.Info("Asset Code: " + assetcode)
+
 				}
 			}
 			mapD := map[string]string{"transaction": TxnHash}
@@ -982,6 +1002,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:     TxnBody.Identifier,
+				Blockchain:		"Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -994,7 +1015,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to,
 				ProductName:    TxnBody.ProductName,
-				Itemcount:      count}
+				Itemcount:      count,
+				AssetCode:      assetcode}
 			result = append(result, temp)
 		}
 		sort.SliceStable(result, func(i, j int) bool {
@@ -1231,6 +1253,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				feePaid := ""
 				from := ""
 				to := ""
+				assetcode := ""
 				result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
 				if err != nil {
 					log.Error("Txn Id Not Found in Stellar Public Net " + err.Error())
@@ -1345,6 +1368,9 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						from = string(acceptkeys[3].From)
 						log.Info("Source: " + from)
 
+						assetcode = string(acceptkeys[3].Asset_code)
+						log.Info("Source: " + assetcode)
+
 					}
 				}
 				//mapD := map[string]string{"transaction": TxnHash}
@@ -1372,7 +1398,8 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					SequenceNo:     TxnBody.SequenceNo,
 					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to,
-					ProductName:    TxnBody.ProductName}
+					ProductName:    TxnBody.ProductName,
+					AssetCode:      assetcode}
 				result = append(result, temp)
 			}
 		}
