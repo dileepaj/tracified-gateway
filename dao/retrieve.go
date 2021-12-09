@@ -1523,3 +1523,73 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 	return p
 
 }
+
+func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
+	result := []model.Testimonial{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise.Promise {
+	result := []model.TestimonialOrganization{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Organizations")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+
+	})
+
+	return p
+
+}

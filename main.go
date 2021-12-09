@@ -39,6 +39,11 @@ func main() {
 		services.CheckCOCStatus()
 	})
 
+	c.AddFunc("@every 12h", func() {
+		services.CheckTestimonialStatus()
+		services.CheckOrganizationStatus()
+	})
+
 	c.AddFunc("@every 1m", func() {
 		services.CheckTempOrphan()
 	})
