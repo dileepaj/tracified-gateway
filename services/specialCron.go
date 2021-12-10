@@ -113,6 +113,12 @@ func CheckTempOrphan() {
 						if err2 != nil {
 							log.Println("Error while InsertTransaction " + err2.Error())
 							break
+						} else {
+							err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
+							if err != nil {
+								log.Println("Error while RemoveFromTempOrphanList " + err.Error())
+								break
+							}
 						}
 
 					case "2":
@@ -123,9 +129,9 @@ func CheckTempOrphan() {
 						data, errorLastTXN := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
 							return data
 						}).Await()
-							
+
 						if errorLastTXN != nil || data == nil {
-								PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
+							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
 						} else {
 							///ASSIGN PREVIOUS MANAGE DATA BUILDER
 							res := data.(model.TransactionCollectionBody)
@@ -180,6 +186,12 @@ func CheckTempOrphan() {
 						if err2 != nil {
 							log.Println("Error while InsertTransaction " + err2.Error())
 							break
+						} else {
+							err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
+							if err != nil {
+								log.Println("Error while RemoveFromTempOrphanList " + err.Error())
+								break
+							}
 						}
 					case "9":
 
@@ -190,9 +202,9 @@ func CheckTempOrphan() {
 							return data
 						}).Await()
 
-						if errorLastTXN != nil || data == nil{
+						if errorLastTXN != nil || data == nil {
 							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
-						}else {
+						} else {
 							///ASSIGN PREVIOUS MANAGE DATA BUILDER
 							res := data.(model.TransactionCollectionBody)
 							PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(res.TxnHash))
@@ -246,11 +258,17 @@ func CheckTempOrphan() {
 						if err2 != nil {
 							log.Println("Error while InsertTransaction " + err2.Error())
 							break
+						} else {
+							err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
+							if err != nil {
+								log.Println("Error while RemoveFromTempOrphanList " + err.Error())
+								break
+							}
 						}
 
 					}
 				}
-			
+
 				if stop {
 					break
 				}
