@@ -26,3 +26,20 @@ func (cd *Connection) RemoveFromOrphanage(Identifier string) error {
 	}
 	return err
 }
+
+func (cd *Connection) RemoveFromTempOrphanList(Publickey string, SequenceNo int64) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("TempOrphan")
+	c.DeleteOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo})
+
+	if err != nil {
+		fmt.Println("Error while remove from TempOrphan " + err.Error())
+	}
+	return err
+}
