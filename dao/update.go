@@ -355,6 +355,55 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		}
 		break
 
+	case model.Expired.String():
+		up := model.TestimonialOrganization{
+			Name:           selector.Name,
+			Description:    selector.Description,
+			Logo:           selector.Logo,
+			Email:          selector.Email,
+			Phone:          selector.Phone,
+			PhoneSecondary: selector.PhoneSecondary,
+			AcceptTxn:      selector.AcceptTxn,
+			AcceptXDR:      selector.AcceptXDR,
+			RejectTxn:      selector.RejectTxn,
+			RejectXDR:      update.RejectXDR,
+			TxnHash:        update.TxnHash,
+			Author:         selector.Author,
+			SubAccount:     selector.SubAccount,
+			SequenceNo:     selector.SequenceNo,
+			Status:         update.Status,
+			ApprovedBy:     update.ApprovedBy,
+			ApprovedOn:     update.ApprovedOn,
+		}
+		pByte, err := bson.Marshal(selector)
+		if err != nil {
+			return err
+		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Organizations")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+		if err != nil {
+			fmt.Println("Error while updating Organization " + err.Error())
+		}
+		break
 	}
 	return err
 }
@@ -423,6 +472,51 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 			AcceptXDR:   selector.AcceptXDR,
 			RejectXDR:   update.RejectXDR,
 			TxnHash:     update.TxnHash,
+			SequenceNo:  selector.SequenceNo,
+			Subaccount:  selector.Subaccount,
+			Status:      update.Status,
+			Testimonial: selector.Testimonial,
+		}
+
+		pByte, err := bson.Marshal(selector)
+		if err != nil {
+			return err
+		}
+
+		var filter bson.M
+		err = bson.Unmarshal(pByte, &filter)
+		if err != nil {
+			return err
+		}
+
+		pByte, err = bson.Marshal(up)
+		if err != nil {
+			return err
+		}
+
+		var updateNew bson.M
+		err = bson.Unmarshal(pByte, &updateNew)
+		if err != nil {
+			return err
+		}
+
+		c := session.Client().Database(dbName).Collection("Testimonials")
+		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
+
+		if err != nil {
+			fmt.Println("Error while updating Testimonials " + err.Error())
+		}
+		break
+
+	case model.Expired.String():
+		up := model.Testimonial{
+			Sender:      selector.Sender,
+			Reciever:    selector.Reciever,
+			AcceptTxn:   selector.AcceptTxn,
+			RejectTxn:   selector.RejectTxn,
+			AcceptXDR:   selector.AcceptXDR,
+			RejectXDR:   selector.RejectXDR,
+			TxnHash:     selector.TxnHash,
 			SequenceNo:  selector.SequenceNo,
 			Subaccount:  selector.Subaccount,
 			Status:      update.Status,
