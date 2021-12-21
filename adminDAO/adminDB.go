@@ -45,7 +45,7 @@ func ConstructAdminConnectionPool() {
 	branch := commons.GoDotEnvVariable("BRANCH_NAME")
 
 	if branch == "production" {
-		adminMgoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/?authSource=" + dbName
+		adminMgoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port
 	} else {
 		adminMgoConnectionUrl = commons.GoDotEnvVariable("ADMIN_ATLAS")
 	}
