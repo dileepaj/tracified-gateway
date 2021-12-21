@@ -316,6 +316,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					TDP[i].TxnHash = response1.TXNID
 					TDP[i].Status = "done"
 					TDP[i].XDR = txeB64
+					TDP[i].SequenceNo = int64(GatewayTXE.E.Tx.SeqNum)
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
