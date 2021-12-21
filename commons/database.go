@@ -44,7 +44,7 @@ func ConstructConnectionPool() {
 	branch := GoDotEnvVariable("BRANCH_NAME")
 
 	if branch == "production" {
-		mongoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/" + dbName
+		mongoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/?authSource=" + dbName
 	} else {
 		mongoConnectionUrl = GoDotEnvVariable("GATEWAY_ATLAS")
 	}
