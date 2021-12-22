@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	//"go.mongodb.org/mongo-driver/x/mongo/driver/session"
 )
 
 /*InsertCoc Insert a single COC Object to COCCollection in DB
@@ -173,4 +174,26 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 		fmt.Println("Error while inserting to organizations " + err.Error())
 	}
 	return err
+}
+
+
+//insert new proof presentation protocol 
+func (cd *Connection) InsertProofProtocol(protocol model.ProofPresentation) error{
+
+	session, err := cd.connect()
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("ProofPresentation")
+	_, err = c.InsertOne(context.TODO(), protocol)
+
+	if err != nil{
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+
+	return err
+
 }

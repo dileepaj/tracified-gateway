@@ -6,6 +6,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
+	//"go.mongodb.org/mongo-driver/x/mongo/driver/session"
 )
 
 /*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
@@ -554,5 +555,57 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		break
 	}
 
+	return err
+}
+
+ 
+func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofPresentation, update model.ProofPresentation) error{
+
+ 	session, err := cd.connect()
+ 	if err != nil {
+ 		fmt.Println("Error while connecting to DB " + err.Error())
+ 		return err
+ 	}
+
+ 	defer session.EndSession(context.TODO())
+
+	up := model.ProofPresentation{
+		ProofName: update.ProofName,
+		ProofDescriptiveName: update.ProofDescriptiveName,
+		NumberofSteps: update.NumberofSteps,
+		Steps: update.Steps,
+	}
+	//fmt.Println(up)
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil{
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil{
+		return err
+	}
+	//fmt.Println(filter)
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	//fmt.Println(updateNew)
+
+	c := session.Client().Database(dbName).Collection("ProofPresentation")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"proofname": selector.ProofName}, bson.D{{Key: "$set", Value: updateNew}})
+
+	if err != nil {
+		fmt.Println("Error while updating proof protocols " + err.Error())
+	}
 	return err
 }
