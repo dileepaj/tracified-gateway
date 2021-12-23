@@ -285,13 +285,6 @@ type TransactionCollectionBodyWithCount struct {
 	Transactions []TransactionCollectionBody
 }
 
-type ProofPresentationObject struct{
-	ProofName				string
-	ProofDescriptiveName 	string
-	NumberofSteps			string
-	//Segmants				Segmants
-}
-
 type Services struct{
 	ServiceName         string
 	ServiceURL	        string
@@ -317,8 +310,7 @@ type Steps struct{
 	Action      Action
 }
 
-type ProofPresentation struct{
-	//Proof ProofPresentationObject
+type ProofProtocol struct{
 	ProofName				string
 	ProofDescriptiveName 	string
 	NumberofSteps			string

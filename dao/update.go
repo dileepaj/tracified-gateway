@@ -6,7 +6,6 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
-	//"go.mongodb.org/mongo-driver/x/mongo/driver/session"
 )
 
 /*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
@@ -559,23 +558,20 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 }
 
  
-func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofPresentation, update model.ProofPresentation) error{
-
+func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtocol, update model.ProofProtocol) error{
  	session, err := cd.connect()
  	if err != nil {
  		fmt.Println("Error while connecting to DB " + err.Error())
  		return err
  	}
-
  	defer session.EndSession(context.TODO())
 
-	up := model.ProofPresentation{
+	up := model.ProofProtocol{
 		ProofName: update.ProofName,
 		ProofDescriptiveName: update.ProofDescriptiveName,
 		NumberofSteps: update.NumberofSteps,
 		Steps: update.Steps,
 	}
-	//fmt.Println(up)
 
 	pByte, err := bson.Marshal(selector)
 	if err != nil{
@@ -587,7 +583,6 @@ func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofPresen
 	if err != nil{
 		return err
 	}
-	//fmt.Println(filter)
 
 	pByte, err = bson.Marshal(up)
 	if err != nil {
@@ -599,9 +594,8 @@ func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofPresen
 	if err != nil {
 		return err
 	}
-	//fmt.Println(updateNew)
 
-	c := session.Client().Database(dbName).Collection("ProofPresentation")
+	c := session.Client().Database(dbName).Collection("ProofProtocols")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"proofname": selector.ProofName}, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {

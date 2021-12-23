@@ -11,12 +11,11 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func GetProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
-
+func GetProofPresentationProtocolByProofName(w http.ResponseWriter, r *http.Request){
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-
-	p := object.GetProofProtocolByProof(vars["proof"]) //calls in dao retrieve
+	
+	p := object.GetProofProtocolByProofName(vars["proofname"]) 
 	p.Then(func(data interface{}) interface{}{
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
@@ -26,7 +25,7 @@ func GetProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Proof protocol not found in the Datastore",
+			Status: "Proof protocol cannot be found in Gateway datastore",
 		}
 		json.NewEncoder(w).Encode(result)
 		return err
@@ -35,16 +34,13 @@ func GetProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
 }
 
 func InsertProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
-
-	var newProtocolObj model.ProofPresentation
+	var newProtocolObj model.ProofProtocol
 
 	err := json.NewDecoder(r.Body).Decode(&newProtocolObj)
 	if err != nil{
 		fmt.Println(err)
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error while decoding the body",
 		}
@@ -53,42 +49,31 @@ func InsertProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
 	}
 
 	object := dao.Connection{}
-
 	err1 := object.InsertProofProtocol(newProtocolObj)
 	if err1 != nil{
 		fmt.Println(err1)
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when inserting protocol",
+			Status: "Error when inserting protocol to the Datastore",
 		}
-
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}else{
 		fmt.Println(err1)
-
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Protocol inserted",
+			Status: "Protocol inserted to the Datastore",
 		}
-
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}
-
 }
 
-func UpdateProofPresesntationProtocol(w http.ResponseWriter, r *http.Request){
-
-	var Obj model.ProofPresentation
-	var selection model.ProofPresentation
+func UpdateProofPresentationProtocol(w http.ResponseWriter, r *http.Request){
+	var Obj model.ProofProtocol
+	var selection model.ProofProtocol
 
 	err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil{
@@ -98,53 +83,58 @@ func UpdateProofPresesntationProtocol(w http.ResponseWriter, r *http.Request){
 		fmt.Println(err)
 		return
 	}
-	//fmt.Println(Obj)
 
 	object := dao.Connection{}
-
-	_, err1 := object.GetProofProtocolByProof(Obj.ProofName).Then(func(data interface{}) interface{}{
-
-		selection = data.(model.ProofPresentation)
-		//fmt.Println("------Selection-------")
-		//fmt.Println(selection)
-
+	_, err1 := object.GetProofProtocolByProofName(Obj.ProofName).Then(func(data interface{}) interface{}{
+		selection = data.(model.ProofProtocol)
 		err2 := object.UpdateProofPresesntationProtocol(selection, Obj)
 		if err2 != nil{
 			w.Header().Set("Content-Type", "application/json;")
 			w.WriteHeader(http.StatusBadRequest)
-
 			result := apiModel.SubmitXDRSuccess{
 				Status: "Error when updating the protocol",
 			}
 			json.NewEncoder(w).Encode(result)
-
 		}else{
 			w.Header().Set("Content-Type", "application/json;")
 			w.WriteHeader(http.StatusOK)
-
 			result := apiModel.SubmitXDRSuccess{
-				Status: "Protocol updated",
+				Status: "Protocol updated successfully",
 			}
-
 		json.NewEncoder(w).Encode(result)
 	}
-
 	return data
-
 	}).Await()
 
 	if err1 != nil{
-		
 		w.Header().Set("Content-Type", "application/json;")
 		w.WriteHeader(http.StatusBadRequest)
-
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when fetching the protocol from DB or protodcol does not exists in the DB",
+			Status: "Error when fetching the protocol from Datastore or protocol does not exists in the Datastore",
 		}
-
 		fmt.Println(err1)
 		json.NewEncoder(w).Encode(result)
-
 	}
+}
 
+func DeleteProofPresentationProtocolByProofName(w http.ResponseWriter, r *http.Request){
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+
+	err := object.DeleteProofPresentationProtocolByProofName(vars["proofname"])
+	if err != nil{
+		w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Error when deleting the protocol",
+			}
+			json.NewEncoder(w).Encode(result)
+	}else{
+		w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusOK)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Protocol deleted successfully",
+			}
+		json.NewEncoder(w).Encode(result)
+	}
 }
