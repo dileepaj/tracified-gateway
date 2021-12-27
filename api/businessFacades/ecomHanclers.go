@@ -1189,6 +1189,22 @@ func checkValidVersionByte(key string) string {
 	return ""
 }
 
+func RetrievePreviousTranasctionsCount(w http.ResponseWriter, r *http.Request) {
+	object := dao.Connection{}
+	var totalRecordCount model.TotalTransaction;
+	_, err := object.GetTransactionCount().Then(func(data interface{}) interface{} {
+		totalRecordCount = model.TotalTransaction{TotalTransactionCount:data.(int64)}
+		w.WriteHeader(http.StatusOK)
+		return json.NewEncoder(w).Encode(totalRecordCount)
+	}).Await()
+	if err != nil {
+		log.Error("Unable Reach to Database",err)
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(model.Error{Code:http.StatusNoContent,Message:"Unable Reach to Database"})
+		return
+	}
+}
+
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")

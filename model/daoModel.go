@@ -17,6 +17,10 @@ type COCCollectionBody struct {
 	Identifier string
 	Status     string
 }
+
+type TotalTransaction struct{
+	TotalTransactionCount int64
+}
 type TransactionCollectionBody struct {
 	Identifier           string
 	TdpId                string
