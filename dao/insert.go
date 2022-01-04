@@ -174,3 +174,20 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	}
 	return err
 }
+
+
+//insert new proof presentation protocol 
+func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error{
+	session, err := cd.connect()
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("ProofProtocols")
+	_, err = c.InsertOne(context.TODO(), protocol)
+	if err != nil{
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}

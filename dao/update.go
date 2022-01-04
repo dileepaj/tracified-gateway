@@ -556,3 +556,50 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 
 	return err
 }
+
+ 
+func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtocol, update model.ProofProtocol) error{
+ 	session, err := cd.connect()
+ 	if err != nil {
+ 		fmt.Println("Error while connecting to DB " + err.Error())
+ 		return err
+ 	}
+ 	defer session.EndSession(context.TODO())
+
+	up := model.ProofProtocol{
+		ProofName: update.ProofName,
+		ProofDescriptiveName: update.ProofDescriptiveName,
+		NumberofSteps: update.NumberofSteps,
+		Steps: update.Steps,
+	}
+
+	pByte, err := bson.Marshal(selector)
+	if err != nil{
+		return err
+	}
+
+	var filter bson.M
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil{
+		return err
+	}
+
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("ProofProtocols")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"proofname": selector.ProofName}, bson.D{{Key: "$set", Value: updateNew}})
+
+	if err != nil {
+		fmt.Println("Error while updating proof protocols " + err.Error())
+	}
+	return err
+}
