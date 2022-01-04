@@ -297,6 +297,12 @@ var routes = Routes{
 		businessFacades.RetrievePreviousTranasctions, //Test
 	},
 	Route{
+		"GetTotalRecordsCountInTransactionCollection",
+		"GET",
+		"/RetrievePreviousTranasctionsCount",
+		businessFacades.RetrievePreviousTranasctionsCount,
+	},
+	Route{
 		"ArtifactTransactions",
 		"POST",
 		"/Insert/ArtifactTransactions",
