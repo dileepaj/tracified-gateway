@@ -13,8 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	// "fmt"
-
 	"github.com/chebyrash/promise"
 )
 
@@ -1592,4 +1590,28 @@ func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise
 
 	return p
 
+}
+
+//get proof protocol by proof name
+func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise{
+	resultProtocolObj := model.ProofProtocol{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil{
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ProofProtocols")
+		err = c.FindOne(context.TODO(), bson.M{"proofname": proofName}).Decode(&resultProtocolObj)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		}else{
+			resolve(resultProtocolObj)
+		}
+	})
+	return p
 }

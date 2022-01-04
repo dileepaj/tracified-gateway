@@ -374,4 +374,28 @@ var routes = Routes{
 		"/pocv4/{txn}",
 		businessFacades.BlockchainTreeRetreiverWithHash,
 	},
+	Route{
+		"GetProofPresentationProtocolByProofName",
+		"GET",
+		"/getproofprotocol/{proofname}",
+		businessFacades.GetProofPresentationProtocolByProofName, //Test - calls the GetProofPresentationProtocolByProofName in the ProofPresesntationHandlers
+	},
+	Route{
+		"InsertProofPresentationProtocol",
+		"POST",
+		"/proofprotocol",
+		businessFacades.InsertProofPresentationProtocol, //Test - calls the InsertProofPresentationProtocol in the ProofPresesntationHandlers
+	},	
+	Route{
+		"UpdateProofPresentationProtocol",
+		"PUT",
+		"/proofprotocol",
+		businessFacades.UpdateProofPresentationProtocol, //Test - calls the UpdateProofPresesntationProtocol in the ProofPresesntationHandlers
+	},
+	Route{
+		"DeleteProofPresentationProtocolByProofName",
+		"DELETE",
+		"/deleteproofprotocol/{proofname}",
+		businessFacades.DeleteProofPresentationProtocolByProofName, //Test - calls the DeleteProofPresentationProtocolByProtocolName in the ProofPresesntationHandlers
+	},
 }

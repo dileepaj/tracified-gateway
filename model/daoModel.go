@@ -284,3 +284,36 @@ type TransactionCollectionBodyWithCount struct {
 	Count        int64
 	Transactions []TransactionCollectionBody
 }
+
+type Services struct{
+	ServiceName         string
+	ServiceURL	        string
+	DocumentationLink	string
+	//UIAutomationSteps	UIAutomationSteps
+}
+
+type ActionParams struct{
+	InputVariables	[]string
+	OutputVariables []string
+	Services	    Services
+}
+
+type Action struct{
+	ActionType			string
+	ActionParameters	ActionParams
+}
+
+type Steps struct{
+	StepNo	    int32
+	SegmentNo	string
+	Discription	string
+	Action      Action
+}
+
+type ProofProtocol struct{
+	ProofName				string
+	ProofDescriptiveName 	string
+	NumberofSteps			string
+	//Segmants				Segmants
+	Steps 					[]Steps	
+}
