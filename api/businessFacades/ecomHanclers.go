@@ -306,8 +306,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		}).Await()
 		if err != nil {
 			log.Error("Unable to connect gateway datastore")
-			w.WriteHeader(http.StatusNoContent)
-			response = model.Error{Code:http.StatusNoContent,Message: "Unable to connect gateway datastaore"}
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code:http.StatusNotFound,Message: "Unable to connect gateway datastore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -334,15 +334,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
-				w.WriteHeader(http.StatusBadRequest)		
-				response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+				w.WriteHeader(http.StatusNotFound)		
+				response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			if result1.StatusCode != 200 {
 				log.Error("Transaction could not be retrieved from Stellar Network in result1")
 				status = "Transaction could not be retrieved from Stellar Network"
 				w.WriteHeader(http.StatusNoContent)	
-				response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+				response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			data, err := ioutil.ReadAll(result1.Body)
@@ -365,11 +365,17 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				if TxnBody.TxnType == "10" {
 					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Error while getting transactions by txnhash ")
+						w.WriteHeader(http.StatusNotFound)
+						response := model.Error{Code:http.StatusNotFound,Message: "Txn for the TXN does not exist in the Blockchain "}
 						json.NewEncoder(w).Encode(response)
-
+					}
+					if result1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)	
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
+						 json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
 					if err != nil {
@@ -416,15 +422,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						 json.NewEncoder(w).Encode(response)			
 					}
 					if acceptresult1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
 						status = "Transaction could not be retrieved from Stellar Network"
-						w.WriteHeader(result1.StatusCode)		
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						w.WriteHeader(http.StatusNoContent)	
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						 json.NewEncoder(w).Encode(response)
 					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
@@ -522,8 +528,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		}).Await()
 		if err != nil {
 			log.Error("Unable to connect gateway datastore")
-			w.WriteHeader(http.StatusNoContent)
-			response = model.Error{Code:http.StatusNoContent,Message: "Unable to connect gateway datastaore"}
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code:http.StatusNotFound,Message: "Unable to connect gateway datastaore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -549,15 +555,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
-				w.WriteHeader(http.StatusBadRequest)		
-				response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+				w.WriteHeader(http.StatusNotFound)		
+				response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			if result1.StatusCode != 200 {
 				log.Error("Transaction could not be retrieved from Stellar Network in result1")
 				status = "Transaction could not be retrieved from Stellar Network"
-				w.WriteHeader(http.StatusNoContent)	
-				response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+				w.WriteHeader(http.StatusNoContent)
+				response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
@@ -578,15 +584,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					if result1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in result1")
 						status = "Transaction could not be retrieved from Stellar Network"
 						w.WriteHeader(http.StatusNoContent)	
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
@@ -634,16 +640,16 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
-						 json.NewEncoder(w).Encode(response)			
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
+						json.NewEncoder(w).Encode(response)			
 					}
 					if acceptresult1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
 						status = "Transaction could not be retrieved from Stellar Network"
-						w.WriteHeader(result1.StatusCode)		
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
-						 json.NewEncoder(w).Encode(response)
+						w.WriteHeader(http.StatusNoContent)		
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
 					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 					if err != nil {
@@ -737,8 +743,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		}).Await()
 		if err != nil {
 			log.Error("Unable to connect gateway datastore")
-			w.WriteHeader(http.StatusNoContent)
-			response = model.Error{Code:http.StatusNoContent,Message: "Unable to connect gateway datastaore"}
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code:http.StatusNotFound,Message: "Unable to connect gateway datastaore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -765,15 +771,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
-				w.WriteHeader(http.StatusBadRequest)		
-				response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+				w.WriteHeader(http.StatusNotFound)		
+				response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			if result1.StatusCode != 200 {
 				log.Error("Transaction could not be retrieved from Stellar Network in result1")
 				status = "Transaction could not be retrieved from Stellar Network"
 				w.WriteHeader(http.StatusNoContent)	
-				response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+				response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
@@ -794,15 +800,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					if result1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in result1")
 						status = "Transaction could not be retrieved from Stellar Network"
 						w.WriteHeader(http.StatusNoContent)	
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
@@ -850,15 +856,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						 json.NewEncoder(w).Encode(response)			
 					}
 					if acceptresult1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
 						status = "Transaction could not be retrieved from Stellar Network"
-						w.WriteHeader(result1.StatusCode)		
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						w.WriteHeader(http.StatusNoContent)	
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						 json.NewEncoder(w).Encode(response)
 					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
@@ -955,8 +961,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		}).Await()
 		if err != nil {
 			log.Error("Unable to connect gateway datastore")
-			w.WriteHeader(http.StatusNoContent)
-			response = model.Error{Code:http.StatusNoContent,Message: "Unable to connect gateway datastaore"}
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code:http.StatusNotFound,Message: "Unable to connect gateway datastaore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -991,7 +997,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				log.Error("Transaction could not be retrieved from Stellar Network in result1")
 				status = "Transaction could not be retrieved from Stellar Network"
 				w.WriteHeader(http.StatusNoContent)	
-				response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+				response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
@@ -1012,15 +1018,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					if result1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in result1")
 						status = "Transaction could not be retrieved from Stellar Network"
 						w.WriteHeader(http.StatusNoContent)	
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
@@ -1068,15 +1074,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
-						w.WriteHeader(http.StatusBadRequest)		
-						response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+						w.WriteHeader(http.StatusNotFound)		
+						response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 						 json.NewEncoder(w).Encode(response)			
 					}
 					if acceptresult1.StatusCode != 200 {
 						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
 						status = "Transaction could not be retrieved from Stellar Network"
-						w.WriteHeader(result1.StatusCode)		
-						response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+						w.WriteHeader(http.StatusNoContent)		
+						response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 						 json.NewEncoder(w).Encode(response)
 					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
@@ -1401,15 +1407,15 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				if err!=nil {
 					log.Error("Unable to reach Stellar network in result1")
 					status = "Unable to reach Stellar network"
-					w.WriteHeader(http.StatusBadRequest)		
-					response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+					w.WriteHeader(http.StatusNotFound)		
+					response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 					return json.NewEncoder(w).Encode(response)
 				}	
 				if result1.StatusCode != 200 {
 					log.Error("Transaction could not be retrieved from Stellar Network in result1")
 					status = "Transaction could not be retrieved from Stellar Network"
-					w.WriteHeader(result1.StatusCode)		
-					response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+					w.WriteHeader(http.StatusNoContent)		
+					response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 					return json.NewEncoder(w).Encode(response)
 				}
 				data, _ := ioutil.ReadAll(result1.Body)
@@ -1430,15 +1436,15 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						if err != nil {
 							log.Error("Unable to reach Stellar network in result1")
 							status = "Unable to reach Stellar network"
-							w.WriteHeader(http.StatusBadRequest)		
-							response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+							w.WriteHeader(http.StatusNotFound)		
+							response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 							return json.NewEncoder(w).Encode(response)			
 						}
 						if result1.StatusCode != 200 {
 							log.Error("Transaction could not be retrieved from Stellar Network in result1")
 							status = "Transaction could not be retrieved from Stellar Network"
-							w.WriteHeader(result1.StatusCode)		
-							response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+							w.WriteHeader(http.StatusNoContent)		
+							response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 							return json.NewEncoder(w).Encode(response)
 						}
 						data, err := ioutil.ReadAll(result1.Body)
@@ -1486,15 +1492,15 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						if err != nil {
 							log.Error("Unable to reach Stellar network in acceptresult1")
 							status = "Unable to reach Stellar network"
-							w.WriteHeader(http.StatusBadRequest)		
-							response=model.Error{Code:http.StatusBadRequest,Message: "Unable to reach Stellar network"}
+							w.WriteHeader(http.StatusNotFound)		
+							response=model.Error{Code:http.StatusNotFound,Message: "Unable to reach Stellar network"}
 							return json.NewEncoder(w).Encode(response)			
 						}
 						if acceptresult1.StatusCode != 200 {
 							log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
 							status = "Transaction could not be retrieved from Stellar Network"
-							w.WriteHeader(result1.StatusCode)		
-							response=model.Error{Code:result1.StatusCode,Message: "Transaction could not be retrieved from Stellar Network"}
+							w.WriteHeader(http.StatusNoContent)		
+							response=model.Error{Code:http.StatusNoContent,Message: "Transaction could not be retrieved from Stellar Network"}
 							return json.NewEncoder(w).Encode(response)
 						}
 						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
