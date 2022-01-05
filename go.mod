@@ -10,7 +10,7 @@ require (
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stellar/go v0.0.0-20190605172603-92259749c681
-	go.mongodb.org/mongo-driver v1.7.3
+	go.mongodb.org/mongo-driver v1.8.2
 )
 
 require (
