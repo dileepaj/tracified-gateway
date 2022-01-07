@@ -8,6 +8,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+
+	//"github.com/dileepaj/tracified-gateway/nft/polygon/mintnft"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
@@ -52,5 +54,6 @@ func main() {
 	router := routes.NewRouter()
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
-
+	println("lesssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss gogooooooooooooooooooooooooooooooooooooo")
+	//mintnft.MintNFT()
 }
