@@ -194,7 +194,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(GObj)
 	object := dao.Connection{}
 	switch GObj.Status {
-	case "accepted":
+	case model.Accepted.String():
 		_, err := object.GetCOCbyAcceptTxn(GObj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
 			var TXNS []model.TransactionCollectionBody
@@ -247,17 +247,19 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(err)
 		}
 		break
-	case "rejected":
-		p := object.GetCOCbyRejectTxn(GObj.RejectTxn)
-		p.Then(func(data interface{}) interface{} {
+	case model.Rejected.String():
+		_, err := object.GetCOCbyRejectTxn(GObj.RejectTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
 				w.WriteHeader(400)
-				result = apiModel.InsertCOCCollectionResponse{
-					Message: "Failed"}
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				GObj.TxnHash = response.TXNID
@@ -285,13 +287,12 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			}
 
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(error)
-			return error
-		})
-		p.Await()
+			json.NewEncoder(w).Encode(err)
+		}
 		break
 
 	default:

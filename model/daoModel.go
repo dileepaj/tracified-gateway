@@ -18,7 +18,7 @@ type COCCollectionBody struct {
 	Status     string
 }
 
-type TotalTransaction struct{
+type TotalTransaction struct {
 	TotalTransactionCount int64
 }
 type TransactionCollectionBody struct {
@@ -94,7 +94,7 @@ type TransactionIds struct {
 
 type PrevTxnResponse struct {
 	Status         string
-	Blockchain	   string
+	Blockchain     string
 	Txnhash        string
 	TxnType        string
 	SequenceNo     int64
@@ -278,10 +278,11 @@ const (
 	Rejected
 	Expired
 	Pending
+	Accepted
 )
 
 func (O Option) String() string {
-	return [...]string{"undefined", "approved", "rejected", "expired", "pending"}[O]
+	return [...]string{"undefined", "approved", "rejected", "expired", "pending", "accepted"}[O]
 }
 
 type TransactionCollectionBodyWithCount struct {
@@ -289,35 +290,35 @@ type TransactionCollectionBodyWithCount struct {
 	Transactions []TransactionCollectionBody
 }
 
-type Services struct{
-	ServiceName         string
-	ServiceURL	        string
-	DocumentationLink	string
+type Services struct {
+	ServiceName       string
+	ServiceURL        string
+	DocumentationLink string
 	//UIAutomationSteps	UIAutomationSteps
 }
 
-type ActionParams struct{
-	InputVariables	[]string
+type ActionParams struct {
+	InputVariables  []string
 	OutputVariables []string
-	Services	    Services
+	Services        Services
 }
 
-type Action struct{
-	ActionType			string
-	ActionParameters	ActionParams
+type Action struct {
+	ActionType       string
+	ActionParameters ActionParams
 }
 
-type Steps struct{
-	StepNo	    int32
-	SegmentNo	string
-	Discription	string
+type Steps struct {
+	StepNo      int32
+	SegmentNo   string
+	Discription string
 	Action      Action
 }
 
-type ProofProtocol struct{
-	ProofName				string
-	ProofDescriptiveName 	string
-	NumberofSteps			string
+type ProofProtocol struct {
+	ProofName            string
+	ProofDescriptiveName string
+	NumberofSteps        string
 	//Segmants				Segmants
-	Steps 					[]Steps	
+	Steps []Steps
 }
