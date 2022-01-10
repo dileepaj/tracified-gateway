@@ -9,7 +9,6 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/nft/polygon/mintnft"
 	"github.com/stellar/go/xdr"
 
 	"encoding/json"
@@ -1356,8 +1355,6 @@ func RetrievePreviousTranasctionsCount(w http.ResponseWriter, r *http.Request) {
 
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
-	println("-------------------------------------------------------------Whyyyyyyyyyyyyyyyyyyyy----------------------")
-	mintnft.MintNFT()
 	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["perPage"]
