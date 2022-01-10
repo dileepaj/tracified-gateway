@@ -20,8 +20,9 @@ func MintNftWithPolygon() {
 	println("-------inside mintNFT----------------------")
 	//owener of the contract(issuer)
 	nftIssuerPrivateKey:=commons.GoDotEnvVariable("NFTISSUESECRETKEYPOLYGON")
+	nftReceiverPublicKey:=commons.GoDotEnvVariable("NFTRECEIVERPUBLICKPOLYGON")
 	privateKey, err := crypto.HexToECDSA(nftIssuerPrivateKey)
-	reciverAddress := common.HexToAddress("0xb0f63fbB5c24dbAe40bc5cDF8E823226aC66E717")
+	receiverAddress := common.HexToAddress(nftReceiverPublicKey)
     if err != nil {
         fmt.Println(err)
     }
@@ -66,7 +67,7 @@ func MintNftWithPolygon() {
     }
 
 	//authenticate and write to smart contract
-    tx, err := instance.MintNFT(auth,reciverAddress , "NFTURL")
+    tx, err := instance.MintNFT(auth,receiverAddress , "NFTURL")
     if err != nil {
         log.Fatal(err)
     }
