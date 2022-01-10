@@ -46,9 +46,9 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		if err != nil {
 			log.Error("Error while getting ResultCodes from horizon.Error")
 		}
-		for _, element := range TC.OperationCodes {
-			response.Error.Message = response.Error.Message + element + "? "
-		}
+
+		response.Error.Message = TC.TransactionCode
+
 		// log.SetOutput(f)
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
