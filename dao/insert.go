@@ -6,9 +6,6 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/model"
-	"go.mongodb.org/mongo-driver/bson"
-
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 /*InsertCoc Insert a single COC Object to COCCollection in DB
@@ -34,51 +31,35 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
 	log.Println("--------------------------- InsertTransaction ------------------------")
-	//result := model.TransactionCollectionBody{}
 	session, err := cd.connect()
 	if err != nil {
 		log.Println("Error while getting session " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("Transactions")
-
-	opts := options.Update().SetUpsert(true)
-	filter := bson.D{{"txnhash", Coc.TxnHash}}
-
-	pByte, err := bson.Marshal(Coc)
+	_, err = c.InsertOne(context.TODO(), Coc)
 	if err != nil {
-		return err
+		log.Println("Error while inserting to Transactions " + err.Error())
 	}
-
-	var updateNew bson.M
-	err = bson.Unmarshal(pByte, &updateNew)
-	if err != nil {
-		return err
-	}
-
-	update := bson.D{{"$set", updateNew}}
-	result, err := c.UpdateOne(context.TODO(), filter, update, opts)
-
-	fmt.Printf("found document %v", result)
 	return err
 }
 
-/*InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
+/*InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
-	fmt.Println("--------------------------- InsertToOrphan ------------------------")
+	fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("Orphan")
+	c := session.Client().Database(dbName).Collection("TempOrphan")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
-		fmt.Println("Error while inserting to Orphan " + err.Error())
+		fmt.Println("Error while inserting to TempOrphan " + err.Error())
 	}
 	return err
 }
