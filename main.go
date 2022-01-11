@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/nft/stellar"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
@@ -22,6 +23,7 @@ func getPort() string {
 }
 
 func main() {
+	//b.issueNft()
 
 	// godotenv package
 	envName := commons.GoDotEnvVariable("BRANCH_NAME")
@@ -53,4 +55,5 @@ func main() {
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
+	stellar.IssueNft()
 }
