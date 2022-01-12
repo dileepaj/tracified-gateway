@@ -40,25 +40,20 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("Transactions")
-
 	opts := options.Update().SetUpsert(true)
 	filter := bson.D{{"txnhash", Coc.TxnHash}}
-
 	pByte, err := bson.Marshal(Coc)
 	if err != nil {
 		return err
 	}
-
 	var updateNew bson.M
 	err = bson.Unmarshal(pByte, &updateNew)
 	if err != nil {
 		return err
 	}
-
 	update := bson.D{{"$set", updateNew}}
 	result, err := c.UpdateOne(context.TODO(), filter, update, opts)
-
-	fmt.Printf("found document %v", result)
+	log.Printf("found document %v", result)
 	return err
 }
 
