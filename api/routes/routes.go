@@ -88,6 +88,12 @@ var routes = Routes{
 		businessFacades.SubmitData, //Calls the Functional SubmitData for Gateway Version 3
 	},
 	Route{
+		"TrustlineXDRForNFT",
+		"POST",
+		"/nft/trustlinexdr",
+		businessFacades.GettingChangeTrustXDRForNFT, //getting trustline xdr from wallet app
+	},
+	Route{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",

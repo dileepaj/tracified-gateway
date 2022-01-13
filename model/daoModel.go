@@ -21,6 +21,29 @@ type COCCollectionBody struct {
 type TotalTransaction struct{
 	TotalTransactionCount int64
 }
+
+type NFTWithTransaction struct {
+	Identifier                       string
+	TxnHash                          string
+	TxnType                          string
+	DataHash                         string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	Timestamp                        string
+	NftAssetName                     string
+	NftContentName                   string
+	NftContent                       string
+}
+
+type TrustLineResponseNFT struct{
+	SenderPublickKey string
+	Asset_code string
+	TDPtxnhash string
+	TDPID string
+	NFTBlockChain string
+	XDR string
+}
+
 type TransactionCollectionBody struct {
 	Identifier           string
 	TdpId                string

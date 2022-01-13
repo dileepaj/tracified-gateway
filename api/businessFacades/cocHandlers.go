@@ -371,6 +371,19 @@ func LastCOC(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
+func GettingChangeTrustXDRForNFT(w http.ResponseWriter, r *http.Request) {
+	var TrustLineResponseNFT model.TrustLineResponseNFT
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&TrustLineResponseNFT)
+	if(err !=nil){
+		fmt.Println("eerrrr")
+	}
+    fmt.Println("_----------------------",TrustLineResponseNFT)
+	//after retrive the TrustLineResponseNFT
+	//callthe issue NFt method(distributerPK,assetcode,TDPtxnhas) mint and return the (NFTtxnhash,issuerPK,NFTContent)
+	//after that call the insertTODB NFT Details to NFT  (gateway(NFTstellar collection)
+}
 
 func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
