@@ -254,7 +254,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
+				w.WriteHeader(502)
 				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
 				result := map[string]interface{}{
 					"message":    "Failed to submit the Blockchain transaction",
