@@ -9,6 +9,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/nft/stellar"
 
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
@@ -379,10 +380,33 @@ func GettingChangeTrustXDRForNFT(w http.ResponseWriter, r *http.Request) {
 	if(err !=nil){
 		fmt.Println("eerrrr")
 	}
-    fmt.Println("_----------------------",TrustLineResponseNFT)
-	//after retrive the TrustLineResponseNFT
 	//callthe issue NFt method(distributerPK,assetcode,TDPtxnhas) mint and return the (NFTtxnhash,issuerPK,NFTContent)
+	var NFTtxnhash, issuerPK, NftContent = stellar.IssueNft(TrustLineResponseNFT.SenderPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash, TrustLineResponseNFT.XDR)
+
 	//after that call the insertTODB NFT Details to NFT  (gateway(NFTstellar collection)
+	var NFTcollectionObj = model.NFTWithTransaction{
+			Identifier: TrustLineResponseNFT.TDPID,
+			TxnType: "TDP",
+			TxnHash: NFTtxnhash,
+			DataHash: TrustLineResponseNFT.TDPtxnhash,
+			NftTransactionExistingBlockchain: "Stellar",
+			NftIssuingBlockchain: TrustLineResponseNFT.NFTBlockChain,
+			Timestamp: "00-00-00",
+			NftAssetName: TrustLineResponseNFT.Asset_code,
+			NftContentName: TrustLineResponseNFT.Asset_code,
+			NftContent: NftContent,
+			IssuerPK: issuerPK,
+	}
+
+	object := dao.Connection{}
+	err1 := object.InsertStellarNFT(NFTcollectionObj)
+	if err1 != nil{
+		fmt.Println("NFT not inserted : ", err1)
+		return
+	}else{
+		fmt.Println("NFT inserted to the collection")
+		return
+	}
 }
 
 func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {

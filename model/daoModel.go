@@ -33,15 +33,16 @@ type NFTWithTransaction struct {
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
+	IssuerPK                         string
 }
 
 type TrustLineResponseNFT struct{
-	SenderPublickKey string
-	Asset_code string
-	TDPtxnhash string
-	TDPID string
-	NFTBlockChain string
-	XDR string
+	SenderPublickKey  string
+	Asset_code        string
+	TDPtxnhash        string
+	TDPID             string
+	NFTBlockChain     string
+	XDR               string
 }
 
 type TransactionCollectionBody struct {

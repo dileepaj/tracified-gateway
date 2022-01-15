@@ -210,3 +210,19 @@ func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error{
 	}
 	return err
 }
+
+//insert NFT to NFTStellar collection
+func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction) error{
+	session, err := cd.connect()
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("NFTStellar")
+	_, err = c.InsertOne(context.TODO(), stellarNFT)
+	if err != nil{
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
