@@ -24,25 +24,39 @@ type TotalTransaction struct{
 
 type NFTWithTransaction struct {
 	Identifier                       string
-	TxnHash                          string
+	TDPTxnHash                       string
+	TDPID							 string
 	TxnType                          string
 	DataHash                         string
 	NftTransactionExistingBlockchain string
 	NftIssuingBlockchain             string
+	NFTTXNhash						 string
 	Timestamp                        string
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
 	IssuerPK                         string
+	DistributorPublickKey			 string
+	TrustLineCreatedAt				 string
+	ProductName 				     string
 }
 
 type TrustLineResponseNFT struct{
-	SenderPublickKey  string
+	DistributorPublickKey  string
 	Asset_code        string
 	TDPtxnhash        string
 	TDPID             string
 	NFTBlockChain     string
-	XDR               string
+	Successfull       bool
+	TrustLineCreatedAt string
+	Identifier string
+	ProductName string
+}
+
+type NFTCreactedResponse struct{
+	NFTTxnHash string
+	TDPTxnHash string
+	NFTName string
 }
 
 type TransactionCollectionBody struct {
