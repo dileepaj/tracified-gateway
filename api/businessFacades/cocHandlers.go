@@ -447,25 +447,25 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 		if Coc.Available && Org.Available && Testimonial.Available {
 
 			if (Cocseq > Testimonialseq) && (Cocseq >= Orgseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Cocseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Coc.Operation, Receiver: Coc.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Cocseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Coc.Operation, Receiver: Coc.Receiver, Expiration: Coc.Expiration})
 			} else if (Testimonialseq > Cocseq) && (Testimonialseq > Orgseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Testimonialseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Testimonialseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, Expiration: Testimonial.Expiration})
 			} else if (Orgseq > Cocseq) && (Orgseq > Testimonialseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Orgseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Org.Operation, Receiver: Org.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Orgseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Org.Operation, Receiver: Org.Receiver, Expiration: Org.Expiration})
 			} else {
 				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
 			}
 		} else {
 			if Org.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo, Expiration: Org.Expiration})
 			}
 
 			if Testimonial.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo, Expiration: Testimonial.Expiration})
 			}
 
 			if Coc.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo, Expiration: Coc.Expiration})
 			}
 
 		}
