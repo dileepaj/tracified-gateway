@@ -107,6 +107,13 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 			result2.Available = true
 			result2.Operation = "COC"
 		}
+
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
 		resolve(result2)
 
 	})
@@ -472,7 +479,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 }
 
 /*Get total transaction count in a collection
-*/
+ */
 func (cd *Connection) GetTransactionCount() *promise.Promise {
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1310,6 +1317,13 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 			result2.Available = true
 			result2.Operation = "Organization"
 		}
+
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
 		resolve(result2)
 
 	})
@@ -1368,6 +1382,13 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 			result2.Available = true
 			result2.Operation = "Testimonial"
 		}
+
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
 		resolve(result2)
 
 	})
@@ -1615,12 +1636,12 @@ func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise
 }
 
 //get proof protocol by proof name
-func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise{
+func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise {
 	resultProtocolObj := model.ProofProtocol{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
-		if err != nil{
+		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
 			reject(err)
 		}
@@ -1631,7 +1652,7 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
-		}else{
+		} else {
 			resolve(resultProtocolObj)
 		}
 	})
