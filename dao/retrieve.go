@@ -1453,6 +1453,7 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus bool, page
 
 }
 
+
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
@@ -1684,6 +1685,32 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 			reject(err)
 		}else{
 			resolve(resultProtocolObj)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
+	fmt.Println("----------------------------------- TXNHash", NFTTXNhash)
+	result := model.MarketPlaceNFT{}
+	// p := promise.NewPromise()
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		err1 := c.FindOne(context.TODO(), bson.M{"nfttxnhash": NFTTXNhash}).Decode(&result)
+
+		if err1 != nil {
+			log.Error("Error while getting NFT TXN Hash from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
 		}
 	})
 	return p

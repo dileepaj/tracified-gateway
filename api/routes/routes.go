@@ -100,6 +100,12 @@ var routes = Routes{
 		businessFacades.RetriveAllNFTForSell, //getting trustline xdr from wallet app
 	},
 	Route{
+		"UpdateSellingStatus",
+		"PUT",
+		"/nft/updateStellarMarketplace",
+		businessFacades.UpdateSellingStatus, //getting trustline xdr from wallet app
+	},
+	Route{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",

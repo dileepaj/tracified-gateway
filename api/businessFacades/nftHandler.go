@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
@@ -183,6 +184,8 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 				CurrentOwnerNFTPK: 				  TxnBody.CurrentOwnerNFTPK,
 				OriginPK: 						  TxnBody.OriginPK,
 				SellingStatus:					  TxnBody.SellingStatus,
+				Amount:                           TxnBody.Amount,
+				Price:                            TxnBody.Price,
 				}
 
 			result = append(result, temp)
@@ -202,4 +205,77 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 				json.NewEncoder(w).Encode(model.Error{Code:http.StatusNoContent,Message:"No Transactions Found in Gateway DataStore"})
 			}
 		}
+}
+func UpdateSellingStatus(w http.ResponseWriter, r *http.Request){
+
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	key1, error := r.URL.Query()["currentPK"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["previousPK"]
+
+	if !error || len(key2[0]) < 1 {
+		logrus.Error("Url Parameter 'page' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["txnHash"]
+
+	if !error || len(key3[0]) < 1 {
+		logrus.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	key4, error := r.URL.Query()["sellingStatus"]
+
+	if !error || len(key4[0]) < 1 {
+		logrus.Error("Url Parameter 'page' is missing")
+		return
+	}
+	currentPK := key1[0]
+	previousPK := key2[0]
+	txnHash := key3[0]
+	sellingStatus := key4[0]
+
+	fmt.Println(currentPK,previousPK,txnHash,sellingStatus)
+
+	object := dao.Connection{}
+	//get the current document
+	_, err1 := object.GetNFTByNFTTxn(txnHash).Then(func(data interface{}) interface{}{
+		selection := data.(model.MarketPlaceNFT)
+		fmt.Println("----------------------------------", selection)
+		err2 := object.UpdateSellingStatus(selection, currentPK, previousPK, sellingStatus)
+		if err2 != nil{
+			w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Error when updating the selling status",
+			}
+			json.NewEncoder(w).Encode(result)
+		}else{
+			w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusOK)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Selling status updated successfully",
+			}
+		json.NewEncoder(w).Encode(result)
 		}
+		return data
+	}).Await()
+	
+	if err1 != nil{
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when fetching the protocol from Datastore or protocol does not exists in the Datastore",
+		}
+		fmt.Println(err1)
+		json.NewEncoder(w).Encode(result)
+	}
+}
+
+//ecfaa63f84ca9345a2220e6c21e3ed06e0323b060a335523304f95455377f4b6
