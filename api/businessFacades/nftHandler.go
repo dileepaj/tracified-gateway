@@ -189,22 +189,11 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 				}
 
 			result = append(result, temp)
-			fmt.Println("-----------------",result)
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(result)
-			return 
 		}
-		if err != nil {
-			if(response.Message!=""&&response.Code!=0){
-			logrus.Error(response.Message)
-			w.WriteHeader(response.Code)
-			 json.NewEncoder(w).Encode(response)
-			}else{
-				logrus.Error("No Transactions Found in Gateway DataStore")
-				w.WriteHeader(http.StatusNoContent)
-				json.NewEncoder(w).Encode(model.Error{Code:http.StatusNoContent,Message:"No Transactions Found in Gateway DataStore"})
-			}
-		}
+		fmt.Println("-----------------",result)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return
 }
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request){
 
