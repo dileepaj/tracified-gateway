@@ -41,6 +41,30 @@ type NFTWithTransaction struct {
 	ProductName 				     string
 }
 
+type MarketPlaceNFT struct{
+	Identifier                       string
+	TDPTxnHash                       string
+	TDPID							 string
+	TxnType                          string
+	DataHash                         string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash						 string
+	Timestamp                        string
+	NftAssetName                     string
+	NftContentName                   string
+	NftContent                       string
+	IssuerPK                         string
+	DistributorPublickKey			 string
+	TrustLineCreatedAt				 string
+	ProductName 				     string
+	PreviousOwnerNFTPK				 string
+	CurrentOwnerNFTPK				 string
+	OriginPK						 string
+	SellingStatus					 bool
+	Amount							 string
+	Price                            string
+}
 type TrustLineResponseNFT struct{
 	DistributorPublickKey  string
 	Asset_code        string
@@ -326,7 +350,10 @@ type TransactionCollectionBodyWithCount struct {
 	Count        int64
 	Transactions []TransactionCollectionBody
 }
-
+ type MarketPlaceNFTTrasactionWithCount struct{
+	 Count int64
+	 MarketPlaceNFTItems []MarketPlaceNFT
+ }
 type Services struct{
 	ServiceName         string
 	ServiceURL	        string

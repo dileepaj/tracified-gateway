@@ -88,10 +88,16 @@ var routes = Routes{
 		businessFacades.SubmitData, //Calls the Functional SubmitData for Gateway Version 3
 	},
 	Route{
-		"TrustlineXDRForNFT",
+		"MintNFTStellarAndAddToDB",
 		"POST",
-		"/nft/trustlinexdr",
-		businessFacades.GettingChangeTrustXDRForNFT, //getting trustline xdr from wallet app
+		"/nft/mintStellar",
+		businessFacades.MintNFTStellar, //getting trustline xdr from wallet app
+	},
+	Route{
+		"RetriveAllNFTForSell",
+		"GET",
+		"/nft/stellarMarketPlace",
+		businessFacades.RetriveAllNFTForSell, //getting trustline xdr from wallet app
 	},
 	Route{
 		"SubmitSplit",
