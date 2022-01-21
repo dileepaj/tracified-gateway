@@ -218,7 +218,6 @@ func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction,marke
 		fmt.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
-
 	c := session.Client().Database(dbName).Collection("NFTStellar")
 	c2:= session.Client().Database(dbName).Collection("MarketPlaceNFT")
 	_,err2:=c.InsertOne(context.TODO(), stellarNFT)
@@ -230,4 +229,19 @@ func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction,marke
 		fmt.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
 	}
 	return err, err2
+}
+
+//Insert NFT issued account to NFTKeys collection
+func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) (error){
+	session, err := cd.connect()
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTKeys")
+	_,err = c.InsertOne(context.TODO(), nftKeys)
+	if err != nil{
+		fmt.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
 }

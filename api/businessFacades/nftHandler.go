@@ -24,12 +24,10 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
 	if err != nil {
-		fmt.Println("eerrrr")
+		panic(err)
 	}
-	fmt.Println("TrustLineResponseNFT", TrustLineResponseNFT)
-	//callthe issue NFt method(distributerPK,assetcode,TDPtxnhas) mint and return the (NFTtxnhash,issuerPK,NFTContent)
-	if TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
-		var NFTtxnhash, issuerPK, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
+	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
+		var NFTtxnhash, issuerPK, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 		if err == nil {
 			NFTcollectionObj = model.NFTWithTransaction{
 				Identifier:                       TrustLineResponseNFT.Identifier,
@@ -163,7 +161,6 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	res := qdata.(model.MarketPlaceNFTTrasactionWithCount)
-	fmt.Println("-----------------",res)
 		for _, TxnBody := range res.MarketPlaceNFTItems {
 		
 			temp := model.MarketPlaceNFT{
@@ -191,11 +188,10 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 
 			result = append(result, temp)
 		}
-		fmt.Println("-----------------",result)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
-		return
 }
+
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request){
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -270,21 +266,27 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request){
 
 //Create issuer accounts, add credentials to the DB and send the PK as the response
 func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request){
-	//calling the create account method
-	fmt.Println("---------------Create account called---------------------------------")
-	var NFTIssuerPK, NFTIssuerSK = accounts.CreateIssuerAccount()
-
-	fmt.Println("------------PK", NFTIssuerPK)
-	fmt.Println("------------SK", NFTIssuerSK)
-
-	//adding the credentials to the DB
-
-	//send the response
-	result := model.NFTIssuerAccount{
-		NFTIssuerPK: NFTIssuerPK,
-	}
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(result); err != nil {
+	var NFTIssuerPK,EncodedNFTIssuerSK,err = accounts.CreateIssuerAccount()
+	if (err!=nil && NFTIssuerPK=="" && EncodedNFTIssuerSK==""){
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode(err)
+	}else{
+		var NFTKeys= model.NFTKeys{
+			PublicKey:NFTIssuerPK,
+			SecretKey: EncodedNFTIssuerSK,
+		}
+		//adding the credentials to the DB
+		object := dao.Connection{}
+		err:= object.InsertStellarNFTKeys(NFTKeys)
+		if err!=nil{
+			panic(err)
+		}
+		//send the response
+		result := model.NFTIssuerAccount{
+			NFTIssuerPK: NFTIssuerPK,
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
 	}
 }

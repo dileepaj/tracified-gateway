@@ -1,91 +1,64 @@
 package accounts
 
 import (
-
-	//"runtime/trace"
-
-	"fmt"
 	"log"
 
-	//"strings"
-
-	//"github.com/segmentio/ksuid"
-	//"github.com/rs/xid"
-	//"github.com/sony/sonyflake"
-	//"github.com/lithammer/shortuuid"
-	//"github.com/google/uuid"
-
-	//"github.com/stellar/go/clients/horizonclient"
-	//"github.com/stellar/go/txnbuild"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/keypair"
-	//"github.com/stellar/go/support/env"
-	//"github.com/stellar/go/xdr"
-	//"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
-func CreateIssuerAccount() (string, string) {
-	fmt.Println("-------------Create account inside--------------------")
+/**
+CreateIssuerAccount()
+This Method Use for Create New Account for Issue NFT
+Created New Account kyes added To GatewayDB NFTKyes collection
+**/
+func CreateIssuerAccount() (string,string,error) {
+	var NFTAccountKeyEncodedPassword string =commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
 	pair, err := keypair.Random()
-	fmt.Println("------------------------Random called------------------")
 	if err != nil {
-		fmt.Println("--------------------------------", err)
 		log.Fatal(err)
+		panic(err)
 	}
-
+	//NFT issuer keys
 	nftIssuerPK := pair.Address()
 	nftIssuerSK := pair.Seed()
-
-	//Issuer
+	//Account Creater keys(Tracified)
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
-	//issuerPK := commons.GoDotEnvVariable("GCNR45BE32EEGYBNEVSYMHLMUMBKGIO6AY5RFUAZF745FIA5IIBNIUGD")
-	//issuerSK := commons.GoDotEnvVariable("SB5BST4V2RC3K5QTYJRDGNSVFA2QHJQDPLR4YJLZND5VQ73XNCNZLWG2")
-
-	transactionNft, errpk := build.Transaction(
+	transactionNft, err := build.Transaction(
 		commons.GetHorizonNetwork(),
 		build.SourceAccount{AddressOrSeed: issuerPK},
 		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: nftIssuerPK},
 			build.NativeAmount{
-				Amount: "1"},
+				Amount: "10"},
 		),
 	)
-
-	if errpk != nil {
-		//" hError" := err.(*horizon.Error)
-		fmt.Println("error1", "errr")
-		log.Fatal(errpk)
-
+	if err != nil {
+		log.Fatal("Error when build transaction : ",err)
+		panic(err)
 	}
-
-	txen64, errr := transactionNft.Sign(issuerSK)
-	if errr != nil {
-		//" hError" := err.(*horizon.Error)
-		log.Fatal("Error when submitting the transaction : ", " hError")
-
+	txen64, err := transactionNft.Sign(issuerSK)
+	if err != nil {
+		log.Fatal("Error when sign the transaction : ",err)
+		panic(err)
 	}
-
-	txen, err1 := txen64.Base64()
-	if err1 != nil {
-		fmt.Println("error base64")
-		//" hError" := err.(*horizon.Error)
-
+	txen, err := txen64.Base64()
+	if err != nil {
+		panic(err)
 	}
-
 	//submit transaction
-	respn, err2 := commons.GetHorizonClient().SubmitTransaction(txen)
-	if err2 != nil {
-		fmt.Println("error---------------", err)
-		//" hError" := err.(*horizon.Error)
-		log.Fatal("Error submitting transaction:", " hError")
-
+	respn, err := commons.GetHorizonClient().SubmitTransaction(txen)
+	if err != nil {
+		log.Fatal("Error submitting transaction:",err)
+		panic(err)
 	}
-
-	fmt.Println("rsponse---------------------------------", respn.Result)
+	encryptedSK,err :=Encrypt(nftIssuerSK,NFTAccountKeyEncodedPassword)
+	 if err!=nil{
+		 panic(err)
+	 }
 	log.Println("Transaction Hash for new Account creation: ", respn.Hash)
-
-	return nftIssuerPK, nftIssuerSK
+	return nftIssuerPK,encryptedSK,err
 }

@@ -1404,18 +1404,13 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 
 func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, page int, perPage int) *promise.Promise {
 	result := model.MarketPlaceNFTTrasactionWithCount{}
-	// p := promise.NewPromise()
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
-
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
@@ -1424,16 +1419,7 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, pa
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-
-		// offset := int64(page) * int64(perPage)
-		// if count < offset {
-		// 	perPage = int(count + int64(perPage) - offset)
-		// 	offset = count
-		// }
-
-		// opt := options.Find().SetSkip(count - offset).SetLimit(int64(perPage))
 		cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-
 		if er != nil {
 			reject(er)
 		} else {
@@ -1446,11 +1432,33 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, pa
 			}
 		}
 	})
-
 	return p
-
 }
 
+// GetNFTIssuerSK function use to retrive the EncodedSK using publick key form NFTKeys collection
+func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
+	result := []model.NFTKeys{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTKeys")
+		cursor, err :=dbclient.Find(context.TODO(), bson.M{"publickey": isserPK})
+		if err != nil {
+			reject(err)
+		} else {
+			err := cursor.All(context.TODO(), &(result))
+			if err != nil{
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return promise
+}
 
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}

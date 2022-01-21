@@ -41,6 +41,15 @@ type NFTWithTransaction struct {
 	ProductName 				     string
 }
 
+type NFTKeys struct {
+	PublicKey string
+	SecretKey string
+}
+
+type NFTKeyItems struct{
+	NFTKeyItem []NFTKeys
+}
+
 type MarketPlaceNFT struct{
 	Identifier                       string
 	TDPTxnHash                       string
@@ -66,15 +75,16 @@ type MarketPlaceNFT struct{
 	Price                            string
 }
 type TrustLineResponseNFT struct{
-	DistributorPublickKey  string
-	Asset_code        string
-	TDPtxnhash        string
-	TDPID             string
-	NFTBlockChain     string
-	Successfull       bool
-	TrustLineCreatedAt string
-	Identifier string
-	ProductName string
+	DistributorPublickKey  	string
+	IssuerPublicKey 		string
+	Asset_code        		string
+	TDPtxnhash        		string
+	TDPID             		string
+	NFTBlockChain     		string
+	Successfull      	 	bool
+	TrustLineCreatedAt 		string
+	Identifier 				string
+	ProductName 			string
 }
 
 type NFTCreactedResponse struct{
