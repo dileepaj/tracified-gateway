@@ -17,38 +17,42 @@ import (
 
 	//"github.com/stellar/go/clients/horizonclient"
 	//"github.com/stellar/go/txnbuild"
-
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/stellar/go/build"
 	//"github.com/stellar/go/support/env"
 	//"github.com/stellar/go/xdr"
 	//"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 )
 
-func IssueNft(distributerPK string, assetcode string,TDPtxnhas string) (string , string, string,error) {
+var CurrentIssuerPK string
+var CurrentIssuerSK string
+
+func IssueNft(distributerPK string, assetcode string, TDPtxnhas string) (string, string, string, error) {
 	fmt.Println("---------------Issuing NFT-------------")
 	fmt.Println("---------------Dis key : ", distributerPK)
 	fmt.Println("---------------Asset : ", assetcode)
 	fmt.Println("---------------TDP hash : ", TDPtxnhas)
 
-	//Issuer
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
-	
+
+	CurrentIssuerPK, CurrentIssuerSK = accounts.CreateIssuerAccount()
+	///////////////////////////////////////////issuing//////////////////////////
 	// log.Println("Transaction Hash for trust line: ", resp.Hash)
-	fmt.Println("---------------issuerSK : ", issuerPK)
-	fmt.Println("---------------issuerSK : ", issuerSK)
+	fmt.Println("---------------current issuerPK : ", issuerPK)
+	fmt.Println("---------------current issuerSK : ", issuerSK)
 	var b = []byte("POE proofbot URL")
 
 	txn, err := build.Transaction(
 		commons.GetHorizonNetwork(),
-		build.SourceAccount{AddressOrSeed: issuerSK},
+		build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
 		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 		build.Payment(
 			build.Destination{AddressOrSeed: distributerPK},
 			build.CreditAmount{
 				Code:   assetcode,
-				Issuer: issuerPK,
+				Issuer: CurrentIssuerPK,
 				Amount: "1",
 			},
 		),
@@ -62,35 +66,35 @@ func IssueNft(distributerPK string, assetcode string,TDPtxnhas string) (string ,
 	)
 	if err != nil {
 		//" hError" := err.(*horizon.Error)
-		fmt.Println("error1",	"errr")
+		fmt.Println("error1", "errr")
 		log.Fatal(err)
-		return "","","",errors.New("errr")	
+		return "", "", "", errors.New("errr")
 	}
 
-	txen64, err := txn.Sign(issuerSK)
-	if err != nil {	
+	txen64, err := txn.Sign(CurrentIssuerSK)
+	if err != nil {
 		//" hError" := err.(*horizon.Error)
-		log.Fatal("Error when submitting the transaction : "," hError")
-		return "","","",errors.New("errr")
+		log.Fatal("Error when submitting the transaction : ", " hError")
+		return "", "", "", errors.New("errr")
 	}
 
 	txen, err := txen64.Base64()
 	if err != nil {
 		fmt.Println("error base64")
 		//" hError" := err.(*horizon.Error)
-		return "","","",errors.New("errr")
+		return "", "", "", errors.New("errr")
 	}
-	
+
 	//submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txen)
 	if err != nil {
-		fmt.Println("error---------------",err)
+		fmt.Println("error---------------", err)
 		//" hError" := err.(*horizon.Error)
-		log.Fatal("Error submitting transaction:"," hError")
-		return "","","",errors.New("errr")
+		log.Fatal("Error submitting transaction:", " hError")
+		return "", "", "", errors.New("errr")
 	}
-	fmt.Println("rsponse---------------------------------",respn.Result)
+	fmt.Println("rsponse---------------------------------", respn.Result)
 	log.Println("Transaction Hash for NFT: ", respn.Hash)
 
-	return respn.Hash, issuerPK, string(b),nil
+	return respn.Hash, CurrentIssuerPK, string(b), nil
 }
