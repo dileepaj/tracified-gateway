@@ -91,6 +91,7 @@ type NFTCreactedResponse struct{
 	NFTTxnHash string
 	TDPTxnHash string
 	NFTName string
+	NFTIssuerPublicKey string
 }
 
 type NFTIssuerAccount struct{

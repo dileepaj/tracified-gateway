@@ -75,6 +75,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NFTTxnHash: NFTtxnhash,
 				TDPTxnHash: TrustLineResponseNFT.TDPtxnhash,
 				NFTName:    TrustLineResponseNFT.Asset_code,
+				NFTIssuerPublicKey:TrustLineResponseNFT.IssuerPublicKey,
 			}
 				//after that call the insertTODB NFT Details to NFT  (gateway(NFTstellar collection)
 			object := dao.Connection{}
