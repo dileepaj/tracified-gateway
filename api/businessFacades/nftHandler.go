@@ -69,7 +69,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				PreviousOwnerNFTPK: 			  "",
 				CurrentOwnerNFTPK: 				  TrustLineResponseNFT.DistributorPublickKey,
 				OriginPK: 						  commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
-				SellingStatus:					  false,
+				SellingStatus:					  "FORSELL",
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
@@ -143,7 +143,7 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 	}
 
 	object := dao.Connection{}
-	var SellingStatus=true
+	var SellingStatus="FORSELL"
 	qdata, err := object.GetAllSellingNFTStellar_Paginated(SellingStatus,perPage, page).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -162,7 +162,7 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 	res := qdata.(model.MarketPlaceNFTTrasactionWithCount)
-
+	fmt.Println("-----------------",res)
 		for _, TxnBody := range res.MarketPlaceNFTItems {
 		
 			temp := model.MarketPlaceNFT{

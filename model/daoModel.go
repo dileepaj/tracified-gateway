@@ -61,7 +61,7 @@ type MarketPlaceNFT struct{
 	PreviousOwnerNFTPK				 string
 	CurrentOwnerNFTPK				 string
 	OriginPK						 string
-	SellingStatus					 bool
+	SellingStatus					 string
 	Amount							 string
 	Price                            string
 }

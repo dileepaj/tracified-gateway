@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"strconv"
-
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -615,12 +613,12 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 	}
 
 	defer session.EndSession(context.TODO())
-	fmt.Println("----------------------------------- aaaaaaaaaaaaaaaaaaaaaaaaaaa ---------------------------------")
-	saleStatus,err := strconv.ParseBool(updateStatus)
-	if err != nil{
-		fmt.Println(err)
-	}
-	fmt.Println("----------------------------Status",saleStatus)
+	 fmt.Println("----------------------------------- aaaaaaaaaaaaaaaaaaaaaaaaaaa ---------------------------------")
+	// saleStatus,err := strconv.ParseBool(updateStatus)
+	// if err != nil{
+	// 	fmt.Println(err)
+	// }
+	// fmt.Println("----------------------------Status",saleStatus)
 
 	// owner := selector.CurrentOwnerNFTPK
 	// if updateCurrentPK.CurrentOwnerNFTPK != "" {
@@ -652,7 +650,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 		PreviousOwnerNFTPK:               updatePreviousPK,
 		CurrentOwnerNFTPK:                updateCurrentPK,
 		OriginPK:                         selector.OriginPK,
-		SellingStatus:                    saleStatus,
+		SellingStatus:                    updateStatus,
 		Amount:                           selector.Amount,
 		Price:                            selector.Price,
 	}

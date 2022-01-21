@@ -1402,7 +1402,7 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus bool, page int, perPage int) *promise.Promise {
+func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, page int, perPage int) *promise.Promise {
 	result := model.MarketPlaceNFTTrasactionWithCount{}
 	// p := promise.NewPromise()
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1419,24 +1419,23 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus bool, page
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-
+		fmt.Println("Count",count)
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
 
-		offset := int64(page) * int64(perPage)
-		if count < offset {
-			perPage = int(count + int64(perPage) - offset)
-			offset = count
+		// offset := int64(page) * int64(perPage)
+		// if count < offset {
+		// 	perPage = int(count + int64(perPage) - offset)
+		// 	offset = count
+		// }
 
-		}
+		// opt := options.Find().SetSkip(count - offset).SetLimit(int64(perPage))
+		cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
 
-		opt := options.Find().SetSkip(count - offset).SetLimit(int64(perPage))
-		cursor, err1 := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}}, opt)
-
-		if err1 != nil {
-			reject(err1)
+		if er != nil {
+			reject(er)
 		} else {
 			err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
 			result.Count = int64(count)
@@ -1446,7 +1445,6 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus bool, page
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
