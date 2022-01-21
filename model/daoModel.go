@@ -83,6 +83,10 @@ type NFTCreactedResponse struct{
 	NFTName string
 }
 
+type NFTIssuerAccount struct{
+	NFTIssuerPK string
+}
+
 type TransactionCollectionBody struct {
 	Identifier           string
 	TdpId                string

@@ -11,6 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
+	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/sirupsen/logrus"
 )
 
@@ -267,4 +268,23 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-//ecfaa63f84ca9345a2220e6c21e3ed06e0323b060a335523304f95455377f4b6
+//Create issuer accounts, add credentials to the DB and send the PK as the response
+func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request){
+	//calling the create account method
+	fmt.Println("---------------Create account called---------------------------------")
+	var NFTIssuerPK, NFTIssuerSK = accounts.CreateIssuerAccount()
+
+	fmt.Println("------------PK", NFTIssuerPK)
+	fmt.Println("------------SK", NFTIssuerSK)
+
+	//adding the credentials to the DB
+
+	//send the response
+	result := model.NFTIssuerAccount{
+		NFTIssuerPK: NFTIssuerPK,
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(result); err != nil {
+	}
+}

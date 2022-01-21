@@ -26,8 +26,11 @@ import (
 )
 
 func CreateIssuerAccount() (string, string) {
+	fmt.Println("-------------Create account inside--------------------")
 	pair, err := keypair.Random()
+	fmt.Println("------------------------Random called------------------")
 	if err != nil {
+		fmt.Println("--------------------------------", err)
 		log.Fatal(err)
 	}
 
@@ -37,6 +40,8 @@ func CreateIssuerAccount() (string, string) {
 	//Issuer
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
+	//issuerPK := commons.GoDotEnvVariable("GCNR45BE32EEGYBNEVSYMHLMUMBKGIO6AY5RFUAZF745FIA5IIBNIUGD")
+	//issuerSK := commons.GoDotEnvVariable("SB5BST4V2RC3K5QTYJRDGNSVFA2QHJQDPLR4YJLZND5VQ73XNCNZLWG2")
 
 	transactionNft, errpk := build.Transaction(
 		commons.GetHorizonNetwork(),
@@ -45,7 +50,7 @@ func CreateIssuerAccount() (string, string) {
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: nftIssuerPK},
 			build.NativeAmount{
-				Amount: "1000"},
+				Amount: "1"},
 		),
 	)
 

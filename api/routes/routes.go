@@ -100,6 +100,12 @@ var routes = Routes{
 		businessFacades.RetriveAllNFTForSell, //getting trustline xdr from wallet app
 	},
 	Route{
+		"CreateNFTIssuerAccount",
+		"GET",
+		"/nft/createNFTIssuerAccount",
+		businessFacades.CreateNFTIssuerAccount, //create new account for each NFT creation
+	},
+	Route{
 		"UpdateSellingStatus",
 		"PUT",
 		"/nft/updateStellarMarketplace",
