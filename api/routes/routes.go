@@ -106,6 +106,18 @@ var routes = Routes{
 		businessFacades.CreateNFTIssuerAccount, //create new account for each NFT creation
 	},
 	Route{
+		"UnlockNFTIssuerAccount",
+		"GET",
+		"/nft/unlockNFTIssuerAccount/{currentissuerpk}",
+		businessFacades.UnlockNFTIssuerAccount, //unlock current issuer account for particular nft
+	},
+	Route{
+		"LockNFTIssuerAccount",
+		"GET",
+		"/nft/lockNFTIssuerAccount/{currentissuerpk}",
+		businessFacades.LockNFTIssuerAccount, //lock current issuer account for particular nft
+	},
+	Route{
 		"UpdateSellingStatus",
 		"PUT",
 		"/nft/updateStellarMarketplace",
@@ -415,7 +427,7 @@ var routes = Routes{
 		"POST",
 		"/proofprotocol",
 		businessFacades.InsertProofPresentationProtocol, //Test - calls the InsertProofPresentationProtocol in the ProofPresesntationHandlers
-	},	
+	},
 	Route{
 		"UpdateProofPresentationProtocol",
 		"PUT",

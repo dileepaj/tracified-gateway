@@ -18,27 +18,27 @@ type COCCollectionBody struct {
 	Status     string
 }
 
-type TotalTransaction struct{
+type TotalTransaction struct {
 	TotalTransactionCount int64
 }
 
 type NFTWithTransaction struct {
 	Identifier                       string
 	TDPTxnHash                       string
-	TDPID							 string
+	TDPID                            string
 	TxnType                          string
 	DataHash                         string
 	NftTransactionExistingBlockchain string
 	NftIssuingBlockchain             string
-	NFTTXNhash						 string
+	NFTTXNhash                       string
 	Timestamp                        string
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
 	IssuerPK                         string
-	DistributorPublickKey			 string
-	TrustLineCreatedAt				 string
-	ProductName 				     string
+	DistributorPublickKey            string
+	TrustLineCreatedAt               string
+	ProductName                      string
 }
 
 type NFTKeys struct {
@@ -46,55 +46,59 @@ type NFTKeys struct {
 	SecretKey string
 }
 
-type NFTKeyItems struct{
+// type CurrentIssuer struct {
+// 	PublicKey string
+// }
+
+type NFTKeyItems struct {
 	NFTKeyItem []NFTKeys
 }
 
-type MarketPlaceNFT struct{
+type MarketPlaceNFT struct {
 	Identifier                       string
 	TDPTxnHash                       string
-	TDPID							 string
+	TDPID                            string
 	TxnType                          string
 	DataHash                         string
 	NftTransactionExistingBlockchain string
 	NftIssuingBlockchain             string
-	NFTTXNhash						 string
+	NFTTXNhash                       string
 	Timestamp                        string
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
 	IssuerPK                         string
-	DistributorPublickKey			 string
-	TrustLineCreatedAt				 string
-	ProductName 				     string
-	PreviousOwnerNFTPK				 string
-	CurrentOwnerNFTPK				 string
-	OriginPK						 string
-	SellingStatus					 string
-	Amount							 string
+	DistributorPublickKey            string
+	TrustLineCreatedAt               string
+	ProductName                      string
+	PreviousOwnerNFTPK               string
+	CurrentOwnerNFTPK                string
+	OriginPK                         string
+	SellingStatus                    string
+	Amount                           string
 	Price                            string
 }
-type TrustLineResponseNFT struct{
-	DistributorPublickKey  	string
-	IssuerPublicKey 		string
-	Asset_code        		string
-	TDPtxnhash        		string
-	TDPID             		string
-	NFTBlockChain     		string
-	Successfull      	 	bool
-	TrustLineCreatedAt 		string
-	Identifier 				string
-	ProductName 			string
+type TrustLineResponseNFT struct {
+	DistributorPublickKey string
+	IssuerPublicKey       string
+	Asset_code            string
+	TDPtxnhash            string
+	TDPID                 string
+	NFTBlockChain         string
+	Successfull           bool
+	TrustLineCreatedAt    string
+	Identifier            string
+	ProductName           string
 }
 
-type NFTCreactedResponse struct{
-	NFTTxnHash string
-	TDPTxnHash string
-	NFTName string
+type NFTCreactedResponse struct {
+	NFTTxnHash         string
+	TDPTxnHash         string
+	NFTName            string
 	NFTIssuerPublicKey string
 }
 
-type NFTIssuerAccount struct{
+type NFTIssuerAccount struct {
 	NFTIssuerPK string
 }
 
@@ -171,7 +175,7 @@ type TransactionIds struct {
 
 type PrevTxnResponse struct {
 	Status         string
-	Blockchain	   string
+	Blockchain     string
 	Txnhash        string
 	TxnType        string
 	SequenceNo     int64
@@ -365,39 +369,39 @@ type TransactionCollectionBodyWithCount struct {
 	Count        int64
 	Transactions []TransactionCollectionBody
 }
- type MarketPlaceNFTTrasactionWithCount struct{
-	 Count int64
-	 MarketPlaceNFTItems []MarketPlaceNFT
- }
-type Services struct{
-	ServiceName         string
-	ServiceURL	        string
-	DocumentationLink	string
+type MarketPlaceNFTTrasactionWithCount struct {
+	Count               int64
+	MarketPlaceNFTItems []MarketPlaceNFT
+}
+type Services struct {
+	ServiceName       string
+	ServiceURL        string
+	DocumentationLink string
 	//UIAutomationSteps	UIAutomationSteps
 }
 
-type ActionParams struct{
-	InputVariables	[]string
+type ActionParams struct {
+	InputVariables  []string
 	OutputVariables []string
-	Services	    Services
+	Services        Services
 }
 
-type Action struct{
-	ActionType			string
-	ActionParameters	ActionParams
+type Action struct {
+	ActionType       string
+	ActionParameters ActionParams
 }
 
-type Steps struct{
-	StepNo	    int32
-	SegmentNo	string
-	Discription	string
+type Steps struct {
+	StepNo      int32
+	SegmentNo   string
+	Discription string
 	Action      Action
 }
 
-type ProofProtocol struct{
-	ProofName				string
-	ProofDescriptiveName 	string
-	NumberofSteps			string
+type ProofProtocol struct {
+	ProofName            string
+	ProofDescriptiveName string
+	NumberofSteps        string
 	//Segmants				Segmants
-	Steps 					[]Steps	
+	Steps []Steps
 }

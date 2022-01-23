@@ -472,7 +472,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 }
 
 /*Get total transaction count in a collection
-*/
+ */
 func (cd *Connection) GetTransactionCount() *promise.Promise {
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -887,6 +887,41 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 	return p
 
 }
+
+//getting the nft currentIssuers PK--------------
+// func (cd *Connection) GetNftTransactionCurrentIssuerPK(nftHash string) *promise.Promise {
+// 	result := []model.CurrentIssuer{}
+// 	// p := promise.NewPromise()
+
+// 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+// 		// Do something asynchronously.
+// 		session, err := cd.connect()
+
+// 		if err != nil {
+// 			// fmt.Println(err)
+// 			reject(err)
+
+// 		}
+// 		defer session.EndSession(context.TODO())
+// 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+// 		cursor, err1 := c.Find(context.TODO(), bson.M{"nfttxnhash": nftHash})
+
+// 		if err1 != nil {
+// 			reject(err1)
+// 		} else {
+// 			err2 := cursor.All(context.TODO(), &result)
+// 			if err2 != nil || len(result) == 0 {
+// 				reject(err2)
+// 			} else {
+// 				resolve(result)
+// 			}
+// 		}
+
+// 	})
+
+// 	return p
+
+// }
 
 func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
@@ -1414,7 +1449,7 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, pa
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-		fmt.Println("Count",count)
+		fmt.Println("Count", count)
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
@@ -1445,12 +1480,12 @@ func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		dbclient := session.Client().Database(dbName).Collection("NFTKeys")
-		cursor, err :=dbclient.Find(context.TODO(), bson.M{"publickey": isserPK})
+		cursor, err := dbclient.Find(context.TODO(), bson.M{"publickey": isserPK})
 		if err != nil {
 			reject(err)
 		} else {
 			err := cursor.All(context.TODO(), &(result))
-			if err != nil{
+			if err != nil {
 				reject(err)
 			} else {
 				resolve(result)
@@ -1673,12 +1708,12 @@ func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise
 }
 
 //get proof protocol by proof name
-func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise{
+func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise {
 	resultProtocolObj := model.ProofProtocol{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
-		if err != nil{
+		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
 			reject(err)
 		}
@@ -1689,7 +1724,7 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
-		}else{
+		} else {
 			resolve(resultProtocolObj)
 		}
 	})

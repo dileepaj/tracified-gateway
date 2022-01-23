@@ -19,9 +19,9 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 	if err != nil {
 		log.Fatal(err)
 		return "", "", "", err
-	}else{
-		nftKeys :=data.([]model.NFTKeys)
-		decrpytNftissuerSecretKey,err:=accounts.Decrypt(nftKeys[0].SecretKey,commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
+	} else {
+		nftKeys := data.([]model.NFTKeys)
+		decrpytNftissuerSecretKey, err := accounts.Decrypt(nftKeys[0].SecretKey, commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
 		if data == nil {
 			logrus.Error("PublicKey is not found in gateway datastore")
 			panic(data)
@@ -40,7 +40,14 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 				},
 			),
 			build.SetData(assetcode, nftConten),
-			build.SetOptions(build.HomeDomain("https://tracified.com")),)
+			build.SetOptions(
+				build.HomeDomain("https://tracified.com"),
+				build.Signer{
+					Address: "GC6SZI57VRGFULGMBEJGNMPRMDWEJYNL647CIT7P2G2QKNLUHTTOVFO3",
+					Weight:  255,
+				}),
+			build.SetOptions(build.MasterWeight(0)),
+		)
 		if err != nil {
 			log.Fatal(err)
 			return "", "", "", err
@@ -57,7 +64,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 		//submit transaction
 		respn, err := commons.GetHorizonClient().SubmitTransaction(encodedTxn)
 		if err != nil {
-			log.Fatal("Error submitting transaction:",err)
+			log.Fatal("Error submitting transaction:", err)
 			return "", "", "", err
 		}
 		return respn.Hash, CurrentIssuerPK, string(nftConten), nil
