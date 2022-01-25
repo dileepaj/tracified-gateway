@@ -614,21 +614,6 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 
 	defer session.EndSession(context.TODO())
 	 fmt.Println("----------------------------------- aaaaaaaaaaaaaaaaaaaaaaaaaaa ---------------------------------")
-	// saleStatus,err := strconv.ParseBool(updateStatus)
-	// if err != nil{
-	// 	fmt.Println(err)
-	// }
-	// fmt.Println("----------------------------Status",saleStatus)
-
-	// owner := selector.CurrentOwnerNFTPK
-	// if updateCurrentPK.CurrentOwnerNFTPK != "" {
-	// 	owner = updateCurrentPK.CurrentOwnerNFTPK
-	// }
-
-	// prevOwner := selector.PreviousOwnerNFTPK
-	// if updatePreviousPK.PreviousOwnerNFTPK != "" {
-	// 	prevOwner = updatePreviousPK.PreviousOwnerNFTPK
-	// }
 	fmt.Println("----------------------------------- update ---------------------------------")
 	up := model.MarketPlaceNFT{
 		Identifier:                       selector.Identifier,
@@ -643,8 +628,8 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 		NftAssetName:                     selector.NftAssetName,
 		NftContentName:                   selector.NftContentName,
 		NftContent:                       selector.NftContent,
-		IssuerPK:                         selector.IssuerPK,
-		DistributorPublickKey:            selector.DistributorPublickKey,
+		InitialIssuerPK:                  selector.InitialIssuerPK,
+		InitialDistributorPK:     		  selector.InitialDistributorPK,
 		TrustLineCreatedAt:               selector.TrustLineCreatedAt,
 		ProductName:                      selector.ProductName,
 		PreviousOwnerNFTPK:               updatePreviousPK,
@@ -653,6 +638,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 		SellingStatus:                    updateStatus,
 		Amount:                           selector.Amount,
 		Price:                            selector.Price,
+		
 	}
 	c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 

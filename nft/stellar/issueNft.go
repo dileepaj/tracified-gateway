@@ -1,6 +1,7 @@
 package stellar
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -11,14 +12,14 @@ import (
 	"github.com/stellar/go/build"
 )
 
-func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TDPtxnhas string) (string, string, string, error) {
+func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TDPtxnhas string) (string, string, error) {
 	object := dao.Connection{}
 	data, err := object.GetNFTIssuerSK(CurrentIssuerPK).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
 		log.Fatal(err)
-		return "", "", "", err
+		return "", "", err
 	} else {
 		nftKeys := data.([]model.NFTKeys)
 		decrpytNftissuerSecretKey, err := accounts.Decrypt(nftKeys[0].SecretKey, commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
@@ -42,32 +43,31 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 			build.SetData(assetcode, nftConten),
 			build.SetOptions(
 				build.HomeDomain("https://tracified.com"),
-				build.Signer{
-					Address: "GC6SZI57VRGFULGMBEJGNMPRMDWEJYNL647CIT7P2G2QKNLUHTTOVFO3",
-					Weight:  255,
-				}),
-			build.SetOptions(build.MasterWeight(0)),
+				build.MasterWeight(0),
+				build.InflationDest(CurrentIssuerPK),
+			),
 		)
 		if err != nil {
 			log.Fatal(err)
-			return "", "", "", err
+			return "", "", err
 		}
 		signTxn, err := txn.Sign(decrpytNftissuerSecretKey)
 		if err != nil {
 			log.Fatal("Error when submitting the transaction : ", " hError")
-			return "", "", "", err
+			return "", "", err
 		}
 		encodedTxn, err := signTxn.Base64()
 		if err != nil {
-			return "", "", "", err
+			return "", "", err
 		}
 		//submit transaction
+		fmt.Println("XDR",encodedTxn)
 		respn, err := commons.GetHorizonClient().SubmitTransaction(encodedTxn)
 		if err != nil {
 			log.Fatal("Error submitting transaction:", err)
-			return "", "", "", err
+			return "", "", err
 		}
-		return respn.Hash, CurrentIssuerPK, string(nftConten), nil
+		return respn.Hash,string(nftConten), nil
 	}
 
 }

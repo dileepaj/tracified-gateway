@@ -33,7 +33,7 @@ func CreateIssuerAccount() (string,string,error) {
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: nftIssuerPK},
 			build.NativeAmount{
-				Amount: "10"},
+				Amount: "2"},
 		),
 	)
 	if err != nil {

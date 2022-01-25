@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -26,8 +25,10 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("---------33333333333333333=-====================----",TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
-		var NFTtxnhash, issuerPK, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
+		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
+		fmt.Println("---------33333333333333333=-====================----",TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 		if err == nil {
 			NFTcollectionObj = model.NFTWithTransaction{
 				Identifier:                       TrustLineResponseNFT.Identifier,
@@ -42,14 +43,16 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NftAssetName:                     TrustLineResponseNFT.Asset_code,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
-				DistributorPublickKey:            TrustLineResponseNFT.DistributorPublickKey,
-				IssuerPK:                         issuerPK,
+				InitialDistributorPublickKey:     TrustLineResponseNFT.DistributorPublickKey,
+				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
+				MainAccountPK:					  commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),	
 				TrustLineCreatedAt:               TrustLineResponseNFT.TrustLineCreatedAt,
 				ProductName:                      TrustLineResponseNFT.ProductName,
 			}
 
 			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
 				Identifier:                       TrustLineResponseNFT.Identifier,
+				ProductName:                      TrustLineResponseNFT.ProductName,
 				TxnType:                          "TDP",
 				TDPID:                            TrustLineResponseNFT.TDPID,
 				TDPTxnHash:                       TrustLineResponseNFT.TDPtxnhash,
@@ -61,14 +64,13 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NftAssetName:                     TrustLineResponseNFT.Asset_code,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
-				DistributorPublickKey:            TrustLineResponseNFT.DistributorPublickKey,
-				IssuerPK:                         issuerPK,
+				InitialDistributorPK:             TrustLineResponseNFT.DistributorPublickKey,
+				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
+				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
 				TrustLineCreatedAt:               TrustLineResponseNFT.TrustLineCreatedAt,
-				ProductName:                      TrustLineResponseNFT.ProductName,
 				PreviousOwnerNFTPK:               "",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.DistributorPublickKey,
-				OriginPK:                         commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
-				SellingStatus:                    "FORSELL",
+				SellingStatus:                    "NOTFORSALE",
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
@@ -100,51 +102,28 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request) {
+func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	var response model.Error
 	var result []model.MarketPlaceNFT
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	key1, error := r.URL.Query()["perPage"]
 
-	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
+	sellingstatus, error := r.URL.Query()["sellingstatus"]
+
+	if !error || len(sellingstatus[0]) < 1 {
+		logrus.Error("Url Parameter 'sellingstatus' is missing")
 		return
 	}
 
-	key2, error := r.URL.Query()["page"]
+	distributorPK, error := r.URL.Query()["distributorPK"]
 
-	if !error || len(key2[0]) < 1 {
-		logrus.Error("Url Parameter 'page' is missing")
-		return
-	}
-
-	key3, error := r.URL.Query()["NoPage"]
-
-	if !error || len(key3[0]) < 1 {
-		logrus.Error("Url Parameter 'NoPage' is missing")
-		return
-	}
-
-	perPage, err := strconv.Atoi(key1[0])
-	if err != nil {
-		logrus.Error("Query parameter error" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-	page, err := strconv.Atoi(key2[0])
-	if err != nil {
-		logrus.Error("Query parameter error" + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
-		json.NewEncoder(w).Encode(response)
+	if !error || len(distributorPK[0]) < 1 {
+		logrus.Error("Url Parameter 'distributorPK' is missing")
 		return
 	}
 
 	object := dao.Connection{}
-	var SellingStatus = "FORSELL"
-	qdata, err := object.GetAllSellingNFTStellar_Paginated(SellingStatus, perPage, page).Then(func(data interface{}) interface{} {
+
+	qdata, err := object.GetAllSellingNFTStellar_Paginated(sellingstatus[0],distributorPK[0]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -185,6 +164,9 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request) {
 			SellingStatus:                    TxnBody.SellingStatus,
 			Amount:                           TxnBody.Amount,
 			Price:                            TxnBody.Price,
+			InitialIssuerPK: TxnBody.InitialIssuerPK,
+			InitialDistributorPK: TxnBody.InitialDistributorPK,
+			MainAccountPK: TxnBody.MainAccountPK,
 		}
 
 		result = append(result, temp)
@@ -193,34 +175,35 @@ func RetriveAllNFTForSell(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["currentPK"]
 
 	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
+		logrus.Error("Url Parameter 'currentPK' is missing")
 		return
 	}
 
 	key2, error := r.URL.Query()["previousPK"]
 
 	if !error || len(key2[0]) < 1 {
-		logrus.Error("Url Parameter 'page' is missing")
+		logrus.Error("Url Parameter 'previousPK' is missing")
 		return
 	}
 
 	key3, error := r.URL.Query()["txnHash"]
 
 	if !error || len(key3[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
+		logrus.Error("Url Parameter 'txnHash' is missing")
 		return
 	}
 
 	key4, error := r.URL.Query()["sellingStatus"]
 
 	if !error || len(key4[0]) < 1 {
-		logrus.Error("Url Parameter 'page' is missing")
+		logrus.Error("Url Parameter 'sellingStatus' is missing")
 		return
 	}
 	currentPK := key1[0]

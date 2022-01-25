@@ -1437,7 +1437,8 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, page int, perPage int) *promise.Promise {
+func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, distributorPK string) *promise.Promise {
+
 	result := model.MarketPlaceNFTTrasactionWithCount{}
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
@@ -1449,23 +1450,48 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, pa
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-		fmt.Println("Count", count)
+		fmt.Println("distributorPKaaaaaaaaaaaaaaaaaaaaaa",distributorPK)
+
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-		if er != nil {
-			reject(er)
-		} else {
-			err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
-			result.Count = int64(count)
-			if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
-				reject(err2)
+		if distributorPK !="withoutKey"{
+			cursor, er := c.Find(context.TODO(),bson.M{
+				"currentownernftpk": distributorPK,
+				"$or": []interface{}{
+					bson.M{"sellingstatus": "FORSALE"},
+					bson.M{"sellingstatus": "NOTFORSALE"},
+				},
+			})	
+			if er != nil {
+				reject(er)
 			} else {
-				resolve(result)
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		}else{
+			
+			cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
+				
+			if er != nil {
+				reject(er)
+			} else {
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
 			}
 		}
+
 	})
 	return p
 }

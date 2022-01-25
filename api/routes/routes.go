@@ -94,10 +94,10 @@ var routes = Routes{
 		businessFacades.MintNFTStellar, //getting trustline xdr from wallet app
 	},
 	Route{
-		"RetriveAllNFTForSell",
+		"RetriveNFTByStatusAndPK",
 		"GET",
-		"/nft/stellarMarketPlace",
-		businessFacades.RetriveAllNFTForSell, //getting trustline xdr from wallet app
+		"/nft/retriveNFTByStatusAndPK",
+		businessFacades.RetriveNFTByStatusAndPK, //getting trustline xdr from wallet app
 	},
 	Route{
 		"CreateNFTIssuerAccount",

@@ -35,10 +35,12 @@ type NFTWithTransaction struct {
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
-	IssuerPK                         string
-	DistributorPublickKey            string
-	TrustLineCreatedAt               string
+	CuurentIssuerPK                  string
+	MainAccountPK					 string
+	InitialDistributorPublickKey     string
+	InitialIssuerPK                  string
 	ProductName                      string
+	TrustLineCreatedAt				 string
 }
 
 type NFTKeys struct {
@@ -67,17 +69,19 @@ type MarketPlaceNFT struct {
 	NftAssetName                     string
 	NftContentName                   string
 	NftContent                       string
-	IssuerPK                         string
-	DistributorPublickKey            string
 	TrustLineCreatedAt               string
 	ProductName                      string
-	PreviousOwnerNFTPK               string
-	CurrentOwnerNFTPK                string
 	OriginPK                         string
 	SellingStatus                    string
 	Amount                           string
 	Price                            string
+	InitialDistributorPK           	 string
+	InitialIssuerPK                  string
+	MainAccountPK                    string
+	PreviousOwnerNFTPK               string
+	CurrentOwnerNFTPK                string
 }
+
 type TrustLineResponseNFT struct {
 	DistributorPublickKey string
 	IssuerPublicKey       string
