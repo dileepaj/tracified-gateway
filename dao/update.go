@@ -608,9 +608,9 @@ func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtoc
 
 /*UpdateSellingStatus 
 @desc - Update the selling status, previous public key and the current pk in the collection
-@params - selector object, new current pk, new previous pk, new selling status
+@params - selector object, amount, price, FOR SALE status
 */
-func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateCurrentPK string, updatePreviousPK string, updateStatus string) error {
+func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateStatus string, updateAmount string, updatePrice string) error {
 	session, err := cd.connect()
 	if err != nil {
 		log.Println("Error while getting session " + err.Error())
@@ -633,6 +633,70 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 		InitialIssuerPK:                  selector.InitialIssuerPK,
 		InitialDistributorPK:     		  selector.InitialDistributorPK,
 		TrustLineCreatedAt:               selector.TrustLineCreatedAt,
+		MainAccountPK: 					  selector.MainAccountPK,										
+		ProductName:                      selector.ProductName,
+		PreviousOwnerNFTPK:               selector.PreviousOwnerNFTPK,
+		CurrentOwnerNFTPK:                selector.CurrentOwnerNFTPK,
+		OriginPK:                         selector.OriginPK,
+		SellingStatus:                    updateStatus,
+		Amount:                           updateAmount,
+		Price:                            updatePrice,
+		
+	}
+	c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+	var filter bson.D
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	_, err = c.UpdateOne(context.TODO(), bson.M{"nfttxnhash": selector.NFTTXNhash}, bson.D{{Key: "$set", Value: updateNew}})
+	if err != nil {
+		log.Println("Error while updating NFT Stellar " + err.Error())
+	}
+	return err
+}
+
+/*UpdateBuyingStatus 
+@desc - Update the buying status, previous public key and the current pk in the collection
+@params - selector object, new current pk, new previous pk,NOT FOR SALE status
+*/
+func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateStatus string, updateCurrentPK string, updatePreviousPK string) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error while getting session " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := model.MarketPlaceNFT{
+		Identifier:                       selector.Identifier,
+		TDPTxnHash:                       selector.TDPTxnHash,
+		TDPID:                            selector.TDPID,
+		TxnType:                          selector.TxnType,
+		DataHash:                         selector.DataHash,
+		NftTransactionExistingBlockchain: selector.NftTransactionExistingBlockchain,
+		NftIssuingBlockchain:             selector.NftIssuingBlockchain,
+		NFTTXNhash:                       selector.NFTTXNhash,
+		Timestamp:                        selector.Timestamp,
+		NftAssetName:                     selector.NftAssetName,
+		NftContentName:                   selector.NftContentName,
+		NftContent:                       selector.NftContent,
+		InitialIssuerPK:                  selector.InitialIssuerPK,
+		InitialDistributorPK:     		  selector.InitialDistributorPK,
+		TrustLineCreatedAt:               selector.TrustLineCreatedAt,
+		MainAccountPK: 					  selector.MainAccountPK,										
 		ProductName:                      selector.ProductName,
 		PreviousOwnerNFTPK:               updatePreviousPK,
 		CurrentOwnerNFTPK:                updateCurrentPK,

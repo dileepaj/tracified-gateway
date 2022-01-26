@@ -181,46 +181,46 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 }
 
 /*UpdateSellingStatus 
-@desc - Update the selling status in the collection when buying and selling the NFT
+@desc - Update the selling status in the collection when selling the NFT
 @params - ResponseWriter,Request
 */
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	key1, error := r.URL.Query()["currentPK"]
+	key1, error := r.URL.Query()["sellingStatus"]
 
 	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'currentPK' is missing")
-		return
-	}
-
-	key2, error := r.URL.Query()["previousPK"]
-
-	if !error || len(key2[0]) < 1 {
-		logrus.Error("Url Parameter 'previousPK' is missing")
-		return
-	}
-
-	key3, error := r.URL.Query()["txnHash"]
-
-	if !error || len(key3[0]) < 1 {
-		logrus.Error("Url Parameter 'txnHash' is missing")
-		return
-	}
-
-	key4, error := r.URL.Query()["sellingStatus"]
-
-	if !error || len(key4[0]) < 1 {
 		logrus.Error("Url Parameter 'sellingStatus' is missing")
 		return
 	}
-	currentPK := key1[0]
-	previousPK := key2[0]
-	txnHash := key3[0]
-	sellingStatus := key4[0]
+
+	key2, error := r.URL.Query()["amount"]
+
+	if !error || len(key2[0]) < 1 {
+		logrus.Error("Url Parameter 'amount' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["price"]
+
+	if !error || len(key3[0]) < 1 {
+		logrus.Error("Url Parameter 'price' is missing")
+		return
+	}
+
+	key4, error := r.URL.Query()["nfthash"]
+
+	if !error || len(key4[0]) < 1 {
+		logrus.Error("Url Parameter 'nfthash' is missing")
+		return
+	}
+	sellingStatus := key1[0]
+	amount := key2[0]
+	price := key3[0]
+	nfthash := key4[0]
 	object := dao.Connection{}
-	_, err1 := object.GetNFTByNFTTxn(txnHash).Then(func(data interface{}) interface{} {
+	_, err1 := object.GetNFTByNFTTxn(nfthash).Then(func(data interface{}) interface{} {
 		selection := data.(model.MarketPlaceNFT)
-		err2 := object.UpdateSellingStatus(selection, currentPK, previousPK, sellingStatus)
+		err2 := object.UpdateSellingStatus(selection, sellingStatus, amount, price)
 		if err2 != nil {
 			w.Header().Set("Content-Type", "application/json;")
 			w.WriteHeader(http.StatusBadRequest)
@@ -233,6 +233,75 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusOK)
 			result := apiModel.SubmitXDRSuccess{
 				Status: "Selling status updated successfully",
+			}
+			json.NewEncoder(w).Encode(result)
+		}
+		return data
+	}).Await()
+	if err1 != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore",
+		}
+		log.Println(err1)
+		json.NewEncoder(w).Encode(result)
+	}
+}
+
+/*UpdateBuyingStatus 
+@desc - Update the selling status in the collection when buying the NFT
+@params - ResponseWriter,Request
+*/
+func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	key1, error := r.URL.Query()["sellingStatus"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'sellingStatus' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["currentPK"]
+
+	if !error || len(key2[0]) < 1 {
+		logrus.Error("Url Parameter 'currentPK' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["previousPK"]
+
+	if !error || len(key3[0]) < 1 {
+		logrus.Error("Url Parameter 'previousPK' is missing")
+		return
+	}
+
+	key4, error := r.URL.Query()["nfthash"]
+
+	if !error || len(key4[0]) < 1 {
+		logrus.Error("Url Parameter 'nfthash' is missing")
+		return
+	}
+	sellingStatus := key1[0]
+	currentPK := key2[0]
+	previousPK := key3[0]
+	nfthash := key4[0]
+	object := dao.Connection{}
+	_, err1 := object.GetNFTByNFTTxn(nfthash).Then(func(data interface{}) interface{} {
+		selection := data.(model.MarketPlaceNFT)
+		err2 := object.UpdateBuyingStatus(selection, sellingStatus, currentPK, previousPK)
+		if err2 != nil {
+			w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Error when updating the buying status",
+			}
+			json.NewEncoder(w).Encode(result)
+		} else {
+			w.Header().Set("Content-Type", "application/json;")
+			w.WriteHeader(http.StatusOK)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Buying status updated successfully",
 			}
 			json.NewEncoder(w).Encode(result)
 		}

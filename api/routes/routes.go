@@ -108,8 +108,14 @@ var routes = Routes{
 	Route{
 		"UpdateSellingStatus",
 		"PUT",
-		"/nft/updateStellarMarketplace",
+		"/nft/updateStellarMarketplaceSell",
 		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the nftHandler
+	},
+	Route{
+		"UpdateBuyingStatus",
+		"PUT",
+		"/nft/updateStellarMarketplaceBuy",
+		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the nftHandler
 	},
 	Route{
 		"SubmitSplit",
