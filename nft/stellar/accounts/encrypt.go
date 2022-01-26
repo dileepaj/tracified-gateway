@@ -21,7 +21,10 @@ func Decode(s string) []byte {
 	return data
 }
 
-// Encrypt method is to encrypt or hide any classified text
+/*Encrypt
+@desc - Encrypt method is to encrypt or hide any classified text (secret key)
+@params - Encrypted SK, decrypt password
+*/
 func Encrypt(text, mySecret string) (string, error) {
 	block, err := aes.NewCipher([]byte(mySecret))
 	if err != nil {
@@ -34,7 +37,10 @@ func Encrypt(text, mySecret string) (string, error) {
 	return Encode(cipherText), nil
 }
 
-// Decrypt method is to extract back the encrypted text
+/*Decrypt
+@desc - Decrypt method is to extract back the encrypted text
+@params - Encrypted SK, decrypt password
+*/
 func Decrypt(text, mySecret string) (string, error) {
 	block, err := aes.NewCipher([]byte(mySecret))
 	if err != nil {

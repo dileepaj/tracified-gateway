@@ -1437,21 +1437,20 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	return p
 }
 
+/*GetAllSellingNFTStellar_Paginated 
+@desc - Get all the NFT relevent to the selling status and Public key
+@params - Selling status, Distributor public key
+*/
 func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, distributorPK string) *promise.Promise {
-
 	result := model.MarketPlaceNFTTrasactionWithCount{}
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
-		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
-		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-		fmt.Println("distributorPKaaaaaaaaaaaaaaaaaaaaaa",distributorPK)
-
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
@@ -1476,9 +1475,7 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, di
 				}
 			}
 		}else{
-			
 			cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
-				
 			if er != nil {
 				reject(er)
 			} else {
@@ -1491,12 +1488,14 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, di
 				}
 			}
 		}
-
 	})
 	return p
 }
 
-// GetNFTIssuerSK function use to retrive the EncodedSK using publick key form NFTKeys collection
+/*GetNFTIssuerSK
+@desc - GetNFTIssuerSK function use to retrive the EncodedSK using publick key form NFTKeys collection
+@params - Current Issuer PK
+*/
 func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 	result := []model.NFTKeys{}
 	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1757,22 +1756,21 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 	return p
 }
 
+/*GetNFTByNFTTxn 
+@desc - Get NFT details from DB relevent to the NFT txnhash
+@params - NFT txnhash
+*/
 func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
-	fmt.Println("----------------------------------- TXNHash", NFTTXNhash)
 	result := model.MarketPlaceNFT{}
-	// p := promise.NewPromise()
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
-		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error while connecting to db " + err.Error())
 			reject(err)
 		}
-
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 		err1 := c.FindOne(context.TODO(), bson.M{"nfttxnhash": NFTTXNhash}).Decode(&result)
-
 		if err1 != nil {
 			log.Error("Error while getting NFT TXN Hash from db " + err.Error())
 			reject(err1)

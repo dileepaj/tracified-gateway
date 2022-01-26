@@ -211,11 +211,14 @@ func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error{
 	return err
 }
 
-//insert NFT to NFTStellar collection
+/*InsertStellarNFT 
+@desc - Insert the NFT information to NFTStellar and MarketPlaceNFT collections
+@params - NFTWithTransaction object and MarketPlaceNFT object
+*/
 func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction,marketPlaceNFT model.MarketPlaceNFT) (error,error){
 	session, err := cd.connect()
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		log.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTStellar")
@@ -223,25 +226,28 @@ func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction,marke
 	_,err2:=c.InsertOne(context.TODO(), stellarNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
 	if err != nil{
-		fmt.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	if err2 != nil{
-		fmt.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
 	}
 	return err, err2
 }
 
-//Insert NFT issued account to NFTKeys collection
+/*InsertStellarNFT 
+@desc - Insert NFT issued account to NFTKeys collection
+@params - NFTKeys object 
+*/
 func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) (error){
 	session, err := cd.connect()
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		log.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTKeys")
 	_,err = c.InsertOne(context.TODO(), nftKeys)
 	if err != nil{
-		fmt.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	return err
 }

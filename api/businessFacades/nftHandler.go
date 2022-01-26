@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -12,8 +11,13 @@ import (
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 )
 
+/*MintNFTStellar 
+@desc - Call the IssueNft method and store new NFT details in the DB
+@params - ResponseWriter,Request
+*/
 func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TrustLineResponseNFT model.TrustLineResponseNFT
@@ -25,10 +29,8 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("---------33333333333333333=-====================----",TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
 		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
-		fmt.Println("---------33333333333333333=-====================----",TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 		if err == nil {
 			NFTcollectionObj = model.NFTWithTransaction{
 				Identifier:                       TrustLineResponseNFT.Identifier,
@@ -68,7 +70,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
 				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
 				TrustLineCreatedAt:               TrustLineResponseNFT.TrustLineCreatedAt,
-				PreviousOwnerNFTPK:               "",
+				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.DistributorPublickKey,
 				SellingStatus:                    "NOTFORSALE",
 			}
@@ -79,13 +81,12 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NFTName:            TrustLineResponseNFT.Asset_code,
 				NFTIssuerPublicKey: TrustLineResponseNFT.IssuerPublicKey,
 			}
-			//after that call the insertTODB NFT Details to NFT  (gateway(NFTstellar collection)
 			object := dao.Connection{}
 			err1, err2 := object.InsertStellarNFT(NFTcollectionObj, MarketplaceNFTNFTcollectionObj)
 			if err1 != nil && err2 != nil {
-				fmt.Println("NFT not inserted : ", err1, err2)
+				log.Error("NFT not inserted : ", err1, err2)
 			} else {
-				fmt.Println("NFT inserted to the collection")
+				log.Error("NFT inserted to the collection")
 			}
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(NFTCeactedResponse)
@@ -102,6 +103,10 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+/*RetriveNFTByStatusAndPK 
+@desc - Call the GetAllSellingNFTStellar_Paginated method and get all the NFT relevent to the selling status and Public key
+@params - ResponseWriter,Request
+*/
 func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	var response model.Error
 	var result []model.MarketPlaceNFT
@@ -136,7 +141,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	if qdata == nil {
 		logrus.Error("Selling NFTs are not found in gateway datastore")
 		w.WriteHeader(http.StatusNoContent)
-		response = model.Error{Code: http.StatusNoContent, Message: "Identifier is not found in gateway datastore"}
+		response = model.Error{Code: http.StatusNoContent, Message: "Selling NFTs are not found in gateway datastore"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -164,9 +169,9 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 			SellingStatus:                    TxnBody.SellingStatus,
 			Amount:                           TxnBody.Amount,
 			Price:                            TxnBody.Price,
-			InitialIssuerPK: TxnBody.InitialIssuerPK,
-			InitialDistributorPK: TxnBody.InitialDistributorPK,
-			MainAccountPK: TxnBody.MainAccountPK,
+			InitialIssuerPK:                  TxnBody.InitialIssuerPK,
+			InitialDistributorPK:             TxnBody.InitialDistributorPK,
+			MainAccountPK:                    TxnBody.MainAccountPK,
 		}
 
 		result = append(result, temp)
@@ -175,9 +180,11 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-
+/*UpdateSellingStatus 
+@desc - Update the selling status in the collection when buying and selling the NFT
+@params - ResponseWriter,Request
+*/
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
-
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["currentPK"]
 
@@ -210,14 +217,9 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	previousPK := key2[0]
 	txnHash := key3[0]
 	sellingStatus := key4[0]
-
-	fmt.Println(currentPK, previousPK, txnHash, sellingStatus)
-
 	object := dao.Connection{}
-	//get the current document
 	_, err1 := object.GetNFTByNFTTxn(txnHash).Then(func(data interface{}) interface{} {
 		selection := data.(model.MarketPlaceNFT)
-		fmt.Println("----------------------------------", selection)
 		err2 := object.UpdateSellingStatus(selection, currentPK, previousPK, sellingStatus)
 		if err2 != nil {
 			w.Header().Set("Content-Type", "application/json;")
@@ -236,19 +238,21 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 		}
 		return data
 	}).Await()
-
 	if err1 != nil {
 		w.Header().Set("Content-Type", "application/json;")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when fetching the protocol from Datastore or protocol does not exists in the Datastore",
+			Status: "Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore",
 		}
-		fmt.Println(err1)
+		log.Println(err1)
 		json.NewEncoder(w).Encode(result)
 	}
 }
 
-//Create issuer accounts, add credentials to the DB and send the PK as the response
+/*CreateNFTIssuerAccount 
+@desc - Create issuer accounts, add credentials to the DB and send the PK as the response
+@params - ResponseWriter,Request
+*/
 func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var NFTIssuerPK, EncodedNFTIssuerSK, err = accounts.CreateIssuerAccount()
@@ -275,67 +279,73 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UnlockNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	key1, error := r.URL.Query()["currentPK"]
+/*UnlockNFTIssuerAccount 
+@desc - Unlock the issuer account
+@params - ResponseWriter,Request
+*/
+// func UnlockNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	key1, error := r.URL.Query()["currentPK"]
 
-	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
-		return
-	}
+// 	if !error || len(key1[0]) < 1 {
+// 		logrus.Error("Url Parameter 'perPage' is missing")
+// 		return
+// 	}
 
-	currentPK := key1[0]
-	fmt.Println(currentPK)
+// 	currentPK := key1[0]
+// 	log.Println(currentPK)
 
-	err := accounts.UnlockIssuingAccount(currentPK)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when unlocking account",
-		}
-		fmt.Println(err)
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Current Issuer Account unlocked successfully",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+// 	err := accounts.UnlockIssuingAccount(currentPK)
+// 	if err != nil {
+// 		w.Header().Set("Content-Type", "application/json;")
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		result := apiModel.SubmitXDRSuccess{
+// 			Status: "Error when unlocking account",
+// 		}
+// 		log.Println(err)
+// 		json.NewEncoder(w).Encode(result)
+// 	} else {
+// 		w.Header().Set("Content-Type", "application/json;")
+// 		w.WriteHeader(http.StatusOK)
+// 		result := apiModel.SubmitXDRSuccess{
+// 			Status: "Current Issuer Account unlocked successfully",
+// 		}
+// 		json.NewEncoder(w).Encode(result)
+// 	}
 
-}
+// }
 
-//nfttxnhash needs to be passed to the retrieve function and
-//then the pk from there brought back to the handler and passed to the unlock function
-func LockNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	key1, error := r.URL.Query()["currentPK"]
+/*LockNFTIssuerAccount 
+@desc - Lock the issuer account
+@params - ResponseWriter,Request
+*/
+// func LockNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Type", "application/json")
+// 	key1, error := r.URL.Query()["currentPK"]
 
-	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
-		return
-	}
+// 	if !error || len(key1[0]) < 1 {
+// 		logrus.Error("Url Parameter 'perPage' is missing")
+// 		return
+// 	}
 
-	currentPK := key1[0]
-	fmt.Println(currentPK)
-	err := accounts.LockIssuingAccount(currentPK)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when locking account",
-		}
-		fmt.Println(err)
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Current Issuer Account locked successfully",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
+// 	currentPK := key1[0]
+// 	log.Println(currentPK)
+// 	err := accounts.LockIssuingAccount(currentPK)
+// 	if err != nil {
+// 		w.Header().Set("Content-Type", "application/json;")
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		result := apiModel.SubmitXDRSuccess{
+// 			Status: "Error when locking account",
+// 		}
+// 		log.Println(err)
+// 		json.NewEncoder(w).Encode(result)
+// 	} else {
+// 		w.Header().Set("Content-Type", "application/json;")
+// 		w.WriteHeader(http.StatusOK)
+// 		result := apiModel.SubmitXDRSuccess{
+// 			Status: "Current Issuer Account locked successfully",
+// 		}
+// 		json.NewEncoder(w).Encode(result)
+// 	}
 
-}
+// }

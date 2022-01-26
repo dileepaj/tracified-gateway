@@ -1,8 +1,7 @@
 package stellar
 
 import (
-	"fmt"
-	"log"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -12,8 +11,14 @@ import (
 	"github.com/stellar/go/build"
 )
 
+/*IssueNft
+@desc - Issue NFT with the newly generated issuer credentials
+@params - Current Issuer public key, Distributor public key, asset code, TDP hash
+*/
 func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TDPtxnhas string) (string, string, error) {
 	object := dao.Connection{}
+
+	//getting the issuer secret key
 	data, err := object.GetNFTIssuerSK(CurrentIssuerPK).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -22,6 +27,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 		return "", "", err
 	} else {
 		nftKeys := data.([]model.NFTKeys)
+		//decrypt the secret key
 		decrpytNftissuerSecretKey, err := accounts.Decrypt(nftKeys[0].SecretKey, commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
 		if data == nil {
 			logrus.Error("PublicKey is not found in gateway datastore")
@@ -61,7 +67,6 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 			return "", "", err
 		}
 		//submit transaction
-		fmt.Println("XDR",encodedTxn)
 		respn, err := commons.GetHorizonClient().SubmitTransaction(encodedTxn)
 		if err != nil {
 			log.Fatal("Error submitting transaction:", err)

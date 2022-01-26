@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
 )
@@ -604,17 +606,17 @@ func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtoc
 	return err
 }
 
+/*UpdateSellingStatus 
+@desc - Update the selling status, previous public key and the current pk in the collection
+@params - selector object, new current pk, new previous pk, new selling status
+*/
 func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateCurrentPK string, updatePreviousPK string, updateStatus string) error {
-	fmt.Println("----------------------------------- Update Selling Status of NFT ---------------------------------")
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		log.Println("Error while getting session " + err.Error())
 		return err
 	}
-
 	defer session.EndSession(context.TODO())
-	 fmt.Println("----------------------------------- aaaaaaaaaaaaaaaaaaaaaaaaaaa ---------------------------------")
-	fmt.Println("----------------------------------- update ---------------------------------")
 	up := model.MarketPlaceNFT{
 		Identifier:                       selector.Identifier,
 		TDPTxnHash:                       selector.TDPTxnHash,
@@ -641,35 +643,27 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateC
 		
 	}
 	c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
-
-	fmt.Println("----------------------------------- db called ---------------------------------")
 	pByte, err := bson.Marshal(selector)
 	if err != nil {
 		return err
 	}
-
 	var filter bson.D
 	err = bson.Unmarshal(pByte, &filter)
 	if err != nil {
 		return err
 	}
-
 	pByte, err = bson.Marshal(up)
 	if err != nil {
 		return err
 	}
-
 	var updateNew bson.M
 	err = bson.Unmarshal(pByte, &updateNew)
 	if err != nil {
 		return err
 	}
-
-	fmt.Println("----------------------------------- before update ---------------------------------")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"nfttxnhash": selector.NFTTXNhash}, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
-		fmt.Println("Error while updating NFT Stellar " + err.Error())
+		log.Println("Error while updating NFT Stellar " + err.Error())
 	}
-	fmt.Println("------------After update  ", err)
 	return err
 }

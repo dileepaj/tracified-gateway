@@ -91,37 +91,25 @@ var routes = Routes{
 		"MintNFTStellarAndAddToDB",
 		"POST",
 		"/nft/mintStellar",
-		businessFacades.MintNFTStellar, //getting trustline xdr from wallet app
+		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler
 	},
 	Route{
 		"RetriveNFTByStatusAndPK",
 		"GET",
 		"/nft/retriveNFTByStatusAndPK",
-		businessFacades.RetriveNFTByStatusAndPK, //getting trustline xdr from wallet app
+		businessFacades.RetriveNFTByStatusAndPK, //Calls the RetriveNFTByStatusAndPK in the nftHandler
 	},
 	Route{
 		"CreateNFTIssuerAccount",
 		"GET",
 		"/nft/createNFTIssuerAccount",
-		businessFacades.CreateNFTIssuerAccount, //create new account for each NFT creation
-	},
-	Route{
-		"UnlockNFTIssuerAccount",
-		"GET",
-		"/nft/unlockNFTIssuerAccount/{currentissuerpk}",
-		businessFacades.UnlockNFTIssuerAccount, //unlock current issuer account for particular nft
-	},
-	Route{
-		"LockNFTIssuerAccount",
-		"GET",
-		"/nft/lockNFTIssuerAccount/{currentissuerpk}",
-		businessFacades.LockNFTIssuerAccount, //lock current issuer account for particular nft
+		businessFacades.CreateNFTIssuerAccount, //Calls the CreateNFTIssuerAccount in the nftHandler
 	},
 	Route{
 		"UpdateSellingStatus",
 		"PUT",
 		"/nft/updateStellarMarketplace",
-		businessFacades.UpdateSellingStatus, //getting trustline xdr from wallet app
+		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the nftHandler
 	},
 	Route{
 		"SubmitSplit",

@@ -8,13 +8,13 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-/**
-CreateIssuerAccount()
-This Method Use for Create New Account for Issue NFT
-Created New Account kyes added To GatewayDB NFTKyes collection
-**/
+/*CreateNFTIssuerAccount 
+@desc - Create new issuer account for each NFT, encrypt the secret key and send the PK and encrypted sk
+@params - None
+*/
 func CreateIssuerAccount() (string,string,error) {
 	var NFTAccountKeyEncodedPassword string =commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
+	//generate new issuer keypair
 	pair, err := keypair.Random()
 	if err != nil {
 		log.Fatal(err)
@@ -23,7 +23,7 @@ func CreateIssuerAccount() (string,string,error) {
 	//NFT issuer keys
 	nftIssuerPK := pair.Address()
 	nftIssuerSK := pair.Seed()
-	//Account Creater keys(Tracified)
+	//Account Creater keys(Tracified main account)
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
 	transactionNft, err := build.Transaction(
@@ -55,6 +55,7 @@ func CreateIssuerAccount() (string,string,error) {
 		log.Fatal("Error submitting transaction:",err)
 		panic(err)
 	}
+	//encrypt the issuer secret key
 	encryptedSK,err :=Encrypt(nftIssuerSK,NFTAccountKeyEncodedPassword)
 	 if err!=nil{
 		 panic(err)
