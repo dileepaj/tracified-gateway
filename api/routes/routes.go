@@ -391,7 +391,7 @@ var routes = Routes{
 		"POST",
 		"/proofprotocol",
 		businessFacades.InsertProofPresentationProtocol, //Test - calls the InsertProofPresentationProtocol in the ProofPresesntationHandlers
-	},	
+	},
 	Route{
 		"UpdateProofPresentationProtocol",
 		"PUT",
@@ -403,5 +403,11 @@ var routes = Routes{
 		"DELETE",
 		"/deleteproofprotocol/{proofname}",
 		businessFacades.DeleteProofPresentationProtocolByProofName, //Test - calls the DeleteProofPresentationProtocolByProtocolName in the ProofPresesntationHandlers
+	},
+	Route{
+		"GetAllOrganizationsPaginated",
+		"GET",
+		"/approved/organizationPaginated",
+		businessFacades.GetAllOrganizations_Paginated, //Test
 	},
 }
