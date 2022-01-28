@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -12,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
+	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 )
@@ -317,4 +319,55 @@ func GetAllPendingAndRejectedOrganizations(w http.ResponseWriter, r *http.Reques
 		}
 		json.NewEncoder(w).Encode(result)
 	}
+}
+
+func GetAllOrganizations_Paginated(w http.ResponseWriter, r *http.Request) {
+
+	var response model.Error
+	key1, error := r.URL.Query()["perPage"]
+
+	if !error || len(key1[0]) < 1 {
+		log.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["page"]
+
+	if !error || len(key2[0]) < 1 {
+		log.Error("Url Parameter 'page' is missing")
+		return
+	}
+
+	perPage, err := strconv.Atoi(key1[0])
+	if err != nil {
+		log.Error("Query parameter error" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	page, err := strconv.Atoi(key2[0])
+	if err != nil {
+		log.Error("Query parameter error" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	object := dao.Connection{}
+	_, err = object.GetAllApprovedOrganizations_Paginated(perPage, page).Then(func(data interface{}) interface{} {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+		return data
+	}).Await()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(204)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Approved organizations were found",
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+
 }

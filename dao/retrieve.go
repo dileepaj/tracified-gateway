@@ -1658,3 +1658,70 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 	})
 	return p
 }
+
+//get all approved organizations with pagination
+func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page int) *promise.Promise {
+	result := []model.TestimonialOrganization{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("Organizations")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"status": model.Approved.String()})
+
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+
+		if count < int64(perPage) {
+			cursor, err1 := c.Find(context.TODO(), bson.M{})
+			err2 := cursor.All(context.TODO(), &result)
+
+			if err1 != nil || err2 != nil || len(result) == 0 {
+				log.Error("Error while f.All " + err1.Error())
+				reject(err1)
+			} else {
+				resolve(result)
+			}
+
+		}
+
+		offset := int64(page) * int64(perPage)
+		if count < offset {
+			pagelimit := perPage
+			perPage = int(count + int64(perPage) - offset)
+			if (offset - count) < int64(pagelimit) {
+				offset = count
+			}
+
+		}
+
+		collation := options.Collation{
+			Locale:    "en",
+			CaseLevel: true,
+		}
+
+		opts := options.Find().SetSort(bson.M{"name": -1}).SetSkip(count - offset).SetLimit(int64(perPage)).SetCollation(&collation)
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": model.Approved.String()}, opts)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+
+			if err2 != nil || len(result) == 0 {
+				log.Error("Error while getting organizations from db " + err.Error())
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return p
+}
