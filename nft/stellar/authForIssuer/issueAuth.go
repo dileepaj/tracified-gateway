@@ -33,7 +33,11 @@ func SetAuth(CurrentIssuerPK string) error {
 			build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
 			build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
 			build.SetOptions(build.SetFlag(build.SetAuthRequired()),
-				build.SetFlag(build.SetAuthRevocable())),
+				build.SetFlag(build.SetAuthRevocable()),
+				build.Signer{
+					Address: commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
+					Weight:  255,
+				}),
 		)
 
 		if err != nil {
