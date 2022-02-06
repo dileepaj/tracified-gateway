@@ -18,7 +18,7 @@ func getPort() string {
 	if p != "" {
 		return ":" + p
 	}
-	return ":8000"
+	return ":9080"
 }
 
 func main() {

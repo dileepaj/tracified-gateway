@@ -118,6 +118,18 @@ var routes = Routes{
 		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the nftHandler
 	},
 	Route{
+		"SetAuthIssuerAccount",
+		"GET",
+		"/nft/SetAuthIssuerAccount/{currentPK}",
+		businessFacades.SetAuthIssuerAccount, //Calls the SetAuthIssuerAccount in the nftHandler
+	},
+	Route{
+		"SetAuthTrust",
+		"GET",
+		"/nft/SetAuthTrust",
+		businessFacades.SetAuthTrust, //Calls the SetAuthTrust in the nftHandler
+	},
+	Route{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",

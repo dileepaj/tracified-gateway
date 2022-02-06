@@ -10,11 +10,13 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
+	"github.com/dileepaj/tracified-gateway/nft/stellar/authForIssuer"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	//"go.mongodb.org/mongo-driver/x/mongo/driver/auth"
 )
 
-/*MintNFTStellar 
+/*MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -47,7 +49,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NftContent:                       NftContent,
 				InitialDistributorPublickKey:     TrustLineResponseNFT.DistributorPublickKey,
 				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
-				MainAccountPK:					  commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),	
+				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
 				TrustLineCreatedAt:               TrustLineResponseNFT.TrustLineCreatedAt,
 				ProductName:                      TrustLineResponseNFT.ProductName,
 			}
@@ -103,7 +105,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*RetriveNFTByStatusAndPK 
+/*RetriveNFTByStatusAndPK
 @desc - Call the GetAllSellingNFTStellar_Paginated method and get all the NFT relevent to the selling status and Public key
 @params - ResponseWriter,Request
 */
@@ -128,7 +130,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 
 	object := dao.Connection{}
 
-	qdata, err := object.GetAllSellingNFTStellar_Paginated(sellingstatus[0],distributorPK[0]).Then(func(data interface{}) interface{} {
+	qdata, err := object.GetAllSellingNFTStellar_Paginated(sellingstatus[0], distributorPK[0]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -180,7 +182,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-/*UpdateSellingStatus 
+/*UpdateSellingStatus
 @desc - Update the selling status in the collection when selling the NFT
 @params - ResponseWriter,Request
 */
@@ -249,7 +251,7 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*UpdateBuyingStatus 
+/*UpdateBuyingStatus
 @desc - Update the selling status in the collection when buying the NFT
 @params - ResponseWriter,Request
 */
@@ -318,7 +320,7 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*CreateNFTIssuerAccount 
+/*CreateNFTIssuerAccount
 @desc - Create issuer accounts, add credentials to the DB and send the PK as the response
 @params - ResponseWriter,Request
 */
@@ -348,7 +350,7 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*UnlockNFTIssuerAccount 
+/*UnlockNFTIssuerAccount
 @desc - Unlock the issuer account
 @params - ResponseWriter,Request
 */
@@ -384,7 +386,7 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 
 // }
 
-/*LockNFTIssuerAccount 
+/*LockNFTIssuerAccount
 @desc - Lock the issuer account
 @params - ResponseWriter,Request
 */
@@ -418,3 +420,82 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 // 	}
 
 // }
+
+func SetAuthIssuerAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	key1, error := r.URL.Query()["currentPK"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	currentPK := key1[0]
+	log.Println(currentPK)
+
+	err := authForIssuer.SetAuth(currentPK)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when unlocking account",
+		}
+		log.Println(err)
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Current Issuer Account unlocked successfully",
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+
+}
+
+func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	key1, error := r.URL.Query()["currentPK"]
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["trustor"]
+
+	if !error || len(key2[0]) < 1 {
+		logrus.Error("Url Parameter 'trustor' is missing")
+		return
+	}
+
+	key3, error := r.URL.Query()["code"]
+
+	if !error || len(key3[0]) < 1 {
+		logrus.Error("Url Parameter 'code' is missing")
+		return
+	}
+
+	currentPK := key1[0]
+	trustor := key2[0]
+	code := key3[0]
+
+	log.Println(currentPK)
+
+	err := authForIssuer.AuthTrust(currentPK, trustor, code)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when unlocking account",
+		}
+		log.Println(err)
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Current Issuer Account unlocked successfully",
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+}
