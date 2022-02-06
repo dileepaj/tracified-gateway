@@ -127,7 +127,7 @@ var routes = Routes{
 		"SetAuthTrust",
 		"GET",
 		"/nft/SetAuthTrust",
-		businessFacades.SetAuthTrust, //Calls the SetAuthTrust in the nftHandler
+		businessFacades.SetAuthTrust, //Calls the SetAuthTrust in the nftHandler - gets the XDR
 	},
 	Route{
 		"SubmitSplit",

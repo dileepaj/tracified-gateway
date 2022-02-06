@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -460,6 +461,7 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 		logrus.Error("Url Parameter 'perPage' is missing")
 		return
 	}
+	fmt.Println("------------------", key1)
 
 	key2, error := r.URL.Query()["trustor"]
 
@@ -467,6 +469,7 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 		logrus.Error("Url Parameter 'trustor' is missing")
 		return
 	}
+	fmt.Println("------------------", key2)
 
 	key3, error := r.URL.Query()["code"]
 
@@ -474,28 +477,51 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 		logrus.Error("Url Parameter 'code' is missing")
 		return
 	}
+	fmt.Println("------------------", key3)
+
+	key4, error := r.URL.Query()["XDR"]
+
+	if !error || len(key4[0]) < 1 {
+		logrus.Error("Url Parameter 'XDR' is missing")
+		return
+	}
+	fmt.Println("------------------", key4)
 
 	currentPK := key1[0]
 	trustor := key2[0]
 	code := key3[0]
+	paymentXDR := key4[0]
 
 	log.Println(currentPK)
+	log.Println(trustor)
+	log.Println(code)
+	log.Println(paymentXDR)
 
-	err := authForIssuer.AuthTrust(currentPK, trustor, code)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when unlocking account",
-		}
-		log.Println(err)
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Current Issuer Account unlocked successfully",
-		}
-		json.NewEncoder(w).Encode(result)
+	var result = authForIssuer.CheckPayment(paymentXDR)
+	if !result {
+		log.Println("Error while Checking the royalty payment")
+		fmt.Println(result)
+	}else{
+		fmt.Println(result)
+
+		//calling the autorization of the trustline
+
+		// err := authForIssuer.AuthTrust(NFTBuyTrustlineAuth.CurrentPK, NFTBuyTrustlineAuth.Trustor, NFTBuyTrustlineAuth.Code)
+		// if err != nil {
+		// 	w.Header().Set("Content-Type", "application/json;")
+		// 	w.WriteHeader(http.StatusBadRequest)
+		// 	result := apiModel.SubmitXDRSuccess{
+		// 		Status: "Error when unlocking account",
+		// 	}
+		// 	log.Println(err)
+		// 	json.NewEncoder(w).Encode(result)
+		// } else {
+		// 	w.Header().Set("Content-Type", "application/json;")
+		// 	w.WriteHeader(http.StatusOK)
+		// 	result := apiModel.SubmitXDRSuccess{
+		// 		Status: "Current Issuer Account unlocked successfully",
+		// 	}
+		// 	json.NewEncoder(w).Encode(result)
+		// }
 	}
 }

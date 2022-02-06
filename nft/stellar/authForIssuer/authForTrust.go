@@ -14,15 +14,15 @@ func AuthTrust(CurrentIssuerPK string, trustor string, code string) error {
 		commons.GetHorizonNetwork(),
 		build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
 		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
-		build.SetFlag(
-			build.Asset{
-				Code:   code,
-				Issuer: CurrentIssuerPK,
-				Native: false,
-			},
-			build.Trustor{Address: trustor},
-			build.Authorize{Value: true},
-		),
+		// build.SetFlag(
+		// 	build.Asset{
+		// 		Code:   code,
+		// 		Issuer: CurrentIssuerPK,
+		// 		Native: false,
+		// 	},
+		// 	build.Trustor{Address: trustor},
+		// 	build.Authorize{Value: true},
+		// ),
 	)
 
 	if err != nil {
