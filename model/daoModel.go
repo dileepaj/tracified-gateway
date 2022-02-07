@@ -106,6 +106,10 @@ type NFTIssuerAccount struct {
 	NFTIssuerPK string
 }
 
+type RoyaltyXDR struct {
+	XDR string
+}
+
 type TransactionCollectionBody struct {
 	Identifier           string
 	TdpId                string

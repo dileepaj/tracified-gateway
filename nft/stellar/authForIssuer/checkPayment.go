@@ -4,27 +4,29 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/stellar/go/xdr"
 )
 
-func CheckPayment(paymentXDR string) (bool) {
+func CheckPayment(royaltyXDR model.RoyaltyXDR) (bool) {
 
-	var txe xdr.TransactionEnvelope
+	var txe xdr.Transaction
 
-	fmt.Println(paymentXDR)
+	fmt.Println(royaltyXDR.XDR)
 
-	//decode the XDR
-	err := xdr.SafeUnmarshalBase64(paymentXDR, &txe)
+	var result bool
+
+		//decode the XDR
+	err := xdr.SafeUnmarshalBase64(royaltyXDR.XDR, &txe)
 	if err != nil {
 		log.Println("Error while SafeUnmarshalBase64" + err.Error())
-	}
-
-	//check if the payment operation is there
-	if *txe.Tx.Memo.Text == "Royalty Payed"{
-		return true
 	}else{
-		return false
+		//check if the payment operation is there
+		if *txe.Memo.Text == "Royalty Payed"{
+			result = true
+		}else{
+			result = false
+		}
 	}
-	
-	
+	return result
 }

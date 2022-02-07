@@ -470,7 +470,11 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	log.Println(code)
 	log.Println(paymentXDR)
 
-	var result = authForIssuer.CheckPayment(paymentXDR)
+	royaltyXDR := model.RoyaltyXDR{
+		XDR: paymentXDR,
+	}
+
+	var result = authForIssuer.CheckPayment(royaltyXDR)
 	if !result {
 		log.Println("Error while Checking the royalty payment")
 		fmt.Println(result)
