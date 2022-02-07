@@ -342,6 +342,11 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+		//send currentPK to authorize
+		err1 := authForIssuer.SetAuth(NFTIssuerPK)
+		if err1 != nil {
+			panic(err1)
+		}
 		//send the response
 		result := model.NFTIssuerAccount{
 			NFTIssuerPK: NFTIssuerPK,
@@ -422,38 +427,6 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 
 // }
 
-func SetAuthIssuerAccount(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
-	key1, error := r.URL.Query()["currentPK"]
-
-	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
-		return
-	}
-
-	currentPK := key1[0]
-	log.Println(currentPK)
-
-	err := authForIssuer.SetAuth(currentPK)
-	if err != nil {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error when unlocking account",
-		}
-		log.Println(err)
-		json.NewEncoder(w).Encode(result)
-	} else {
-		w.Header().Set("Content-Type", "application/json;")
-		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Current Issuer Account unlocked successfully",
-		}
-		json.NewEncoder(w).Encode(result)
-	}
-
-}
-
 func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	key1, error := r.URL.Query()["currentPK"]
@@ -501,7 +474,7 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	if !result {
 		log.Println("Error while Checking the royalty payment")
 		fmt.Println(result)
-	}else{
+	} else {
 		fmt.Println(result)
 
 		//calling the autorization of the trustline

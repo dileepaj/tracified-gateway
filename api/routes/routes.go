@@ -117,12 +117,7 @@ var routes = Routes{
 		"/nft/updateStellarMarketplaceBuy",
 		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the nftHandler
 	},
-	Route{
-		"SetAuthIssuerAccount",
-		"GET",
-		"/nft/SetAuthIssuerAccount/{currentPK}",
-		businessFacades.SetAuthIssuerAccount, //Calls the SetAuthIssuerAccount in the nftHandler
-	},
+
 	Route{
 		"SetAuthTrust",
 		"GET",
