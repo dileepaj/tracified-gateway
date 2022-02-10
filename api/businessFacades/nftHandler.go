@@ -32,6 +32,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
+	authForIssuer.AuthTrust(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code)
 	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
 		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
 		if err == nil {
@@ -343,16 +344,15 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		//send currentPK to authorize
-		err1 := authForIssuer.SetAuth(NFTIssuerPK)
-		if err1 != nil {
-			panic(err1)
-		}
+		authForIssuer.SetAuth(NFTIssuerPK)
+		
 		//send the response
 		result := model.NFTIssuerAccount{
 			NFTIssuerPK: NFTIssuerPK,
 		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
+		
 	}
 }
 

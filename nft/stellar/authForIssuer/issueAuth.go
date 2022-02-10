@@ -11,7 +11,7 @@ import (
 	"github.com/stellar/go/build"
 )
 
-func SetAuth(CurrentIssuerPK string) error {
+func SetAuth(CurrentIssuerPK string) {
 
 	object := dao.Connection{}
 	data, err := object.GetNFTIssuerSK(CurrentIssuerPK).Then(func(data interface{}) interface{} {
@@ -32,7 +32,9 @@ func SetAuth(CurrentIssuerPK string) error {
 			commons.GetHorizonNetwork(),
 			build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
 			build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
-			build.SetOptions(build.SetFlag(build.SetAuthRequired()),
+			build.SetOptions(
+				build.SetFlag(
+				build.SetAuthRequired()),
 				build.SetFlag(build.SetAuthRevocable()),
 				build.Signer{
 					Address: commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
@@ -59,8 +61,7 @@ func SetAuth(CurrentIssuerPK string) error {
 			log.Fatal("Error submitting transaction:", err)
 
 		}
-		log.Println("Hash for locking is", respn.Hash)
+		log.Println("Hash for giving authority to Issuer : ", respn.Hash)
 
 	}
-	return nil
 }

@@ -9,7 +9,8 @@ import (
 	// "honnef.co/go/tools/analysis/code"
 )
 
-func AuthTrust(CurrentIssuerPK string, trustor string, code string) error {
+func AuthTrust(CurrentIssuerPK string, trustor string, code string) {
+
 	txn, err := build.Transaction(
 		commons.GetHorizonNetwork(),
 		build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
@@ -18,17 +19,15 @@ func AuthTrust(CurrentIssuerPK string, trustor string, code string) error {
 			build.Trustor{
 				Address: trustor,
 			},
-			build.Asset{
-				Code:   code,
-				Issuer: CurrentIssuerPK,
-				Native: false,
+			build.AllowTrustAsset{
+				Code: code,
 			},
 			build.Authorize{
 				Value: true,
 			},
+			
 		),
 	)
-
 	if err != nil {
 		log.Fatal(err)
 
@@ -42,13 +41,13 @@ func AuthTrust(CurrentIssuerPK string, trustor string, code string) error {
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	//submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(encodedTxn)
 	if err != nil {
 		log.Fatal("Error submitting transaction:", err)
 
 	}
-	log.Println("Hash for locking is", respn.Hash)
-	return nil
+	log.Println("Hash for auth trust", respn.Hash)
 
 }

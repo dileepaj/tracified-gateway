@@ -8,7 +8,7 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-/*CreateNFTIssuerAccount 
+/*CreateNFTIssuerAccount
 @desc - Create new issuer account for each NFT, encrypt the secret key and send the PK and encrypted sk
 @params - None
 */
@@ -33,7 +33,7 @@ func CreateIssuerAccount() (string,string,error) {
 		build.CreateAccount(
 			build.Destination{AddressOrSeed: nftIssuerPK},
 			build.NativeAmount{
-				Amount: "2"},
+				Amount: "2.500000"},
 		),
 	)
 	if err != nil {

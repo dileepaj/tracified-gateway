@@ -16,6 +16,7 @@ import (
 @params - Current Issuer public key, Distributor public key, asset code, TDP hash
 */
 func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TDPtxnhas string) (string, string, error) {
+
 	object := dao.Connection{}
 
 	//getting the issuer secret key
