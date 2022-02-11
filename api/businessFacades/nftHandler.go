@@ -429,57 +429,31 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 
 func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	key1, error := r.URL.Query()["currentPK"]
-	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'perPage' is missing")
-		return
+	var authTrustResponse model.SetAuthTrust
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&authTrustResponse)
+	if err != nil {
+		panic(err)
 	}
-	fmt.Println("------------------", key1)
+	currentPK := authTrustResponse.CurrentPK
+	trustor := authTrustResponse.Trustor
+	nftName := authTrustResponse.NFTName
+	paymentHash := authTrustResponse.PayamentTxn
 
-	key2, error := r.URL.Query()["trustor"]
 
-	if !error || len(key2[0]) < 1 {
-		logrus.Error("Url Parameter 'trustor' is missing")
-		return
-	}
-	fmt.Println("------------------", key2)
+	fmt.Println("request from wallet--------------------------------",currentPK,trustor,nftName,paymentHash)
 
-	key3, error := r.URL.Query()["code"]
+	// royaltyXDR := model.RoyaltyXDR{
+	// 	XDR: paymentXDR,
+	// }
 
-	if !error || len(key3[0]) < 1 {
-		logrus.Error("Url Parameter 'code' is missing")
-		return
-	}
-	fmt.Println("------------------", key3)
-
-	key4, error := r.URL.Query()["XDR"]
-
-	if !error || len(key4[0]) < 1 {
-		logrus.Error("Url Parameter 'XDR' is missing")
-		return
-	}
-	fmt.Println("------------------", key4)
-
-	currentPK := key1[0]
-	trustor := key2[0]
-	code := key3[0]
-	paymentXDR := key4[0]
-
-	log.Println(currentPK)
-	log.Println(trustor)
-	log.Println(code)
-	log.Println(paymentXDR)
-
-	royaltyXDR := model.RoyaltyXDR{
-		XDR: paymentXDR,
-	}
-
-	var result = authForIssuer.CheckPayment(royaltyXDR)
-	if !result {
-		log.Println("Error while Checking the royalty payment")
-		fmt.Println(result)
-	} else {
-		fmt.Println(result)
+	// var result = authForIssuer.CheckPayment(royaltyXDR)
+	// if !result {
+	// 	log.Println("Error while Checking the royalty payment")
+	// 	fmt.Println(result)
+	// } else {
+	// 	fmt.Println(result)
 
 		//calling the autorization of the trustline
 
@@ -500,5 +474,5 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 		// 	}
 		// 	json.NewEncoder(w).Encode(result)
 		// }
-	}
+	//}
 }

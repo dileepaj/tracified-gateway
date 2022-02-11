@@ -82,6 +82,13 @@ type MarketPlaceNFT struct {
 	CurrentOwnerNFTPK                string
 }
 
+type SetAuthTrust struct{
+	CurrentPK	string
+	Trustor  	string
+	NFTName 	string
+	PayamentTxn string
+}
+
 type TrustLineResponseNFT struct {
 	DistributorPublickKey string
 	IssuerPublicKey       string

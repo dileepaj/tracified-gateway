@@ -120,7 +120,7 @@ var routes = Routes{
 
 	Route{
 		"SetAuthTrust",
-		"GET",
+		"POST",
 		"/nft/SetAuthTrust",
 		businessFacades.SetAuthTrust, //Calls the SetAuthTrust in the nftHandler - gets the XDR
 	},
