@@ -345,14 +345,14 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 		}
 		//send currentPK to authorize
 		authForIssuer.SetAuth(NFTIssuerPK)
-		
+
 		//send the response
 		result := model.NFTIssuerAccount{
 			NFTIssuerPK: NFTIssuerPK,
 		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
-		
+
 	}
 }
 
@@ -441,8 +441,45 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	nftName := authTrustResponse.NFTName
 	paymentHash := authTrustResponse.PayamentTxn
 
+	fmt.Println("request from wallet--------------------------------", currentPK, trustor, nftName, paymentHash)
+	if currentPK != "" && nftName != "" && trustor != "" && paymentHash != "" {
+		fmt.Println("------------------------inside if condition-----------------")
 
-	fmt.Println("request from wallet--------------------------------",currentPK,trustor,nftName,paymentHash)
+		var result = authForIssuer.CheckPayment(paymentHash)
+		if !result {
+			log.Println("Error while Checking the royalty payment")
+			fmt.Println(result)
+		} else {
+			fmt.Println(result)
+			if result == true {
+				authForIssuer.AuthTrust(currentPK, trustor, nftName)
+				// if err != nil {
+				// 	w.Header().Set("Content-Type", "application/json;")
+				// 	w.WriteHeader(http.StatusBadRequest)
+				// 	result := apiModel.SubmitXDRSuccess{
+				// 		Status: "Error when unlocking account",
+				// 	}
+				// 	log.Println(err)
+				// 	json.NewEncoder(w).Encode(result)
+				// } else {
+				// 	w.Header().Set("Content-Type", "application/json;")
+				// 	w.WriteHeader(http.StatusOK)
+				// 	result := apiModel.SubmitXDRSuccess{
+				// 		Status: "Current Issuer Account unlocked successfully",
+				// 	}
+				// 	json.NewEncoder(w).Encode(result)
+				// }
+
+			} else {
+				logrus.Error("Payment wasn't made!")
+			}
+
+		}
+
+		//calling the autorization of the trustline
+		//var TrustLineResponseNFT model.TrustLineResponseNFT
+
+	}
 
 	// royaltyXDR := model.RoyaltyXDR{
 	// 	XDR: paymentXDR,
@@ -455,24 +492,24 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 	// } else {
 	// 	fmt.Println(result)
 
-		//calling the autorization of the trustline
+	//calling the autorization of the trustline
 
-		// err := authForIssuer.AuthTrust(NFTBuyTrustlineAuth.CurrentPK, NFTBuyTrustlineAuth.Trustor, NFTBuyTrustlineAuth.Code)
-		// if err != nil {
-		// 	w.Header().Set("Content-Type", "application/json;")
-		// 	w.WriteHeader(http.StatusBadRequest)
-		// 	result := apiModel.SubmitXDRSuccess{
-		// 		Status: "Error when unlocking account",
-		// 	}
-		// 	log.Println(err)
-		// 	json.NewEncoder(w).Encode(result)
-		// } else {
-		// 	w.Header().Set("Content-Type", "application/json;")
-		// 	w.WriteHeader(http.StatusOK)
-		// 	result := apiModel.SubmitXDRSuccess{
-		// 		Status: "Current Issuer Account unlocked successfully",
-		// 	}
-		// 	json.NewEncoder(w).Encode(result)
-		// }
+	// err := authForIssuer.AuthTrust(NFTBuyTrustlineAuth.CurrentPK, NFTBuyTrustlineAuth.Trustor, NFTBuyTrustlineAuth.Code)
+	// if err != nil {
+	// 	w.Header().Set("Content-Type", "application/json;")
+	// 	w.WriteHeader(http.StatusBadRequest)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Error when unlocking account",
+	// 	}
+	// 	log.Println(err)
+	// 	json.NewEncoder(w).Encode(result)
+	// } else {
+	// 	w.Header().Set("Content-Type", "application/json;")
+	// 	w.WriteHeader(http.StatusOK)
+	// 	result := apiModel.SubmitXDRSuccess{
+	// 		Status: "Current Issuer Account unlocked successfully",
+	// 	}
+	// 	json.NewEncoder(w).Encode(result)
+	// }
 	//}
 }
