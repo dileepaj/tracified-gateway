@@ -9,7 +9,9 @@ import (
 	// "honnef.co/go/tools/analysis/code"
 )
 
-func AuthTrust(CurrentIssuerPK string, trustor string, code string) {
+var result bool = true
+
+func AuthTrust(CurrentIssuerPK string, trustor string, code string) (bool, error) {
 
 	txn, err := build.Transaction(
 		commons.GetHorizonNetwork(),
@@ -25,7 +27,6 @@ func AuthTrust(CurrentIssuerPK string, trustor string, code string) {
 			build.Authorize{
 				Value: true,
 			},
-			
 		),
 	)
 	if err != nil {
@@ -49,5 +50,6 @@ func AuthTrust(CurrentIssuerPK string, trustor string, code string) {
 
 	}
 	log.Println("Hash for auth trust", respn.Hash)
+	return result, nil
 
 }

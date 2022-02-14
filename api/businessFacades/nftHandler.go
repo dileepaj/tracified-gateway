@@ -452,7 +452,12 @@ func SetAuthTrust(w http.ResponseWriter, r *http.Request) {
 		} else {
 			fmt.Println(result)
 			if result == true {
-				authForIssuer.AuthTrust(currentPK, trustor, nftName)
+				_, err := authForIssuer.AuthTrust(currentPK, trustor, nftName)
+				if err != nil {
+					logrus.Println(err)
+				} else {
+					return
+				}
 				// if err != nil {
 				// 	w.Header().Set("Content-Type", "application/json;")
 				// 	w.WriteHeader(http.StatusBadRequest)
