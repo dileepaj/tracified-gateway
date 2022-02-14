@@ -1,7 +1,9 @@
 package model
+
 import "time"
 
 type StellarTransaction struct {
+	Memo  string `json:"memo"`
 	Links struct {
 		Self struct {
 			Href string `json:"href"`
