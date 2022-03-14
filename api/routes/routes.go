@@ -410,4 +410,10 @@ var routes = Routes{
 		"/approved/organizationPaginated",
 		businessFacades.GetAllOrganizations_Paginated, //Test
 	},
+	Route{
+		"EnableCorsAndResponse",
+		"GET",
+		"/enable-cors",
+		businessFacades.EnableCorsAndResponse,
+	},
 }
