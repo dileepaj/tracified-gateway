@@ -14,12 +14,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar 
+/*MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
 func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	log.Println("------------------------------inside gateway minting process-------------------")
 	var TrustLineResponseNFT model.TrustLineResponseNFT
 	var NFTcollectionObj model.NFTWithTransaction
 	var MarketplaceNFTNFTcollectionObj model.MarketPlaceNFT
@@ -29,43 +30,49 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.TDPtxnhash != "" && TrustLineResponseNFT.Successfull {
-		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.TDPtxnhash)
+	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" && TrustLineResponseNFT.Successfull {
+		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
 		if err == nil {
 			NFTcollectionObj = model.NFTWithTransaction{
-				Identifier:                       TrustLineResponseNFT.Identifier,
-				TxnType:                          "TDP",
-				TDPID:                            TrustLineResponseNFT.TDPID,
-				TDPTxnHash:                       TrustLineResponseNFT.TDPtxnhash,
-				DataHash:                         TrustLineResponseNFT.TDPtxnhash,
+				Identifier:                       TrustLineResponseNFT.IssuerPublicKey,
+				Categories:                       TrustLineResponseNFT.Categories,
+				Collection:                       TrustLineResponseNFT.Collection,
+				ImageBase64:                      TrustLineResponseNFT.NFTURL,
 				NFTTXNhash:                       NFTtxnhash,
 				NftTransactionExistingBlockchain: "Stellar",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
 				Timestamp:                        "00-00-00",
-				NftAssetName:                     TrustLineResponseNFT.Asset_code,
+				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
+				CuurentIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
 				InitialDistributorPublickKey:     TrustLineResponseNFT.DistributorPublickKey,
 				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
-				MainAccountPK:					  commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),	
+				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
 				TrustLineCreatedAt:               TrustLineResponseNFT.TrustLineCreatedAt,
-				ProductName:                      TrustLineResponseNFT.ProductName,
+				Description:                      TrustLineResponseNFT.Description,
+				Copies:                           TrustLineResponseNFT.Copies,
+				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
+				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
 			}
 
 			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
-				Identifier:                       TrustLineResponseNFT.Identifier,
-				ProductName:                      TrustLineResponseNFT.ProductName,
-				TxnType:                          "TDP",
-				TDPID:                            TrustLineResponseNFT.TDPID,
-				TDPTxnHash:                       TrustLineResponseNFT.TDPtxnhash,
-				DataHash:                         TrustLineResponseNFT.TDPtxnhash,
+				Identifier:                       TrustLineResponseNFT.IssuerPublicKey,
+				Categories:                       TrustLineResponseNFT.Categories,
+				Collection:                       TrustLineResponseNFT.Collection,
+				ImageBase64:                      TrustLineResponseNFT.NFTURL,
 				NFTTXNhash:                       NFTtxnhash,
 				NftTransactionExistingBlockchain: "Stellar",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
 				Timestamp:                        "00-00-00",
-				NftAssetName:                     TrustLineResponseNFT.Asset_code,
+				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
+				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
+				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
+				Description:                      TrustLineResponseNFT.Description,
+				Copies:                           TrustLineResponseNFT.Copies,
+				OriginPK:                         TrustLineResponseNFT.DistributorPublickKey,
 				InitialDistributorPK:             TrustLineResponseNFT.DistributorPublickKey,
 				InitialIssuerPK:                  TrustLineResponseNFT.IssuerPublicKey,
 				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
@@ -77,7 +84,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
 				NFTTxnHash:         NFTtxnhash,
-				TDPTxnHash:         TrustLineResponseNFT.TDPtxnhash,
+				TDPTxnHash:         TrustLineResponseNFT.NFTURL,
 				NFTName:            TrustLineResponseNFT.Asset_code,
 				NFTIssuerPublicKey: TrustLineResponseNFT.IssuerPublicKey,
 			}
@@ -103,7 +110,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*RetriveNFTByStatusAndPK 
+/*RetriveNFTByStatusAndPK
 @desc - Call the GetAllSellingNFTStellar_Paginated method and get all the NFT relevent to the selling status and Public key
 @params - ResponseWriter,Request
 */
@@ -128,7 +135,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 
 	object := dao.Connection{}
 
-	qdata, err := object.GetAllSellingNFTStellar_Paginated(sellingstatus[0],distributorPK[0]).Then(func(data interface{}) interface{} {
+	qdata, err := object.GetAllSellingNFTStellar_Paginated(sellingstatus[0], distributorPK[0]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -150,19 +157,21 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 
 		temp := model.MarketPlaceNFT{
 			Identifier:                       TxnBody.Identifier,
-			TxnType:                          "TDP",
-			TDPID:                            TxnBody.TDPID,
-			TDPTxnHash:                       TxnBody.TDPTxnHash,
-			DataHash:                         TxnBody.DataHash,
+			Collection:                       TxnBody.Collection,
+			Categories:                       TxnBody.Categories,
+			ImageBase64:                      TxnBody.ImageBase64,
 			NFTTXNhash:                       TxnBody.NFTTXNhash,
 			NftTransactionExistingBlockchain: "Stellar",
 			NftIssuingBlockchain:             TxnBody.NftIssuingBlockchain,
 			Timestamp:                        "00-00-00",
-			NftAssetName:                     TxnBody.NftAssetName,
-			NftContentName:                   TxnBody.NftAssetName,
+			NftURL:                           TxnBody.NftURL,
+			NftContentName:                   TxnBody.NftContentName,
 			NftContent:                       TxnBody.NftContent,
+			NFTArtistName:                    TxnBody.NFTArtistName,
+			NFTArtistURL:                     TxnBody.NFTArtistURL,
 			TrustLineCreatedAt:               TxnBody.TrustLineCreatedAt,
-			ProductName:                      TxnBody.ProductName,
+			Description:                      TxnBody.Description,
+			Copies:                           TxnBody.Copies,
 			PreviousOwnerNFTPK:               TxnBody.PreviousOwnerNFTPK,
 			CurrentOwnerNFTPK:                TxnBody.CurrentOwnerNFTPK,
 			OriginPK:                         TxnBody.OriginPK,
@@ -180,7 +189,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-/*UpdateSellingStatus 
+/*UpdateSellingStatus
 @desc - Update the selling status in the collection when selling the NFT
 @params - ResponseWriter,Request
 */
@@ -249,7 +258,7 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*UpdateBuyingStatus 
+/*UpdateBuyingStatus
 @desc - Update the selling status in the collection when buying the NFT
 @params - ResponseWriter,Request
 */
@@ -318,12 +327,13 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*CreateNFTIssuerAccount 
+/*CreateNFTIssuerAccount
 @desc - Create issuer accounts, add credentials to the DB and send the PK as the response
 @params - ResponseWriter,Request
 */
 func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	log.Println("------------------------------------inside handler------------------")
 	var NFTIssuerPK, EncodedNFTIssuerSK, err = accounts.CreateIssuerAccount()
 	if err != nil && NFTIssuerPK == "" && EncodedNFTIssuerSK == "" {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -348,7 +358,7 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*UnlockNFTIssuerAccount 
+/*UnlockNFTIssuerAccount
 @desc - Unlock the issuer account
 @params - ResponseWriter,Request
 */
@@ -384,7 +394,7 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 
 // }
 
-/*LockNFTIssuerAccount 
+/*LockNFTIssuerAccount
 @desc - Lock the issuer account
 @params - ResponseWriter,Request
 */

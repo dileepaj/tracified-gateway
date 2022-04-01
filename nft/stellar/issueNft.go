@@ -15,9 +15,9 @@ import (
 @desc - Issue NFT with the newly generated issuer credentials
 @params - Current Issuer public key, Distributor public key, asset code, TDP hash
 */
-func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TDPtxnhas string) (string, string, error) {
+func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, svg string) (string, string, error) {
 	object := dao.Connection{}
-
+	log.Println("----------------------------------minting----------------------------")
 	//getting the issuer secret key
 	data, err := object.GetNFTIssuerSK(CurrentIssuerPK).Then(func(data interface{}) interface{} {
 		return data
@@ -33,7 +33,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 			logrus.Error("PublicKey is not found in gateway datastore")
 			panic(data)
 		}
-		var nftConten = []byte("POE proofbot URL")
+		var nftConten = []byte(svg)
 		txn, err := build.Transaction(
 			commons.GetHorizonNetwork(),
 			build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
@@ -72,7 +72,8 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, TD
 			log.Fatal("Error submitting transaction:", err)
 			return "", "", err
 		}
-		return respn.Hash,string(nftConten), nil
+		log.Println("----------------------------------minting complete----------------------------", respn.Hash)
+		return respn.Hash, string(nftConten), nil
 	}
 
 }

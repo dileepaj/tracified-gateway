@@ -18,29 +18,39 @@ type COCCollectionBody struct {
 	Status     string
 }
 
+type Testing struct {
+	Id            string
+	Name          string
+	Address       string
+	Designation   string
+	Specification string
+}
+
 type TotalTransaction struct {
 	TotalTransactionCount int64
 }
 
 type NFTWithTransaction struct {
 	Identifier                       string
-	TDPTxnHash                       string
-	TDPID                            string
-	TxnType                          string
-	DataHash                         string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
 	NftTransactionExistingBlockchain string
 	NftIssuingBlockchain             string
 	NFTTXNhash                       string
 	Timestamp                        string
-	NftAssetName                     string
+	NftURL                           string
 	NftContentName                   string
 	NftContent                       string
 	CuurentIssuerPK                  string
-	MainAccountPK					 string
+	MainAccountPK                    string
 	InitialDistributorPublickKey     string
 	InitialIssuerPK                  string
-	ProductName                      string
-	TrustLineCreatedAt				 string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
 }
 
 type NFTKeys struct {
@@ -58,24 +68,26 @@ type NFTKeyItems struct {
 
 type MarketPlaceNFT struct {
 	Identifier                       string
-	TDPTxnHash                       string
-	TDPID                            string
-	TxnType                          string
-	DataHash                         string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
 	NftTransactionExistingBlockchain string
 	NftIssuingBlockchain             string
 	NFTTXNhash                       string
 	Timestamp                        string
-	NftAssetName                     string
+	NftURL                           string
 	NftContentName                   string
 	NftContent                       string
+	NFTArtistName                    string
+	NFTArtistURL                     string
 	TrustLineCreatedAt               string
-	ProductName                      string
+	Description                      string
+	Copies                           string
 	OriginPK                         string
 	SellingStatus                    string
 	Amount                           string
 	Price                            string
-	InitialDistributorPK           	 string
+	InitialDistributorPK             string
 	InitialIssuerPK                  string
 	MainAccountPK                    string
 	PreviousOwnerNFTPK               string
@@ -86,13 +98,18 @@ type TrustLineResponseNFT struct {
 	DistributorPublickKey string
 	IssuerPublicKey       string
 	Asset_code            string
-	TDPtxnhash            string
-	TDPID                 string
+	NFTURL                string
+	Description           string
+	Collection            string
 	NFTBlockChain         string
+	Tags                  string
+	Categories            string
+	Copies                string
+	NFTLinks              string
+	ArtistName            string
+	ArtistLink            string
 	Successfull           bool
 	TrustLineCreatedAt    string
-	Identifier            string
-	ProductName           string
 }
 
 type NFTCreactedResponse struct {

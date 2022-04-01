@@ -434,4 +434,47 @@ var routes = Routes{
 		"/deleteproofprotocol/{proofname}",
 		businessFacades.DeleteProofPresentationProtocolByProofName, //Test - calls the DeleteProofPresentationProtocolByProtocolName in the ProofPresesntationHandlers
 	},
+	//Testing purposes of crud ------------------------------------------------------------
+	Route{
+		"InsertTransactions",
+		"POST",
+		"/inserttransactions",
+		businessFacades.InsertTransactions, //POST method
+	},
+	Route{
+		"InsertModel",
+		"POST",
+		"/insertmodel",
+		businessFacades.InsertModel, //POST method
+	},
+	Route{
+		"GetTransactionsById",
+		"GET",
+		"/gettransaction",
+		businessFacades.GetTransactionsById, //GET method by ID
+	},
+	Route{
+		"GetTransactions",
+		"GET",
+		"/gettransactions",
+		businessFacades.GetAllTransactions, //GET method
+	},
+	Route{
+		"RemoveTransactionsById",
+		"DELETE",
+		"/removetransaction",
+		businessFacades.RemoveTransactionsById, //DELETE method by ID
+	},
+	Route{
+		"RemoveTransactions",
+		"DELETE",
+		"/removetransactions",
+		businessFacades.RemoveAllTransactions, //DELETE method
+	},
+	Route{
+		"UpdateTransactionsByID",
+		"PUT",
+		"/updatetransactions",
+		businessFacades.UpdateTransactionById, //UPDATE method by ID
+	},
 }

@@ -8,12 +8,13 @@ import (
 	"github.com/stellar/go/keypair"
 )
 
-/*CreateNFTIssuerAccount 
+/*CreateNFTIssuerAccount
 @desc - Create new issuer account for each NFT, encrypt the secret key and send the PK and encrypted sk
 @params - None
 */
-func CreateIssuerAccount() (string,string,error) {
-	var NFTAccountKeyEncodedPassword string =commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
+func CreateIssuerAccount() (string, string, error) {
+	log.Println("-------------------------------------creating an account-------------------")
+	var NFTAccountKeyEncodedPassword string = commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
 	//generate new issuer keypair
 	pair, err := keypair.Random()
 	if err != nil {
@@ -37,12 +38,12 @@ func CreateIssuerAccount() (string,string,error) {
 		),
 	)
 	if err != nil {
-		log.Fatal("Error when build transaction : ",err)
+		log.Fatal("Error when build transaction : ", err)
 		panic(err)
 	}
 	txen64, err := transactionNft.Sign(issuerSK)
 	if err != nil {
-		log.Fatal("Error when sign the transaction : ",err)
+		log.Fatal("Error when sign the transaction : ", err)
 		panic(err)
 	}
 	txen, err := txen64.Base64()
@@ -52,14 +53,14 @@ func CreateIssuerAccount() (string,string,error) {
 	//submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txen)
 	if err != nil {
-		log.Fatal("Error submitting transaction:",err)
+		log.Fatal("Error submitting transaction:", err)
 		panic(err)
 	}
 	//encrypt the issuer secret key
-	encryptedSK,err :=Encrypt(nftIssuerSK,NFTAccountKeyEncodedPassword)
-	 if err!=nil{
-		 panic(err)
-	 }
+	encryptedSK, err := Encrypt(nftIssuerSK, NFTAccountKeyEncodedPassword)
+	if err != nil {
+		panic(err)
+	}
 	log.Println("Transaction Hash for new Account creation: ", respn.Hash)
-	return nftIssuerPK,encryptedSK,err
+	return nftIssuerPK, encryptedSK, err
 }

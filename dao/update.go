@@ -559,30 +559,29 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 	return err
 }
 
- 
-func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtocol, update model.ProofProtocol) error{
- 	session, err := cd.connect()
- 	if err != nil {
- 		fmt.Println("Error while connecting to DB " + err.Error())
- 		return err
- 	}
- 	defer session.EndSession(context.TODO())
+func (cd *Connection) UpdateProofPresesntationProtocol(selector model.ProofProtocol, update model.ProofProtocol) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
 
 	up := model.ProofProtocol{
-		ProofName: update.ProofName,
+		ProofName:            update.ProofName,
 		ProofDescriptiveName: update.ProofDescriptiveName,
-		NumberofSteps: update.NumberofSteps,
-		Steps: update.Steps,
+		NumberofSteps:        update.NumberofSteps,
+		Steps:                update.Steps,
 	}
 
 	pByte, err := bson.Marshal(selector)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
 	var filter bson.M
 	err = bson.Unmarshal(pByte, &filter)
-	if err != nil{
+	if err != nil {
 		return err
 	}
 
@@ -606,7 +605,7 @@ func (cd *Connection)UpdateProofPresesntationProtocol(selector model.ProofProtoc
 	return err
 }
 
-/*UpdateSellingStatus 
+/*UpdateSellingStatus
 @desc - Update the selling status, previous public key and the current pk in the collection
 @params - selector object, amount, price, FOR SALE status
 */
@@ -619,29 +618,30 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	defer session.EndSession(context.TODO())
 	up := model.MarketPlaceNFT{
 		Identifier:                       selector.Identifier,
-		TDPTxnHash:                       selector.TDPTxnHash,
-		TDPID:                            selector.TDPID,
-		TxnType:                          selector.TxnType,
-		DataHash:                         selector.DataHash,
+		Collection:                       selector.Collection,
+		Categories:                       selector.Categories,
+		ImageBase64:                      selector.ImageBase64,
 		NftTransactionExistingBlockchain: selector.NftTransactionExistingBlockchain,
 		NftIssuingBlockchain:             selector.NftIssuingBlockchain,
 		NFTTXNhash:                       selector.NFTTXNhash,
 		Timestamp:                        selector.Timestamp,
-		NftAssetName:                     selector.NftAssetName,
+		NftURL:                           selector.NftURL,
 		NftContentName:                   selector.NftContentName,
 		NftContent:                       selector.NftContent,
+		NFTArtistName:                    selector.NFTArtistName,
+		NFTArtistURL:                     selector.NFTArtistURL,
 		InitialIssuerPK:                  selector.InitialIssuerPK,
-		InitialDistributorPK:     		  selector.InitialDistributorPK,
+		InitialDistributorPK:             selector.InitialDistributorPK,
 		TrustLineCreatedAt:               selector.TrustLineCreatedAt,
-		MainAccountPK: 					  selector.MainAccountPK,										
-		ProductName:                      selector.ProductName,
+		MainAccountPK:                    selector.MainAccountPK,
+		Description:                      selector.Description,
+		Copies:                           selector.Copies,
 		PreviousOwnerNFTPK:               selector.PreviousOwnerNFTPK,
 		CurrentOwnerNFTPK:                selector.CurrentOwnerNFTPK,
 		OriginPK:                         selector.OriginPK,
 		SellingStatus:                    updateStatus,
 		Amount:                           updateAmount,
 		Price:                            updatePrice,
-		
 	}
 	c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 	pByte, err := bson.Marshal(selector)
@@ -669,7 +669,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	return err
 }
 
-/*UpdateBuyingStatus 
+/*UpdateBuyingStatus
 @desc - Update the buying status, previous public key and the current pk in the collection
 @params - selector object, new current pk, new previous pk,NOT FOR SALE status
 */
@@ -682,29 +682,30 @@ func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateSt
 	defer session.EndSession(context.TODO())
 	up := model.MarketPlaceNFT{
 		Identifier:                       selector.Identifier,
-		TDPTxnHash:                       selector.TDPTxnHash,
-		TDPID:                            selector.TDPID,
-		TxnType:                          selector.TxnType,
-		DataHash:                         selector.DataHash,
+		Collection:                       selector.Collection,
+		Categories:                       selector.Categories,
+		ImageBase64:                      selector.ImageBase64,
 		NftTransactionExistingBlockchain: selector.NftTransactionExistingBlockchain,
 		NftIssuingBlockchain:             selector.NftIssuingBlockchain,
 		NFTTXNhash:                       selector.NFTTXNhash,
 		Timestamp:                        selector.Timestamp,
-		NftAssetName:                     selector.NftAssetName,
+		NftURL:                           selector.NftURL,
 		NftContentName:                   selector.NftContentName,
 		NftContent:                       selector.NftContent,
+		NFTArtistName:                    selector.NFTArtistName,
+		NFTArtistURL:                     selector.NFTArtistURL,
 		InitialIssuerPK:                  selector.InitialIssuerPK,
-		InitialDistributorPK:     		  selector.InitialDistributorPK,
+		InitialDistributorPK:             selector.InitialDistributorPK,
 		TrustLineCreatedAt:               selector.TrustLineCreatedAt,
-		MainAccountPK: 					  selector.MainAccountPK,										
-		ProductName:                      selector.ProductName,
+		MainAccountPK:                    selector.MainAccountPK,
+		Description:                      selector.Description,
+		Copies:                           selector.Copies,
 		PreviousOwnerNFTPK:               updatePreviousPK,
 		CurrentOwnerNFTPK:                updateCurrentPK,
 		OriginPK:                         selector.OriginPK,
 		SellingStatus:                    updateStatus,
 		Amount:                           selector.Amount,
 		Price:                            selector.Price,
-		
 	}
 	c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
 	pByte, err := bson.Marshal(selector)

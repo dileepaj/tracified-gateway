@@ -44,7 +44,7 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 1m", func() {
+	c.AddFunc("@every 30s", func() {
 		services.CheckTempOrphan()
 	})
 	c.Start()
