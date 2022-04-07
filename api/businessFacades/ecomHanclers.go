@@ -163,17 +163,16 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				resultArray = append(resultArray, temp)
 			} else {
 				Txn := data.(model.TransactionCollectionBody)
-				mapD := map[string]string{"transaction": Txn.TxnHash}
-				mapB, _ := json.Marshal(mapD)
+				// mapD := map[string]string{"transaction": Txn.TxnHash}
+				// mapB, _ := json.Marshal(mapD)
 				// fmt.Println(Txn.ProfileID)
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
-				identifer = Txn.Identifier
-				encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				text := encoded
+				// identifer = Txn.Identifier
+				// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+				// text := encoded
 				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-					Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-						text + "%3D%3D&network=public", Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
+					Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 
 				resultArray = append(resultArray, temp)
 			}
@@ -197,17 +196,16 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			// 	resultArray = append(resultArray, temp)
 			// } else {
 			Txn := data.(model.TransactionCollectionBody)
-			mapD := map[string]string{"transaction": Txn.TxnHash}
-			mapB, _ := json.Marshal(mapD)
+			// mapD := map[string]string{"transaction": Txn.TxnHash}
+			// mapB, _ := json.Marshal(mapD)
 			// fmt.Println(Txn.TxnHash)
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
-			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-			text := encoded
+			// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
+			// text := encoded
 			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-					text + "%3D%3D&network=public", Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
+				Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 			resultArray = append(resultArray, temp)
 			return nil
 		}).Catch(func(error error) error {
