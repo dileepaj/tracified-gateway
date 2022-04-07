@@ -194,59 +194,77 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	return err
 }
 
-
-//insert new proof presentation protocol 
-func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error{
+//insert new proof presentation protocol
+func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 	session, err := cd.connect()
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("ProofProtocols")
 	_, err = c.InsertOne(context.TODO(), protocol)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error when inserting data to DB " + err.Error())
 	}
 	return err
 }
 
-/*InsertStellarNFT 
+/*InsertStellarNFT
 @desc - Insert the NFT information to NFTStellar and MarketPlaceNFT collections
 @params - NFTWithTransaction object and MarketPlaceNFT object
 */
-func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction,marketPlaceNFT model.MarketPlaceNFT) (error,error){
+func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
 	session, err := cd.connect()
-	if err != nil{
+	if err != nil {
 		log.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTStellar")
-	c2:= session.Client().Database(dbName).Collection("MarketPlaceNFT")
-	_,err2:=c.InsertOne(context.TODO(), stellarNFT)
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), stellarNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
-	if err != nil{
+	if err != nil {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
-	if err2 != nil{
+	if err2 != nil {
 		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
 	}
 	return err, err2
 }
 
-/*InsertStellarNFT 
-@desc - Insert NFT issued account to NFTKeys collection
-@params - NFTKeys object 
-*/
-func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) (error){
+func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
 	session, err := cd.connect()
-	if err != nil{
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTSolana")
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), solanaNFT)
+	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
+	if err != nil {
+		log.Println("Error when inserting data to NFTSolana DB " + err.Error())
+	}
+	if err2 != nil {
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+	}
+	return err, err2
+}
+
+/*InsertStellarNFT
+@desc - Insert NFT issued account to NFTKeys collection
+@params - NFTKeys object
+*/
+func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
+	session, err := cd.connect()
+	if err != nil {
 		log.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTKeys")
-	_,err = c.InsertOne(context.TODO(), nftKeys)
-	if err != nil{
+	_, err = c.InsertOne(context.TODO(), nftKeys)
+	if err != nil {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	return err

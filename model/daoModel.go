@@ -1,6 +1,7 @@
 package model
 
 import (
+	//"github.com/portto/solana-go-sdk/common"
 	"github.com/stellar/go/build"
 )
 
@@ -49,6 +50,26 @@ type NFTWithTransaction struct {
 	NFTArtistName                    string
 	NFTArtistURL                     string
 	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
+}
+
+type NFTWithTransactionSolana struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	MinterPK                         string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
 	Description                      string
 	Copies                           string
 }
@@ -110,6 +131,30 @@ type TrustLineResponseNFT struct {
 	ArtistLink            string
 	Successfull           bool
 	TrustLineCreatedAt    string
+}
+
+type NFTSolana struct {
+	OwnerPK       string
+	Asset_code    string
+	NFTURL        string
+	Description   string
+	Collection    string
+	NFTBlockChain string
+	Tags          string
+	Categories    string
+	Copies        string
+	NFTLinks      string
+	ArtistName    string
+	ArtistLink    string
+}
+
+type MinterPK struct {
+	MinterPK    string
+	ImageBase64 string
+}
+
+type Minter struct {
+	NFTIssuerPK string `json:"NFTIssuerPK"`
 }
 
 type NFTCreactedResponse struct {

@@ -1437,7 +1437,7 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	return p
 }
 
-/*GetAllSellingNFTStellar_Paginated 
+/*GetAllSellingNFTStellar_Paginated
 @desc - Get all the NFT relevent to the selling status and Public key
 @params - Selling status, Distributor public key
 */
@@ -1455,14 +1455,14 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, di
 			log.Error("Error while get f.count " + err.Error())
 			reject(er)
 		}
-		if distributorPK !="withoutKey"{
-			cursor, er := c.Find(context.TODO(),bson.M{
+		if distributorPK != "withoutKey" {
+			cursor, er := c.Find(context.TODO(), bson.M{
 				"currentownernftpk": distributorPK,
 				"$or": []interface{}{
 					bson.M{"sellingstatus": "FORSALE"},
 					bson.M{"sellingstatus": "NOTFORSALE"},
 				},
-			})	
+			})
 			if er != nil {
 				reject(er)
 			} else {
@@ -1474,7 +1474,7 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, di
 					resolve(result)
 				}
 			}
-		}else{
+		} else {
 			cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
 			if er != nil {
 				reject(er)
@@ -1515,6 +1515,26 @@ func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 			} else {
 				resolve(result)
 			}
+		}
+	})
+	return promise
+}
+
+//solana get minterPK----------------------------------------------------------------------------------
+func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise {
+	result := model.NFTWithTransactionSolana{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTSolana")
+		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
 		}
 	})
 	return promise
@@ -1756,7 +1776,7 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 	return p
 }
 
-/*GetNFTByNFTTxn 
+/*GetNFTByNFTTxn
 @desc - Get NFT details from DB relevent to the NFT txnhash
 @params - NFT txnhash
 */

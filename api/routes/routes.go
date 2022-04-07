@@ -94,6 +94,18 @@ var routes = Routes{
 		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler
 	},
 	Route{
+		"MintNFTSolanaAndAddToDB",
+		"POST",
+		"/nft/mintSolana",
+		businessFacades.MintNFTSolana, //Calls the MintNFTSolana in the nftHandler
+	},
+	Route{
+		"GetMinter",
+		"GET",
+		"/nft/mintSolana/getMinter/{ImageBase64}",
+		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana
+	},
+	Route{
 		"RetriveNFTByStatusAndPK",
 		"GET",
 		"/nft/retriveNFTByStatusAndPK",
