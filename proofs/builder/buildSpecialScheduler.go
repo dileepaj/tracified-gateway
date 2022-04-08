@@ -102,7 +102,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 
 		err3 := object.InsertIdentifier(id)
 		if err3 != nil {
-			fmt.Println("identifier map failed" + err3.Error())
+			log.Debug("identifier map failed :" + err3.Error())
 		}
 
 	}
