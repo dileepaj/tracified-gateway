@@ -50,6 +50,25 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash2     string
 }
 
+type ProofBotUrls struct {
+	Url  string
+	ProofType string
+}
+
+type TransactionHashWithIdentifier struct {
+	Status          string
+	Txnhash         string
+	TxnType         string
+	Identifier      string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
+	AvailableProof  []string
+	ProductName     string
+	ProductID       string
+	ProofBotWidgetUrl []ProofBotUrls
+}
+
 type ProfileCollectionBody struct {
 	ProfileTxn         string
 	ProfileID          string
@@ -114,7 +133,6 @@ type PrevTxnResponse struct {
 	Itemcount      string
 	AssetCode      string
 }
-
 type POCOCResponse struct {
 	Status         string
 	Txnhash        string
@@ -294,7 +312,7 @@ type Services struct {
 	ServiceName       string
 	ServiceURL        string
 	DocumentationLink string
-	//UIAutomationSteps	UIAutomationSteps
+	// UIAutomationSteps	UIAutomationSteps
 }
 
 type ActionParams struct {
@@ -319,6 +337,6 @@ type ProofProtocol struct {
 	ProofName            string
 	ProofDescriptiveName string
 	NumberofSteps        string
-	//Segmants				Segmants
+	// Segmants				Segmants
 	Steps []Steps
 }

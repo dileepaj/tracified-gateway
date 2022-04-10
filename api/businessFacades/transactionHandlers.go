@@ -51,7 +51,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				ProfileTxn:  result.ProfileTxn,
 				GenesisTxn:  result.GenesisTxn,
 				Identifiers: GObj.Identifier,
-				Type:        GObj.Type}
+				Type:        GObj.Type,
+			}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
@@ -76,7 +77,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				PreviousTXNID:     response.PreviousTXNID,
 				PreviousProfileID: response.PreviousProfileID,
 				Identifiers:       PObj.Identifier,
-				Type:              PObj.Type}
+				Type:              PObj.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			var TDP apiModel.TestTDP
@@ -99,7 +101,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: "response.ProfileID",
-				Type:      "TDP.Type"}
+				Type:      "TDP.Type",
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "5":
@@ -130,7 +133,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				SplitTXN:         response.SplitTXN,
 				Identifier:       SplitObj.Identifier,
 				SplitIdentifiers: SplitObj.SplitIdentifiers,
-				Type:             TType}
+				Type:             TType,
+			}
 			json.NewEncoder(w).Encode(result)
 		case "6":
 			var MergeObj apiModel.MergeProfileStruct
@@ -156,7 +160,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Identifier:         MergeObj.Identifier,
 				Type:               TType,
 				MergingIdentifiers: response.PreviousIdentifiers,
-				MergeTXNs:          response.MergeTXNs}
+				MergeTXNs:          response.MergeTXNs,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "10":
@@ -179,7 +184,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: response.ProfileID,
-				Type:      POA.Type}
+				Type:      POA.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "11":
@@ -202,7 +208,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: response.ProfileID,
-				Type:      Cert.Type}
+				Type:      Cert.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		default:
@@ -210,12 +217,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("Please send a valid Transaction Type")
 			return
 		}
-
 	}
 	return
-
 }
-
 
 /*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
 @author - Azeem Ashraf
@@ -506,7 +510,6 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
 /*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
@@ -657,7 +660,6 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 		res := model.LastTxnResponse{LastTxn: result.TxnHash}
 		w.WriteHeader(http.StatusOK)
@@ -670,7 +672,6 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 type Transuc struct {
@@ -743,7 +744,6 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	response := Transuc{TXN: test}
 	json.NewEncoder(w).Encode(response)
 	return
-
 }
 
 type TDP struct {
@@ -762,7 +762,6 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetTdpIdForTransaction(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 
 		res := TDP{TdpId: result.TdpId}
@@ -777,7 +776,6 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 /*TXNForTDP - Test Endpoint @desc Handles an incoming request and Returns the TXN ID for the TDP ID Provided.
@@ -792,7 +790,6 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetTransactionForTdpId(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 
 		// res := TDP{TdpId: result.TdpId}
@@ -806,15 +803,12 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
-	fmt.Println("lol")
 	var Artifacts model.ArtifactTransaction
-	fmt.Println("lol")
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -866,5 +860,76 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 }
+
+func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var result []model.TransactionHashWithIdentifier
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+	p := object.GetRealIdentifierByMapValue(vars["identifier"])
+	p.Then(func(data interface{}) interface{} {
+		dbResult := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range dbResult {
+		fmt.Println(TxnBody)
+			temp := model.TransactionHashWithIdentifier{
+				Status: TxnBody.Status,
+				Txnhash: TxnBody.TxnHash,
+				Identifier:     TxnBody.Identifier,
+				FromIdentifier1: TxnBody.FromIdentifier1,
+				FromIdentifier2: TxnBody.FromIdentifier2,
+				ToIdentifier: TxnBody.ToIdentifier,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				ProductID:  TxnBody.ProductID,
+				ProductName:    TxnBody.ProductName,
+				ProofBotWidgetUrl:GetProofBotWidgetUrl(TxnBody.TxnType,TxnBody.TxnHash),
+				}
+			result = append(result, temp)
+				}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	}).Await()
+}
+
+// func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
+// 	var result []model.TransactionHashWithIdentifier
+// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+// 	vars := mux.Vars(r)
+// 	object := dao.Connection{}
+// 	p := object.GetRealIdentifierByMapValue(vars["identifier"])
+// 	p.Then(func(data interface{}) interface{} {
+// 		dbResult := data.([]model.TransactionCollectionBody)
+// 		fmt.Println("dbResult",dbResult)
+// 	for _, TxnBody := range dbResult {
+// 		fmt.Println(TxnBody)
+// 			temp := model.TransactionHashWithIdentifier{
+// 				Txnhash: TxnBody.TxnHash,
+// 				Identifier:     TxnBody.Identifier,
+// 				FromIdentifier1: TxnBody.FromIdentifier1,
+// 				FromIdentifier2: TxnBody.FromIdentifier2,
+// 				ToIdentifier: TxnBody.ToIdentifier,
+// 				TxnType:        GetTransactiontype(TxnBody.TxnType),
+// 				AvailableProof: GetProofName(TxnBody.TxnType),
+// 				ProductID:  TxnBody.ProductID,
+// 				ProductName:    TxnBody.ProductName,
+// 				}
+// 			result = append(result, temp)
+// 				}
+
+// 		w.WriteHeader(http.StatusOK)
+// 		json.NewEncoder(w).Encode(dbResult)
+// 		return nil
+// 	}).Catch(func(error error) error {
+// 		w.WriteHeader(http.StatusBadRequest)
+// 		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+// 		json.NewEncoder(w).Encode(response)
+// 		return error
+// 	}).Await()
+// }
