@@ -868,3 +868,38 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var result []model.TransactionHashWithIdentifier
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+	p := object.GetRealIdentifierByMapValue(vars["identifier"])
+	p.Then(func(data interface{}) interface{} {
+		dbResult := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range dbResult {
+		fmt.Println(TxnBody)
+			temp := model.TransactionHashWithIdentifier{
+				Status: TxnBody.Status,
+				Txnhash: TxnBody.TxnHash,
+				Identifier:     TxnBody.Identifier,
+				FromIdentifier1: TxnBody.FromIdentifier1,
+				FromIdentifier2: TxnBody.FromIdentifier2,
+				ToIdentifier: TxnBody.ToIdentifier,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				ProductID:  TxnBody.ProductID,
+				ProductName:    TxnBody.ProductName,
+				}
+			result = append(result, temp)
+				}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	}).Await()
+}
