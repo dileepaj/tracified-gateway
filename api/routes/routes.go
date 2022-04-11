@@ -416,10 +416,4 @@ var routes = Routes{
 		"/enable-cors",
 		businessFacades.EnableCorsAndResponse,
 	},
-		Route{
-		"Get all trasacion by identifer",
-		"GET",
-		"/transaction/identifier/{identifier}",
-		businessFacades.TxnForIdentifier,
-	},
 }

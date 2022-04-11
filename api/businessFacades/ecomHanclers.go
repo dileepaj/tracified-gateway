@@ -1660,29 +1660,3 @@ func GetProofName(Type string) []string {
 	}
 	return result
 }
-
-func GetProofBotWidgetUrl(Type string,txnHash string) []model.ProofBotUrls{
-	botUrl := commons.GoDotEnvVariable("PROOFBOTURL")
-	var result []model.ProofBotUrls
-	switch Type {
-	case "0":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"pog"+"&txn="+txnHash,ProofType:"pog"})
-	case "2":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poe"+"&txn="+txnHash,ProofType:"poe"})
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "5":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "6":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "7":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "8":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "10":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"pococ"+"&txn="+txnHash,ProofType:"pococ"})
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"poc"+"&txn="+txnHash,ProofType:"poc"})
-	case "11":
-		result = append(result,model.ProofBotUrls{Url:botUrl+"/proof-verification?type="+"pococ"+"&txn="+txnHash,ProofType:"pococ"})
-	}
-	return result
-}

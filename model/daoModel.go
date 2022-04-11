@@ -50,25 +50,6 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash2     string
 }
 
-type ProofBotUrls struct {
-	Url  string
-	ProofType string
-}
-
-type TransactionHashWithIdentifier struct {
-	Status          string
-	Txnhash         string
-	TxnType         string
-	Identifier      string
-	FromIdentifier1 string
-	FromIdentifier2 string
-	ToIdentifier    string
-	AvailableProof  []string
-	ProductName     string
-	ProductID       string
-	ProofBotWidgetUrl []ProofBotUrls
-}
-
 type ProfileCollectionBody struct {
 	ProfileTxn         string
 	ProfileID          string
