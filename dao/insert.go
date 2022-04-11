@@ -206,18 +206,17 @@ func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 }
 
 func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
-	fmt.Println("--------------------------- InsertIdentifier------------------------")
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		log.Println("Error while getting session " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("Identifier_map")
+	c := session.Client().Database(dbName).Collection("IdentifierMap")
 	_, err = c.InsertOne(context.TODO(), id)
 
 	if err != nil {
-		fmt.Println("Error while inserting to TempOrphan " + err.Error())
+		log.Println("Error while inserting to TempOrphan " + err.Error())
 	}
 	return err
 }
