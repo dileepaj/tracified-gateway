@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -188,19 +189,34 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	return err
 }
 
-
-//insert new proof presentation protocol 
-func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error{
+//insert new proof presentation protocol
+func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 	session, err := cd.connect()
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("ProofProtocols")
 	_, err = c.InsertOne(context.TODO(), protocol)
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("IdentifierMap")
+	_, err = c.InsertOne(context.TODO(), id)
+
+	if err != nil {
+		log.Println("Error while inserting to TempOrphan " + err.Error())
 	}
 	return err
 }

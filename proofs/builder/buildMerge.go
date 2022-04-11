@@ -1,12 +1,14 @@
 package builder
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 
@@ -34,7 +36,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 	var Done []bool
 	Done = append(Done, true)
 	object := dao.Connection{}
-
+	var id apiModel.IdentifierModel
 	var UserMergeTxnHashes []string
 	// var MergeID string
 
@@ -72,7 +74,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}).Await()
 
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync.Error())
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				AP.TxnBody[i].PreviousTxnHash = ""
@@ -88,7 +90,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}).Await()
 
 			if errorAsync2 != nil || pData2 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync.Error())
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				AP.TxnBody[i].PreviousTxnHash2 = ""
@@ -104,7 +106,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}).Await()
 
 			if errorAsync3 != nil || pData3 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge "+ errorAsync3.Error())
+				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync3.Error())
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				AP.TxnBody[i].PreviousTxnHash2 = ""
@@ -130,6 +132,25 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			json.NewEncoder(w).Encode(response)
 			return
 		}
+
+		if AP.TxnBody[i].TxnType == "7" {
+			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
+			if err != nil {
+				panic(err)
+			}
+
+			var jsonID Identifier
+			json.Unmarshal([]byte(rawDecodedText), &jsonID)
+			id.MapValue = AP.TxnBody[i].Identifier
+			id.Identifier = jsonID.Id
+			id.Type = jsonID.Type
+
+			err3 := object.InsertIdentifier(id)
+			if err3 != nil {
+				fmt.Println("identifier map failed" + err3.Error())
+			}
+		}
+
 	}
 	go func() {
 
@@ -160,7 +181,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				pData, errorAsync := object.GetLastTransactionbyIdentifier(TxnBody.FromIdentifier2).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
-				
+
 				if errorAsync != nil || pData == nil {
 					log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 					///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
@@ -189,33 +210,33 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
-				log.Error("Error while build Transaction @SubmitMerge "+err.Error())
+				log.Error("Error while build Transaction @SubmitMerge " + err.Error())
 				AP.TxnBody[i].TxnHash = UserMergeTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			}
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {
-				log.Error("Error while convert GatewayTXE to base64 @SubmitMerge "+err.Error())
+				log.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
 				AP.TxnBody[i].TxnHash = UserMergeTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			}
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				log.Error("Error got 400 from ConcreteSubmitXDR @SubmitMerge ")
@@ -225,17 +246,17 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err2.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 				AP.TxnBody[i].TxnHash = response1.TXNID
 				PreviousTxn = response1.TXNID
-				
+
 				///INSERT INTO TRANSACTION COLLECTION
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
-					log.Error("Error while InsertTransaction @SubmitMerge "+err.Error())
+					log.Error("Error while InsertTransaction @SubmitMerge " + err.Error())
 				} else if i == 0 {
 					var PreviousProfile string
 					pData, errorAsync := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
@@ -260,7 +281,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 					}
 					err3 := object.InsertProfile(Profile)
 					if err3 != nil {
-						log.Error("Error while InsertProfile @SubmitMerge "+err3.Error())
+						log.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
 					}
 				}
 				// Done = true

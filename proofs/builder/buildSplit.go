@@ -1,14 +1,16 @@
 package builder
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
@@ -32,7 +34,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 	log.Debug("--------------------------------- SubmitSplit -------------------------------------")
 	var Done []bool
 	Done = append(Done, true)
-
+	var id apiModel.IdentifierModel
 	object := dao.Connection{}
 
 	var UserSplitTxnHashes []string
@@ -54,14 +56,14 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @SafeUnmarshalBase64 @SubmitSplit "+err.Error())
+			log.Error("Error @SafeUnmarshalBase64 @SubmitSplit " + err.Error())
 		}
 
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		
+
 		if AP.TxnBody[i].TxnType == "5" {
 			AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 			AP.TxnBody[i].ToIdentifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
@@ -87,7 +89,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			if pData == nil || errAsnc != nil {
 				log.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
-				//DUE TO THE CHILD HAVING A NEW IDENTIFIER	
+				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				PreviousTxn = ""
 				AP.TxnBody[i].PreviousTxnHash = ""
 			} else {
@@ -114,6 +116,24 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		} else {
 			log.Info((i + 1), " Submitted")
 		}
+		if AP.TxnBody[i].TxnType == "6" {
+			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
+			if err != nil {
+				panic(err)
+			}
+
+			var jsonID Identifier
+			json.Unmarshal([]byte(rawDecodedText), &jsonID)
+			id.MapValue = AP.TxnBody[i].Identifier
+			id.Identifier = jsonID.Id
+			id.Type = jsonID.Type
+
+			err3 := object.InsertIdentifier(id)
+			if err3 != nil {
+				fmt.Println("identifier map failed" + err3.Error())
+			}
+		}
+
 	}
 	go func() {
 		var SplitParentProfile string
@@ -147,33 +167,33 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)
 			if err != nil {
-				log.Error("Error @tx.Sign @SubmitSplit "+err.Error())
+				log.Error("Error @tx.Sign @SubmitSplit " + err.Error())
 				AP.TxnBody[i].TxnHash = UserSplitTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error @InsertTransaction @SubmitSplit "+err2.Error())
+					log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
 				}
 			}
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
 			if err != nil {
-				log.Error("Error @GatewayTXE.Base64 @SubmitSplit "+err.Error())
+				log.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
 				AP.TxnBody[i].TxnHash = UserSplitTxnHashes[i]
 				AP.TxnBody[i].Status = "Pending"
 
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error @InsertTransaction @SubmitSplit "+err2.Error())
+					log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
 				}
 			}
 
 			//SUBMIT THE GATEWAY'S SIGNED XDR
 			display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-			response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+			response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 			if response1.Error.Code == 400 {
 				AP.TxnBody[i].TxnHash = UserSplitTxnHashes[i]
@@ -182,7 +202,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err2 := object.InsertTransaction(AP.TxnBody[i])
 				if err2 != nil {
-					log.Error("Error @InsertTransaction @SubmitSplit "+err2.Error())
+					log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
 				}
 			} else {
 				//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -194,7 +214,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				///INSERT INTO TRANSACTION COLLECTION
 				err1 := object.InsertTransaction(AP.TxnBody[i])
 				if err1 != nil {
-					log.Error("Error @InsertTransaction @SubmitSplit "+err1.Error())
+					log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
 				} else if i > 0 {
 					var PreviousProfile string
 					pData1, errorAsync1 := object.GetProfilebyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
@@ -217,7 +237,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 					}
 					err2 := object.InsertProfile(Profile)
 					if err2 != nil {
-						log.Error("Error @InsertProfile @SubmitSplit "+err2.Error())
+						log.Error("Error @InsertProfile @SubmitSplit " + err2.Error())
 					}
 				}
 			}

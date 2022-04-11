@@ -49,3 +49,9 @@ type InsertorganizationCollectionResponse struct {
 type InsertTestimonialCollectionResponse struct {
 	Message string
 }
+
+type IdentifierModel struct {
+	MapValue   string
+	Identifier string
+	Type       string
+}
