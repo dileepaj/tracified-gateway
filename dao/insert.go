@@ -213,7 +213,7 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("Identifier_map")
+	c := session.Client().Database(dbName).Collection("IdentifierMap")
 	_, err = c.InsertOne(context.TODO(), id)
 
 	if err != nil {
