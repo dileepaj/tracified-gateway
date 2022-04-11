@@ -1735,29 +1735,29 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("Identifier_map")
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
 			reject(err1)
 		} else {
-			fmt.Println("res",result)
+			fmt.Println("res", result)
 			result1 := []model.TransactionCollectionBody{}
 			session, err := cd.connect()
 			if err != nil {
-			reject(err)
+				reject(err)
 			}
 			defer session.EndSession(context.TODO())
 			c := session.Client().Database(dbName).Collection("Transactions")
 			cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": result.MapValue})
-		
-				if err1 != nil {
+
+			if err1 != nil {
 				reject(err1)
-				} else {
+			} else {
 				err2 := cursor.All(context.TODO(), &result1)
-					fmt.Println("res1",result1)
-					if err2 != nil || len(result1) == 0 {
+				fmt.Println("res1", result1)
+				if err2 != nil || len(result1) == 0 {
 					reject(err2)
-					} else {
+				} else {
 					resolve(result1)
 				}
 			}

@@ -217,7 +217,7 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 	_, err = c.InsertOne(context.TODO(), id)
 
 	if err != nil {
-		log.Println("Error while inserting to Identifier_map " + err.Error())
+		log.Println("Error while inserting to IdentifierMap " + err.Error())
 	}
 	return err
 }
