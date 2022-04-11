@@ -1734,7 +1734,7 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("Identifier_map")
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
 			reject(err1)
