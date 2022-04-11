@@ -883,7 +883,6 @@ func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				ProductID:  TxnBody.ProductID,
 				ProductName:    TxnBody.ProductName,
-				ProofBotWidgetUrl:GetProofBotWidgetUrl(TxnBody.TxnType,TxnBody.TxnHash),
 				}
 			result = append(result, temp)
 				}
@@ -897,39 +896,3 @@ func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
 		return error
 	}).Await()
 }
-
-// func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
-// 	var result []model.TransactionHashWithIdentifier
-// 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-// 	vars := mux.Vars(r)
-// 	object := dao.Connection{}
-// 	p := object.GetRealIdentifierByMapValue(vars["identifier"])
-// 	p.Then(func(data interface{}) interface{} {
-// 		dbResult := data.([]model.TransactionCollectionBody)
-// 		fmt.Println("dbResult",dbResult)
-// 	for _, TxnBody := range dbResult {
-// 		fmt.Println(TxnBody)
-// 			temp := model.TransactionHashWithIdentifier{
-// 				Txnhash: TxnBody.TxnHash,
-// 				Identifier:     TxnBody.Identifier,
-// 				FromIdentifier1: TxnBody.FromIdentifier1,
-// 				FromIdentifier2: TxnBody.FromIdentifier2,
-// 				ToIdentifier: TxnBody.ToIdentifier,
-// 				TxnType:        GetTransactiontype(TxnBody.TxnType),
-// 				AvailableProof: GetProofName(TxnBody.TxnType),
-// 				ProductID:  TxnBody.ProductID,
-// 				ProductName:    TxnBody.ProductName,
-// 				}
-// 			result = append(result, temp)
-// 				}
-
-// 		w.WriteHeader(http.StatusOK)
-// 		json.NewEncoder(w).Encode(dbResult)
-// 		return nil
-// 	}).Catch(func(error error) error {
-// 		w.WriteHeader(http.StatusBadRequest)
-// 		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
-// 		json.NewEncoder(w).Encode(response)
-// 		return error
-// 	}).Await()
-// }

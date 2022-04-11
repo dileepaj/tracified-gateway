@@ -66,7 +66,6 @@ type TransactionHashWithIdentifier struct {
 	AvailableProof  []string
 	ProductName     string
 	ProductID       string
-	ProofBotWidgetUrl []ProofBotUrls
 }
 
 type ProfileCollectionBody struct {
