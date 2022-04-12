@@ -117,7 +117,6 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
-	log.Println("-----------------------------------------inside the retrieve function ------------------------------------")
 	object := dao.Connection{}
 	p := object.GetNFTMinterPKSolana(vars["ImageBase64"])
 	p.Then(func(data interface{}) interface{} {
