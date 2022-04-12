@@ -1726,7 +1726,6 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 	return p
 }
 
-<<<<<<< HEAD
 func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
@@ -1772,7 +1771,6 @@ func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
 	})
 	return p
 }
-=======
 func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1809,4 +1807,3 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 	})
 	return p
 }
->>>>>>> 806afd9f48d66eec959e25d23a45bf0c9537af04

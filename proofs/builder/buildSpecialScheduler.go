@@ -89,22 +89,23 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
-		if err != nil {
-			panic(err)
+		if AP.TxnBody[i].TxnType == "0" {
+			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
+			if err != nil {
+				panic(err)
+			}
+
+			var jsonID Identifier
+			json.Unmarshal([]byte(rawDecodedText), &jsonID)
+			id.MapValue = AP.TxnBody[i].Identifier
+			id.Identifier = jsonID.Id
+			id.Type = jsonID.Type
+
+			err3 := object.InsertIdentifier(id)
+			if err3 != nil {
+				fmt.Println("identifier map failed" + err3.Error())
+			}
 		}
-
-		var jsonID Identifier
-		json.Unmarshal([]byte(rawDecodedText), &jsonID)
-		id.MapValue = AP.TxnBody[i].Identifier
-		id.Identifier = jsonID.Id
-		id.Type = jsonID.Type
-
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			fmt.Println("identifier map failed" + err3.Error())
-		}
-
 	}
 
 	if checkBoolArray(Done) {
