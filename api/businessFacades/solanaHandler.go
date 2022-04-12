@@ -2,21 +2,14 @@ package businessFacades
 
 import (
 	"encoding/json"
-	//"fmt"
 	"net/http"
 
-	//"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/solana"
 	"github.com/gorilla/mux"
-
-	//"github.com/gagliardetto/solana-go"
 	"github.com/portto/solana-go-sdk/common"
-
-	//"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
-	//"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -120,33 +113,6 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json")
-// 	log.Println("------------------------------------inside handler to retrieve mint------------------")
-// 	var mint model.MinterPK
-// 	decoder := json.NewDecoder(r.Body)
-// 	decoder.DisallowUnknownFields()
-// 	err := decoder.Decode(&mint)
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	log.Println(mint)
-// 	log.Println("--------------------------------------nft url", mint.NFTURL)
-// 	obj := dao.Connection{}
-// 	minter, err1 := obj.GetNFTMinterPKSolana(mint.NFTURL).Then(func(minter interface{}) interface{} {
-// 		return minter
-// 	}).Await()
-// 	if err1 != nil {
-// 		log.Fatal(err1)
-// 	}
-// 	resultModel := minter.([]model.Minter)
-// 	result := resultModel[0].MinterPK
-// 	log.Println("-----------------------------------------------------", result)
-// 	w.WriteHeader(http.StatusOK)
-// 	json.NewEncoder(w).Encode(result)
-
-// }
-
 func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -171,25 +137,3 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
-
-// func GetCollectionByUserPK(w http.ResponseWriter, r *http.Request) {
-// 	w.Header().Set("Content-Type", "application/json; charset-UTF-8")
-// 	vars := mux.Vars(r)
-// 	log.Println("---------------------------------------test 1------------------------------")
-// 	log.Println(vars["userid"])
-// 	results, err1 := marketplaceBusinessFacade.GetCollectionByUserPK(vars["userid"])
-// 	log.Println("results-----------------------", results)
-// 	if err1 != nil {
-// 		ErrorMessage := err1.Error()
-// 		errors.BadRequest(w, ErrorMessage)
-// 		return
-// 	} else {
-// 		w.WriteHeader(http.StatusOK)
-// 		err := json.NewEncoder(w).Encode(results)
-// 		if err != nil {
-// 			logs.ErrorLogger.Println(err)
-// 		}
-// 		return
-// 	}
-
-// }

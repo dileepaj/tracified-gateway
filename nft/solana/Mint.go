@@ -20,7 +20,6 @@ import (
 
 func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, error) {
 
-	// var feePayer, _ = types.AccountFromBytes(feePayerSecret)
 	var fromWallet, _ = types.AccountFromBytes(fromWalletSecret)
 
 	c := client.NewClient(rpc.TestnetRPCEndpoint)
