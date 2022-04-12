@@ -1726,6 +1726,7 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 	return p
 }
 
+<<<<<<< HEAD
 func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
@@ -1771,3 +1772,41 @@ func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
 	})
 	return p
 }
+=======
+func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
+		if err1 != nil {
+			reject(err1)
+		} else {
+			result1 := []model.TransactionCollectionBody{}
+			session, err := cd.connect()
+			if err != nil {
+				reject(err)
+			}
+			defer session.EndSession(context.TODO())
+			c := session.Client().Database(dbName).Collection("Transactions")
+			cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": result.MapValue})
+
+			if err1 != nil {
+				reject(err1)
+			} else {
+				err2 := cursor.All(context.TODO(), &result1)
+				if err2 != nil || len(result1) == 0 {
+					reject(err2)
+				} else {
+					resolve(result1)
+				}
+			}
+		}
+	})
+	return p
+}
+>>>>>>> 806afd9f48d66eec959e25d23a45bf0c9537af04
