@@ -1726,6 +1726,51 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 	return p
 }
 
+func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": MapValue}).Decode(&result)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err = c.FindOne(context.TODO(), bson.M{"identifier": Identifier}).Decode(&result)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
 func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
