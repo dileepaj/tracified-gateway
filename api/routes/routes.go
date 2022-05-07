@@ -422,4 +422,10 @@ var routes = Routes{
 		"/transaction/identifier/{identifier}",
 		businessFacades.TxnForIdentifier,
 	},
+	Route{
+		"Get all trasacion by Artifact",
+		"GET",
+		"/transaction/identifier/artifact/{artifactid}",
+		businessFacades.TxnForArtifact,
+	},
 }
