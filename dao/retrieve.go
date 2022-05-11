@@ -1807,3 +1807,55 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 	})
 	return p
 }
+
+func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promise.Promise {
+	//map identifiers objcet array
+	var mapIdentifiers []apiModel.IdentifierModel
+	// only map identifiers 
+	var mapIdentifiersArray []string
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session1, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session1.EndSession(context.TODO())
+		c1 := session1.Client().Database(dbName).Collection("IdentifierMap")
+		//find map identifiers using real identifers
+		rst, err1 := c1.Find(context.TODO(),bson.D{{"identifier", bson.D{{"$in", identifier}}}})
+		// check for errors in the finding
+		if err1 != nil {
+			reject(err1)
+		}
+		//read the douments and assign it to mapIdentifiers
+		if err2 := rst.All(context.TODO(), &mapIdentifiers); err != nil {
+			reject(err2)
+		}
+
+		// creating array using only map identifiers
+		for _, result := range mapIdentifiers {
+			mapIdentifiersArray = append(mapIdentifiersArray, result.MapValue)
+		}
+
+		result1 := []model.TransactionCollectionBody{}
+		session2, err3 := cd.connect()
+		if err3 != nil {
+			reject(err)
+		}
+		defer session2.EndSession(context.TODO())
+		c2 := session2.Client().Database(dbName).Collection("Transactions")
+		//find transacions using mapIdentifers in gateway
+		cursor, err4 := c2.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", mapIdentifiersArray}}}})
+		if err4 != nil {
+			reject(err1)
+		} 
+		err5 := cursor.All(context.TODO(), &result1)
+		if err5 != nil || len(result1) == 0 {
+			reject(err5)
+		} else {
+			resolve(result1)
+		}
+		
+	})
+	p.Await()
+	return p
+}
