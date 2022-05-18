@@ -74,6 +74,27 @@ type NFTWithTransactionSolana struct {
 	Copies                           string
 }
 
+type NFTWithTransactionContracts struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	NFTContract                      string
+	MarketplaceContract              string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	Description                      string
+	Copies                           string
+}
+
 type NFTKeys struct {
 	PublicKey string
 	SecretKey string
@@ -148,13 +169,38 @@ type NFTSolana struct {
 	ArtistLink    string
 }
 
+type NFTContracts struct {
+	NFTContract         string
+	MarketplaceContract string
+	MintNFTTxn          string
+	OwnerPK             string
+	Asset_code          string
+	NFTURL              string
+	Description         string
+	Collection          string
+	NFTBlockChain       string
+	Tags                string
+	Categories          string
+	Copies              string
+	NFTLinks            string
+	ArtistName          string
+	ArtistLink          string
+	Identifier          string
+}
+
 type MinterPK struct {
 	MinterPK    string
 	ImageBase64 string
 }
 
 type Minter struct {
-	NFTIssuerPK string `json:"NFTIssuerPK"`
+	NFTIssuerPK   string `json:"NFTIssuerPK"`
+	NFTTxnHash    string `json:"NFTTxnHash"`
+	NFTIdentifier string `json:"NFTIdentifier"`
+}
+
+type StellarMintTXN struct {
+	NFTTxnHash string `json:"NFTTxnHash"`
 }
 
 type NFTCreactedResponse struct {

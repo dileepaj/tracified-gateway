@@ -18,7 +18,7 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, error) {
+func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 
 	var fromWallet, _ = types.AccountFromBytes(fromWalletSecret)
 
@@ -28,27 +28,27 @@ func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*co
 
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	tokenMetadataPubkey, err := tokenmeta.GetTokenMetaPubkey(mint.PublicKey)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	tokenMasterEditionPubkey, err := tokenmeta.GetMasterEdition(mint.PublicKey)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	mintAccountRent, err := c.GetMinimumBalanceForRentExemption(context.Background(), tokenprog.MintAccountSize)
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	recentBlockhashResponse, err := c.GetRecentBlockhash(context.Background())
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	tx, err := types.NewTransaction(types.NewTransactionParam{
@@ -116,7 +116,7 @@ func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*co
 		}),
 	})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	sign, err := c.SendTransactionWithConfig(context.TODO(), tx, client.SendTransactionConfig{
@@ -124,7 +124,7 @@ func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*co
 		PreflightCommitment: rpc.CommitmentFinalized,
 	})
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 
 	wsClient, err := ws.Connect(context.Background(), rp.TestNet_WS)
@@ -134,19 +134,19 @@ func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*co
 	)
 
 	if err != nil {
-		return nil, nil, nil, err
+		return nil, nil, nil, nil, err
 	}
 	defer sub.Unsubscribe()
 
 	for {
 		got, err := sub.Recv()
 		if err != nil {
-			return &mint.PublicKey, &fromWallet.PublicKey, &sign, nil
+			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 		if got.Value.Err != nil {
 			panic(errors.New("transaction confirmation failed"))
 		} else {
-			return &mint.PublicKey, &fromWallet.PublicKey, &sign, nil
+			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 	}
 

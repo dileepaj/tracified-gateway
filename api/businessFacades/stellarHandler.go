@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
@@ -195,37 +196,38 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 */
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	key1, error := r.URL.Query()["sellingStatus"]
+	key1, error := r.URL.Query()["Price"]
 
 	if !error || len(key1[0]) < 1 {
-		logrus.Error("Url Parameter 'sellingStatus' is missing")
+		logrus.Error("Url Parameter 'Price' is missing")
 		return
 	}
 
-	key2, error := r.URL.Query()["amount"]
+	key2, error := r.URL.Query()["Status"]
 
 	if !error || len(key2[0]) < 1 {
-		logrus.Error("Url Parameter 'amount' is missing")
+		logrus.Error("Url Parameter 'Status' is missing")
 		return
 	}
 
-	key3, error := r.URL.Query()["price"]
+	key3, error := r.URL.Query()["Amount"]
 
 	if !error || len(key3[0]) < 1 {
-		logrus.Error("Url Parameter 'price' is missing")
+		logrus.Error("Url Parameter 'Amount' is missing")
 		return
 	}
 
-	key4, error := r.URL.Query()["nfthash"]
+	key4, error := r.URL.Query()["NFTTxnHash"]
 
 	if !error || len(key4[0]) < 1 {
-		logrus.Error("Url Parameter 'nfthash' is missing")
+		logrus.Error("Url Parameter 'NFTTxnHash' is missing")
 		return
 	}
-	sellingStatus := key1[0]
-	amount := key2[0]
-	price := key3[0]
+	price := key1[0]
+	sellingStatus := key2[0]
+	amount := key3[0]
 	nfthash := key4[0]
+	log.Println("-----------------------------------", sellingStatus, price, amount, nfthash)
 	object := dao.Connection{}
 	_, err1 := object.GetNFTByNFTTxn(nfthash).Then(func(data interface{}) interface{} {
 		selection := data.(model.MarketPlaceNFT)
@@ -356,4 +358,53 @@ func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 	}
+}
+
+func GetLastNFTbyIdentifier(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	log.Println("-----------------------------inside retrieve--------------------")
+	object := dao.Connection{}
+	p := object.GetLastNFTbyInitialDistributorPK(vars["InitialDistributorPK"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.MarketPlaceNFT)
+		log.Println(result)
+		//	res := model.LastTxnResponse{LastTxn: result.TxnHash}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "InitialDistributorPK Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
+}
+
+func RetrieveStellarTxn(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+	p := object.GetNFTTxnForStellar(vars["ImageBase64"])
+	p.Then(func(data interface{}) interface{} {
+
+		result := data.(model.NFTWithTransaction)
+		res := model.StellarMintTXN{NFTTxnHash: result.NFTTXNhash}
+		log.Println("-----------------mint txn hash for stellar ------------", res)
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(res)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "URL Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	})
+	p.Await()
+
 }

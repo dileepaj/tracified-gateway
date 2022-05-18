@@ -337,6 +337,41 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 /*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
+func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK string) *promise.Promise {
+	result := []model.MarketPlaceNFT{}
+	// p := promise.NewPromise()
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"initialdistributorpk": InitialDistributorPK})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+
+	})
+
+	return p
+
+}
+
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
@@ -1530,6 +1565,25 @@ func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise 
 		}
 		defer session.EndSession(context.TODO())
 		dbclient := session.Client().Database(dbName).Collection("NFTSolana")
+		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
+}
+
+func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string) *promise.Promise {
+	result := model.NFTWithTransaction{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTStellar")
 		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
 		if err1 != nil {
 			reject(err)
