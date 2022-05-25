@@ -1726,7 +1726,7 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 	return p
 }
 
-func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
+func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1738,12 +1738,18 @@ func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err = c.FindOne(context.TODO(), bson.M{"mapvalue": MapValue}).Decode(&result)
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue}).Decode(&result)
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
 		} else {
-			resolve(result)
+			if(result.Identifier!=""){
+				resolve(result)
+			}else{
+				result.MapValue=mapValue
+				result.Identifier=mapValue
+				resolve(result)
+			}
 		}
 	})
 	return p
