@@ -1,31 +1,35 @@
 package deprecatedStellarExecuter
 
+import "github.com/dileepaj/tracified-gateway/api/apiModel"
+
 // import (
 // 	"fmt"
 // 	"log"
-// 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 // 	"strconv"
 
-// 	"github.com/stellar/go/build"
+// 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+
 // 	"github.com/dileepaj/tracified-gateway/commons"
+// 	"github.com/stellar/go/build"
+// 	"github.com/stellar/go/clients/horizonclient"
 // 	"github.com/stellar/go/keypair"
 // )
 
-// type ConcreteRegistrarAcc struct {
-// 	// *builder.AbstractTDPInsert
-// 	// Publickey  string
-// 	// Publickey1 string
-// 	// Publickey2 string
-// 	// Publickey3 string
-// 	// SignerKey  string
-// 	// Weight     uint32
-// 	// Low        uint32
-// 	// Medium     uint32
-// 	// High       uint32
-// 	RegistrarAccount apiModel.RegistrarAccount
-// }
+type ConcreteRegistrarAcc struct {
+	// *builder.AbstractTDPInsert
+	// Publickey  string
+	// Publickey1 string
+	// Publickey2 string
+	// Publickey3 string
+	// SignerKey  string
+	// Weight     uint32
+	// Low        uint32
+	// Medium     uint32
+	// High       uint32
+	RegistrarAccount apiModel.RegistrarAccount
+}
 
-// func (cd *ConcreteRegistrarAcc) SetupAccount() string {
+func (cd *ConcreteRegistrarAcc) SetupAccount() string {
 
 // 	// router := routes.NewRouter()
 
@@ -40,9 +44,15 @@ package deprecatedStellarExecuter
 // 		return "Account not found"
 // 	}
 // 	// Make sure destination account exists
-// 	if _, err := commons.GetHorizonClient().LoadAccount(destination); err != nil {
-// 		panic(err)
-// 		return "Account not found"
+// 	// if _, err := commons.GetHorizonClient().LoadAccount(destination); err != nil {
+// 	// 	panic(err)
+// 	// 	return "Account not found"
+// 	// }
+// 	netClient := commons.GetHorizonClient()
+// 	accountRequest := horizonclient.AccountRequest{AccountID: destination}
+// 	_, err = netClient.AccountDetail(accountRequest)
+// 	if err != nil {
+// 		log.Fatal(err)
 // 	}
 
 // 	// passphrase := network.TestNetworkPassphrase
@@ -167,8 +177,8 @@ package deprecatedStellarExecuter
 // 	if err != nil {
 // 		panic(err)
 // 	}
-// 	return resp.Hash
-// 	// fmt.Println("Successful Transaction:")
-// 	// fmt.Println("Ledger:", resp.Ledger)
-// 	// fmt.Println("Hash:", resp.Hash)
-// }
+	return "sasasasas"
+	// fmt.Println("Successful Transaction:")
+	// fmt.Println("Ledger:", resp.Ledger)
+	// fmt.Println("Hash:", resp.Hash)
+}

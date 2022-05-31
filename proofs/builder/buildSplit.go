@@ -33,7 +33,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	log.Debug("--------------------------------- SubmitSplit -------------------------------------")
-	netClient := commons.GetHorizonClient()
+
 	var Done []bool
 	Done = append(Done, true)
 	var id apiModel.IdentifierModel
@@ -48,11 +48,13 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// var result model.SubmitXDRResponse
+	netClient := commons.GetHorizonClient()
 	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := netClient.AccountDetail(accountRequest)
 	if err != nil {
 		log.Fatal(err)
 	}
+	
 	time.Sleep(4 * time.Second)
 
 	for i, TxnBody := range AP.TxnBody {
@@ -163,7 +165,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			} else {
 				PreviousSplitProfile = SplitParentProfile
 			}
-			//BUILD THE GATEWAY XDR
+
 				// BUILD THE GATEWAY XDR
 				tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 					SourceAccount:        &account,

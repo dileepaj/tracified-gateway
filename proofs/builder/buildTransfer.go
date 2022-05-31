@@ -29,7 +29,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 @params - ResponseWriter,Request
 */
 func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
-	netClient := commons.GetHorizonClient()
+	
 	log.Debug("---------------------------------- SubmitTransfer -------------------------------")
 	var Done []bool
 	Done = append(Done, NotOrphan)
@@ -42,7 +42,7 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
-
+	netClient := commons.GetHorizonClient()
 	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := netClient.AccountDetail(accountRequest)
 	if err != nil {
