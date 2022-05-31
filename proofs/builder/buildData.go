@@ -3,18 +3,22 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/stellar/go/support/log"
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/support/log"
+	"github.com/stellar/go/txnbuild"
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/stellar/go/build"
+
+	//"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -30,7 +34,8 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("============================= SubmitData ============================")
-	horizonClient := commons.GetHorizonClient()
+	//horizonClient := commons.GetHorizonClient()
+	netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 
@@ -155,18 +160,49 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
 
-				var PreviousTXNBuilder build.ManageDataBuilder
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				// var PreviousTXNBuilder build.ManageDataBuilder
+				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+
+				pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+				pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				PreviousTXNBuilder := txnbuild.ManageData{
+					Name: "PreviousTXN",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash),
+				}
+
+				TypeTXNBuilder := txnbuild.ManageData{
+					Name: "Type",
+					Value: []byte("G"+AP.TxnBody[i].TxnType),
+				}
+
+				CurrentTXNBuilder := txnbuild.ManageData{
+					Name:"CurrentTXN",
+					Value: []byte(UserTxnHashes[i]),
+				}
+
+				tx, err := txnbuild.NewTransaction(
+					txnbuild.TransactionParams{
+						SourceAccount: &pubaccount,
+						IncrementSequenceNum: true,
+						Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTXNBuilder, &CurrentTXNBuilder},
+						BaseFee: txnbuild.MinBaseFee,
+						Preconditions: txnbuild.Preconditions{},
+					},
+				)
 
 				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					commons.GetHorizonNetwork(),
-					build.SourceAccount{publicKey},
-					build.AutoSequence{horizonClient},
-					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				)
+				// tx, err := build.Transaction(
+				// 	commons.GetHorizonNetwork(),
+				// 	build.SourceAccount{publicKey},
+				// 	build.AutoSequence{horizonClient},
+				// 	build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
+				// 	PreviousTXNBuilder,
+				// 	build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+				// )
 				if err != nil{
 					log.Error("Error while build Transaction @SubmitData " + err.Error())
 				}
