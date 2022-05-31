@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/clients/horizonclient"
 
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -37,10 +37,10 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 
 	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
-	resp, err := horizonClient.SubmitTransaction(cd.XDR)
+	resp, err := horizonClient.SubmitTransactionXDR(cd.XDR)
 	if err != nil {
 		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())
-		error1 := err.(*horizon.Error)
+		error1 := err.(*horizonclient.Error)
 		log.Error(error1.Problem.Detail)
 		TC, err := error1.ResultCodes()
 		if err != nil {

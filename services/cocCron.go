@@ -1,9 +1,11 @@
 package services
 
 import (
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
-	"time"
+
 	// "github.com/stellar/go/clients/horizon"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -32,7 +34,7 @@ func CheckCOCStatus() {
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
-				if int64(txe.TimeBounds.MaxTime) < time.Now().Unix() {
+				if int64(txe.TimeBounds().MaxTime) < time.Now().Unix() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{
@@ -73,7 +75,7 @@ func CheckCOCExpired() {
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
-				if int64(txe.TimeBounds.MaxTime) < time.Now().Unix() {
+				if int64(txe.TimeBounds().MaxTime) < time.Now().Unix() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{

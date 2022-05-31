@@ -119,7 +119,7 @@ func (db *ConcretePOCOCNew) RetrievePOCOCNew() (XDR, bool, string, string, strin
 	feePaid := ""
 
 	var txe XDR
-	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn)
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "/transactions/" + CurrentTxn)
 	if err != nil {
 		return txe, false, timestamp, ledger, feePaid
 	} else {
@@ -133,7 +133,7 @@ func (db *ConcretePOCOCNew) RetrievePOCOCNew() (XDR, bool, string, string, strin
 			ledger = fmt.Sprintf("%.0f", raw["ledger"])
 			feePaid = fmt.Sprintf("%s", raw["fee_charged"])
 
-			result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + CurrentTxn + "/operations")
+			result, err := http.Get(commons.GetHorizonClient().HorizonURL + "/transactions/" + CurrentTxn + "/operations")
 
 			if err != nil {
 				log.Error("Error while url failed " + err.Error())

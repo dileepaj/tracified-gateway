@@ -3,17 +3,18 @@ package builder
 import (
 	// "encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	// "net/http"
 	// "strconv"
-	"strings"
 
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -188,6 +189,7 @@ type AbstractXDRSubmiter struct {
 */
 func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRResponse) {
 	log.Debug("---------------------------------- XDRSubmitter ----------------------------------")
+	netClient := commons.GetHorizonClient()
 	var status []bool
 	object := dao.Connection{}
 	var ret model.SubmitXDRResponse
@@ -197,6 +199,12 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	// Get information about the account we just created
+	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	account, err := netClient.AccountDetail(accountRequest)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for i := 0; i < len(TDP); i++ {
 		TDP[i].Status = "Pending"
@@ -249,27 +257,35 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					return error
 				})
 				p.Await()
-				var PreviousTXNBuilder build.ManageDataBuilder
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(TDP[i].PreviousTxnHash))
+				PreviousTXNBuilder := txnbuild.ManageData{
+					Name:  "PreviousTXN",
+					Value: []byte(TDP[i].PreviousTxnHash),
+				}
+				TypeTxnBuilder := txnbuild.ManageData{
+					Name:  "Type",
+					Value: []byte("G" + TDP[i].TxnType),
+				}
 
-				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					commons.GetHorizonNetwork(),
-					build.SourceAccount{publicKey},
+				CurrentTXNBuilder := txnbuild.ManageData{
+					Name:  "CurrentTXN",
+					Value: []byte(UserTxnHashes[i]),
+				}
 
-					build.AutoSequence{commons.GetHorizonClient()},
-
-					build.SetData("Type", []byte("G"+TDP[i].TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				)
-
+				// BUILD THE GATEWAY XDR
+				tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+					SourceAccount:        &account,
+					IncrementSequenceNum: true,
+					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
+					BaseFee:              txnbuild.MinBaseFee,
+					Memo:                 nil,
+					Preconditions:        txnbuild.Preconditions{},
+				})
 				if err != nil {
 					log.Error("Error @ builder @XDRSubmitter " + err.Error())
 					return
 				}
 
-				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+				// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {
 					log.Error("Error @ Sign @XDRSubmitter " + err.Error())
@@ -283,7 +299,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 						log.Error("Error @ InsertTransaction @XDRSubmitter " + err2.Error())
 					}
 				}
-				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+				// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 				txeB64, err := GatewayTXE.Base64()
 				if err != nil {
 					log.Error("Error while convert GatewayTXE to base64 @XDRSubmitter " + err.Error())
@@ -297,7 +313,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					}
 				}
 
-				//SUBMIT THE GATEWAY'S SIGNED XDR
+				// SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 				response1 := display1.SubmitXDR("G" + TDP[i].TxnType)
 
@@ -312,11 +328,11 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 						log.Error("Error @ InsertTransaction @XDRSubmitter " + err2.Error())
 					}
 				} else {
-					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+					// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 					TDP[i].TxnHash = response1.TXNID
 					TDP[i].Status = "done"
 					TDP[i].XDR = txeB64
-					TDP[i].SequenceNo = int64(GatewayTXE.E.Tx.SeqNum)
+					TDP[i].SequenceNo = int64(GatewayTXE.SequenceNumber())
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(TDP[i])
