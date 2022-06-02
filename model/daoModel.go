@@ -23,6 +23,7 @@ type TotalTransaction struct {
 }
 type TransactionCollectionBody struct {
 	Identifier           string
+	RealIdentifier		 string
 	TdpId                string
 	SequenceNo           int64
 	ProfileID            string
