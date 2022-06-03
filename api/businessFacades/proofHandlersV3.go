@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -135,9 +136,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	var response model.POE
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
-
+	fmt.Println("url-----------------", url)
 	bearer := "Bearer " + constants.BackendToken
-
+	//fmt.Println("token--- ",bearer )
 	// Create a new request using http
 	req, er := http.NewRequest("GET", url, nil)
 	if er != nil {
@@ -162,7 +163,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &raw2)
 
 	h := sha256.New()
-	lol := raw2["data"]
+	//lol := raw2["data"]
 	encodedString := raw2["data"].(string)
 	decodedString, err := base64.StdEncoding.DecodeString(encodedString)
 	var tdpJson TdpData
@@ -170,14 +171,23 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	decodedIdentifier, err := base64.StdEncoding.DecodeString(tdpJson.TdpHeader.Identifiers[0])
 	var identifierObj Identifier
 	json.Unmarshal(decodedIdentifier, &identifierObj)
-	h.Write([]byte(fmt.Sprintf("%s", lol) + identifierObj.Id))
-	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: result.DataHash}
+	datahashString:=encodedString+identifierObj.Id
+	h.Write([]byte(datahashString))
+	fmt.Println(".	datahashString--------  ",	datahashString)
+	fmt.Println("   .identifierObj.Id--------  ",identifierObj.Id)
+	fmt.Println(".Sprin--------")
+	//fmt.Println("h.Sum(nil)--------",string(h.Sum(nil)))
+	fmt.Println("------------------------------")
+	hex.EncodeToString(h.Sum(nil))
+	fmt.Println(hex.EncodeToString(h.Sum(nil)))
+	fmt.Println("------------------------------")
+	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: hex.EncodeToString(h.Sum(nil))}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE()
 
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
-	//var txe xdr.Transaction
+	// var txe xdr.Transaction
 	TxnHash := CurrentTxn
 	PublicKey := result.PublicKey
 
@@ -207,7 +217,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Println(raw3["envelope_xdr"])
-	fmt.Println("HAHAHAHAAHAHAH")
 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
 	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
@@ -228,9 +237,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Url:     commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -241,14 +250,14 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		FeePaid:        feePaid,
 		SourceAccount:  PublicKey,
 		DbHash:         response.RetrievePOE.DBHash,
-		BcHash:         response.RetrievePOE.BCHash}
+		BcHash:         response.RetrievePOE.BCHash,
+	}
 
 	finalResult = append(finalResult, temp)
 
 	json.NewEncoder(w).Encode(finalResult)
 
 	return
-
 }
 
 /*CheckPOCV3 - Needs to be Tested
@@ -268,7 +277,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 	var response model.POC
 	var pocStructObj apiModel.POCStruct
 
-	//checks the gateway DB for a TXN with the TdpID in the parameter
+	// checks the gateway DB for a TXN with the TdpID in the parameter
 	pData, errAsnc := object.GetTransactionByTxnhash(vars["Txn"]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -288,9 +297,9 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		pocStructObj.DBTree = []model.Current{}
 		// fmt.Println(result)
 
-		//using the identifier retrieved from the gateway DB for the particular TdpID
+		// using the identifier retrieved from the gateway DB for the particular TdpID
 
-		//retrieve all the transactions.
+		// retrieve all the transactions.
 		// g := object.GetTransactionsbyIdentifier(result.Identifier)
 		// g.Then(func(data interface{}) interface{} {
 		// 	res := data.([]model.TransactionCollectionBody)
@@ -402,10 +411,9 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
-			//GET THE USER SIGNED GENESIS TXN
+			// GET THE USER SIGNED GENESIS TXN
 			oprn, err := sr.RetrieveOperations()
 			if err != nil {
-
 			}
 			Type, _ := base64.StdEncoding.DecodeString(oprn.Embedded.Records[0].Value)
 			Identifier, _ := base64.RawStdEncoding.DecodeString(oprn.Embedded.Records[1].Value)
@@ -441,7 +449,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(response.RetrievePOC.Error.Message)
 
 		json.NewEncoder(w).Encode(POCTree)
-		//return
+		// return
 
 		// return data
 		// }).Catch(func(error error) error {
@@ -476,7 +484,6 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 
 	p := object.GetTransactionForTdpId(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
 		// fmt.Println(result)
@@ -517,7 +524,8 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 						TType:      "2",
 						TXNID:      res[i].TxnHash,
 						Identifier: res[i].Identifier,
-						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil)))}
+						DataHash:   strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil))),
+					}
 
 					pocStructObj.DBTree = append(pocStructObj.DBTree, DataStoreTXN)
 				}
@@ -550,7 +558,6 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 		}).Await()
 
 		return data
-
 	}).Catch(func(error error) error {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -558,11 +565,9 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
 		json.NewEncoder(w).Encode(response)
 		return error
-
 	}).Await()
 
 	// return
-
 }
 
 /*CheckPOGV3 - WORKING MODEL
@@ -582,18 +587,15 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
-
 		LastTxn := data.(model.TransactionCollectionBody)
 		fmt.Println(LastTxn)
 		g := object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
-
 			FirstTxnGateway := data.(model.TransactionCollectionBody)
 
-			//First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS
+			// First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS
 			result1, err := http.Get("https://horizon.stellar.org/transactions/" + FirstTxnGateway.TxnHash + "/operations")
 			if err != nil {
-
 			} else {
 				data, _ := ioutil.ReadAll(result1.Body)
 
@@ -610,7 +612,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 					keys := make([]PublicKey, 0)
 					json.Unmarshal(keysBody, &keys)
 
-					//GET THE USER SIGNED GENESIS TXN
+					// GET THE USER SIGNED GENESIS TXN
 					byteData, _ := base64.StdEncoding.DecodeString(keys[2].Value)
 					UserGenesis = string(byteData)
 					fmt.Println("THE TXN OF THE USER TXN: " + UserGenesis)
@@ -650,7 +652,6 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 	// fmt.Println(response.RetrievePOG.Error.Code)
 
 	return
-
 }
 
 /*CheckPOGV3Rewrite - WORKING MODEL
@@ -744,7 +745,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(out4, &raw2)
 	json.Unmarshal(out6, &raw5)
 
-	//GET THE USER SIGNED GENESIS TXN
+	// GET THE USER SIGNED GENESIS TXN
 	Type := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
 	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
 	CurrentTxn := strings.TrimLeft(fmt.Sprintf("%s", raw5["value"]), "&")
@@ -812,10 +813,10 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	text := encoded
 
 	temp := model.POGResponse{
-		Txnhash:        TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Txnhash: TxnHash,
+		Url:     commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     res.Identifier,
 		SequenceNo:     res.SequenceNo,
 		TxnType:        "genesis",
@@ -838,7 +839,6 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	// response := model.Error{Message: "Txn Id Not Found in Gateway DataStore"}
 	// json.NewEncoder(writer).Encode(response)
 	// return
-
 }
 
 /*CheckPOCOCV3 - WORKING MODEL
@@ -851,7 +851,7 @@ Finally Returns the Response given by the POCOC Interpreter
 */
 func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	//var txe xdr.Transaction
+	// var txe xdr.Transaction
 	var COC model.COCCollectionBody
 	var COCAvailable bool
 	var txe interpreter.XDR
