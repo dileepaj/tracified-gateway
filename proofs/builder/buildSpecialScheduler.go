@@ -16,7 +16,6 @@ import (
 
 	// "github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever" 
 
 	// "github.com/stellar/go/build"
 	// "github.com/stellar/go/clients/horizon"
@@ -40,7 +39,8 @@ type Identifier struct {
 
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
 
-	log.Debug("------------------------- SubmitSpecial --------------------------")
+	// log.Debug("------------------------- SubmitSpecial --------------------------")
+	fmt.Println("-------------Submit Special-------------------------")
 	var Done []bool           //array to decide whether the actions are done
 	Done = append(Done, true) //starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -71,7 +71,10 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		// AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		fmt.Println("Source Account ", AP.TxnBody[i].PublicKey)
+		//fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
+		
+		//fmt.Println("************MAPXDR operations",stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations))
 
 		AP.TxnBody[i].Status = "pending"
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")

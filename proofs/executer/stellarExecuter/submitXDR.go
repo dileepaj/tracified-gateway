@@ -1,6 +1,8 @@
 package stellarExecuter
 
 import (
+	"fmt"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
@@ -24,7 +26,8 @@ type ConcreteSubmitXDR struct {
 @params - XDR
 */
 func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
-	log.Debug("=========================== submitXDR.go SubmitXDR =============================")
+	// log.Debug("=========================== submitXDR.go SubmitXDR =============================")
+	fmt.Println("==========================Submit XDR=====================================")
 	horizonClient := commons.GetHorizonClient()
 	var response model.SubmitXDRResponse
 	//s := time.Now().UTC().String()
@@ -37,6 +40,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 
 	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
+	//fmt.Println("Submitting XDR  ++_+_+_+_+_+_", cd.XDR )
 	resp, err := horizonClient.SubmitTransactionXDR(cd.XDR)
 	if err != nil {
 		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())

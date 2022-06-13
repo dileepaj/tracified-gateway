@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -11,6 +12,7 @@ import (
 	// "github.com/stellar/go/xdr"
 
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 
 	// "fmt"
@@ -23,7 +25,8 @@ import (
 
 // CheckTempOrphan ...
 func CheckTempOrphan() {
-	log.Debug("=================== CheckTempOrphan ==================")
+	// log.Debug("=================== CheckTempOrphan ==================")
+	fmt.Println("=========================== Check temp to orphan=================")
 	netClient := commons.GetHorizonClient()
 	// clientList := commons.CallAdminBE()
 	adminDBConnectionObj := adminDAO.Connection{}
@@ -32,29 +35,26 @@ func CheckTempOrphan() {
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
-		// load horizon account
-		//	account, err := netClient.LoadAccount(address)
+		kp,_ := keypair.Parse(address)
 
-		// Get information about the account we just created
-		accountRequest := horizonclient.AccountRequest{AccountID: address}
-		account, err := netClient.AccountDetail(accountRequest)
-		if err != nil {
-			log.Fatal(err)
-		}
+		client := horizonclient.DefaultTestNetClient
+		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+		sourceAccount, err := client.AccountDetail(ar)
+		//fmt.Println("Address taken from client : ", sourceAccount)
 
 		if err != nil {
 			log.Error("Error while loading account from horizon " + err.Error())
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
-			seq, err := strconv.Atoi(account.Sequence)
+			seq, err := strconv.Atoi(sourceAccount.Sequence)
 			if err != nil {
 				log.Error("Error while convert string to int " + err.Error())
 			}
 			stop := false // for infinite loop
 			// loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
-				data, errorAsync := object.GetSpecialForPkAndSeq(address, int64(i)).Then(func(data interface{}) interface{} {
+				data, errorAsync := object.GetSpecialForPkAndSeq(kp.Address(), int64(i)).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 				if errorAsync != nil {
@@ -192,7 +192,7 @@ func CheckTempOrphan() {
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-							SourceAccount:        &account,
+							SourceAccount:        &sourceAccount,
 							IncrementSequenceNum: false,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 							BaseFee:              txnbuild.MinBaseFee,
@@ -278,7 +278,7 @@ func CheckTempOrphan() {
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-							SourceAccount:        &account,
+							SourceAccount:        &sourceAccount,
 							IncrementSequenceNum: false,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 							BaseFee:              txnbuild.MinBaseFee,
