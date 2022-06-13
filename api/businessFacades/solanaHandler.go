@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -19,10 +20,10 @@ import (
 */
 func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	log.Println("------------------------------inside gateway minting process-------------------")
+	dt := time.Now()
 	var TrustLineResponseNFT model.NFTSolana
 	var NFTcollectionObj model.NFTWithTransactionSolana
-	var MarketplaceNFTNFTcollectionObj model.MarketPlaceNFT
+	var MarketplaceNFTcollectionObj model.MarketPlaceNFT
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
@@ -31,14 +32,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(TrustLineResponseNFT)
 	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
-		log.Println("\n..................... BEGIN MINTING NFT ...................")
-		var fromWalletSecret = []byte{10, 75, 10, 90, 145, 78, 142, 248, 104, 3, 36, 7, 69, 207, 109, 98, 82, 58, 146, 202, 44, 188, 70, 70, 64, 173, 35, 130, 18, 133, 107, 236, 231, 43, 70, 165, 182, 191, 162, 242, 126, 119, 49, 3, 231, 43, 249, 47, 228, 225, 70, 91, 254, 22, 160, 42, 20, 186, 184, 196, 240, 151, 157, 207}
-		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana(fromWalletSecret, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
-		log.Println("\nMINTED PK", mintPK)
-		log.Println("OWNER PK", ownerPK)
-		log.Println("TX HASH", *mintedTxHash)
-		log.Println("ATA Tracified", ATA)
-		log.Println("\n..................... END MINTING NFT ...................")
+		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana([]byte(commons.GoDotEnvVariable("WALLETSECRET")), TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
 		if err == nil {
 
 			NFTcollectionObj = model.NFTWithTransactionSolana{
@@ -49,7 +43,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTTXNhash:                       *mintedTxHash,
 				NftTransactionExistingBlockchain: "Solana",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
-				Timestamp:                        "00-00-00",
+				Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       "TRACIFIED SOLANA",
@@ -61,15 +55,15 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
 			}
 
-			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
-				Identifier:                       common.PublicKey(*ownerPK).String(),
+			MarketplaceNFTcollectionObj = model.MarketPlaceNFT{
+				Identifier:                       common.PublicKey(*ATA).String(),
 				Categories:                       TrustLineResponseNFT.Categories,
 				Collection:                       TrustLineResponseNFT.Collection,
 				ImageBase64:                      TrustLineResponseNFT.NFTURL,
 				NFTTXNhash:                       *mintedTxHash,
 				NftTransactionExistingBlockchain: "Solana",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
-				Timestamp:                        "00-00-00",
+				Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       "Solana",
@@ -78,9 +72,9 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				Description:                      TrustLineResponseNFT.Description,
 				Copies:                           TrustLineResponseNFT.Copies,
 				OriginPK:                         common.PublicKey(*ownerPK).String(),
-				InitialDistributorPK:             common.PublicKey(*ATA).String(),
+				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
 				InitialIssuerPK:                  common.PublicKey(*mintPK).String(),
-				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
+				MainAccountPK:                    common.PublicKey(*ownerPK).String(),
 				TrustLineCreatedAt:               "No trust lines for solana",
 				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.OwnerPK,
@@ -94,9 +88,15 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTIssuerPublicKey: common.PublicKey(*mintPK).String(),
 			}
 			object := dao.Connection{}
-			err1, err2 := object.InsertSolanaNFT(NFTcollectionObj, MarketplaceNFTNFTcollectionObj)
+			err1, err2 := object.InsertSolanaNFT(NFTcollectionObj, MarketplaceNFTcollectionObj)
 			if err1 != nil && err2 != nil {
 				log.Error("NFT not inserted : ", err1, err2)
+			}
+			if err1 == nil && err2 != nil {
+				log.Error("NFT not inserted into SolanaNFT Collection : ", err2)
+			}
+			if err1 != nil && err2 == nil {
+				log.Error("NFT not inserted into Marketplace Collection : ", err1)
 			} else {
 				log.Error("NFT inserted to the collection")
 			}
@@ -105,12 +105,12 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Can not issue NFT1"}
+			response := model.Error{Message: "Can not save NFT in DB"}
 			json.NewEncoder(w).Encode(response)
 		}
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Can not issue NFT2"}
+		response := model.Error{Message: "Can not issue NFT"}
 		json.NewEncoder(w).Encode(response)
 	}
 }
@@ -125,7 +125,6 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 
 		result := data.(model.NFTWithTransactionSolana)
 		res := model.Minter{NFTIssuerPK: result.MinterPK, NFTTxnHash: result.NFTTXNhash, NFTIdentifier: result.Identifier}
-		log.Println("-----------------minter pk and hash ------------", res)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
 		return nil

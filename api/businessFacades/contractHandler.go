@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -15,7 +16,7 @@ import (
 */
 func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	log.Println("------------------------------inside gateway contract process-------------------")
+	dt := time.Now()
 	var ResponseNFT model.NFTContracts
 	var NFTcollectionObj model.NFTWithTransactionContracts
 	var MarketplaceNFTNFTcollectionObj model.MarketPlaceNFT
@@ -25,7 +26,6 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	log.Println(ResponseNFT)
 	if ResponseNFT.OwnerPK != "" && ResponseNFT.Asset_code != "" && ResponseNFT.NFTURL != "" {
 		NFTcollectionObj = model.NFTWithTransactionContracts{
 			Identifier:                       ResponseNFT.Identifier,
@@ -35,7 +35,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			NFTTXNhash:                       ResponseNFT.MintNFTTxn,
 			NftTransactionExistingBlockchain: ResponseNFT.NFTBlockChain,
 			NftIssuingBlockchain:             ResponseNFT.NFTBlockChain,
-			Timestamp:                        "00-00-00",
+			Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 			NftURL:                           ResponseNFT.NFTLinks,
 			NftContentName:                   ResponseNFT.Asset_code,
 			NftContent:                       "TRACIFIED Contract Issued",
@@ -47,7 +47,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			NFTContract:                      ResponseNFT.NFTContract,
 			MarketplaceContract:              ResponseNFT.MarketplaceContract,
 		}
-		log.Println("-------------------------------------first tier----------------------", NFTcollectionObj)
+
 		MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
 			Identifier:                       ResponseNFT.Identifier,
 			Categories:                       ResponseNFT.Categories,
@@ -56,7 +56,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			NFTTXNhash:                       ResponseNFT.MintNFTTxn,
 			NftTransactionExistingBlockchain: ResponseNFT.NFTBlockChain,
 			NftIssuingBlockchain:             ResponseNFT.NFTBlockChain,
-			Timestamp:                        "00-00-00",
+			Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 			NftURL:                           ResponseNFT.NFTLinks,
 			NftContentName:                   ResponseNFT.Asset_code,
 			NftContent:                       "TRACIFIED Contract Issued",
@@ -73,23 +73,27 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			CurrentOwnerNFTPK:                ResponseNFT.OwnerPK,
 			SellingStatus:                    "NOTFORSALE",
 		}
-		log.Println("-------------------------------------second tier----------------------", MarketplaceNFTNFTcollectionObj)
+
 		NFTCeactedResponse := model.NFTCreactedResponse{
 			NFTTxnHash:         ResponseNFT.MintNFTTxn,
 			TDPTxnHash:         ResponseNFT.NFTURL,
 			NFTName:            ResponseNFT.Asset_code,
 			NFTIssuerPublicKey: ResponseNFT.NFTContract,
 		}
-		log.Println("-------------------------------------third tier----------------------", NFTCeactedResponse)
 
 		if NFTcollectionObj.NftIssuingBlockchain == "polygon" && MarketplaceNFTNFTcollectionObj.NftIssuingBlockchain == "polygon" {
 			object := dao.Connection{}
-			log.Println("-------------------inside polygon handler---------")
 			err1, err2 := object.InsertPolygonNFT(NFTcollectionObj, MarketplaceNFTNFTcollectionObj)
 			if err1 != nil && err2 != nil {
 				log.Error("NFT not inserted : ", err1, err2)
+			}
+			if err1 == nil && err2 != nil {
+				log.Error("NFT not inserted into PolygonNFT Collection : ", err2)
+			}
+			if err1 != nil && err2 == nil {
+				log.Error("NFT not inserted into Marketplace Collection : ", err1)
 			} else {
-				log.Error("NFT inserted to the collection - Polygon")
+				log.Error("NFT inserted to the collection")
 			}
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(NFTCeactedResponse)
@@ -101,8 +105,14 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			err1, err2 := object.InsertEthereumNFT(NFTcollectionObj, MarketplaceNFTNFTcollectionObj)
 			if err1 != nil && err2 != nil {
 				log.Error("NFT not inserted : ", err1, err2)
+			}
+			if err1 == nil && err2 != nil {
+				log.Error("NFT not inserted into EthereumNFT Collection : ", err2)
+			}
+			if err1 != nil && err2 == nil {
+				log.Error("NFT not inserted into Marketplace Collection : ", err1)
 			} else {
-				log.Error("NFT inserted to the collection - Ethereum")
+				log.Error("NFT inserted to the collection")
 			}
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(NFTCeactedResponse)
@@ -111,7 +121,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Can not issue NFT2"}
+		response := model.Error{Message: "Can not issue NFT"}
 		json.NewEncoder(w).Encode(response)
 	}
 }

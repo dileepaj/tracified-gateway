@@ -17,7 +17,6 @@ import (
 */
 func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, svg string) (string, string, error) {
 	object := dao.Connection{}
-	log.Println("----------------------------------minting----------------------------")
 	//getting the issuer secret key
 	data, err := object.GetNFTIssuerSK(CurrentIssuerPK).Then(func(data interface{}) interface{} {
 		return data
@@ -48,7 +47,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			),
 			build.SetData(assetcode, nftConten),
 			build.SetOptions(
-				build.HomeDomain("https://tracified.com"),
+				build.HomeDomain(commons.GoDotEnvVariable("HOMEDOMAIN")),
 				build.MasterWeight(0),
 				build.InflationDest(CurrentIssuerPK),
 			),
@@ -72,7 +71,6 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			log.Fatal("Error submitting transaction:", err)
 			return "", "", err
 		}
-		log.Println("----------------------------------minting complete----------------------------", respn.Hash)
 		return respn.Hash, string(nftConten), nil
 	}
 

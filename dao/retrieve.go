@@ -1978,16 +1978,12 @@ func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
 
 func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK string) *promise.Promise {
 	result := []model.MarketPlaceNFT{}
-	// p := promise.NewPromise()
-
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 
 		if err != nil {
-			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())

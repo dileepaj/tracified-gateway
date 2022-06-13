@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -19,9 +20,11 @@ import (
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
+var dt = time.Now()
+
 func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	log.Println("------------------------------inside gateway minting process-------------------")
+	dt := time.Now()
 	var TrustLineResponseNFT model.TrustLineResponseNFT
 	var NFTcollectionObj model.NFTWithTransaction
 	var MarketplaceNFTNFTcollectionObj model.MarketPlaceNFT
@@ -42,7 +45,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NFTTXNhash:                       NFTtxnhash,
 				NftTransactionExistingBlockchain: "Stellar",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
-				Timestamp:                        "00-00-00",
+				Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
@@ -65,7 +68,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				NFTTXNhash:                       NFTtxnhash,
 				NftTransactionExistingBlockchain: "Stellar",
 				NftIssuingBlockchain:             TrustLineResponseNFT.NFTBlockChain,
-				Timestamp:                        "00-00-00",
+				Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 				NftURL:                           TrustLineResponseNFT.NFTLinks,
 				NftContentName:                   TrustLineResponseNFT.Asset_code,
 				NftContent:                       NftContent,
@@ -93,6 +96,12 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 			err1, err2 := object.InsertStellarNFT(NFTcollectionObj, MarketplaceNFTNFTcollectionObj)
 			if err1 != nil && err2 != nil {
 				log.Error("NFT not inserted : ", err1, err2)
+			}
+			if err1 == nil && err2 != nil {
+				log.Error("NFT not inserted into StellarNFT Collection : ", err2)
+			}
+			if err1 != nil && err2 == nil {
+				log.Error("NFT not inserted into Marketplace Collection : ", err1)
 			} else {
 				log.Error("NFT inserted to the collection")
 			}
@@ -101,12 +110,12 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Can not issue NFT1"}
+			response := model.Error{Message: "Can not save NFT in DB"}
 			json.NewEncoder(w).Encode(response)
 		}
 	} else {
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Can not issue NFT2"}
+		response := model.Error{Message: "Can not issue NFT"}
 		json.NewEncoder(w).Encode(response)
 	}
 }
@@ -164,7 +173,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 			NFTTXNhash:                       TxnBody.NFTTXNhash,
 			NftTransactionExistingBlockchain: "Stellar",
 			NftIssuingBlockchain:             TxnBody.NftIssuingBlockchain,
-			Timestamp:                        "00-00-00",
+			Timestamp:                        dt.Format("01-02-2006 15:04:05"),
 			NftURL:                           TxnBody.NftURL,
 			NftContentName:                   TxnBody.NftContentName,
 			NftContent:                       TxnBody.NftContent,
@@ -227,7 +236,6 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	sellingStatus := key2[0]
 	amount := key3[0]
 	nfthash := key4[0]
-	log.Println("-----------------------------------", sellingStatus, price, amount, nfthash)
 	object := dao.Connection{}
 	_, err1 := object.GetNFTByNFTTxn(nfthash).Then(func(data interface{}) interface{} {
 		selection := data.(model.MarketPlaceNFT)
@@ -335,7 +343,6 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 */
 func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	log.Println("------------------------------------inside handler------------------")
 	var NFTIssuerPK, EncodedNFTIssuerSK, err = accounts.CreateIssuerAccount()
 	if err != nil && NFTIssuerPK == "" && EncodedNFTIssuerSK == "" {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -364,14 +371,12 @@ func GetLastNFTbyIdentifier(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	vars := mux.Vars(r)
-	log.Println("-----------------------------inside retrieve--------------------")
 	object := dao.Connection{}
 	p := object.GetLastNFTbyInitialDistributorPK(vars["InitialDistributorPK"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.MarketPlaceNFT)
 		log.Println(result)
-		//	res := model.LastTxnResponse{LastTxn: result.TxnHash}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
@@ -395,7 +400,6 @@ func RetrieveStellarTxn(w http.ResponseWriter, r *http.Request) {
 
 		result := data.(model.NFTWithTransaction)
 		res := model.StellarMintTXN{NFTTxnHash: result.NFTTXNhash}
-		log.Println("-----------------mint txn hash for stellar ------------", res)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
 		return nil

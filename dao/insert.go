@@ -241,7 +241,6 @@ func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, 
 }
 
 func (cd *Connection) InsertPolygonNFT(polyNFT model.NFTWithTransactionContracts, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
-	log.Println("----------------------inside contract repo------------------------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		log.Println("Error when connecting to DB " + err.Error())

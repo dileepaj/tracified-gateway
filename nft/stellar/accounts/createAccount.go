@@ -13,7 +13,6 @@ import (
 @params - None
 */
 func CreateIssuerAccount() (string, string, error) {
-	log.Println("-------------------------------------creating an account-------------------")
 	var NFTAccountKeyEncodedPassword string = commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
 	//generate new issuer keypair
 	pair, err := keypair.Random()
