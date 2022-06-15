@@ -416,7 +416,7 @@ var routes = Routes{
 		"/enable-cors",
 		businessFacades.EnableCorsAndResponse,
 	},
-		Route{
+	Route{
 		"Get all trasacion by identifer",
 		"GET",
 		"/transaction/identifier/{identifier}",
@@ -427,5 +427,65 @@ var routes = Routes{
 		"GET",
 		"/transaction/identifier/artifact/{artifactid}",
 		businessFacades.TxnForArtifact,
+	},
+	Route{
+		"MintNFTStellarAndAddToDB",
+		"POST",
+		"/nft/mintStellar",
+		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler
+	},
+	Route{
+		"MintNFTSolanaAndAddToDB",
+		"POST",
+		"/nft/mintSolana",
+		businessFacades.MintNFTSolana, //Calls the MintNFTSolana in the nftHandler
+	},
+	Route{
+		"MintNFTContractAndAddToDB",
+		"POST",
+		"/nft/mintcontract",
+		businessFacades.MintNFTContract, //Calls the MintNFTSolana in the nftHandler
+	},
+	Route{
+		"GetMinter",
+		"GET",
+		"/nft/mintSolana/getMinter/{ImageBase64}",
+		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana
+	},
+	Route{
+		"RetrieveStellarTxn",
+		"GET",
+		"/nft/mintStellar/gettxn/{ImageBase64}",
+		businessFacades.RetrieveStellarTxn, //get txn for minting stellar
+	},
+	Route{
+		"RetriveNFTByStatusAndPK",
+		"GET",
+		"/nft/retriveNFTByStatusAndPK",
+		businessFacades.RetriveNFTByStatusAndPK, //Calls the RetriveNFTByStatusAndPK in the nftHandler
+	},
+	Route{
+		"CreateNFTIssuerAccount",
+		"GET",
+		"/nft/createNFTIssuerAccount",
+		businessFacades.CreateNFTIssuerAccount, //Calls the CreateNFTIssuerAccount in the nftHandler
+	},
+	Route{
+		"UpdateSellingStatus",
+		"PUT",
+		"/nft/updateStellarMarketplaceSell",
+		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the nftHandler
+	},
+	Route{
+		"UpdateBuyingStatus",
+		"PUT",
+		"/nft/updateStellarMarketplaceBuy",
+		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the nftHandler
+	},
+	Route{
+		"GetLastNFTByIdentifier",
+		"GET",
+		"/lastnft/{InitialDistributorPK}",
+		businessFacades.GetLastNFTbyIdentifier, //Calls the GetLastNFTByIdentifier in the nftHandler
 	},
 }
