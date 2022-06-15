@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 
@@ -35,7 +35,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("============================= SubmitData ============================")
 	//horizonClient := commons.GetHorizonClient()
-	netClient := commons.GetHorizonClient()
+	//netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 
@@ -162,9 +162,12 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 
 				// var PreviousTXNBuilder build.ManageDataBuilder
 				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
-
-				pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-				pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+				// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+				// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+				kp,_ := keypair.Parse(publicKey)
+				client := horizonclient.DefaultTestNetClient
+				pubaccountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+				pubaccount, err := client.AccountDetail(pubaccountRequest)
 				if err != nil {
 					log.Fatal(err)
 				}

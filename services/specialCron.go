@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	// "time"
@@ -27,7 +26,7 @@ import (
 func CheckTempOrphan() {
 	// log.Debug("=================== CheckTempOrphan ==================")
 	fmt.Println("=========================== Check temp to orphan=================")
-	netClient := commons.GetHorizonClient()
+
 	// clientList := commons.CallAdminBE()
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
@@ -36,7 +35,6 @@ func CheckTempOrphan() {
 	// loop through clients
 	for _, address := range clientList {
 		kp,_ := keypair.Parse(address)
-
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
@@ -70,10 +68,13 @@ func CheckTempOrphan() {
 					///HARDCODED CREDENTIALS
 					publicKey := constants.PublicKey
 					secretKey := constants.SecretKey
+					fmt.Println("---TYPEtxn-+++++==+++++----  ",result)
+					fmt.Println("-------------------",result.TxnType)
 					switch result.TxnType {
 					case "0":
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
+						fmt.Println("genis-------------------",response)
 						UserTxnHash = response.TXNID
 						if response.Error.Code == 400 {
 							log.Println("response.Error.Code 400 for SubmitXDR")
@@ -96,8 +97,13 @@ func CheckTempOrphan() {
 							Value: []byte(UserTxnHash),
 						}
 						// Get information about the account we just created
-						pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-						pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+						//pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+						//pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+
+						kp,_ := keypair.Parse(publicKey)
+						client := horizonclient.DefaultTestNetClient
+						pubaccountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+						pubaccount, err := client.AccountDetail(pubaccountRequest)
 						if err != nil {
 							log.Fatal(err)
 						}
@@ -186,6 +192,7 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
+						fmt.Println("usersTxnHas--------",response)
 						if response.Error.Code == 400 {
 							log.Println("Response code 400 for SubmitXDR")
 							break

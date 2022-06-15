@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -20,6 +19,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -39,7 +39,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 	object := dao.Connection{}
 	var id apiModel.IdentifierModel
 	var UserMergeTxnHashes []string
-	netClient := commons.GetHorizonClient()
+	//netClient := commons.GetHorizonClient()
 	// var MergeID string
 
 	///HARDCODED CREDENTIALS
@@ -222,8 +222,14 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				}
 			}
 
-			pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-			pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+
+			kp,_ := keypair.Parse(publicKey)
+			client := horizonclient.DefaultTestNetClient
+			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+			pubaccount, err := client.AccountDetail(ar)
+			
 			if err != nil{
 				log.Fatal(err)
 			}

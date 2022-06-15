@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/model"
@@ -16,6 +15,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
@@ -32,7 +32,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("-------------------------------- @SubmitXDR ------------------------------")
-	netClient := commons.GetHorizonClient()
+	//netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -44,8 +44,12 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 
-	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-	account, err := netClient.AccountDetail(accountRequest)
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(ar)
 	if err != nil {
 		log.Fatal(err)
 	}

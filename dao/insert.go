@@ -63,6 +63,7 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
 	fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------")
+	fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------",Coc)
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())

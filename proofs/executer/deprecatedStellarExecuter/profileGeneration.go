@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -28,9 +29,13 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	response.Identifiers = cd.InsertProfileStruct.Identifier
 	response.TxnType = cd.InsertProfileStruct.Type
 
-	netClient := commons.GetHorizonClient()
-	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-	account, err := netClient.AccountDetail(accountRequest)
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
 	if err != nil {
 		// log.Fatal(err)
 	}

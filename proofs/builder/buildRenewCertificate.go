@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	// "strconv"
@@ -17,6 +16,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -33,7 +33,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 	log.Debug("======================= SubmitRenewCertificate ========================")
 	var Done []bool
 	Done = append(Done, true)
-	netClient := commons.GetHorizonClient()
+	//netClient := commons.GetHorizonClient()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -140,8 +140,12 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 			})
 			p.Await()
 
-			pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-			pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+			kp,_ := keypair.Parse(publicKey)
+			client := horizonclient.DefaultTestNetClient
+			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+			pubaccount, err := client.AccountDetail(ar)
 			if err != nil {
 				log.Fatal(err)
 			}

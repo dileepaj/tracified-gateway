@@ -5,8 +5,8 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -37,9 +37,13 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 	// 	panic(err)
 	// }
 		// Get information about the account we just created
-		netClient := commons.GetHorizonClient()
-		accountRequest := horizonclient.AccountRequest{AccountID: Registrar}
-		account, err := netClient.AccountDetail(accountRequest)
+		// netClient := commons.GetHorizonClient()
+		// accountRequest := horizonclient.AccountRequest{AccountID: Registrar}
+		// account, err := netClient.AccountDetail(accountRequest)
+		kp,_ := keypair.Parse(Registrar)
+		client := horizonclient.DefaultTestNetClient
+		accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+		account, err := client.AccountDetail(accountRequest)
 		if err != nil {
 			log.Fatal(err)
 			panic(err)

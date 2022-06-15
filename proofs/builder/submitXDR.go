@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	// "net/http"
@@ -14,6 +13,7 @@ import (
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 
 	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
@@ -189,7 +189,6 @@ type AbstractXDRSubmiter struct {
 */
 func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRResponse) {
 	log.Debug("---------------------------------- XDRSubmitter ----------------------------------")
-	netClient := commons.GetHorizonClient()
 	var status []bool
 	object := dao.Connection{}
 	var ret model.SubmitXDRResponse
@@ -200,8 +199,13 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// Get information about the account we just created
-	accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-	account, err := netClient.AccountDetail(accountRequest)
+	//accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	//account, err := netClient.AccountDetail(accountRequest)
+
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(ar)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -216,6 +220,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 		TDP[i].PublicKey = txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		fmt.Println("*************************************_________*******************gettypeformoperation--------------",TxnType)
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		TDP[i].Identifier = Identifier
 		TDP[i].TxnType = TxnType

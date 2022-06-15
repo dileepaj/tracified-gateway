@@ -141,9 +141,15 @@ func (cd *ConcreteTransform) TransformMerge() string {
 	// Second, the issuing account actually sends a payment using the asset
 
 
-	netClient := commons.GetHorizonClient()
-	accountRequest := horizonclient.AccountRequest{AccountID: recipient.Address()}
-	account, err := netClient.AccountDetail(accountRequest)
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: recipient.Address()}
+	// account, err := netClient.AccountDetail(accountRequest)
+
+	kp,_ := keypair.Parse(recipient.Address())
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
+
 	if err != nil {
 		// log.Fatal(err)
 	}

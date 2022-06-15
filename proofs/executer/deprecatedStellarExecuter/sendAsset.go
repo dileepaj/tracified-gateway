@@ -43,9 +43,13 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
-	netClient := commons.GetHorizonClient()
-	accountRequest := horizonclient.AccountRequest{AccountID: cd.Assest.Issuerkey}
-	account, err := netClient.AccountDetail(accountRequest)
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: cd.Assest.Issuerkey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(cd.Assest.Issuerkey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
 	
 	asset := txnbuild.CreditAsset{Code:cd.Assest.Code, Issuer:  cd.Assest.Issuerkey}
 

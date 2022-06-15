@@ -309,7 +309,8 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("TDP that came from FO -> Backend", TDP)
+	fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
+	fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
