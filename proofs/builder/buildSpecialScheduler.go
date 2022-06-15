@@ -72,8 +72,12 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
 		fmt.Println("Source Account ", AP.TxnBody[i].PublicKey)
+
 		fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
 		fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
+
+		//fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
+
 		
 		//fmt.Println("************MAPXDR operations",stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations))
 

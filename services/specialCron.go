@@ -27,6 +27,8 @@ func CheckTempOrphan() {
 	// log.Debug("=================== CheckTempOrphan ==================")
 	fmt.Println("=========================== Check temp to orphan=================")
 
+	//netClient := commons.GetHorizonClient()
+
 	// clientList := commons.CallAdminBE()
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
@@ -35,6 +37,7 @@ func CheckTempOrphan() {
 	// loop through clients
 	for _, address := range clientList {
 		kp,_ := keypair.Parse(address)
+
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
