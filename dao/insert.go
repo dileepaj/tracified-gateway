@@ -74,6 +74,8 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 
 	if err != nil {
 		fmt.Println("Error while inserting to TempOrphan " + err.Error())
+	}else{
+		fmt.Println("Data added to temporphan")
 	}
 	return err
 }

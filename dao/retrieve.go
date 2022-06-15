@@ -999,6 +999,8 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 
 //GetSpecialForPkAndSeq ...
 func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) *promise.Promise {
+	fmt.Println("Address to get special ", Publickey)
+	fmt.Println("Sequence no of the address ", SequenceNo)
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -1017,7 +1019,7 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			fmt.Println(err1)
 			reject(err1)
 
 		} else {

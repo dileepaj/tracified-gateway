@@ -1,6 +1,7 @@
 package services
 
 import (
+	//"fmt"
 	"time"
 
 	log "github.com/sirupsen/logrus"
@@ -14,7 +15,8 @@ import (
 
 // CheckCOCStatus
 func CheckCOCStatus() {
-	log.Debug("----------------------------------- CheckCOCStatus -------------------------------------")
+	// log.Debug("----------------------------------- CheckCOCStatus -------------------------------------")
+	//fmt.Println("-=p=-=-=-=-=-=-=-=-=-= Check COC sTATUS +=-=-+-=_+_+_=_")
 	// fmt.Println("NEW STUFF")
 	object := dao.Connection{}
 	p := object.GetCOCbyStatus("pending")
