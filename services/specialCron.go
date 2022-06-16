@@ -77,28 +77,29 @@ func CheckTempOrphan() {
 					case "0":
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
-						fmt.Println("genis-------------------",response)
+						fmt.Println("genis-------------------",response.TXNID)
 						UserTxnHash = response.TXNID
 						if response.Error.Code == 400 {
 							log.Println("response.Error.Code 400 for SubmitXDR")
 							break
 						}
-
+						fmt.Println("+==========================1========================")
 						// var PreviousTXNBuilder txnbuild.ManageData
 						PreviousTXNBuilder := txnbuild.ManageData{
 							Name:  "PreviousTXN",
 							Value: []byte(""),
 						}
-
+						fmt.Println("+==========================1========================")
 						TypeTxnBuilder := txnbuild.ManageData{
 							Name:  "Type",
 							Value: []byte("G" + result.TxnType),
 						}
-
+						fmt.Println("+==========================1========================")
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
+						fmt.Println("+==========================1========================")
 						// Get information about the account we just created
 						//pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 						//pubaccount, err := netClient.AccountDetail(pubaccountRequest)
@@ -107,8 +108,9 @@ func CheckTempOrphan() {
 						client := horizonclient.DefaultTestNetClient
 						pubaccountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
 						pubaccount, err := client.AccountDetail(pubaccountRequest)
+						fmt.Println("+==========================1========================")
 						if err != nil {
-							log.Fatal(err)
+							fmt.Println("finError--------------------",err)
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
@@ -119,45 +121,49 @@ func CheckTempOrphan() {
 							Memo:                 nil,
 							Preconditions:        txnbuild.Preconditions{},
 						})
+						fmt.Println("+==========================1========================")
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+						fmt.Println("secretKey",secretKey)
 						GatewayTXE, err := tx.Sign(secretKey)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
 						}
-
+						fmt.Println("+==========================1========================")
 						// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 						txeB64, err := GatewayTXE.Base64()
 						if err != nil {
 							log.Println("Error while converting GatewayTXE to base64 " + err.Error())
 							break
 						}
-
+						fmt.Println("+==========================1========================")
 						// SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 						response1 := display1.SubmitXDR("G" + result.TxnType)
-
+						fmt.Println("response1---------------------",response1)
 						if response1.Error.Code == 400 {
 							log.Println("Error code 400 for SubmitXDR")
 							break
 						}
-
+						fmt.Println("+==========================1========================")
 						result.TxnHash = response1.TXNID
 						result.Status = "done"
 						///INSERT INTO TRANSACTION COLLECTION
 						err2 := object.InsertTransaction(result)
+						fmt.Println("+==========================1========================")
 						if err2 != nil {
 							log.Println("Error while InsertTransaction " + err2.Error())
 							break
 						} else {
+							fmt.Println("+==========================1========================")
 							err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
 							if err != nil {
 								log.Println("Error while RemoveFromTempOrphanList " + err.Error())
 								break
 							}
 						}
-
-					case "2":
+						fmt.Println("+==========================1========================")
+						case "2":
 
 						// PreviousTXNBuilder := txnbuild.ManageData{
 						// 	Name:  "",
