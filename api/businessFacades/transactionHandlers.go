@@ -262,8 +262,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	fmt.Println("Submit Genesis : ", TDP)
-
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecial(w, r)
 	// 	display.SubmitGenesis(w,r)
@@ -276,7 +274,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 @params - ResponseWriter,Request
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("--------Submit data----------------------------------")
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
 
@@ -309,10 +306,8 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
-	fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
-
-
+	//fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
+	//fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
 	display.SubmitSpecial(w, r)

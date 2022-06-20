@@ -2,7 +2,6 @@ package adminDAO
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
@@ -14,7 +13,6 @@ import (
 */
 func (cd *Connection) GetPublicKeysOfFO() []string {
 	//log.Debug("----------------- GetPublicKeysOfFO ------------------")
-	fmt.Println("Get public keys of FO")
 	var strArray []string
 	var result []FOPK
 	session, err := cd.adminConnect()
@@ -23,7 +21,6 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 		log.Error(err.Error())
 	}
 	if session != nil {
-		//fmt.Println("All good with the session")
 		defer session.EndSession(context.TODO())
 		dbName := commons.GoDotEnvVariable("ADMINDBNAME")
 		c := session.Client().Database(dbName).Collection("userkeys")
@@ -34,7 +31,6 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 			log.Error(err1.Error())
 		}
 
-		//fmt.Println("Cursor------------------", findCursor)
 		if findErr := findCursor.All(context.TODO(), &result); findErr != nil {
 			//fmt.Println("An error occured 2")
 			panic(findErr)
@@ -49,6 +45,5 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 			}
 		}
 	}
-	//fmt.Println("String Array in DB", strArray)
 	return strArray
 }

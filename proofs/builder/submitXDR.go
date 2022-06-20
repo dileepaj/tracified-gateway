@@ -220,7 +220,6 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 
 		TDP[i].PublicKey = txe.SourceAccount.Address()
 		TxnType := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		fmt.Println("*************************************_________*******************gettypeformoperation--------------",TxnType)
 		Identifier := strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		TDP[i].Identifier = Identifier
 		TDP[i].TxnType = TxnType

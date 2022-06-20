@@ -2,7 +2,6 @@ package adminDAO
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -21,7 +20,7 @@ var adminMgoSession mongo.Session
 var adminMgoConnectionUrl string
 
 func GetAdminMongoSession() (mongo.Session, error) {
-	fmt.Println("-------------------------Get admin mongo session---------------")
+	//log.Println("-------------------------Get admin mongo session---------------")
 	if adminMgoSession == nil {
 		var err error
 		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb+srv://admin-user:TAqa123@ap-cluster-0.wrst2.mongodb.net/tracified-admin-backend-qa?retryWrites=true&w=majority"))

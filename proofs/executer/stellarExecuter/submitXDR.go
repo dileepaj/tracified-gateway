@@ -1,8 +1,6 @@
 package stellarExecuter
 
 import (
-	"fmt"
-
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
@@ -27,7 +25,6 @@ type ConcreteSubmitXDR struct {
 */
 func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 	// log.Debug("=========================== submitXDR.go SubmitXDR =============================")
-	fmt.Println("==========================Submit XDR=====================================")
 	horizonClient := commons.GetHorizonClient()
 	var response model.SubmitXDRResponse
 	//s := time.Now().UTC().String()

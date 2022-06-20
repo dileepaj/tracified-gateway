@@ -41,7 +41,6 @@ type Identifier struct {
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
 
 	// log.Debug("------------------------- SubmitSpecial --------------------------")
-	fmt.Println("-------------Submit Special-------------------------")
 	var Done []bool           //array to decide whether the actions are done
 	Done = append(Done, true) //starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -72,21 +71,11 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		// AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
-		fmt.Println("Source Account ", AP.TxnBody[i].PublicKey)
-
-		fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
-		fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
-
-		//fmt.Println(" =======================AP TXN body ", &AP.TxnBody[i])
-
-		
-		//fmt.Println("************MAPXDR operations",stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations))
 
 		AP.TxnBody[i].Status = "pending"
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
 		log.Debug(AP.TxnBody[i].Identifier)
-		fmt.Println("SubmitSpecial++++++++++++++++++++  ",AP.TxnBody[i].Identifier,AP.TxnBody[i].TxnType)
 		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err2 != nil {
 			fmt.Println("Error @ InsertSpecialToTempOrphan @SubmitSpecial " + err2.Error())
@@ -110,7 +99,6 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 			id.MapValue = AP.TxnBody[i].Identifier
 			id.Identifier = jsonID.Id
 			id.Type = jsonID.Type
-			fmt.Println("Id-------",id)
 			err3 := object.InsertIdentifier(id)
 			if err3 != nil {
 				fmt.Println("identifier map failed" + err3.Error())
@@ -159,11 +147,8 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
-	// publicKey := constants.PublicKey
-		fmt.Println("AP.TxnBody[i].Identifier----",AP.TxnBody[i].Identifier,)
 		AP.TxnBody[i].Status = "pending"
 
-		fmt.Println("SubmitSpecialData++++++++++++++++++++  ",AP.TxnBody[i].TxnType)
 		err = object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err != nil {
 			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialData " + err.Error())
@@ -221,7 +206,6 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 
 		AP.TxnBody[i].Status = "pending"
 
-		fmt.Println("-----------------------------------------------------  ",AP.TxnBody[i].Identifier)
 		err = object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err != nil {
 			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialTransfer " + err.Error())
