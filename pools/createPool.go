@@ -1,7 +1,9 @@
 package pools
 
 import (
+	"fmt"
 	"math"
+	"strconv"
 
 	"github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
@@ -22,7 +24,7 @@ var poolCoin []txnbuild.Asset
 // Secret Key	SDSEJCPISEOGUGQR6CSX4XECR2N4J75VXHPWXSNWREWG5MZU7YWTWSKX
 var client = sdk.DefaultTestNetClient
 
-func IssueCoin(coinReceiverPK string, coinName string) (string, error) {
+func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIseerPK})
 	if err != nil {
 		return "", err
@@ -41,7 +43,7 @@ func IssueCoin(coinReceiverPK string, coinName string) (string, error) {
 		txnbuild.TransactionParams{
 			SourceAccount:        &issuerAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: "1000"}},
+			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: amount}},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
@@ -110,21 +112,22 @@ func orderAsset(a string, aVlaue int64, b string, bValue int64) []txnbuild.Asset
 }
 
 func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
+	// A amount shouldbe greater than B amont
 	// orderAsset("test1", 1000, "t2", 2000)
 	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
 	check(err1)
 	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
 	check(err2)
 	poolId, err := txnbuild.LiquidityPoolShareChangeTrustAsset{LiquidityPoolParameters: txnbuild.LiquidityPoolParameters{
-		AssetA: coinB,
-		AssetB: coinA,
+		AssetA: coinA,
+		AssetB: coinB,
 		Fee:    txnbuild.LiquidityPoolFeeV18,
 	}}.GetLiquidityPoolID()
 	// fmt.Println(poolId, err)
 	return poolId, err
 }
 
-func establishPoolTrustline(a string, b string, coinReceiverPK string, coinReciverSK string) (string, error) {
+func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciverSK string) (string, error) {
 	poolCoin = []txnbuild.Asset{}
 	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
 	if err1 != nil {
@@ -135,8 +138,8 @@ func establishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 		return "", err2
 	}
 	poolShareAsset := txnbuild.LiquidityPoolShareChangeTrustAsset{LiquidityPoolParameters: txnbuild.LiquidityPoolParameters{
-		AssetA: coinB,
-		AssetB: coinA,
+		AssetA: coinA,
+		AssetB: coinB,
 		Fee:    txnbuild.LiquidityPoolFeeV18,
 	}}
 
@@ -170,6 +173,7 @@ func establishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 }
 
 func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coinReciverSK string, maxReserveA string, maxReserveB string) (string, error) {
+	fmt.Println("ololoo=-----      ", poolId)
 	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 	if err != nil {
 		return "", err
@@ -178,10 +182,15 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 	if err != nil {
 		return "", err
 	}
-	exactPrice := 2000.00 /1000.00
-	minPrice := exactPrice - (exactPrice * 0.10)
-	maxPrice := exactPrice + (exactPrice * 0.10)
+	reserveA, err := strconv.Atoi(maxReserveA)
+	fmt.Println(reserveA)
 
+	reserveB, err := strconv.Atoi(maxReserveB)
+	fmt.Println(reserveB)
+	// exactPrice := reserveA / reserveB
+	// minPrice := exactPrice - (exactPrice * 0.10)
+	// maxPrice := exactPrice + (exactPrice * 0.10)
+	// fmt.Println(xdr.Int32(maxPrice), minPrice)
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        &distributorAccount,
@@ -192,12 +201,12 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 				MaxAmountA:      maxReserveA,
 				MaxAmountB:      maxReserveB,
 				MinPrice: xdr.Price{
-					N: xdr.Int32(minPrice),
-					D: 1,
+					N: xdr.Int32(reserveA),
+					D: xdr.Int32(reserveB),
 				},
 				MaxPrice: xdr.Price{
-					N: xdr.Int32(maxPrice),
-					D: 1,
+					N: xdr.Int32(reserveA),
+					D: xdr.Int32(reserveB),
 				},
 			}},
 			BaseFee:       txnbuild.MinBaseFee,
@@ -205,7 +214,9 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
-
+	if err != nil {
+		return "", err
+	}
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
 	resp, err := client.SubmitTransaction(signedTx)
 
