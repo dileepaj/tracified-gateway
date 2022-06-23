@@ -8,7 +8,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/pools"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
