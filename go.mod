@@ -9,6 +9,7 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.8.1
+	github.com/stellar/go v0.0.0-20220614165520-b29a93b358b6
 	go.mongodb.org/mongo-driver v1.9.1
 )
 
@@ -36,7 +37,6 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/segmentio/go-loggly v0.5.1-0.20171222203950-eb91657e62b2 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/stellar/go v0.0.0-20220527172504-97da5a558772 // indirect
 	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect

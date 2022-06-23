@@ -50,45 +50,51 @@ func main() {
 	c.Start()
 	router := routes.NewRouter()
 
-	var poolJson []pools.BuildPool
-	pool1 := pools.BuildPool{
-		Coin1:               "A21",
-		DepositeAmountCoin1: "10000",
-		Coin2:               "A22",
-		DepositeAmountCoin2: "70000",
-		Ratio:               2,
-	}
-	pool2 := pools.BuildPool{
-		Coin1:               "B21",
-		DepositeAmountCoin1: "10000",
-		Coin2:               "B22",
-		DepositeAmountCoin2: "60000",
-		Ratio:               2,
-	}
-	poolJson = append(poolJson, pool1,pool2)
-	pools.CreatePoolsUsingJson(poolJson)
+	// var poolJson []pools.BuildPool
+	// pool1 := pools.BuildPool{
+	// 	Coin1:               "BTC",
+	// 	DepositeAmountCoin1: "10000",
+	// 	Coin2:               "ETH",
+	// 	DepositeAmountCoin2: "20000",
+	// 	Ratio:               2,
+	// }
+	// pool2 := pools.BuildPool{
+	// 	Coin1:               "ETH",
+	// 	DepositeAmountCoin1: "10000",
+	// 	Coin2:               "USDT",
+	// 	DepositeAmountCoin2: "70000",
+	// 	Ratio:               2,
+	// }
+	// poolJson = append(poolJson, pool1,pool2)
+	// pools.CreatePoolsUsingJson(poolJson)
 
 	// var buildPathPayment pools.BuildPathPayment
 	// buildPathPayment = pools.BuildPathPayment{
 	// 	SendingCoin: pools.Coin{
-	// 		CoinName: "E",
-	// 		Amount:   "100",
+	// 		CoinName: "BTC",
+	// 		Amount:   "200",
 	// 	},
 	// 	ReceivingCoin: pools.Coin{
-	// 		CoinName: "F",
-	// 		Amount:   "",
+	// 		CoinName: "USDT",
+	// 		Amount:   "2480.2211743",
 	// 	},
-	// 	BatchAccountPK:     "GD6ZW4L3Y5E3JEW4TLSYGV3PC7TBYN6AXIGVW54J6HRH2J3HDZMBA62C",
-	// 	BatchAccountSK:     "SD6G4TWP5PTCKIO4XOHCZE5IDJDNOEIVTOCRC6YRG5B3IO42SRMWYKU4",
-	// 	CoinIssuerAccontPK: "GDBXHHHG7CKIODJIUPU46W52RUDUMJ3PJQOSWF24R3VGVRLPVHWNT5DI",
+	// 	IntermediateCoins: []pools.Coin{
+	// 		{
+	// 			CoinName: "ETH",
+	// 			Amount:   "",
+	// 		},
+	// 	},
+	// 	BatchAccountPK:     "GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG",
+	// 	BatchAccountSK:     "SA4C7PM67PYJQ2SMRRXDUIX5EUMV725JGDXZXMLKG2VPLW4UYHJLUVSI",
+	// 	CoinIssuerAccontPK: "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R",
 	// 	PoolId:             "",
 	// 	ProductId:          "",
 	// 	EquationId:         "",
 	// 	TenantId:           "",
 	// }
-	//amount, err:=pools.CoinConvert(buildPathPayment)
-
-	//amount, err := pools.GetConvertedCoinAmount("E", "100", "", "F", "GBSLTJX4NRMTPTQ2EJZJ24U44K7ZWY3CPGBZTV623PLTLIFXWK3T4CD6")
+	// hash, err := pools.CoinConvert(buildPathPayment)
+	// fmt.Println("dsadasdsa----------------          ", hash, err)
+	// amount, err := pools.GetConvertedCoinAmount("E", "100", "", "F", "GBSLTJX4NRMTPTQ2EJZJ24U44K7ZWY3CPGBZTV623PLTLIFXWK3T4CD6")
 
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))

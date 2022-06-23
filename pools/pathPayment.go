@@ -3,6 +3,8 @@ package pools
 import (
 	"encoding/json"
 	"errors"
+
+	
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -56,16 +58,26 @@ func CoinConvert(pathPayment BuildPathPayment) (string, error) {
 		return "", err
 	}
 
-	sendAsset, err := txnbuild.CreditAsset{pathPayment.SendingCoin.CoinName, pathPayment.CoinIssuerAccontPK}.ToAsset()
-	destAsset, err := txnbuild.CreditAsset{pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK}.ToAsset()
+	sendAsset:= txnbuild.CreditAsset{pathPayment.SendingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
+	check(err)
+	destAsset:= txnbuild.CreditAsset{pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
+	check(err)
+
+	var intermediateAssertArray []txnbuild.Asset
+	for i:=0;i<len(pathPayment.IntermediateCoins);i++{
+		intermediateAsset:= txnbuild.CreditAsset{pathPayment.IntermediateCoins[i].CoinName, pathPayment.CoinIssuerAccontPK}
+		check(err)
+		intermediateAssertArray=append(intermediateAssertArray, intermediateAsset)
+	}
 
 	op := txnbuild.PathPaymentStrictSend{
-		SendAsset:   sendAsset,
-		SendAmount:  pathPayment.SendingCoin.Amount,
-		Destination: pathPayment.BatchAccountPK,
-		DestAsset:   destAsset,
-		DestMin:     pathPayment.ReceivingCoin.Amount,
-		Path:        []txnbuild.Asset{},
+		SendAsset:     sendAsset,
+		SendAmount:    pathPayment.SendingCoin.Amount,
+		Destination:   pathPayment.BatchAccountPK,
+		DestAsset:     destAsset,
+		DestMin:       pathPayment.ReceivingCoin.Amount,
+		Path:          intermediateAssertArray,
+		SourceAccount: traderAccount.AccountID,
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -77,15 +89,18 @@ func CoinConvert(pathPayment BuildPathPayment) (string, error) {
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
-	check(err)
+	if err != nil {
+		return "1", err
+	}
 
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, trader)
-	check(err)
+	if err != nil {
+		return "2", err
+	}
 
 	resp, err := client.SubmitTransaction(signedTx)
-	check(err)
 	if err != nil {
-		return "", err
+		return "4", err
 	} else {
 		return resp.Hash, nil
 	}
@@ -105,7 +120,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, intermediate string,
 		return "", errors.New(result.Status)
 	}
 	b, err := ioutil.ReadAll(result.Body)
-
+	check(err)
 	fmt.Println(string(b))
 	var r1 []records
 	json.Unmarshal([]byte(string(b)), &r1)

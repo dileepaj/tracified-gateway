@@ -2,7 +2,6 @@ package pools
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -21,21 +20,21 @@ import (
 )
 
 var (
-	coinIseerPK = "GBSLTJX4NRMTPTQ2EJZJ24U44K7ZWY3CPGBZTV623PLTLIFXWK3T4CD6"
-	coinIsserSK = "SAC6WJ46JO5JG6D5GWPCK6JLY52KIIJT4RZXNAMHUUB23QSUBIUXIMSZ"
+	coinIseerPK = "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R"
+	coinIsserSK = "SDM7UK2J3DYGQYU5DNES5PP5BKTQTOZ3U6OHXX367OBWBEYTUULMDIF6"
 )
 var poolCoin []txnbuild.Asset
 
-// coinIseerPK = "GDBXHHHG7CKIODJIUPU46W52RUDUMJ3PJQOSWF24R3VGVRLPVHWNT5DI"
+// coinIseerPK = "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R"
 // coinIsserSK = "SDY2GF4NBSR6WDTAOWUCCHGCQTIDNOVGZ5KH2XHOOF4FPDQANGEJVCDR"
 
 // depositorCoin
-//Public Key	GCLDZY7I6TXTJ5LY4B6RJELSEGPPUYVXUAC7CRW546EJ2TD77WHPYVED
-//Secret Key	SCGHVQQKUMWLCDV2FVDAMCFFTMT2NALYLWA7SAPMA67QCME5W6CABPSI
+//Public Key	GBPI4RF4IUOXTQ7XHFHPOPBMJ6KSMHT7SCHBFDQ7MDBTZGITVFPQWGYZ
+//Secret Key	SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN
 
 // trader
-// Public Key	GD6ZW4L3Y5E3JEW4TLSYGV3PC7TBYN6AXIGVW54J6HRH2J3HDZMBA62C
-// Secret Key	SD6G4TWP5PTCKIO4XOHCZE5IDJDNOEIVTOCRC6YRG5B3IO42SRMWYKU4
+// Public Key	GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG
+// Secret Key	SA4C7PM67PYJQ2SMRRXDUIX5EUMV725JGDXZXMLKG2VPLW4UYHJLUVSI
 
 var client = sdk.DefaultTestNetClient
 
@@ -79,15 +78,15 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
 
 	//validate weather the asset is issued by the issuer previously
-	assetIssued := assetIssued(coinName)
-	fmt.Println(assetIssued)
+	//assetIssued := assetIssued(coinName)
+	//fmt.Println(assetIssued)
 
 	//validate weather there is a trustline for the relevent assset 
 	trustLineCreated := trustlineCreated(coinName, coinReceiverPK)
-	fmt.Println(trustLineCreated)
+	//fmt.Println(trustLineCreated)
 
 	//if asset is not issued and there is no DB records, then complete the transaction
-	if(assetIssued == false && trustLineCreated == false){
+	if(trustLineCreated == false){
 		// Load the corresponding account for both A and C.
 		coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 		if err != nil {
@@ -265,7 +264,7 @@ func roundFloat(val float64, precision uint) float64 {
 
 //check if the issuer has issued the assets
 func assetIssued(coinName string) bool{
-	fmt.Println(coinName)
+	//fmt.Println(coinName)
 	result, err := http.Get("https://horizon-testnet.stellar.org/assets?asset_code=" + coinName +  "&asset_issuer=" + coinIseerPK)
 	if err != nil {
 		log.Error("Error while loading assets for " + coinIseerPK + err.Error())
@@ -322,10 +321,10 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool{
 	}).Await()
 
 	if data == nil{
-		fmt.Println("No trustlines created")
+		//fmt.Println("No trustlines created")
 		return false
 	} else{
-		fmt.Println("Trustline already created")
+		//fmt.Println("Trustline already created")
 		return true
 	}
 

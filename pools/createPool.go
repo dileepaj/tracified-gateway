@@ -2,12 +2,11 @@ package pools
 
 import (
 	"errors"
-	"fmt"
 )
 
 var (
-	depositorPK = "GCLDZY7I6TXTJ5LY4B6RJELSEGPPUYVXUAC7CRW546EJ2TD77WHPYVED"
-	depositorSK = "SCGHVQQKUMWLCDV2FVDAMCFFTMT2NALYLWA7SAPMA67QCME5W6CABPSI"
+	depositorPK = "GBPI4RF4IUOXTQ7XHFHPOPBMJ6KSMHT7SCHBFDQ7MDBTZGITVFPQWGYZ"
+	depositorSK = "SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN"
 )
 
 type BuildPool struct {
@@ -46,6 +45,6 @@ func CreatePool(buildPool BuildPool) (string, error) {
 	if err2 != nil {
 		return "", err2
 	}
-	fmt.Println( depostHash2,err)
+
 	return depostHash2, nil
 }
