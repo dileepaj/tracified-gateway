@@ -3,13 +3,12 @@ package pools
 import (
 	"encoding/json"
 	"errors"
-
-	
 	"fmt"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/model"
 	log "github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -17,25 +16,9 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-type Coin struct {
-	CoinName string
-	Amount  string
-}
 
-type BuildPathPayment struct {
-	SendingCoin        Coin
-	IntermediateCoins  []Coin
-	ReceivingCoin      Coin
-	BatchAccountPK     string
-	BatchAccountSK     string
-	CoinIssuerAccontPK string
-	PoolId             string
-	ProductId          string
-	EquationId         string
-	TenantId           string
-}
 
-func CoinConvert(pathPayment BuildPathPayment) (string, error) {
+func CoinConvert(pathPayment model.BuildPathPayment) (string, error) {
 	_, err := CreateCoin(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
 	if err != nil {
 		return "", err

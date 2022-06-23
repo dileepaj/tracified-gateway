@@ -2,6 +2,8 @@ package pools
 
 import (
 	"errors"
+
+	"github.com/dileepaj/tracified-gateway/model"
 )
 
 var (
@@ -9,26 +11,13 @@ var (
 	depositorSK = "SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN"
 )
 
-type BuildPool struct {
-	Coin1               string
-	DepositeAmountCoin1 string
-	Coin2               string
-	DepositeAmountCoin2 string
-	Ratio               int
-	poolDepositorPK     string
-	PoolId              string
-	ProductId           string
-	EquationId          string
-	TenantId            string
-}
-
-func CreatePoolsUsingJson(pools []BuildPool) {
+func CreatePoolsUsingJson(pools []model.BuildPool) {
 	for i := 0; i < len(pools); i++ {
 		CreatePool(pools[i])
 	}
 }
 
-func CreatePool(buildPool BuildPool) (string, error) {
+func CreatePool(buildPool model.BuildPool) (string, error) {
 	CreateCoin(buildPool.Coin1, depositorPK, depositorSK)
 	CreateCoin(buildPool.Coin2, depositorPK, depositorSK)
 	IssueCoin(buildPool.Coin1, depositorPK, buildPool.DepositeAmountCoin1)

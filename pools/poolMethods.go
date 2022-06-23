@@ -25,17 +25,6 @@ var (
 )
 var poolCoin []txnbuild.Asset
 
-// coinIseerPK = "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R"
-// coinIsserSK = "SDY2GF4NBSR6WDTAOWUCCHGCQTIDNOVGZ5KH2XHOOF4FPDQANGEJVCDR"
-
-// depositorCoin
-//Public Key	GBPI4RF4IUOXTQ7XHFHPOPBMJ6KSMHT7SCHBFDQ7MDBTZGITVFPQWGYZ
-//Secret Key	SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN
-
-// trader
-// Public Key	GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG
-// Secret Key	SA4C7PM67PYJQ2SMRRXDUIX5EUMV725JGDXZXMLKG2VPLW4UYHJLUVSI
-
 var client = sdk.DefaultTestNetClient
 
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
@@ -321,7 +310,7 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool{
 	}).Await()
 
 	if data == nil{
-		//fmt.Println("No trustlines created")
+		//log.Println("No trustlines created")
 		return false
 	} else{
 		//fmt.Println("Trustline already created")
@@ -329,3 +318,15 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool{
 	}
 
 }
+
+
+// coinIseerPK = "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R"
+// coinIsserSK = "SDY2GF4NBSR6WDTAOWUCCHGCQTIDNOVGZ5KH2XHOOF4FPDQANGEJVCDR"
+
+// depositorCoin
+//Public Key	GBPI4RF4IUOXTQ7XHFHPOPBMJ6KSMHT7SCHBFDQ7MDBTZGITVFPQWGYZ
+//Secret Key	SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN
+
+// trader
+// Public Key	GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG
+// Secret Key	SA4C7PM67PYJQ2SMRRXDUIX5EUMV725JGDXZXMLKG2VPLW4UYHJLUVSI
