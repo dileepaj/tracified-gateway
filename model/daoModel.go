@@ -335,3 +335,9 @@ type TransactionHashWithIdentifier struct {
 	ProductName     string
 	ProductID       string
 }
+
+type TrustlineHistory struct {
+	CoinIssuer string
+	CoinReceiver string
+	Asset string
+}

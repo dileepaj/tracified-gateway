@@ -220,3 +220,19 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 	}
 	return err
 }
+
+func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHistory) error{
+	session, err := cd.connect()
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("TrustlineHistory")
+	_, err = c.InsertOne(context.TODO(), trustlineHistory)
+	if err != nil {
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+
+}

@@ -52,16 +52,16 @@ func main() {
 
 	var poolJson []pools.BuildPool
 	pool1 := pools.BuildPool{
-		Coin1:               "N",
+		Coin1:               "A21",
 		DepositeAmountCoin1: "10000",
-		Coin2:               "O",
+		Coin2:               "A22",
 		DepositeAmountCoin2: "70000",
 		Ratio:               2,
 	}
 	pool2 := pools.BuildPool{
-		Coin1:               "P",
+		Coin1:               "B21",
 		DepositeAmountCoin1: "10000",
-		Coin2:               "Q",
+		Coin2:               "B22",
 		DepositeAmountCoin2: "60000",
 		Ratio:               2,
 	}
