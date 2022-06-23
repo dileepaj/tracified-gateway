@@ -1,239 +1,51 @@
 package pools
 
 import (
+	"errors"
 	"fmt"
-	"math"
-	"strconv"
-
-	"github.com/sirupsen/logrus"
-	sdk "github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
-	"github.com/stellar/go/txnbuild"
-	"github.com/stellar/go/xdr"
 )
 
 var (
-	coinIseerPK = "GDBXHHHG7CKIODJIUPU46W52RUDUMJ3PJQOSWF24R3VGVRLPVHWNT5DI"
-	coinIsserSK = "SDY2GF4NBSR6WDTAOWUCCHGCQTIDNOVGZ5KH2XHOOF4FPDQANGEJVCDR"
+	depositorPK = "GCLDZY7I6TXTJ5LY4B6RJELSEGPPUYVXUAC7CRW546EJ2TD77WHPYVED"
+	depositorSK = "SCGHVQQKUMWLCDV2FVDAMCFFTMT2NALYLWA7SAPMA67QCME5W6CABPSI"
 )
-var poolCoin []txnbuild.Asset
 
-// reciverCoin
-// Public Key	GADOJTCR6QHI5IZDQEGEZMCHR7SO4LG6R4PYPLMD76HOHKRGXADEWSEL
-// Secret Key	SDSEJCPISEOGUGQR6CSX4XECR2N4J75VXHPWXSNWREWG5MZU7YWTWSKX
-var client = sdk.DefaultTestNetClient
+type BuildPool struct {
+	Coin1               string
+	DepositeAmountCoin1 string
+	Coin2               string
+	DepositeAmountCoin2 string
+	Ratio               int
+	poolDepositorPK     string
+	PoolId              string
+	ProductId           string
+	EquationId          string
+	TenantId            string
+}
 
-func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
-	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIseerPK})
-	if err != nil {
-		return "", err
-	}
-	issuer, err := keypair.ParseFull(coinIsserSK)
-	if err != nil {
-		return "", err
-	}
-	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToAsset()
-	if err != nil {
-		return "", err
-	}
-
-	// Second, the issuing account actually sends a payment using the asset
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &issuerAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: amount}},
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		},
-	)
-
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuer)
-	resp, err := client.SubmitTransaction(signedTx)
-
-	if err != nil {
-		return "", err
-	} else {
-		return resp.Hash, nil
+func CreatePoolsUsingJson(pools []BuildPool) {
+	for i := 0; i < len(pools); i++ {
+		CreatePool(pools[i])
 	}
 }
 
-func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
-	// Load the corresponding account for both A and C.
-	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
-	if err != nil {
-		return "", err
+func CreatePool(buildPool BuildPool) (string, error) {
+	CreateCoin(buildPool.Coin1, depositorPK, depositorSK)
+	CreateCoin(buildPool.Coin2, depositorPK, depositorSK)
+	IssueCoin(buildPool.Coin1, depositorPK, buildPool.DepositeAmountCoin1)
+	IssueCoin(buildPool.Coin2, depositorPK, buildPool.DepositeAmountCoin2)
+	poolId, err := GeneratePoolId(buildPool.Coin1, buildPool.Coin2)
+	if !err {
+		return "", errors.New("Can not create poold Id")
 	}
-	distributor, err := keypair.ParseFull(coinReciverSK)
-	if err != nil {
-		return "", err
-	}
-	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToChangeTrustAsset()
-	if err != nil {
-		return "", err
-	} // First, the receiving (distribution) account must trust the asset from the
-	// issuer.
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &distributorAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.ChangeTrust{Line: coin, Limit: "", SourceAccount: ""}},
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		},
-	)
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
-	resp, err := client.SubmitTransaction(signedTx)
-
-	if err != nil {
-		return "", err
-	} else {
-		return resp.Hash, nil
-	}
-}
-
-func orderAsset(a string, aVlaue int64, b string, bValue int64) []txnbuild.Asset {
-	poolCoin = []txnbuild.Asset{}
-	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
-	check(err1)
-	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
-	check(err2)
-
-	if aVlaue > bValue {
-		poolCoin = append(poolCoin, coinA, coinB)
-		return poolCoin
-	} else {
-		poolCoin = append(poolCoin, coinB, coinA)
-		return poolCoin
-	}
-}
-
-func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
-	// A amount shouldbe greater than B amont
-	// orderAsset("test1", 1000, "t2", 2000)
-	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
-	check(err1)
-	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
-	check(err2)
-	poolId, err := txnbuild.LiquidityPoolShareChangeTrustAsset{LiquidityPoolParameters: txnbuild.LiquidityPoolParameters{
-		AssetA: coinA,
-		AssetB: coinB,
-		Fee:    txnbuild.LiquidityPoolFeeV18,
-	}}.GetLiquidityPoolID()
-	// fmt.Println(poolId, err)
-	return poolId, err
-}
-
-func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciverSK string) (string, error) {
-	poolCoin = []txnbuild.Asset{}
-	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
+	poolCreationHash, err1 := EstablishPoolTrustline(buildPool.Coin1, buildPool.Coin2, depositorPK, depositorSK)
 	if err1 != nil {
-		return "", err1
+		return poolCreationHash, err1
 	}
-	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
+	depostHash2, err2 := DepositeToPool(poolId, depositorPK, depositorSK, buildPool.DepositeAmountCoin1, buildPool.DepositeAmountCoin2)
 	if err2 != nil {
 		return "", err2
 	}
-	poolShareAsset := txnbuild.LiquidityPoolShareChangeTrustAsset{LiquidityPoolParameters: txnbuild.LiquidityPoolParameters{
-		AssetA: coinA,
-		AssetB: coinB,
-		Fee:    txnbuild.LiquidityPoolFeeV18,
-	}}
-
-	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
-	if err != nil {
-		return "", err
-	}
-	distributor, err := keypair.ParseFull(coinReciverSK)
-	if err != nil {
-		return "", err
-	}
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &distributorAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.ChangeTrust{Line: poolShareAsset, Limit: "", SourceAccount: ""}},
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		},
-	)
-
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
-	resp, err := client.SubmitTransaction(signedTx)
-
-	if err != nil {
-		return "", err
-	} else {
-		return resp.Hash, nil
-	}
-}
-
-func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coinReciverSK string, maxReserveA string, maxReserveB string) (string, error) {
-	fmt.Println("ololoo=-----      ", poolId)
-	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
-	if err != nil {
-		return "", err
-	}
-	distributor, err := keypair.ParseFull(coinReciverSK)
-	if err != nil {
-		return "", err
-	}
-	reserveA, err := strconv.Atoi(maxReserveA)
-	fmt.Println(reserveA)
-
-	reserveB, err := strconv.Atoi(maxReserveB)
-	fmt.Println(reserveB)
-	// exactPrice := reserveA / reserveB
-	// minPrice := exactPrice - (exactPrice * 0.10)
-	// maxPrice := exactPrice + (exactPrice * 0.10)
-	// fmt.Println(xdr.Int32(maxPrice), minPrice)
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &distributorAccount,
-			IncrementSequenceNum: true,
-			Operations: []txnbuild.Operation{&txnbuild.LiquidityPoolDeposit{
-				SourceAccount:   distributorAccount.AccountID,
-				LiquidityPoolID: poolId,
-				MaxAmountA:      maxReserveA,
-				MaxAmountB:      maxReserveB,
-				MinPrice: xdr.Price{
-					N: xdr.Int32(reserveA),
-					D: xdr.Int32(reserveB),
-				},
-				MaxPrice: xdr.Price{
-					N: xdr.Int32(reserveA),
-					D: xdr.Int32(reserveB),
-				},
-			}},
-			BaseFee:       txnbuild.MinBaseFee,
-			Memo:          nil,
-			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		},
-	)
-	if err != nil {
-		return "", err
-	}
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
-	resp, err := client.SubmitTransaction(signedTx)
-
-	if err != nil {
-		return "", err
-	} else {
-		return resp.Hash, nil
-	}
-}
-
-func check(err error) {
-	if err != nil {
-		logrus.Error(err)
-	}
-}
-
-func roundFloat(val float64, precision uint) float64 {
-	ratio := math.Pow(10, float64(precision))
-	return math.Round(val*ratio) / ratio
+	fmt.Println( depostHash2,err)
+	return depostHash2, nil
 }
