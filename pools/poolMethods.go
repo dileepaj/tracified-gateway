@@ -1,13 +1,21 @@
 package pools
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"math"
+	"net/http"
 	"strconv"
 
+	//"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
+	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -69,39 +77,56 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 }
 
 func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
-	// Load the corresponding account for both A and C.
-	coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
-	if err != nil {
-		return "", err
+
+	//validate weather the asset is issued by the issuer previously
+	assetIssued := assetIssued(coinName)
+	fmt.Println(assetIssued)
+
+	//validate weather there is a trustline for the relevent assset 
+	trustLineCreated := trustlineCreated(coinName, coinReceiverPK)
+	fmt.Println(trustLineCreated)
+
+	//if asset is not issued and there is no DB records, then complete the transaction
+	if(assetIssued == false && trustLineCreated == false){
+		// Load the corresponding account for both A and C.
+		coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
+		if err != nil {
+			return "", err
+		}
+		coinReceiver, err := keypair.ParseFull(coinReciverSK)
+		if err != nil {
+			return "", err
+		}
+		coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToChangeTrustAsset()
+		if err != nil {
+			return "", err
+		} // First, the receiving (distribution) account must trust the asset from the
+		// issuer.
+		tx, err := txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        &coinReceiverAccount,
+				IncrementSequenceNum: true,
+				Operations:           []txnbuild.Operation{&txnbuild.ChangeTrust{Line: coin, Limit: "", SourceAccount: ""}},
+				BaseFee:              txnbuild.MinBaseFee,
+				Memo:                 nil,
+				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+			},
+		)
+		signedTx, err := tx.Sign(network.TestNetworkPassphrase, coinReceiver)
+		check(err)
+		resp, err := client.SubmitTransaction(signedTx)
+		check(err)
+		if err != nil {
+			return "", err
+		} else {
+			//add trustline to DB
+			InsertTrustline(coinName, coinReceiverPK)
+			return resp.Hash, nil
+		}
+	} else{
+		return "", nil
 	}
-	coinReceiver, err := keypair.ParseFull(coinReciverSK)
-	if err != nil {
-		return "", err
-	}
-	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToChangeTrustAsset()
-	if err != nil {
-		return "", err
-	} // First, the receiving (distribution) account must trust the asset from the
-	// issuer.
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &coinReceiverAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.ChangeTrust{Line: coin, Limit: "", SourceAccount: ""}},
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		},
-	)
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, coinReceiver)
-	check(err)
-	resp, err := client.SubmitTransaction(signedTx)
-	check(err)
-	if err != nil {
-		return "", err
-	} else {
-		return resp.Hash, nil
-	}
+	
 }
 
 func orderAsset(a string, aVlaue int64, b string, bValue int64) []txnbuild.Asset {
@@ -236,4 +261,72 @@ func check(err error) {
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
+}
+
+//check if the issuer has issued the assets
+func assetIssued(coinName string) bool{
+	fmt.Println(coinName)
+	result, err := http.Get("https://horizon-testnet.stellar.org/assets?asset_code=" + coinName +  "&asset_issuer=" + coinIseerPK)
+	if err != nil {
+		log.Error("Error while loading assets for " + coinIseerPK + err.Error())
+	}
+
+	assetsInfo, err1 := ioutil.ReadAll(result.Body)
+	if err1 != nil{
+		log.Error("Error while reading the respone " +  err.Error())
+	}
+
+	var raw map[string]interface{}
+	var raw1 []interface{}
+	json.Unmarshal(assetsInfo, &raw)
+
+	out1, _ := json.Marshal(raw["_embedded"])
+	json.Unmarshal(out1, &raw)
+
+	out2, _ := json.Marshal(raw["records"])
+	json.Unmarshal(out2, &raw1)
+
+	//checking if the raw is empty
+	if len(raw1) == 0 {
+		log.Info("Asset is not issued yet")
+		return false
+	} else{
+		return true
+	}
+
+}
+
+//Insert trustline to DB
+func InsertTrustline(coinName string, coinReceiverPK string){
+	trustlineHistory := model.TrustlineHistory{
+		CoinIssuer: coinIseerPK,
+		CoinReceiver: coinReceiverPK,
+		Asset: coinName,
+	}
+
+	object := dao.Connection{}
+	err := object.InsertTrustlineHistory(trustlineHistory)
+	if err != nil{
+		log.Error("Error when inserting trustline to DB " + err.Error())
+	} else{
+		log.Info("Trustline added to the DB")
+	}
+}
+
+//check if a trustline is already created for a particular asset
+func trustlineCreated(coinName string, coinReceiverPK string) bool{
+	object := dao.Connection{}
+
+	data,_ := object.GetTrustline(coinName, coinIseerPK, coinReceiverPK).Then(func(data interface{}) interface{}{
+		return data
+	}).Await()
+
+	if data == nil{
+		fmt.Println("No trustlines created")
+		return false
+	} else{
+		fmt.Println("Trustline already created")
+		return true
+	}
+
 }

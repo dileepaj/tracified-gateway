@@ -1861,3 +1861,28 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 	p.Await()
 	return p
 }
+
+func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinReceiver string) *promise.Promise{
+
+	resultTrustlineObj := model.TrustlineHistory{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("TrustlineHistory")
+		err = c.FindOne(context.TODO(), bson.M{"coinissuer" : coinIssuer, "coinreceiver" : coinReceiver, "asset" : coinName}).Decode(&resultTrustlineObj)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(resultTrustlineObj)
+		}
+	})
+	return p
+
+}
