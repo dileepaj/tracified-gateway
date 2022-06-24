@@ -428,4 +428,10 @@ var routes = Routes{
 		"/transaction/identifier/artifact/{artifactid}",
 		businessFacades.TxnForArtifact,
 	},
+	Route{
+		"Convert batch coins via pool",
+		"POST",
+		"/socialimapact/batch/coinconvert",
+		businessFacades.BatchConvertCoin,
+	},
 }

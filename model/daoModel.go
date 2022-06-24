@@ -341,3 +341,52 @@ type TrustlineHistory struct {
 	CoinReceiver string
 	Asset string
 }
+
+type MetrixCoin struct{
+	CoinName string
+}
+
+type SendingCoin struct{
+	CoinName string
+	Amount string
+}
+
+type IntermediateCoin struct{
+	CoinName string
+	Amount string
+}
+
+type ReceivingCoin struct{
+	CoinName string
+	Amount string
+}
+
+type PathPayment struct{
+	Subportion string
+	SendingCoin []SendingCoin
+	IntermediateCoin []IntermediateCoin
+	ReceivingCoin []ReceivingCoin
+}
+
+type BatchCoinConvert struct{
+	TenantId string
+	FieldOfficerPK string
+	ProductName string
+	BatchID string
+	BatchName string
+	EquationID string
+	MetrixCoin [] MetrixCoin
+	Equation string
+	RestructEquation string
+	PathPayment[] PathPayment 
+}
+
+type BatchAccount struct{
+	BatchID string
+	TenentID string
+	ProductName string
+	EquationID string
+	BatchName string
+	BatchAccountPK string
+	BatchAccountSK string
+}

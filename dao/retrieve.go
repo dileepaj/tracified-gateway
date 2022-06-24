@@ -1886,3 +1886,26 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 
 }
+
+func (cd *Connection) GetBatchSpecificAccount(batchID string) *promise.Promise{
+	resultBatchAccountObj := model.BatchAccount{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("BatchAccount")
+		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID}).Decode(&resultBatchAccountObj)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(resultBatchAccountObj)
+		}
+	})
+	return p
+}
