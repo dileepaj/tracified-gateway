@@ -67,17 +67,17 @@ func main() {
 	// poolJson = append(poolJson, pool1,pool2)
 	// pools.CreatePoolsUsingJson(poolJson)
 
-	// var buildPathPayment pools.BuildPathPayment
-	// buildPathPayment = pools.BuildPathPayment{
-	// 	SendingCoin: pools.Coin{
+	// var buildPathPayment model.BuildPathPayment
+	// buildPathPayment = model.BuildPathPayment{
+	// 	SendingCoin: model.Coin{
 	// 		CoinName: "BTC",
 	// 		Amount:   "200",
 	// 	},
-	// 	ReceivingCoin: pools.Coin{
+	// 	ReceivingCoin: model.Coin{
 	// 		CoinName: "USDT",
-	// 		Amount:   "2480.2211743",
+	// 		Amount:   "",
 	// 	},
-	// 	IntermediateCoins: []pools.Coin{
+	// 	IntermediateCoins: []model.Coin{
 	// 		{
 	// 			CoinName: "ETH",
 	// 			Amount:   "",
@@ -93,7 +93,8 @@ func main() {
 	// }
 	// hash, err := pools.CoinConvert(buildPathPayment)
 	// fmt.Println("dsadasdsa----------------          ", hash, err)
-	// amount, err := pools.GetConvertedCoinAmount("E", "100", "", "F", "GBSLTJX4NRMTPTQ2EJZJ24U44K7ZWY3CPGBZTV623PLTLIFXWK3T4CD6")
+	// amount, err := pools.GetConvertedCoinAmount("BTC", "100", "USDT", "GBRCIPHDMVGMQUUCP2DWHB55RMZOVL6JPE4KCH2AS2MODVHL6NHC642R")
+	// fmt.Println("final--",amount, err)
 
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
