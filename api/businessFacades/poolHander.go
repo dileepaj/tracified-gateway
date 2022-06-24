@@ -83,3 +83,47 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request){
 	}
 	
 }
+
+func CreatePool(w http.ResponseWriter, r *http.Request){
+	var newCreatePoolObj model.CreatePool
+
+	err := json.NewDecoder(r.Body).Decode(&newCreatePoolObj)
+	if err != nil{
+		fmt.Println(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error while decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	//create pool
+	// var poolJson []model.BuildPool
+	// pool1 := model.BuildPool{
+	// 	Coin1:               "BTC",
+	// 	DepositeAmountCoin1: "10000",
+	// 	Coin2:               "ETH",
+	// 	DepositeAmountCoin2: "20000",
+	// 	Ratio:               2,
+	// }
+	// pool2 := model.BuildPool{
+	// 	Coin1:               "ETH",
+	// 	DepositeAmountCoin1: "10000",
+	// 	Coin2:               "USDT",
+	// 	DepositeAmountCoin2: "70000",
+	// 	Ratio:               2,
+	// }
+	// poolJson = append(poolJson, pool1,pool2)
+	// pools.CreatePoolsUsingJson(poolJson)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+	result := apiModel.SubmitXDRSuccess{
+		Status: "Create pool request came",
+	}
+	json.NewEncoder(w).Encode(result)
+	return
+
+}

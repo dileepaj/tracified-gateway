@@ -390,3 +390,44 @@ type BatchAccount struct{
 	BatchAccountPK string
 	BatchAccountSK string
 }
+
+type MetricFormulas struct{
+	ActivityID string
+	MetricFormulaID string
+}
+
+type MetricCoin struct{
+	CoinName string
+	Description string
+}
+
+type FieldAndCoin struct{
+	ID string
+	OrderNumber string
+	CoinName string
+	FieldName string
+	Description string
+	UserInputType string
+	VariableType string
+	Value string
+}
+
+type EquationSubPortion struct{
+	Subportion string
+	FieldAndCoin []FieldAndCoin
+}
+
+type CreatePool struct{
+	EquationID string
+	Timestamp string
+	Description string
+	TenantID string
+	MetricID string
+	MetricName string
+	MetrixType string
+	MetricFormulas []MetricFormulas
+	EquatinStringFormate string
+	SimpleifedEquation string
+	MetricCoin []MetricCoin
+	EquationSubPortion []EquationSubPortion
+}

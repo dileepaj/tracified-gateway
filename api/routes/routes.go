@@ -434,4 +434,10 @@ var routes = Routes{
 		"/socialimapact/batch/coinconvert",
 		businessFacades.BatchConvertCoin,
 	},
+	Route{
+		"Create pools",
+		"POST",
+		"/socialimapact/pool",
+		businessFacades.CreatePool,
+	},
 }
