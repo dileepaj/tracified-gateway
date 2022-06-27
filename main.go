@@ -8,6 +8,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/pools"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
@@ -49,37 +51,51 @@ func main() {
 	c.Start()
 	router := routes.NewRouter()
 
-	// var poolJson []pools.BuildPool
-	// pool1 := pools.BuildPool{
-	// 	Coin1:               "BTC",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "ETH",
-	// 	DepositeAmountCoin2: "20000",
-	// 	Ratio:               2,
-	// }
-	// pool2 := pools.BuildPool{
-	// 	Coin1:               "ETH",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "USDT",
-	// 	DepositeAmountCoin2: "70000",
-	// 	Ratio:               2,
-	// }
-	// poolJson = append(poolJson, pool1,pool2)
-	// pools.CreatePoolsUsingJson(poolJson)
+	var poolJson []model.BuildPool
+	pool1 := model.BuildPool{
+		Coin1:               "E",
+		DepositeAmountCoin1: "10000",
+		Coin2:               "F",
+		DepositeAmountCoin2: "30000",
+		Ratio:               2,
+	}
+	pool2 := model.BuildPool{
+		Coin1:               "F",
+		DepositeAmountCoin1: "10000",
+		Coin2:               "G",
+		DepositeAmountCoin2: "70000",
+		Ratio:               2,
+	}
+	pool3 := model.BuildPool{
+		Coin1:               "G",
+		DepositeAmountCoin1: "10000",
+		Coin2:               "H",
+		DepositeAmountCoin2: "90000",
+		Ratio:               2,
+	}
+	poolJson = append(poolJson, pool1,pool2,pool3)
+	a, err := pools.CreatePoolsUsingJson(poolJson)
+	fmt.Println(a, err)
+	// a1, err1 := pools.CreatePool(pool2)
+	// fmt.Println(a1, err1)
+
+	// a2, err2 := pools.CreatePool(pool3)
+	// fmt.Println(a2, err2)
+	// pools.CreatePool(pool2)
 
 	// var buildPathPayment model.BuildPathPayment
 	// buildPathPayment = model.BuildPathPayment{
 	// 	SendingCoin: model.Coin{
-	// 		CoinName: "BTC",
+	// 		CoinName: "NEW1",
 	// 		Amount:   "200",
 	// 	},
 	// 	ReceivingCoin: model.Coin{
-	// 		CoinName: "USDT",
+	// 		CoinName: "NEW3",
 	// 		Amount:   "",
 	// 	},
 	// 	IntermediateCoins: []model.Coin{
 	// 		{
-	// 			CoinName: "ETH",
+	// 			CoinName: "NEW2",
 	// 			Amount:   "",
 	// 		},
 	// 	},

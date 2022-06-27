@@ -4,17 +4,25 @@ import (
 	"errors"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 )
 
 var (
-	depositorPK = "GBPI4RF4IUOXTQ7XHFHPOPBMJ6KSMHT7SCHBFDQ7MDBTZGITVFPQWGYZ"
-	depositorSK = "SBILQPUR3BXXZN2O6RFCJO2RMUJ2JXHUSZQN5C6DW67I632SDU4EISFN"
+	depositorPK = "GA2LTQXSLXHPRUWVAZWSOIND7ECKLKFPKNW27NFZOU5CSSQG27EKWH4R"
+	depositorSK = "SCL2DLZYZOSXT5PWKRDMGKARESHTV5VY6VN52W3Q4HXUZHH73VDYF7QX"
 )
 
-func CreatePoolsUsingJson(pools []model.BuildPool) {
+func CreatePoolsUsingJson(pools []model.BuildPool) ([]string, error) {
+	var hashes []string
 	for i := 0; i < len(pools); i++ {
-		CreatePool(pools[i])
+		hash, err := CreatePool(pools[i])
+		if err == nil {
+			hashes = append(hashes, hash)
+		} else {
+			logrus.Error(err)
+		}
 	}
+	return hashes, nil
 }
 
 func CreatePool(buildPool model.BuildPool) (string, error) {
@@ -34,6 +42,6 @@ func CreatePool(buildPool model.BuildPool) (string, error) {
 	if err2 != nil {
 		return "", err2
 	}
-
+	logrus.Info(depostHash2, err)
 	return depostHash2, nil
 }
