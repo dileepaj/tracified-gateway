@@ -412,3 +412,31 @@ func RetrieveStellarTxn(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
+
+func FundAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	key1, error := r.URL.Query()["publickey"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'publickey' is missing")
+		return
+	}
+	publickey := key1[0]
+	var txn, err = accounts.FundAccount(publickey)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when updating the buying status",
+		}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusOK)
+		result := model.PublicKey{
+			PublicKey: txn,
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+
+}

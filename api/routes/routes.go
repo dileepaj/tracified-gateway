@@ -488,4 +488,10 @@ var routes = Routes{
 		"/lastnft/{InitialDistributorPK}",
 		businessFacades.GetLastNFTbyIdentifier, //Calls the GetLastNFTByIdentifier in the nftHandler
 	},
+	Route{
+		"FundAccount",
+		"GET",
+		"/nft/fundAccount",
+		businessFacades.FundAccount, //Calls the UpdateBuyingStatus in the nftHandler
+	},
 }
