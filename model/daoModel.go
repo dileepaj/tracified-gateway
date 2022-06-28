@@ -511,3 +511,7 @@ type NFTIssuerAccount struct {
 type StellarMintTXN struct {
 	NFTTxnHash string `json:"NFTTxnHash"`
 }
+
+type PublicKey struct {
+	PublicKey string `json:"PublicKey"`
+}
