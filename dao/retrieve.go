@@ -1009,7 +1009,7 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		session, err := cd.connect()
 
 		if err != nil {
-			// fmt.Println(err)
+
 			reject(err)
 
 		}
@@ -1019,7 +1019,7 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
 
 		if err1 != nil {
-			fmt.Println(err1)
+
 			reject(err1)
 
 		} else {
