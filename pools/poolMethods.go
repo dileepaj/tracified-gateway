@@ -2,9 +2,11 @@ package pools
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
+	"sort"
 	"strconv"
 
 	//"github.com/dileepaj/tracified-gateway/commons"
@@ -20,8 +22,8 @@ import (
 )
 
 var (
-	coinIseerPK = "GDDOAXBCDDAA4IH4YCTTMZFPWXZK7PQYNBBNSEM2DWPTEVIVXZKZJBFG"
-	coinIsserSK = "SB32B6QYDCNFHZLEMFCHU6HVBGAA5LVQTCDFMYMXV4OOR2EPWAM6WOFW"
+	coinIseerPK = "GB2PNQPNARNLVQ5SP7WNNMPPKVBVBDO46XA3DI4KIABVFGTDPKYJWZIK"
+	coinIsserSK = "SCI7NX6AIIDAXQYKR23J2Q5BAGKGTC46LDRCEIWO227XTGOH4SZGFZ3T"
 )
 var poolCoin []txnbuild.Asset
 
@@ -154,11 +156,15 @@ func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
 
 func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciverSK string) (string, error) {
 	poolCoin = []txnbuild.Asset{}
-	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
+	coins :=[]string{a,b}
+
+	//reodered the Asset's names in lexicographic order (if not fail the operation)
+	sort.Strings(coins)
+	coinA, err1 := txnbuild.CreditAsset{Code: coins[0], Issuer: coinIseerPK}.ToAsset()
 	if err1 != nil {
 		return "", err1
 	}
-	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
+	coinB, err2 := txnbuild.CreditAsset{Code: coins[1], Issuer: coinIseerPK}.ToAsset()
 	if err2 != nil {
 		return "", err2
 	}
@@ -186,10 +192,16 @@ func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
+fmt.Println("stb",tx,err)
 
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
+	fmt.Println("errr",err)
 	check(err)
+	base64,err:=tx.Base64()
+	fmt.Println("tx",base64,err)
+
 	resp, err := client.SubmitTransaction(signedTx)
+	fmt.Println("errr1",err)
 	check(err)
 	if err != nil {
 		return "", err
@@ -232,10 +244,13 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
+	fmt.Println("depo",tx,err)
 	if err != nil {
 		return "", err
 	}
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
+	bas,err:=signedTx.Base64()
+	fmt.Println("dep base64  ",bas,err)
 	check(err)
 	resp, err := client.SubmitTransaction(signedTx)
 	check(err)

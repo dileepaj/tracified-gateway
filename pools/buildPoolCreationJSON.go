@@ -68,6 +68,7 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 			}
 		}
 	}
+	fmt.Println("pool---         ",poolJson)
 	return poolJson, nil
 }
 
@@ -96,14 +97,55 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 
 		// reomve the oprator from equation
 		for i := 0; i < len(portion); i++ {
-			for j := 0; j < len(portion[i].FieldAndCoin); j++ {
-				if portion[i].FieldAndCoin[j].VariableType == "operator" {
-					portion[i].FieldAndCoin = append(portion[i].FieldAndCoin[:j], portion[i].FieldAndCoin[j+1:]...)
+			if len(portion[i].FieldAndCoin) > 0 {
+				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
+					if portion[i].FieldAndCoin[j].VariableType == "operator" {
+						portion[i].FieldAndCoin = append(portion[i].FieldAndCoin[:j], portion[i].FieldAndCoin[j+1:]...)
+					}
+					if j == len(portion[i].FieldAndCoin)-1 {
+						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
+					}
 				}
+			} else {
+				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
 		}
+
+		// // Find element in a slice and move it to first position
+		// for i := 0; i < len(portion); i++ {
+		// 	if len(portion[i].FieldAndCoin) > 0 {
+		// 		rearrangeArray(portion[i].FieldAndCoin, "userInput")
+		// 	} else {
+		// 		return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+		// 	}
+		// }
+
 	} else {
 		return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
 	}
+	fmt.Println(equationJson)
+
 	return equationJson, nil
+}
+
+func rearrangeArray(sliceInt []model.FieldAndCoin, find string) {
+	fmt.Println(sliceInt)
+	if len((sliceInt)) == 0 || (sliceInt)[0].VariableType == find {
+		fmt.Println(sliceInt)
+		return
+	}
+
+	if (sliceInt)[len(sliceInt)-1].VariableType == find {
+		(sliceInt) = append([]model.FieldAndCoin{sliceInt[len(sliceInt)-1]}, (sliceInt)[:len(sliceInt)-1]...)
+		fmt.Println(sliceInt)
+		return
+
+	}
+	for p, x := range sliceInt {
+		if x.VariableType == find {
+			(sliceInt) = append([]model.FieldAndCoin{x}, append((sliceInt)[:p], (sliceInt)[p+1:]...)...)
+			break
+		}
+	}
+	fmt.Println(sliceInt)
 }

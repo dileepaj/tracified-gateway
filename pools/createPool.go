@@ -8,8 +8,8 @@ import (
 )
 
 var (
-	depositorPK = "GDUXXB3FHCHZJJEHJ3ZRVBW4LCCQDQCH7P5KHL2S5EIEZ6DOC2AWXWCE"
-	depositorSK = "SDCFURSX7IP4YYHQ4BB6MNCS7IQCC3S7IXM5HHEBXHT256GK5XZEFOCC"
+	depositorPK = "GCJGTNEUW27ON4X2LIWBKEY525XQGZFSBIN56CP324VNVYD42BAD3PR2"
+	depositorSK = "SANLXA5YA3ECV3WFIJ6WPU5KPE45H46JFQA4CGKMJFXTDJZ35TCTNEIO"
 )
 
 func CreatePoolsUsingJson(pools []model.BuildPool) ([]string, error) {
@@ -26,6 +26,7 @@ func CreatePoolsUsingJson(pools []model.BuildPool) ([]string, error) {
 }
 
 func CreatePool(buildPool model.BuildPool) (string, error) {
+	var depostHash2 string
 	CreateCoin(buildPool.Coin1, depositorPK, depositorSK)
 	CreateCoin(buildPool.Coin2, depositorPK, depositorSK)
 	IssueCoin(buildPool.Coin1, depositorPK, buildPool.DepositeAmountCoin1)
@@ -38,10 +39,21 @@ func CreatePool(buildPool model.BuildPool) (string, error) {
 	if err1 != nil {
 		return poolCreationHash, err1
 	}
-	depostHash2, err2 := DepositeToPool(poolId, depositorPK, depositorSK, buildPool.DepositeAmountCoin1, buildPool.DepositeAmountCoin2)
-	if err2 != nil {
-		return "", err2
+	//Checked the Asset's names are in lexicographic order if not change the DepositeAmountCoin1 and asset DepositeAmountCoin2
+	if buildPool.Coin1 < buildPool.Coin2 {
+		depostHash, err := DepositeToPool(poolId, depositorPK, depositorSK, buildPool.DepositeAmountCoin1, buildPool.DepositeAmountCoin2)
+		if err != nil {
+			return "", err
+		}
+		depostHash2 = depostHash
+	} else {
+		depostHash, err := DepositeToPool(poolId, depositorPK, depositorSK, buildPool.DepositeAmountCoin2, buildPool.DepositeAmountCoin1)
+		if err != nil {
+			return "", err
+		}
+		depostHash2 = depostHash
 	}
+
 	logrus.Info(depostHash2, err)
 	return depostHash2, nil
 }
