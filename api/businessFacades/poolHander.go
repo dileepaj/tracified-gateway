@@ -8,14 +8,16 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/pools"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 )
 
-func BatchConvertCoin(w http.ResponseWriter, r *http.Request){
+func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	var newBatchConvertCoinObj model.BatchCoinConvert
 
 	err := json.NewDecoder(r.Body).Decode(&newBatchConvertCoinObj)
-	if err != nil{
+	if err != nil {
 		fmt.Println(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
@@ -26,31 +28,31 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	//check if there is an account in the DB for the batchID and get the account
+	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
-	data,_ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID).Then(func(data interface{}) interface{}{
+	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 
-	if data == nil{
-		//if not create the sponsering account
+	if data == nil {
+		// if not create the sponsering account
 
-		//add account to the DB
+		// add account to the DB
 		batchAccount := model.BatchAccount{
-			BatchID: newBatchConvertCoinObj.BatchID,
-			TenentID: newBatchConvertCoinObj.TenantId,
-			ProductName: newBatchConvertCoinObj.ProductName,
-			EquationID: newBatchConvertCoinObj.EquationID,
-			BatchName: newBatchConvertCoinObj.BatchName,
+			BatchID:        newBatchConvertCoinObj.BatchID,
+			TenentID:       newBatchConvertCoinObj.TenantId,
+			ProductName:    newBatchConvertCoinObj.ProductName,
+			EquationID:     newBatchConvertCoinObj.EquationID,
+			BatchName:      newBatchConvertCoinObj.BatchName,
 			BatchAccountPK: "NewAcc2PK",
-			BatchAccountSK : "NewAcc2SK",
+			BatchAccountSK: "NewAcc2SK",
 		}
 
 		object := dao.Connection{}
 		err := object.InsertBatchAccount(batchAccount)
-		if err != nil{
+		if err != nil {
 			log.Println("Error when inserting batch acccount to DB " + err.Error())
-		} else{
+		} else {
 			log.Println("Batch account added to the DB")
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
@@ -61,18 +63,17 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request){
 			return
 		}
 
-		//call path payment methods
+		// call path payment methods
 
-
-	}else{
-		//if there is an account go to path payments directly
+	} else {
+		// if there is an account go to path payments directly
 		batchAccountPK := (data.(model.BatchAccount)).BatchAccountPK
 		fmt.Println(batchAccountPK)
 
 		batchAccountSK := (data.(model.BatchAccount)).BatchAccountSK
 		fmt.Println(batchAccountSK)
 
-		//call path payement methods
+		// call path payement methods
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -81,49 +82,45 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request){
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-	
 }
 
-func CreatePool(w http.ResponseWriter, r *http.Request){
+func CreatePool(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
+
 	var newCreatePoolObj model.CreatePool
 
 	err := json.NewDecoder(r.Body).Decode(&newCreatePoolObj)
-	if err != nil{
-		fmt.Println(err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
+	if err != nil {
+		logrus.Error(err)
+		json.NewEncoder(w).Encode("Error while decoding the body")
 		return
 	}
 
-	//create pool
-	// var poolJson []model.BuildPool
-	// pool1 := model.BuildPool{
-	// 	Coin1:               "BTC",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "ETH",
-	// 	DepositeAmountCoin2: "20000",
-	// 	Ratio:               2,
-	// }
-	// pool2 := model.BuildPool{
-	// 	Coin1:               "ETH",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "USDT",
-	// 	DepositeAmountCoin2: "70000",
-	// 	Ratio:               2,
-	// }
-	// poolJson = append(poolJson, pool1,pool2)
-	// pools.CreatePoolsUsingJson(poolJson)
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
-	result := apiModel.SubmitXDRSuccess{
-		Status: "Create pool request came",
+	// reformate the equation json
+	equationJson, err := pools.RemoveDivisionAndOperator(newCreatePoolObj)
+	if err != nil {
+		logrus.Error(err)
+		json.NewEncoder(w).Encode("Error while decoding the body")
+		return
 	}
-	json.NewEncoder(w).Encode(result)
-	return
 
+	// build the pool creation json
+	poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+	if err != nil {
+		logrus.Error(poolCreationJSON, err)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	// create the pools
+	poolsHash, err := pools.CreatePoolsUsingJson(poolCreationJSON)
+	if err != nil {
+		logrus.Error(poolsHash, err)
+		json.NewEncoder(w).Encode(err)
+		return
+	}
+
+	json.NewEncoder(w).Encode(poolsHash)
+	return
 }

@@ -403,7 +403,6 @@ type MetricCoin struct{
 
 type FieldAndCoin struct{
 	ID string
-	OrderNumber string
 	CoinName string
 	FieldName string
 	Description string
@@ -428,6 +427,6 @@ type CreatePool struct{
 	MetricFormulas []MetricFormulas
 	EquatinStringFormate string
 	SimpleifedEquation string
-	MetricCoin []MetricCoin
+	MetricCoin MetricCoin
 	EquationSubPortion []EquationSubPortion
 }

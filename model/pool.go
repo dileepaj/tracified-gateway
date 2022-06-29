@@ -22,7 +22,7 @@ type BuildPool struct {
 	DepositeAmountCoin1 string
 	Coin2               string
 	DepositeAmountCoin2 string
-	Ratio               int
+	Ratio               string
 	poolDepositorPK     string
 	PoolId              string
 	ProductId           string

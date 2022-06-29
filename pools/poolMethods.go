@@ -20,8 +20,8 @@ import (
 )
 
 var (
-	coinIseerPK = "GCIL6GB4EU2WBKQCZ4QUNRFBGY4AVOWYZGBXIKBPV22O52V24YUI6E3X"
-	coinIsserSK = "SDLVBUDN6LSCYCAMQSTUEXBWHB4VLY5XGLHYMCFI4FWRMRLTBHH3LR2J"
+	coinIseerPK = "GDDOAXBCDDAA4IH4YCTTMZFPWXZK7PQYNBBNSEM2DWPTEVIVXZKZJBFG"
+	coinIsserSK = "SB32B6QYDCNFHZLEMFCHU6HVBGAA5LVQTCDFMYMXV4OOR2EPWAM6WOFW"
 )
 var poolCoin []txnbuild.Asset
 
@@ -30,15 +30,15 @@ var client = sdk.DefaultTestNetClient
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIseerPK})
 	if err != nil {
-		return "13", err
+		return "", err
 	}
 	issuer, err := keypair.ParseFull(coinIsserSK)
 	if err != nil {
-		return "14", err
+		return "", err
 	}
 	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToAsset()
 	if err != nil {
-		return "15", err
+		return "", err
 	}
 
 	// Second, the issuing account actually sends a payment using the asset
@@ -58,7 +58,7 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 	resp, err := client.SubmitTransaction(signedTx)
 	check(err)
 	if err != nil {
-		return "16", err
+		return "", err
 	} else {
 		return resp.Hash, nil
 	}
@@ -324,12 +324,12 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool {
 }
 
 // coin issuer
-// Public Key	GCIL6GB4EU2WBKQCZ4QUNRFBGY4AVOWYZGBXIKBPV22O52V24YUI6E3X
-// Secret Key	SDLVBUDN6LSCYCAMQSTUEXBWHB4VLY5XGLHYMCFI4FWRMRLTBHH3LR2J
+// Public Key	GDDOAXBCDDAA4IH4YCTTMZFPWXZK7PQYNBBNSEM2DWPTEVIVXZKZJBFG
+// Secret Key	SB32B6QYDCNFHZLEMFCHU6HVBGAA5LVQTCDFMYMXV4OOR2EPWAM6WOFW
 
 // depo
-// Public Key	GA2LTQXSLXHPRUWVAZWSOIND7ECKLKFPKNW27NFZOU5CSSQG27EKWH4R
-// Secret Key	SCL2DLZYZOSXT5PWKRDMGKARESHTV5VY6VN52W3Q4HXUZHH73VDYF7QX
+// Public Key	GDUXXB3FHCHZJJEHJ3ZRVBW4LCCQDQCH7P5KHL2S5EIEZ6DOC2AWXWCE
+// Secret Key	SDCFURSX7IP4YYHQ4BB6MNCS7IQCC3S7IXM5HHEBXHT256GK5XZEFOCC
 
 // trader
 // Public Key	GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG
