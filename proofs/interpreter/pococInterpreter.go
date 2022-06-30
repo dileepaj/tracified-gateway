@@ -274,7 +274,7 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 		w.WriteHeader(http.StatusOK)
 		temp := model.POCOCResponse{
 			Txnhash: AP.Txn,
-			Url: commons.GetHorizonClient().HorizonURL + "/transactions/" +
+			Url: commons.GetHorizonClient().HorizonURL + "transactions/" +
 				AP.Txn + "/operations",
 			LabUrl:	commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
@@ -312,7 +312,7 @@ func (AP *AbstractPOCOCNew) InterpretPOCOCNew(w http.ResponseWriter, r *http.Req
 
 	temp := model.POCOCResponse{
 		Txnhash: AP.Txn,
-		Url: commons.GetHorizonClient().HorizonURL + "/transactions/" +
+		Url: commons.GetHorizonClient().HorizonURL + "transactions/" +
 			AP.Txn + "/operations",
 		LabUrl:	commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
