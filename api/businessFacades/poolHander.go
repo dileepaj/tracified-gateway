@@ -86,22 +86,25 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 
 func CreatePool(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	
 
-	var newCreatePoolObj model.CreatePool
+	var equationJsonObj model.CreatePool
 
-	err := json.NewDecoder(r.Body).Decode(&newCreatePoolObj)
+	err := json.NewDecoder(r.Body).Decode(&equationJsonObj)
 	if err != nil {
 		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while decoding the body")
 		return
 	}
 
 	// reformate the equation json
-	equationJson, err := pools.RemoveDivisionAndOperator(newCreatePoolObj)
+	equationJson, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+
 	if err != nil {
 		logrus.Error(err)
-		json.NewEncoder(w).Encode("Error while decoding the body")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode(err)
 		return
 	}
 
@@ -109,18 +112,27 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
 	if err != nil {
 		logrus.Error(poolCreationJSON, err)
+		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(err)
 		return
 	}
 
 	// create the pools
-	poolsHash, err := pools.CreatePoolsUsingJson(poolCreationJSON)
+	cratedPools, err := pools.CreatePoolsUsingJson(poolCreationJSON)
 	if err != nil {
-		logrus.Error(poolsHash, err)
+		logrus.Error(cratedPools, err)
 		json.NewEncoder(w).Encode(err)
 		return
 	}
 
-	json.NewEncoder(w).Encode(poolsHash)
+	response:=model.BuildPoolResponse{
+		MetricId:equationJsonObj.MetricID,
+		EquationId: equationJsonObj.EquationID,
+		TenantId:   equationJsonObj.TenantID,
+		BuildPools: cratedPools,
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 	return
 }

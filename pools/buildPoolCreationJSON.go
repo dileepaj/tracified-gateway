@@ -10,43 +10,24 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-// var poolJson []model.BuildPool
-// pool1 := model.BuildPool{
-// 	Coin1:               "M",
-// 	DepositeAmountCoin1: "10000",
-// 	Coin2:               "N",
-// 	DepositeAmountCoin2: "30000",
-// 	Ratio:               2,
-// }
-// pool2 := model.BuildPool{
-// 	Coin1:               "N",
-// 	DepositeAmountCoin1: "10000",
-// 	Coin2:               "O",
-// 	DepositeAmountCoin2: "70000",
-// 	Ratio:               2,
-// }
-// pool3 := model.BuildPool{
-// 	Coin1:               "O",
-// 	DepositeAmountCoin1: "10000",
-// 	Coin2:               "P",
-// 	DepositeAmountCoin2: "90000",
-// 	Ratio:               2,
-// }
-
 // BuildPoolCreationJSON return the pool creation json by Restructing the admin equationJson
 func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, error) {
 	var poolJson []model.BuildPool
-	// var a []int
 	portion := equationJson.EquationSubPortion
 	for i := 0; i < len(portion); i++ {
+		//loop the subportion and create a pair array(poolJson) n and n+1 
 		for j := 0; j < len(portion[i].FieldAndCoin); j++ {
 			if j+1 < len(portion[i].FieldAndCoin) {
 				//
 				ratio := portion[i].FieldAndCoin[j+1].Value
-				// a = append(a, j, j+1)
-				removeDecimal := strings.Split(ratio, ".")
 
+				// ration string split by .
+				removeDecimal := strings.Split(ratio, ".")
+				//counting the character in a ratio string value and calculating the 10th multiplication factor
 				multiplicationZeros := len(removeDecimal[0]) - 1
+
+				// multiplicationFactor==> coin multiplication factor 
+				//Note maximum 1000000000 coin can be issued by the issuer
 				var multiplicationFactor int
 				if multiplicationZeros == 0 {
 					multiplicationFactor = 100000000
@@ -68,7 +49,6 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 			}
 		}
 	}
-	fmt.Println("pool---         ",poolJson)
 	return poolJson, nil
 }
 
@@ -78,10 +58,16 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool, error) {
 	// equation is a equation-Json
 	portion := equationJson.EquationSubPortion
+
 	if len(portion) > 0 {
 		for i := 0; i < len(portion); i++ {
 			if len(portion[i].FieldAndCoin) > 0 {
+				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
+					//count the userIput type variable in a  sub portion
+					if portion[i].FieldAndCoin[j].VariableType == "userInput" {
+						userInputCount++
+					}
 					if portion[i].FieldAndCoin[j].VariableType == "operator" && portion[i].FieldAndCoin[j].Value == "/" {
 						portion[i].FieldAndCoin[j].Value = "*"
 						if float, err := strconv.ParseFloat(portion[i].FieldAndCoin[j+1].Value, 32); err == nil {
@@ -90,11 +76,14 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						}
 					}
 				}
+				//checked whether sub-portion contain only one user input
+				if userInputCount != 1 {
+					return model.CreatePool{}, errors.New("Equation's sub portion can not contain two user input")
+				}
 			} else {
 				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
 		}
-
 		// reomve the oprator from equation
 		for i := 0; i < len(portion); i++ {
 			if len(portion[i].FieldAndCoin) > 0 {
@@ -110,42 +99,33 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
 		}
-
-		// // Find element in a slice and move it to first position
-		// for i := 0; i < len(portion); i++ {
-		// 	if len(portion[i].FieldAndCoin) > 0 {
-		// 		rearrangeArray(portion[i].FieldAndCoin, "userInput")
-		// 	} else {
-		// 		return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
-		// 	}
-		// }
-
+		// Find element in a slice and move it to first position
+		for i := 0; i < len(portion); i++ {
+			if len(portion[i].FieldAndCoin) > 0 {
+				portion[i].FieldAndCoin = rearrangedArray(portion[i].FieldAndCoin, "userInput")
+			} else {
+				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+			}
+		}
 	} else {
 		return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
 	}
-	fmt.Println(equationJson)
-
 	return equationJson, nil
 }
 
-func rearrangeArray(sliceInt []model.FieldAndCoin, find string) {
-	fmt.Println(sliceInt)
-	if len((sliceInt)) == 0 || (sliceInt)[0].VariableType == find {
-		fmt.Println(sliceInt)
-		return
+// rearrangedArray ,  Find element(coinsAndFiled) in a slice by variable type and move it to first position
+func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAndCoin {
+	if len((poolJson)) == 0 || (poolJson)[0].VariableType == find {
+		return poolJson
 	}
-
-	if (sliceInt)[len(sliceInt)-1].VariableType == find {
-		(sliceInt) = append([]model.FieldAndCoin{sliceInt[len(sliceInt)-1]}, (sliceInt)[:len(sliceInt)-1]...)
-		fmt.Println(sliceInt)
-		return
-
+	if (poolJson)[len(poolJson)-1].VariableType == find {
+		(poolJson) = append([]model.FieldAndCoin{poolJson[len(poolJson)-1]}, (poolJson)[:len(poolJson)-1]...)
+		return poolJson
 	}
-	for p, x := range sliceInt {
+	for p, x := range poolJson {
 		if x.VariableType == find {
-			(sliceInt) = append([]model.FieldAndCoin{x}, append((sliceInt)[:p], (sliceInt)[p+1:]...)...)
-			break
+			(poolJson) = append([]model.FieldAndCoin{x}, append((poolJson)[:p], (poolJson)[p+1:]...)...)
 		}
 	}
-	fmt.Println(sliceInt)
+	return poolJson
 }

@@ -2,7 +2,7 @@ package pools
 
 import (
 	"encoding/json"
-	"fmt"
+	"errors"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -32,14 +32,17 @@ var client = sdk.DefaultTestNetClient
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIseerPK})
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	issuer, err := keypair.ParseFull(coinIsserSK)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToAsset()
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 
@@ -56,12 +59,20 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 	)
 
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuer)
-	check(err)
-	resp, err := client.SubmitTransaction(signedTx)
-	check(err)
 	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	resp, err := client.SubmitTransaction(signedTx)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	if err != nil {
+		logrus.Error(err)
 		return "", err
 	} else {
+		logrus.Info("IssueCoin ",resp.Hash)
 		return resp.Hash, nil
 	}
 }
@@ -80,14 +91,17 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 		// Load the corresponding account for both A and C.
 		coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 		if err != nil {
+			logrus.Error(err)
 			return "", err
 		}
 		coinReceiver, err := keypair.ParseFull(coinReciverSK)
 		if err != nil {
+			logrus.Error(err)
 			return "", err
 		}
 		coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIseerPK}.ToChangeTrustAsset()
 		if err != nil {
+			logrus.Error(err)
 			return "", err
 		}
 		// First, the receiving (distribution) account must trust the asset from the issuer.
@@ -102,37 +116,47 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 			},
 		)
 		signedTx, err := tx.Sign(network.TestNetworkPassphrase, coinReceiver)
-		check(err)
-		resp, err := client.SubmitTransaction(signedTx)
-		check(err)
 		if err != nil {
+			logrus.Error(err)
+			return "", err
+		}
+		resp, err := client.SubmitTransaction(signedTx)
+		if err != nil {
+			logrus.Error(err)
+			return "", err
+		}
+		if err != nil {
+			logrus.Error(err)
 			return "", err
 		} else {
 			// add trustline to DB
 			InsertTrustline(coinName, coinReceiverPK)
+			logrus.Info("CreateCoin ",resp.Hash)
 			return resp.Hash, nil
 		}
 	} else {
-		return "", nil
+		logrus.Error("Trustline for the relevent assset alredy created")
+		return "", errors.New("Trustline for the relevent assset alredy created")
 	}
 }
 
-func orderAsset(a string, aVlaue int64, b string, bValue int64) []txnbuild.Asset {
-	poolCoin = []txnbuild.Asset{}
-	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
-	check(err1)
-	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
-	check(err2)
+// func orderAsset(a string, aVlaue int64, b string, bValue int64) []txnbuild.Asset {
+// 	poolCoin = []txnbuild.Asset{}
+// 	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
+// 	check(err1)
+// 	coinB, err2 := txnbuild.CreditAsset{Code: b, Issuer: coinIseerPK}.ToAsset()
+// 	check(err2)
 
-	if aVlaue > bValue {
-		poolCoin = append(poolCoin, coinA, coinB)
-		return poolCoin
-	} else {
-		poolCoin = append(poolCoin, coinB, coinA)
-		return poolCoin
-	}
-}
+// 	if aVlaue > bValue {
+// 		poolCoin = append(poolCoin, coinA, coinB)
+// 		return poolCoin
+// 	} else {
+// 		poolCoin = append(poolCoin, coinB, coinA)
+// 		return poolCoin
+// 	}
+// }
 
+// GeneratePoolId return the poolid specific to account
 func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
 	coinA, err1 := txnbuild.CreditAsset{Code: a, Issuer: coinIseerPK}.ToAsset()
 	check(err1)
@@ -150,22 +174,25 @@ func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
 			Fee:    txnbuild.LiquidityPoolFeeV18,
 		}}.GetLiquidityPoolID()
 	}
-	logrus.Info(poolId)
+	logrus.Info("PoolId ",poolId)
 	return poolId, err
 }
-
+// EstablishPoolTrustline return the blockchain hash that use to create trsutline with pool
 func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciverSK string) (string, error) {
 	poolCoin = []txnbuild.Asset{}
+	//assets array
 	coins :=[]string{a,b}
 
 	//reodered the Asset's names in lexicographic order (if not fail the operation)
 	sort.Strings(coins)
 	coinA, err1 := txnbuild.CreditAsset{Code: coins[0], Issuer: coinIseerPK}.ToAsset()
 	if err1 != nil {
+		logrus.Error(err1)
 		return "", err1
 	}
 	coinB, err2 := txnbuild.CreditAsset{Code: coins[1], Issuer: coinIseerPK}.ToAsset()
 	if err2 != nil {
+		logrus.Error(err2)
 		return "", err2
 	}
 	poolShareAsset := txnbuild.LiquidityPoolShareChangeTrustAsset{LiquidityPoolParameters: txnbuild.LiquidityPoolParameters{
@@ -176,10 +203,12 @@ func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 
 	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	distributor, err := keypair.ParseFull(coinReciverSK)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	tx, err := txnbuild.NewTransaction(
@@ -192,31 +221,35 @@ func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
-fmt.Println("stb",tx,err)
-
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
-	fmt.Println("errr",err)
-	check(err)
-	base64,err:=tx.Base64()
-	fmt.Println("tx",base64,err)
-
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
 	resp, err := client.SubmitTransaction(signedTx)
-	fmt.Println("errr1",err)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
 	check(err)
 	if err != nil {
 		return "", err
 	} else {
+		log.Info("EstablishPoolTrustline ",resp.Hash)
 		return resp.Hash, nil
 	}
 }
 
+//DepositeToPool, deposite the coin to pool
 func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coinReciverSK string, maxReserveA string, maxReserveB string) (string, error) {
 	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	distributor, err := keypair.ParseFull(coinReciverSK)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	reserveA, err := strconv.Atoi(maxReserveA)
@@ -244,23 +277,30 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 			Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
-	fmt.Println("depo",tx,err)
 	if err != nil {
+		logrus.Error(err)
 		return "", err
 	}
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
-	bas,err:=signedTx.Base64()
-	fmt.Println("dep base64  ",bas,err)
-	check(err)
-	resp, err := client.SubmitTransaction(signedTx)
-	check(err)
 	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	resp, err := client.SubmitTransaction(signedTx)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	if err != nil {
+		logrus.Error(err)
 		return "", err
 	} else {
+		log.Info("DepositeToPool ",resp.Hash)
 		return resp.Hash, nil
 	}
 }
 
+//check error checker logs the errors
 func check(err error) {
 	if err != nil {
 		logrus.Error(err)
@@ -330,22 +370,10 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool {
 	}).Await()
 
 	if data == nil {
-		// log.Println("No trustlines created")
+		logrus.Info("No trustlines created")
 		return false
 	} else {
-		// fmt.Println("Trustline already created")
+		logrus.Error("Trustline already created")
 		return true
 	}
 }
-
-// coin issuer
-// Public Key	GDDOAXBCDDAA4IH4YCTTMZFPWXZK7PQYNBBNSEM2DWPTEVIVXZKZJBFG
-// Secret Key	SB32B6QYDCNFHZLEMFCHU6HVBGAA5LVQTCDFMYMXV4OOR2EPWAM6WOFW
-
-// depo
-// Public Key	GDUXXB3FHCHZJJEHJ3ZRVBW4LCCQDQCH7P5KHL2S5EIEZ6DOC2AWXWCE
-// Secret Key	SDCFURSX7IP4YYHQ4BB6MNCS7IQCC3S7IXM5HHEBXHT256GK5XZEFOCC
-
-// trader
-// Public Key	GCBZ7J5434MIU3AYKCI2FPMLBV5LQBKIZYG2C5QMVEWOTIT2XM2AVWSG
-// Secret Key	SA4C7PM67PYJQ2SMRRXDUIX5EUMV725JGDXZXMLKG2VPLW4UYHJLUVSI

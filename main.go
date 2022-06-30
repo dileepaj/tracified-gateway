@@ -49,38 +49,6 @@ func main() {
 	c.Start()
 	router := routes.NewRouter()
 
-	// var poolJson []model.BuildPool
-	// pool1 := model.BuildPool{
-	// 	Coin1:               "M",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "N",
-	// 	DepositeAmountCoin2: "30000",
-	// 	Ratio:               2,
-	// }
-	// pool2 := model.BuildPool{
-	// 	Coin1:               "N",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "O",
-	// 	DepositeAmountCoin2: "70000",
-	// 	Ratio:               2,
-	// }
-	// pool3 := model.BuildPool{
-	// 	Coin1:               "O",
-	// 	DepositeAmountCoin1: "10000",
-	// 	Coin2:               "P",
-	// 	DepositeAmountCoin2: "90000",
-	// 	Ratio:               2,
-	// }
-	// poolJson = append(poolJson, pool1,pool2,pool3)
-	// a, err := pools.CreatePoolsUsingJson(poolJson)
-	// fmt.Println(a, err)
-	// a1, err1 := pools.CreatePool(pool2)
-	// fmt.Println(a1, err1)
-
-	// a2, err2 := pools.CreatePool(pool3)
-	// fmt.Println(a2, err2)
-	// pools.CreatePool(pool2)
-
 	// var buildPathPayment model.BuildPathPayment
 	// buildPathPayment = model.BuildPathPayment{
 	// 	SendingCoin: model.Coin{

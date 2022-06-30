@@ -91,7 +91,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (string, error) {
 	}
 }
 
-// get distination recived coin ammount after converting the coin
+// GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin
 func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (string, error) {
 	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer)
 	if err != nil {

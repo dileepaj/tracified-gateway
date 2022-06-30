@@ -25,7 +25,14 @@ type BuildPool struct {
 	Ratio               string
 	poolDepositorPK     string
 	PoolId              string
-	ProductId           string
 	EquationId          string
-	TenantId            string
+	PoolDepositeHash    string
+}
+
+type BuildPoolResponse struct {
+	ProductId  string
+	MetricId   string
+	EquationId string
+	TenantId   string
+	BuildPools []BuildPool
 }
