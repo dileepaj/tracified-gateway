@@ -37,7 +37,6 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 
 	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
-	//fmt.Println("Submitting XDR  ++_+_+_+_+_+_", cd.XDR )
 	resp, err := horizonClient.SubmitTransactionXDR(cd.XDR)
 	if err != nil {
 		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())

@@ -11,6 +11,7 @@ import (
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 
 	// "fmt"
@@ -61,9 +62,18 @@ func CheckTempOrphan() {
 				} else {
 					result := data.(model.TransactionCollectionBody)
 					var UserTxnHash string
+
 					///HARDCODED CREDENTIALS
 					publicKey := constants.PublicKey
 					secretKey := constants.SecretKey
+					tracifiedAccount, err := keypair.ParseFull(secretKey)
+					if err != nil {
+						log.Error(err)
+					}
+					client := horizonclient.DefaultTestNetClient
+					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+					pubaccount, err := client.AccountDetail(pubaccountRequest)
+
 					switch result.TxnType {
 					case "0":
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
@@ -87,27 +97,26 @@ func CheckTempOrphan() {
 							Value: []byte(UserTxnHash),
 						}
 						// Get information about the account we just created
-						//pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-						//pubaccount, err := netClient.AccountDetail(pubaccountRequest)
-
-						kp,_ := keypair.Parse(publicKey)
-						client := horizonclient.DefaultTestNetClient
-						pubaccountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
-						pubaccount, err := client.AccountDetail(pubaccountRequest)
+						// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+						// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
 						if err != nil {
 							log.Println(err)
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 							SourceAccount:        &pubaccount,
-							IncrementSequenceNum: false,
+							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 							BaseFee:              txnbuild.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 						})
+						if err != nil {
+							log.Println("Error while buliding XDR " + err.Error())
+							break
+						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(secretKey)
+						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
@@ -177,22 +186,26 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
-
+            
 						if response.Error.Code == 400 {
 							log.Println("Response code 400 for SubmitXDR")
 							break
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-							SourceAccount:        &sourceAccount,
-							IncrementSequenceNum: false,
+							SourceAccount:        &pubaccount,
+							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 							BaseFee:              txnbuild.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 						})
+						if err != nil {
+							log.Println("Error while buliding XDR " + err.Error())
+							break
+						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(secretKey)
+						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
@@ -270,15 +283,19 @@ func CheckTempOrphan() {
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-							SourceAccount:        &sourceAccount,
-							IncrementSequenceNum: false,
+							SourceAccount:        &pubaccount,
+							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 							BaseFee:              txnbuild.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 						})
+						if err != nil {
+							log.Println("Error while buliding XDR " + err.Error())
+							break
+						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(secretKey)
+						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE " + err.Error())
 							break
