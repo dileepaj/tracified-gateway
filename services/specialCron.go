@@ -27,7 +27,7 @@ func CheckTempOrphan() {
 	log.Debug("=================== CheckTempOrphan ==================")
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
-	log.Info("PK count : " + strconv.Itoa(len(clientList)))
+	//log.Info("PK count : " + strconv.Itoa(len(clientList)))
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
@@ -36,10 +36,9 @@ func CheckTempOrphan() {
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
-		//fmt.Println("Address taken from client : ", sourceAccount)
 
 		if err != nil {
-			log.Error("Error while loading account from horizon " + err.Error())
+			//log.Error("Error while loading account from horizon " + err.Error())
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
@@ -54,7 +53,7 @@ func CheckTempOrphan() {
 					return data
 				}).Await()
 				if errorAsync != nil {
-					//log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
+					log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
 					// return error
 					// log.Println("No transactions in the scheduler")
 					stop = true // to break loop
@@ -187,6 +186,7 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
+            
 						if response.Error.Code == 400 {
 							log.Println("Response code 400 for SubmitXDR")
 							break

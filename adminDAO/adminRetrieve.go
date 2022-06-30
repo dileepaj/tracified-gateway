@@ -17,7 +17,6 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 	var result []FOPK
 	session, err := cd.adminConnect()
 	if err != nil {
-		//fmt.Println("An error occured 1")
 		log.Error(err.Error())
 	}
 	if session != nil {
@@ -27,19 +26,16 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 
 		findCursor, err1 := c.Find(context.TODO(), bson.M{"accounts.FO": true})
 		if err1 != nil {
-			// fmt.Println(err1)
 			log.Error(err1.Error())
 		}
 
 		if findErr := findCursor.All(context.TODO(), &result); findErr != nil {
-			//fmt.Println("An error occured 2")
 			panic(findErr)
 		}
 
 		for _, e := range result {
 			for _, s := range e.Accounts {
 				if len(s.Pk) == 56 {
-					//fmt.Println("PKS  ", s.Pk)
 					strArray = append(strArray, s.Pk)
 				}
 			}
