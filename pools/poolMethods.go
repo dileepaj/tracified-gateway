@@ -135,7 +135,7 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 			return resp.Hash, nil
 		}
 	} else {
-		logrus.Error("Trustline for the relevent assset alredy created")
+		logrus.Info("Trustline for the relevent assset alredy created")
 		return "", errors.New("Trustline for the relevent assset alredy created")
 	}
 }
@@ -373,7 +373,7 @@ func trustlineCreated(coinName string, coinReceiverPK string) bool {
 		logrus.Info("No trustlines created")
 		return false
 	} else {
-		logrus.Error("Trustline already created")
+		logrus.Info("Trustline already created")
 		return true
 	}
 }

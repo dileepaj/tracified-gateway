@@ -250,3 +250,21 @@ func (cd *Connection) InsertBatchAccount(batchAccount model.BatchAccount) error{
 	}
 	return err
 }
+
+//insert created pool details to the DB
+func (cd *Connection) InsertPool(pool model.BuildPoolResponse) error{
+	session, err := cd.connect()
+
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("LiquidityPool")
+	_, err = c.InsertOne(context.TODO(), pool)
+	if err != nil {
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+	
+}

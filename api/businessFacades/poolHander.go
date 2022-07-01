@@ -55,7 +55,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		} else {
 			log.Println("Batch account added to the DB")
 			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
+			w.WriteHeader(http.StatusOK)
 			result := apiModel.SubmitXDRSuccess{
 				Status: "Batch account added to the DB",
 			}
@@ -132,7 +132,16 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		BuildPools: cratedPools,
 	}
 
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
-	return
+	//insert the pool to the DB
+	object := dao.Connection{}
+	err1 := object.InsertPool(response)
+	if err1 != nil {
+		log.Println("Error when inserting pool to DB " + err.Error())
+	} else {
+		log.Println("Pool added to the DB")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 }
