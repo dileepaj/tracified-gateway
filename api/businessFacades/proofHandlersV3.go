@@ -728,6 +728,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	// }
 
 	result2, _ := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
+	fmt.Println("---Endpoint called ----", commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 	data2, _ := ioutil.ReadAll(result2.Body)
 	var raw2 map[string]interface{}
 	var raw4 map[string]interface{}
@@ -749,13 +750,16 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(out6, &raw5)
 
 	//GET THE USER SIGNED GENESIS TXN
-	Type := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
-	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	Type := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
 	CurrentTxn := strings.TrimLeft(fmt.Sprintf("%s", raw5["value"]), "&")
 
 	TypeDecoded, _ := base64.StdEncoding.DecodeString(Type)
 	PreviousDecoded, _ := base64.StdEncoding.DecodeString(Previous)
 	CurrentTxnDecoded, _ := base64.StdEncoding.DecodeString(CurrentTxn)
+
+	fmt.Println("Type decoded -------------------", string(TypeDecoded))
+	fmt.Println("Previous Decoded ---------------", string(PreviousDecoded))
 
 	if string(TypeDecoded) != "G0" || string(PreviousDecoded) != "" {
 		writer.WriteHeader(http.StatusBadRequest)

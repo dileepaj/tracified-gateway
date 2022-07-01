@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -127,6 +128,7 @@ func CheckTempOrphan() {
 							log.Println("Error while converting GatewayTXE to base64 " + err.Error())
 							break
 						}
+						fmt.Println("XDR -----------------", txeB64)
 						// SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 						response1 := display1.SubmitXDR("G" + result.TxnType)
