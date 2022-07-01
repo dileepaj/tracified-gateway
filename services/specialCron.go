@@ -178,15 +178,14 @@ func CheckTempOrphan() {
 							Name:  "Type",
 							Value: []byte("G" + result.TxnType),
 						}
-
+						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
+						response := display.SubmitXDR(result.TxnType)
+						UserTxnHash = response.TXNID
+						
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
-						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-						response := display.SubmitXDR(result.TxnType)
-						UserTxnHash = response.TXNID
-            
 						if response.Error.Code == 400 {
 							log.Println("Response code 400 for SubmitXDR")
 							break
