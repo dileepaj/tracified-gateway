@@ -9,6 +9,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -16,98 +17,137 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func CoinConvert(pathPayment model.BuildPathPayment) (string, error) {
-	destinationAmount, err0 := GetConvertedCoinAmount(pathPayment.SendingCoin.CoinName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK)
-	if err0 != nil {
-		return "", err0
-	}
-	_, err := CreateCoin(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
+// CoinConvert convert the coin (do a path payment operation by sponsering)
+func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
+	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.CoinName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK)
 	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
 	}
-	_, err1 := CreateCoin(pathPayment.ReceivingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
+	_, err0 := CreateCoinSponsering(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
+	if err0 != nil {
+		logrus.Error(err0)
+		return model.BuildPathPayment{}, err0
+	}
+	_, err1 := CreateCoinSponsering(pathPayment.ReceivingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
 	if err1 != nil {
-		return "", err1
+		logrus.Error(err1)
+		return model.BuildPathPayment{}, err1
 	}
 	_, err2 := IssueCoin(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.SendingCoin.Amount)
 	if err2 != nil {
-		return "", err2
+		logrus.Error(err2)
+		return model.BuildPathPayment{}, err2
 	}
 
-	traderAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: pathPayment.BatchAccountPK})
+	sponserAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: sponsorPK})
 	if err != nil {
-		return "", err
-	}
-	trader, err := keypair.ParseFull(pathPayment.BatchAccountSK)
-	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
 	}
 
+	// batch account and tradring account are same
+	traderSign, err := keypair.ParseFull(pathPayment.BatchAccountSK)
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
+
+	sponserAccountSign, err := keypair.ParseFull(sponsorSK)
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
 	sendAsset := txnbuild.CreditAsset{pathPayment.SendingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
-	check(err)
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
 	destAsset := txnbuild.CreditAsset{pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
-	check(err)
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
 
+	// intermediateAssertArray coin convertion path as a array(this path take from stellar endpoint)
 	var intermediateAssertArray []txnbuild.Asset
-	for i := 0; i < len(pathPayment.IntermediateCoins); i++ {
-		intermediateAsset := txnbuild.CreditAsset{pathPayment.IntermediateCoins[i].CoinName, pathPayment.CoinIssuerAccontPK}
-		check(err)
+	for _, pathCoin := range convertion.IntermediateCoin {
+		intermediateAsset := txnbuild.CreditAsset{pathCoin.CoinName, pathCoin.Issuer}
 		intermediateAssertArray = append(intermediateAssertArray, intermediateAsset)
 	}
 
-	op := txnbuild.PathPaymentStrictSend{
-		SendAsset:     sendAsset,
-		SendAmount:    pathPayment.SendingCoin.Amount,
-		Destination:   pathPayment.BatchAccountPK,
-		DestAsset:     destAsset,
-		DestMin:       destinationAmount,
-		Path:          intermediateAssertArray,
-		SourceAccount: traderAccount.AccountID,
-	}
+	sponsoringPathPayment := []txnbuild.Operation{
+		&txnbuild.BeginSponsoringFutureReserves{
+			SponsoredID:   pathPayment.BatchAccountPK,
+			SourceAccount: sponsorPK,
+		},
 
+		&txnbuild.PathPaymentStrictSend{
+			SendAsset:     sendAsset,
+			SendAmount:    pathPayment.SendingCoin.Amount,
+			Destination:   pathPayment.BatchAccountPK,
+			DestAsset:     destAsset,
+			DestMin:       convertion.Destination.Amount,
+			Path:          intermediateAssertArray,
+			SourceAccount: pathPayment.BatchAccountPK,
+		},
+		&txnbuild.EndSponsoringFutureReserves{
+			SourceAccount: pathPayment.BatchAccountPK,
+		},
+	}
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
-			SourceAccount:        &traderAccount,
+			SourceAccount:        &sponserAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&op},
+			Operations:           sponsoringPathPayment,
 			BaseFee:              txnbuild.MinBaseFee,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
 	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, trader)
+	signedTx, err := tx.Sign(network.TestNetworkPassphrase, traderSign, sponserAccountSign)
 	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
 	}
 
-	resp, err := client.SubmitTransaction(signedTx)
+	response, err := client.SubmitTransaction(signedTx)
 	if err != nil {
-		return "", err
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
 	} else {
-		return resp.Hash, nil
+		logrus.Info("CoinConvert ", response.Hash)
+		pathPayment.ReceivingCoin.Amount = convertion.Destination.Amount
+		pathPayment.Hash = response.Hash
+		return pathPayment, nil
 	}
 }
 
 // GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin
-func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (string, error) {
+func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (model.DestinationCoin, error) {
+	var destinationAssert model.DestinationCoin
 	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer)
 	if err != nil {
 		log.Error("Unable to reach Stellar network in result1")
-		return "", err
+		return destinationAssert, err
 	}
 	if result.StatusCode != 200 {
-		return "", errors.New(result.Status)
+		return destinationAssert, errors.New(result.Status)
 	}
 	defer result.Body.Close()
 	coinconvertionInfo, err := ioutil.ReadAll(result.Body)
 	if err != nil {
-		return "", err
+		log.Error(err)
+		return destinationAssert, err
 	}
 	var raw map[string]interface{}
 	var raw1 []interface{}
+	var raw2 []interface{}
+
 	json.Unmarshal(coinconvertionInfo, &raw)
 
 	out1, _ := json.Marshal(raw["_embedded"])
@@ -118,9 +158,24 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 
 	record := raw1[0].(map[string]interface{})
 	destinationAmount := fmt.Sprintf("%v", record["destination_amount"])
+	destinationAssert.Destination.Amount = destinationAmount
+	destinationAssert.Destination.CoinName = to
 
-	if destinationAmount == "" {
-		return destinationAmount, errors.New("Destination amount is empty")
+	out3, _ := json.Marshal(record["path"])
+	json.Unmarshal(out3, &raw2)
+
+	for i := range raw2 {
+		path := raw2[i].(map[string]interface{})
+		pathAssert := model.CoinPath{
+			Type:     fmt.Sprintf("%v", path["asset_type"]),
+			CoinName: fmt.Sprintf("%v", path["asset_code"]),
+			Issuer:   fmt.Sprintf("%v", path["asset_issuer"]),
+		}
+		destinationAssert.IntermediateCoin = append(destinationAssert.IntermediateCoin, pathAssert)
 	}
-	return destinationAmount, nil
+	if destinationAmount == "" {
+		log.Error("Destination amount is empty")
+		return destinationAssert, errors.New("Destination amount is empty")
+	}
+	return destinationAssert, nil
 }

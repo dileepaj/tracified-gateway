@@ -15,7 +15,7 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 	var poolJson []model.BuildPool
 	portion := equationJson.EquationSubPortion
 	for i := 0; i < len(portion); i++ {
-		//loop the subportion and create a pair array(poolJson) n and n+1 
+		// loop the subportion and create a pair array(poolJson) n and n+1
 		for j := 0; j < len(portion[i].FieldAndCoin); j++ {
 			if j+1 < len(portion[i].FieldAndCoin) {
 				//
@@ -23,11 +23,11 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 
 				// ration string split by .
 				removeDecimal := strings.Split(ratio, ".")
-				//counting the character in a ratio string value and calculating the 10th multiplication factor
+				// counting the character in a ratio string value and calculating the 10th multiplication factor
 				multiplicationZeros := len(removeDecimal[0]) - 1
 
-				// multiplicationFactor==> coin multiplication factor 
-				//Note maximum 1000000000 coin can be issued by the issuer
+				// multiplicationFactor==> coin multiplication factor
+				// Note maximum 1000000000 coin can be issued by the issuer
 				var multiplicationFactor int
 				if multiplicationZeros == 0 {
 					multiplicationFactor = 100000000
@@ -64,7 +64,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 			if len(portion[i].FieldAndCoin) > 0 {
 				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
-					//count the userIput type variable in a  sub portion
+					// count the userIput type variable in a  sub portion
 					if portion[i].FieldAndCoin[j].VariableType == "userInput" {
 						userInputCount++
 					}
@@ -76,7 +76,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						}
 					}
 				}
-				//checked whether sub-portion contain only one user input
+				// checked whether sub-portion contain only one user input
 				if userInputCount != 1 {
 					return model.CreatePool{}, errors.New("Equation's sub portion can not contain two user input")
 				}
@@ -128,4 +128,26 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 		}
 	}
 	return poolJson
+}
+
+func BuilPathPaymentJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
+	var buildPathPayments []model.BuildPathPayment
+	if coinConvertObject.UserInputs != nil && len(coinConvertObject.UserInputs) > 0 {
+		for _, inputCoin := range coinConvertObject.UserInputs {
+			buildPathPayment := model.BuildPathPayment{
+				SendingCoin:        model.Coin{Id: inputCoin.Id, CoinName: inputCoin.CoinName, Amount: inputCoin.Value},
+				ReceivingCoin:      model.Coin{Id: coinConvertObject.MetrixCoin.Id, CoinName: coinConvertObject.MetrixCoin.CointName, FieldName: coinConvertObject.MetrixCoin.FieldName},
+				BatchAccountPK:     batchAccountPK,
+				BatchAccountSK:     batchAccountSK,
+				CoinIssuerAccontPK: coinIsuserPK,
+				PoolId:             "",
+			}
+
+			buildPathPayments = append(buildPathPayments, buildPathPayment)
+
+		}
+	} else {
+		return buildPathPayments, errors.New("user Input coin values are empty")
+	}
+	return buildPathPayments, nil
 }
