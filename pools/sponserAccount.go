@@ -17,6 +17,7 @@ var (
 
 var netClient = sdk.DefaultTestNetClient
 
+// CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
 func CreateSponseredAccount() (string, string, error) {
 	// create keypair
 	pair, err := keypair.Random()
@@ -46,6 +47,7 @@ func CreateSponseredAccount() (string, string, error) {
 		logrus.Error(err)
 		return "", "", err
 	}
+	// sponsering account and create accoun with 0 lumen
 	CreateAccount := []txnbuild.Operation{
 		&txnbuild.BeginSponsoringFutureReserves{
 			SponsoredID:   address,

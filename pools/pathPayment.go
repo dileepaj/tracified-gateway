@@ -19,7 +19,7 @@ import (
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
 func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
-	if pathPayment.SendingCoin.CoinName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.CoinName == "" ||pathPayment.CoinIssuerAccontPK == "" {
+	if pathPayment.SendingCoin.CoinName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.CoinName == "" || pathPayment.CoinIssuerAccontPK == "" {
 		log.Error("CoinConvert() method's parameters have a empty values")
 		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
 	}
@@ -131,7 +131,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 	}
 }
 
-// GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin
+// GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin and get the coin convesion path (using stella call)
 func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (model.DestinationCoin, error) {
 	var destinationAssert model.DestinationCoin
 	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
@@ -162,13 +162,17 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 	json.Unmarshal(out2, &raw1)
 
 	record := raw1[0].(map[string]interface{})
+	// retrive the distination recived coin ammount
 	destinationAmount := fmt.Sprintf("%v", record["destination_amount"])
+
+	// set the distination recived coin ammount
 	destinationAssert.Destination.Amount = destinationAmount
 	destinationAssert.Destination.CoinName = to
 
 	out3, _ := json.Marshal(record["path"])
 	json.Unmarshal(out3, &raw2)
 
+	// retrive the coin converion paths and push it to array
 	for i := range raw2 {
 		path := raw2[i].(map[string]interface{})
 		pathAssert := model.CoinPath{

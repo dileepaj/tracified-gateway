@@ -113,7 +113,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 	return equationJson, nil
 }
 
-// rearrangedArray ,  Find element(coinsAndFiled) in a slice by variable type and move it to first position
+// rearrangedArray return the orded array ==> Find element(coinsAndFiled) in a slice by variable type and move it to first position
 func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAndCoin {
 	if len((poolJson)) == 0 || (poolJson)[0].VariableType == find {
 		return poolJson
@@ -130,7 +130,9 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 	return poolJson
 }
 
-func BuilPathPaymentJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
+// CoinConvertionJson ==>this method  rerstructed the coinConvertion request body recived by backend
+// metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
+func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	var buildPathPayments []model.BuildPathPayment
 	if coinConvertObject.UserInputs != nil && len(coinConvertObject.UserInputs) > 0 {
 		for _, inputCoin := range coinConvertObject.UserInputs {

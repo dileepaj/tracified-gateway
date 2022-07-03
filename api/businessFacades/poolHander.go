@@ -77,7 +77,8 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		logrus.Info(batchAccountSK)
 	}
 
-	pathpayments, err := pools.BuilPathPaymentJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
+	//CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
+	pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
 	if err != nil {
 		logrus.Error("Can not create Path Payment Json")
 		w.WriteHeader(http.StatusInternalServerError)
@@ -100,6 +101,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+	// build response with all coin details
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
 		CoinConertions: coinConversions,
 		ProductId:      newBatchConvertCoinObj.ProductID,
@@ -107,6 +109,8 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		EquationId:     newBatchConvertCoinObj.EquationID,
 		TenantId:       newBatchConvertCoinObj.TenantId,
 	}
+
+	// TODO each coinconversion details shoud be saved with timestamp 
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(buildCoinConvertionResponse)

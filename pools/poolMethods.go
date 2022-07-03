@@ -21,6 +21,8 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
+// TODO create a common method to submit all pool-related blockchain transactions
+
 var (
 	coinIsuserPK = "GDCZ47XSQW25KOCWMJLPMW54IACXPB4KNAZLDW7H6TG4R5P7PP7SERTN"
 	coinIsuserSK = "SBMOPQXVSY4WFLNOKAG3YPM2V3F6FLINW5W4IWAPRROUJJODFQSU4GE5"
@@ -29,7 +31,7 @@ var poolCoin []txnbuild.Asset
 
 var client = sdk.DefaultTestNetClient
 
-// IssueCoin issue coin to given specific account
+// IssueCoin ==> issue coin to given specific account
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
 	if err != nil {
@@ -78,7 +80,7 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 	}
 }
 
-// CreateCoin , create the coin (create trust line)
+// CreateCoin ==> create the coin (create trust line)
 func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
 	// validate weather the asset is issued by the issuer previously
 	assetIssued := assetIssued(coinName)
@@ -142,22 +144,15 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 	}
 }
 
-// CreateCoin , create the coin (create trust line)
+// CreateCoin ==> create the coin (create trust line)
 func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
 	fmt.Println(coinName,coinReceiverPK,coinReciverSK)
 
 	// validate weather there is a trustline for the relevent assset
 	trustLineCreated := trustlineCreated(coinName, coinReceiverPK)
-	// fmt.Println(trustLineCreated)
 
 	// if asset is not issued and there is no DB records, then complete the transaction
 	if trustLineCreated == false {
-		// Load the corresponding account for both A and C.
-		// coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
-		// if err != nil {
-		// 	logrus.Error("3",err)
-		// 	return "", err
-		// }
 		sponserAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: sponsorPK})
 		if err != nil {
 			logrus.Error(err)
@@ -337,6 +332,7 @@ func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 }
 
 // DepositeToPool, deposite the coin to pool
+// TODO return thepool Id
 func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coinReciverSK string, maxReserveA string, maxReserveB string) (string, error) {
 	distributorAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 	if err != nil {
