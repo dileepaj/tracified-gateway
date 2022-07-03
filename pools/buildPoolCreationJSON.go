@@ -136,7 +136,7 @@ func BuilPathPaymentJson(coinConvertObject model.BatchCoinConvert, batchAccountP
 		for _, inputCoin := range coinConvertObject.UserInputs {
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin:        model.Coin{Id: inputCoin.Id, CoinName: inputCoin.CoinName, Amount: inputCoin.Value},
-				ReceivingCoin:      model.Coin{Id: coinConvertObject.MetrixCoin.Id, CoinName: coinConvertObject.MetrixCoin.CointName, FieldName: coinConvertObject.MetrixCoin.FieldName},
+				ReceivingCoin:      model.Coin{Id: coinConvertObject.MetricCoin.Id, CoinName: coinConvertObject.MetricCoin.CoinName, FieldName: coinConvertObject.MetricCoin.FieldName},
 				BatchAccountPK:     batchAccountPK,
 				BatchAccountSK:     batchAccountSK,
 				CoinIssuerAccontPK: coinIsuserPK,

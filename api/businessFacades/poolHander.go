@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -60,23 +59,15 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			BatchAccountPK: batchAccountPK,
 			BatchAccountSK: batchAccountSK,
 		}
-
 		object := dao.Connection{}
 		errResult := object.InsertBatchAccount(batchAccount)
 		if errResult != nil {
 			logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
-		} else {
-			logrus.Info("Batch account added to the DB")
-			w.WriteHeader(http.StatusBadRequest)
-			result := apiModel.SubmitXDRSuccess{
-				Status: "Batch account added to the DB",
-			}
+			w.WriteHeader(http.StatusInternalServerError)
+			result := "Error when inserting batch acccount to DB"
 			json.NewEncoder(w).Encode(result)
 			return
 		}
-
-		// call path payment methods
-
 	} else {
 		// if there is an account go to path payments directly
 		batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK
@@ -88,23 +79,33 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 
 	pathpayments, err := pools.BuilPathPaymentJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
 	if err != nil {
-		logrus.Info("Batch account added to the DB")
-		w.WriteHeader(http.StatusOK)
+		logrus.Error("Can not create Path Payment Json")
+		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode("Can not create Path Payment Json")
+		return
 	}
 
 	for _, pathPayment := range pathpayments {
 		coinConversion, err := pools.CoinConvert(pathPayment)
-		fmt.Println("dsadasdsa----------------          ", coinConversion, err)
-		coinConversions = append(coinConversions, coinConversion)
+		if err != nil {
+			logrus.Error("Coin converion issue ", err)
+		} else {
+			coinConversions = append(coinConversions, coinConversion)
+		}
 	}
-
+	if len(coinConversions) <= 0 {
+		logrus.Info("Can not convert any Coin")
+		w.WriteHeader(http.StatusInternalServerError)
+		result := "Empty coin convertion"
+		json.NewEncoder(w).Encode(result)
+		return
+	}
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
-		BuildPathPayment: coinConversions,
-		ProductId:        newBatchConvertCoinObj.ProductID,
-		ProductIdName:    newBatchConvertCoinObj.ProductName,
-		EquationId:       newBatchConvertCoinObj.EquationID,
-		TenantId:         newBatchConvertCoinObj.TenantId,
+		CoinConertions: coinConversions,
+		ProductId:      newBatchConvertCoinObj.ProductID,
+		ProductIdName:  newBatchConvertCoinObj.ProductName,
+		EquationId:     newBatchConvertCoinObj.EquationID,
+		TenantId:       newBatchConvertCoinObj.TenantId,
 	}
 
 	// amount, err := pools.GetConvertedCoinAmount("K7", "100", "CF", "GDCZ47XSQW25KOCWMJLPMW54IACXPB4KNAZLDW7H6TG4R5P7PP7SERTN")

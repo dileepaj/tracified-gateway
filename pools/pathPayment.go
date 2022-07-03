@@ -19,6 +19,10 @@ import (
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
 func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
+	if pathPayment.SendingCoin.CoinName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.CoinName == "" ||pathPayment.CoinIssuerAccontPK == "" {
+		log.Error("CoinConvert() method's parameters have a empty values")
+		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
+	}
 	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.CoinName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK)
 	if err != nil {
 		logrus.Error(err)
@@ -120,7 +124,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
 	} else {
-		logrus.Info("CoinConvert ", response.Hash)
+		logrus.Info("CoinConverted ", response.Hash)
 		pathPayment.ReceivingCoin.Amount = convertion.Destination.Amount
 		pathPayment.Hash = response.Hash
 		return pathPayment, nil
@@ -130,13 +134,14 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 // GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin
 func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (model.DestinationCoin, error) {
 	var destinationAssert model.DestinationCoin
-	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer)
+	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
+	result, err := http.Get(url)
 	if err != nil {
-		log.Error("Unable to reach Stellar network in result1")
+		log.Error("Unable to reach Stellar network", url)
 		return destinationAssert, err
 	}
 	if result.StatusCode != 200 {
-		return destinationAssert, errors.New(result.Status)
+		return destinationAssert, errors.New(result.Status + " The request you sent to pool assert convertion was invalid in some way" + " " + url)
 	}
 	defer result.Body.Close()
 	coinconvertionInfo, err := ioutil.ReadAll(result.Body)
@@ -174,7 +179,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 		destinationAssert.IntermediateCoin = append(destinationAssert.IntermediateCoin, pathAssert)
 	}
 	if destinationAmount == "" {
-		log.Error("Destination amount is empty")
+		log.Error("Destination amount is empty" + url)
 		return destinationAssert, errors.New("Destination amount is empty")
 	}
 	return destinationAssert, nil

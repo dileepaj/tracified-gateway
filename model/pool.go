@@ -18,11 +18,11 @@ type BuildPathPayment struct {
 }
 
 type BuildPathPaymentJSon struct {
-	BuildPathPayment []BuildPathPayment
-	ProductId        string
-	ProductIdName    string
-	EquationId       string
-	TenantId         string
+	CoinConertions []BuildPathPayment
+	ProductId      string
+	ProductIdName  string
+	EquationId     string
+	TenantId       string
 }
 
 type BuildPool struct {
@@ -121,7 +121,7 @@ type BatchCoinConvert struct {
 	BatchID     string
 	BatchName   string
 	StageId     string
-	MetrixCoin  MetrixCoin
+	MetricCoin  MetricCoin
 	UserInputs  []UserInput
 }
 
