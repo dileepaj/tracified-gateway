@@ -108,9 +108,6 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		TenantId:       newBatchConvertCoinObj.TenantId,
 	}
 
-	// amount, err := pools.GetConvertedCoinAmount("K7", "100", "CF", "GDCZ47XSQW25KOCWMJLPMW54IACXPB4KNAZLDW7H6TG4R5P7PP7SERTN")
-	// fmt.Println("api --", amount, err)
-
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(buildCoinConvertionResponse)
 	return

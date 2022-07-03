@@ -160,22 +160,22 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 		// }
 		sponserAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: sponsorPK})
 		if err != nil {
-			logrus.Error("3",err)
+			logrus.Error(err)
 			return "", err
 		}
 		coinReceiverSign, err := keypair.ParseFull(coinReciverSK)
 		if err != nil {
-			logrus.Error("4",err)
+			logrus.Error(err)
 			return "", err
 		}
 		coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIsuserPK}.ToChangeTrustAsset()
 		if err != nil {
-			logrus.Error("5",err)
+			logrus.Error(err)
 			return "", err
 		}
 		sponserSign, err := keypair.ParseFull(sponsorSK)
 		if err != nil {
-			logrus.Error("6",err)
+			logrus.Error(err)
 			return "", err
 		}
 
