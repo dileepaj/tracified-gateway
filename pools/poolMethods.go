@@ -1,6 +1,7 @@
 package pools
 
 import (
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -24,8 +25,8 @@ import (
 // TODO create a common method to submit all pool-related blockchain transactions
 
 var (
-	coinIsuserPK = "GDCZ47XSQW25KOCWMJLPMW54IACXPB4KNAZLDW7H6TG4R5P7PP7SERTN"
-	coinIsuserSK = "SBMOPQXVSY4WFLNOKAG3YPM2V3F6FLINW5W4IWAPRROUJJODFQSU4GE5"
+	coinIsuserPK = "GDTFRISLK4IVQGYWLO23B52GEXEU7WRFNSTW5B3I325T33XITA7FTQAT"
+	coinIsuserSK = "SD5Z2FE3NZIZ7NR2DQOQT6L6HNQGJ6EUVS76AC4OW2VPUKDGOBJQXKAG"
 )
 var poolCoin []txnbuild.Asset
 
@@ -264,7 +265,7 @@ func GeneratePoolId(a string, b string) (txnbuild.LiquidityPoolId, bool) {
 			Fee:    txnbuild.LiquidityPoolFeeV18,
 		}}.GetLiquidityPoolID()
 	}
-	logrus.Info("PoolId ", poolId)
+	logrus.Info("PoolId ", hex.EncodeToString(poolId[:]))
 	return poolId, err
 }
 

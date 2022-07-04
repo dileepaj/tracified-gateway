@@ -153,7 +153,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// create the pools
-	cratedPools, err := pools.CreatePoolsUsingJson(poolCreationJSON)
+	cratedPools, err, isPoolCreated := pools.CreatePoolsUsingJson(poolCreationJSON)
 	if err != nil {
 		logrus.Error(cratedPools, err)
 		json.NewEncoder(w).Encode(err)
@@ -166,17 +166,31 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		TenantId:   equationJsonObj.TenantID,
 		BuildPools: cratedPools,
 	}
-
-	// insert the pool to the DB
-	object := dao.Connection{}
-	err1 := object.InsertPool(response)
-	if err1 != nil {
-		log.Println("Error when inserting pool to DB " + err.Error())
+	//check if the pool is created
+	if isPoolCreated{
+		log.Println("New pools are created")
+		// insert the pool to the DB
+		object := dao.Connection{}
+		err1 := object.InsertPool(response)
+		if err1 != nil {
+			log.Println("Error when inserting pool to DB " + err.Error())
+		} else {
+			log.Println("Pool added to the DB")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(response)
+			return
+		}
 	} else {
-		log.Println("Pool added to the DB")
+		log.Println("New pools are not created")
 		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(response)
-		return
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Pool is already created and deposited",
+			}
+			json.NewEncoder(w).Encode(result)
+			return
 	}
+
+	
 }
