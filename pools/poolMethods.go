@@ -2,7 +2,6 @@ package pools
 
 import (
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -24,8 +23,8 @@ import (
 // TODO create a common method to submit all pool-related blockchain transactions
 
 var (
-	coinIsuserPK = "GDCZ47XSQW25KOCWMJLPMW54IACXPB4KNAZLDW7H6TG4R5P7PP7SERTN"
-	coinIsuserSK = "SBMOPQXVSY4WFLNOKAG3YPM2V3F6FLINW5W4IWAPRROUJJODFQSU4GE5"
+	coinIsuserPK = "GD5WHVKSMPQNFDJOPOMMFVVTLRT5GZXBVSVUZZAWMW6KPS4WQABSG4GH"
+	coinIsuserSK = "SA6P6HYPLYMWJUYI3XTMHKJ3CU5EYQKZVSURHC64F5RNHLXFWPXCMQYP"
 )
 var poolCoin []txnbuild.Asset
 
@@ -88,7 +87,6 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 
 	// validate weather there is a trustline for the relevent assset
 	trustLineCreated := trustlineCreated(coinName, coinReceiverPK)
-	// fmt.Println(trustLineCreated)
 
 	// if asset is not issued and there is no DB records, then complete the transaction
 	if trustLineCreated == false {
@@ -146,8 +144,6 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 
 // CreateCoin ==> create the coin (create trust line)
 func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK string) (string, error) {
-	fmt.Println(coinName,coinReceiverPK,coinReciverSK)
-
 	// validate weather there is a trustline for the relevent assset
 	trustLineCreated := trustlineCreated(coinName, coinReceiverPK)
 
@@ -201,7 +197,6 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 			},
 		)
-		fmt.Println(tx)
 		if err != nil {
 			logrus.Error(err)
 			return "", err
@@ -211,8 +206,6 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 			logrus.Error(err)
 			return "", err
 		}
-		a,e:=signedTx.Base64()
-		fmt.Println(a,e)
 		resp, err := client.SubmitTransaction(signedTx)
 		if err != nil {
 			logrus.Error(err)

@@ -136,6 +136,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 	var destinationAssert model.DestinationCoin
 	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
 	result, err := http.Get(url)
+	fmt.Println(url, "  ",result,err)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)
 		return destinationAssert, err
@@ -160,7 +161,9 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 
 	out2, _ := json.Marshal(raw["records"])
 	json.Unmarshal(out2, &raw1)
-
+	if len(raw1)<=0{
+		return destinationAssert,errors.New("pool not Created")
+	}
 	record := raw1[0].(map[string]interface{})
 	// retrive the distination recived coin ammount
 	destinationAmount := fmt.Sprintf("%v", record["destination_amount"])
@@ -173,7 +176,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 	json.Unmarshal(out3, &raw2)
 
 	// retrive the coin converion paths and push it to array
-	for i := range raw2 {
+	for i,_ := range raw2 {
 		path := raw2[i].(map[string]interface{})
 		pathAssert := model.CoinPath{
 			Type:     fmt.Sprintf("%v", path["asset_type"]),
