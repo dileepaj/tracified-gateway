@@ -29,6 +29,10 @@ func CreatePoolsUsingJson(pools []model.BuildPool) ([]model.BuildPool, error) {
 // CreatePool carate the pool by handling all blackchain calls
 func CreatePool(buildPool model.BuildPool) (model.BuildPool, error) {
 	var depostHash2 string
+	//TODO generate pool ID
+	//TODO 1.check if the pool ID exists, 404
+	//TODO 2.if 200, amount 0, execute the deposite
+	//TODO 3.if 200, amount not 0 skip
 	CreateCoin(buildPool.Coin1, depositorPK, depositorSK)
 	CreateCoin(buildPool.Coin2, depositorPK, depositorSK)
 	IssueCoin(buildPool.Coin1, depositorPK, buildPool.DepositeAmountCoin1)
@@ -37,6 +41,7 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error) {
 	if !err {
 		return model.BuildPool{}, errors.New("Can not create poold Id")
 	}
+	//TODO convert POOLID to string
 	// EstablishPoolTrustline , this method create trust line(change trusst opration) with pool
 	_, err1 := EstablishPoolTrustline(buildPool.Coin1, buildPool.Coin2, depositorPK, depositorSK)
 	if err1 != nil {

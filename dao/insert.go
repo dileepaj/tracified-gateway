@@ -268,3 +268,20 @@ func (cd *Connection) InsertPool(pool model.BuildPoolResponse) error{
 	return err
 	
 }
+
+//insert coin convert details to the DB
+func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.BuildPathPaymentJSon) error{
+	session, err := cd.connect()
+
+	if err != nil{
+		fmt.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("CoinConversion")
+	_, err = c.InsertOne(context.TODO(), buildCoinConvertionObj)
+	if err != nil {
+		fmt.Println("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}

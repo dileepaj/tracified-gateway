@@ -109,12 +109,16 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		EquationId:     newBatchConvertCoinObj.EquationID,
 		TenantId:       newBatchConvertCoinObj.TenantId,
 	}
-
-	// TODO each coinconversion details shoud be saved with timestamp 
-
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(buildCoinConvertionResponse)
-	return
+	err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
+	if err1 != nil {
+		log.Println("Error when inserting coin conversion details to DB " + err.Error())
+	} else {
+		log.Println("Coin conversion details added to the DB")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(buildCoinConvertionResponse)
+		return
+	}
 }
 
 func CreatePool(w http.ResponseWriter, r *http.Request) {
