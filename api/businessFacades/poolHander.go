@@ -38,18 +38,6 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	}).Await()
 
 	if data == nil {
-		// if not create the sponsering account
-		batchPK, batchSK, err := pools.CreateSponseredAccount()
-		batchAccountPK = batchPK
-		batchAccountSK = batchSK
-		logrus.Info(batchAccountPK)
-		logrus.Info(batchAccountSK)
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			result := "Can not Create Batch Account " + err.Error()
-			json.NewEncoder(w).Encode(result)
-		}
-		// add account to the DB
 		batchAccount := model.BatchAccount{
 			BatchID:        newBatchConvertCoinObj.BatchID,
 			BatchName:      newBatchConvertCoinObj.BatchName,
@@ -58,19 +46,18 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			ProductID:      newBatchConvertCoinObj.ProductID,
 			EquationID:     newBatchConvertCoinObj.EquationID,
 			StageID:        newBatchConvertCoinObj.StageId,
-			BatchAccountPK: batchAccountPK,
-			BatchAccountSK: batchAccountSK,
 			MetricCoin:     newBatchConvertCoinObj.MetricCoin,
 		}
-		object := dao.Connection{}
-		errResult := object.InsertBatchAccount(batchAccount)
-		if errResult != nil {
-			logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
+		// if not create the sponsering account
+		bPK, bSK, err := pools.CreateSponseredAccount(batchAccount)
+		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			result := "Error when inserting batch acccount to DB"
+			result := "Can not Create Batch Account " + err.Error()
 			json.NewEncoder(w).Encode(result)
 			return
 		}
+		batchAccountPK = bPK
+		batchAccountSK = bSK
 	} else {
 		// if there is an account go to path payments directly
 		batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK

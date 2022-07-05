@@ -1,6 +1,8 @@
 package pools
 
 import (
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	sdk "github.com/stellar/go/clients/horizonclient"
@@ -18,12 +20,12 @@ var (
 var netClient = sdk.DefaultTestNetClient
 
 // CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
-func CreateSponseredAccount() (string, string, error) {
+func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, error) {
 	// create keypair
 	pair, err := keypair.Random()
 	if err != nil {
 		logrus.Error("1", err)
-		return "", "", err
+		return "","",  err
 	}
 
 	logrus.Info(pair.Seed())
@@ -33,19 +35,19 @@ func CreateSponseredAccount() (string, string, error) {
 	generatedAccount,err := keypair.ParseFull(pair.Seed())
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	}
 	request := horizonclient.AccountRequest{AccountID: sponsorPK}
 	sponsorAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	}
 
 	sponsor, err := keypair.ParseFull(sponsorSK)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	}
 	// sponsering account and create accoun with 0 lumen
 	CreateAccount := []txnbuild.Operation{
@@ -74,21 +76,30 @@ func CreateSponseredAccount() (string, string, error) {
 	})
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	}
 
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor,generatedAccount)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	}
 
 	response, err := client.SubmitTransaction(signedTx)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "","",  err
 	} else {
+		batchAccount.BatchAccountPK = pair.Address()
+		batchAccount.BatchAccountSK = pair.Seed()
 		logrus.Info("Batch account created ", response.Hash)
+		//insert to DB
+		object := dao.Connection{}
+		errResult := object.InsertBatchAccount(batchAccount)
+		if errResult != nil {
+			logrus.Error("Cannot insert batch account to DB ", errResult)
+			return "","",  errResult
+		}
 		return pair.Address(), pair.Seed(), nil
 	}
 }
