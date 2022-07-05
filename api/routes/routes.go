@@ -440,4 +440,10 @@ var routes = Routes{
 		"/socialimapact/pool",
 		businessFacades.CreatePool,
 	},
+	Route{
+		"Calculate equation result for specific batch",
+		"POST",
+		"/socialimapact/batch",
+		businessFacades.CacluateEquationForBatch,
+	},
 }

@@ -115,7 +115,7 @@ type UserInput struct {
 }
 type BatchCoinConvert struct {
 	EquationID  string
-	TenantId    string
+	TenantID    string
 	ProductName string
 	ProductID   string
 	BatchID     string
@@ -126,11 +126,13 @@ type BatchCoinConvert struct {
 }
 
 type BatchAccount struct {
-	TenentID       string
+	TenantID       string
 	BatchID        string
 	EquationID     string
 	BatchName      string
+	ProductID      string
 	ProductName    string
+	MetricCoin     MetricCoin
 	StageID        string
 	BatchAccountPK string
 	BatchAccountSK string
@@ -176,4 +178,28 @@ type CreatePool struct {
 	SimpleifedEquation   string
 	MetricCoin           MetricCoin
 	EquationSubPortion   []EquationSubPortion
+}
+
+type CalculateEquationForBatch struct {
+	TenantID    string
+	ProductName string
+	ProductID   string
+	BatchID     string
+	BatchName   string
+	StageId     string
+	EquationID  string
+	MetrixType  string
+}
+type EquationResultForBatch struct {
+	TenantID       string
+	ProductName    string
+	ProductID      string
+	BatchID        string
+	BatchName      string
+	StageId        string
+	EquationID     string
+	MetrixType     string
+	MetricCoin     MetricCoin
+	BatchAccount   string
+	EquationResult string
 }

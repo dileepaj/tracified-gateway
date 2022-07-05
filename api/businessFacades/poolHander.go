@@ -32,7 +32,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 
 	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.ProductName).Then(func(data interface{}) interface{} {
+	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 
@@ -41,7 +41,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		batchAccount := model.BatchAccount{
 			BatchID:     newBatchConvertCoinObj.BatchID,
 			BatchName:   newBatchConvertCoinObj.BatchName,
-			TenentID:    newBatchConvertCoinObj.TenantId,
+			TenantID:    newBatchConvertCoinObj.TenantID,
 			ProductName: newBatchConvertCoinObj.ProductName,
 			EquationID:  newBatchConvertCoinObj.EquationID,
 			StageID:     newBatchConvertCoinObj.StageId,
@@ -104,7 +104,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		ProductId:      newBatchConvertCoinObj.ProductID,
 		ProductIdName:  newBatchConvertCoinObj.ProductName,
 		EquationId:     newBatchConvertCoinObj.EquationID,
-		TenantId:       newBatchConvertCoinObj.TenantId,
+		TenantId:       newBatchConvertCoinObj.TenantID,
 	}
 	err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
 	if err1 != nil {
@@ -188,4 +188,59 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+}
+
+func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+
+	var calculateEquationObj model.CalculateEquationForBatch
+	var equationResponse model.EquationResultForBatch
+
+	err := json.NewDecoder(r.Body).Decode(&calculateEquationObj)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while decoding the body")
+		return
+	}
+	object := dao.Connection{}
+	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.BatchID, calculateEquationObj.EquationID, calculateEquationObj.ProductName, calculateEquationObj.TenantID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+
+	if data == nil {
+		logrus.Info("Can not find the Batch account")
+		w.WriteHeader(http.StatusNoContent)
+		result := "Can not find the Batch account"
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	dbData := data.(model.BatchAccount)
+	coinBalance, err := pools.CalculateCoin(dbData)
+	if err != nil {
+		logrus.Info("Can not find the assert in account")
+		w.WriteHeader(http.StatusNoContent)
+		result := "Can not find the coin in account"
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	equationResponse = model.EquationResultForBatch{
+		TenantID:       dbData.TenantID,
+		ProductName:    dbData.ProductName,
+		ProductID:      dbData.ProductID,
+		BatchID:        dbData.BatchID,
+		BatchName:      dbData.BatchName,
+		StageId:        dbData.StageID,
+		EquationID:     dbData.EquationID,
+		MetrixType:     calculateEquationObj.MetrixType,
+		MetricCoin:     dbData.MetricCoin,
+		BatchAccount:   dbData.BatchAccountPK,
+		EquationResult: coinBalance,
+	}
+
+	log.Println("Equation result")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(equationResponse)
+	return
 }

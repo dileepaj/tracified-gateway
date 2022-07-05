@@ -160,7 +160,9 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 
 	out2, _ := json.Marshal(raw["records"])
 	json.Unmarshal(out2, &raw1)
-
+	if len(raw1)<=0{
+		return destinationAssert,errors.New("pool not Created")
+	}
 	record := raw1[0].(map[string]interface{})
 	// retrive the distination recived coin ammount
 	destinationAmount := fmt.Sprintf("%v", record["destination_amount"])
@@ -173,7 +175,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 	json.Unmarshal(out3, &raw2)
 
 	// retrive the coin converion paths and push it to array
-	for i := range raw2 {
+	for i,_ := range raw2 {
 		path := raw2[i].(map[string]interface{})
 		pathAssert := model.CoinPath{
 			Type:     fmt.Sprintf("%v", path["asset_type"]),
