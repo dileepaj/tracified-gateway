@@ -1,6 +1,8 @@
 package pools
 
 import (
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	sdk "github.com/stellar/go/clients/horizonclient"
@@ -18,7 +20,7 @@ var (
 var netClient = sdk.DefaultTestNetClient
 
 // CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
-func CreateSponseredAccount() (string, string, error) {
+func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, error) {
 	// create keypair
 	pair, err := keypair.Random()
 	if err != nil {
@@ -29,6 +31,15 @@ func CreateSponseredAccount() (string, string, error) {
 	logrus.Info(pair.Seed())
 	logrus.Info(pair.Address())
 
+	batchAccount.BatchAccountPK=pair.Address()
+	batchAccount.BatchAccountSK=pair.Seed()
+
+	object := dao.Connection{}
+	errResult := object.InsertBatchAccount(batchAccount)
+	if errResult != nil {
+		logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
+		return "","",errResult
+	}
 	address := pair.Address()
 	generatedAccount,err := keypair.ParseFull(pair.Seed())
 	if err != nil {

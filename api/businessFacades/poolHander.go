@@ -37,8 +37,17 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	}).Await()
 
 	if data == nil {
+		// add account to the DB
+		batchAccount := model.BatchAccount{
+			BatchID:     newBatchConvertCoinObj.BatchID,
+			BatchName:   newBatchConvertCoinObj.BatchName,
+			TenentID:    newBatchConvertCoinObj.TenantId,
+			ProductName: newBatchConvertCoinObj.ProductName,
+			EquationID:  newBatchConvertCoinObj.EquationID,
+			StageID:     newBatchConvertCoinObj.StageId,
+		}
 		// if not create the sponsering account
-		batchPK, batchSK, err := pools.CreateSponseredAccount()
+		batchPK, batchSK, err := pools.CreateSponseredAccount(batchAccount)
 		batchAccountPK = batchPK
 		batchAccountSK = batchSK
 		logrus.Info(batchAccountPK)
@@ -47,27 +56,9 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			result := "Can not Create Batch Account " + err.Error()
 			json.NewEncoder(w).Encode(result)
-		}
-		// add account to the DB
-		batchAccount := model.BatchAccount{
-			BatchID:        newBatchConvertCoinObj.BatchID,
-			BatchName:      newBatchConvertCoinObj.BatchName,
-			TenentID:       newBatchConvertCoinObj.TenantId,
-			ProductName:    newBatchConvertCoinObj.ProductName,
-			EquationID:     newBatchConvertCoinObj.EquationID,
-			StageID:        newBatchConvertCoinObj.StageId,
-			BatchAccountPK: batchAccountPK,
-			BatchAccountSK: batchAccountSK,
-		}
-		object := dao.Connection{}
-		errResult := object.InsertBatchAccount(batchAccount)
-		if errResult != nil {
-			logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-			result := "Error when inserting batch acccount to DB"
-			json.NewEncoder(w).Encode(result)
 			return
 		}
+
 	} else {
 		// if there is an account go to path payments directly
 		batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK
@@ -77,7 +68,13 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		logrus.Info(batchAccountSK)
 	}
 
-	//CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
+	if batchAccountPK == "" || batchAccountSK == "" {
+		w.WriteHeader(http.StatusInternalServerError)
+		result := "Can not find Batch Account " + err.Error()
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
 	pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
 	if err != nil {
 		logrus.Error("Can not create Path Payment Json")
@@ -166,8 +163,8 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		TenantId:   equationJsonObj.TenantID,
 		BuildPools: cratedPools,
 	}
-	//check if the pool is created
-	if isPoolCreated{
+	// check if the pool is created
+	if isPoolCreated {
 		log.Println("New pools are created")
 		// insert the pool to the DB
 		object := dao.Connection{}
@@ -184,13 +181,11 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println("New pools are not created")
 		w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			result := apiModel.SubmitXDRSuccess{
-				Status: "Pool is already created and deposited",
-			}
-			json.NewEncoder(w).Encode(result)
-			return
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Pool is already created and deposited",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
 	}
-
-	
 }
