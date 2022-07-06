@@ -28,20 +28,20 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 		return "", "", err
 	}
 
-	logrus.Info(pair.Seed())
-	logrus.Info(pair.Address())
+	// logrus.Info(pair.Seed())
+	// logrus.Info(pair.Address())
 
-	batchAccount.BatchAccountPK=pair.Address()
-	batchAccount.BatchAccountSK=pair.Seed()
+	batchAccount.BatchAccountPK = pair.Address()
+	batchAccount.BatchAccountSK = pair.Seed()
 
 	object := dao.Connection{}
 	errResult := object.InsertBatchAccount(batchAccount)
 	if errResult != nil {
 		logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
-		return "","",errResult
+		return "", "", errResult
 	}
 	address := pair.Address()
-	generatedAccount,err := keypair.ParseFull(pair.Seed())
+	generatedAccount, err := keypair.ParseFull(pair.Seed())
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err
@@ -88,7 +88,7 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 		return "", "", err
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor,generatedAccount)
+	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor, generatedAccount)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err
@@ -101,5 +101,73 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	} else {
 		logrus.Info("Batch account created ", response.Hash)
 		return pair.Address(), pair.Seed(), nil
+	}
+}
+
+// CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
+func FundedSponseredAccount(address string, seed string) (string, string, error) {
+	logrus.Info("FundedSponseredAccount ", address)
+	// logrus.Info(seed)
+
+	generatedAccount, err := keypair.ParseFull(seed)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+	request := horizonclient.AccountRequest{AccountID: sponsorPK}
+	sponsorAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+
+	sponsor, err := keypair.ParseFull(sponsorSK)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+	// sponsering account and create accoun with 0 lumen
+	CreateAccount := []txnbuild.Operation{
+		&txnbuild.BeginSponsoringFutureReserves{
+			SponsoredID:   address,
+			SourceAccount: sponsorPK,
+		},
+
+		&txnbuild.CreateAccount{
+			Destination:   address,
+			Amount:        "0",
+			SourceAccount: sponsorPK,
+		},
+		&txnbuild.EndSponsoringFutureReserves{
+			SourceAccount: address,
+		},
+	}
+
+	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &sponsorAccount,
+		IncrementSequenceNum: true,
+		Operations:           CreateAccount,
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+	})
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+
+	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor, generatedAccount)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+
+	response, err := client.SubmitTransaction(signedTx)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	} else {
+		logrus.Info("Batch account created ", response.Hash)
+		return address, seed, nil
 	}
 }

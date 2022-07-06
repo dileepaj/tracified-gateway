@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/pools"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
+	"github.com/stellar/go/clients/horizonclient"
 )
 
 func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
@@ -50,22 +51,38 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		batchPK, batchSK, err := pools.CreateSponseredAccount(batchAccount)
 		batchAccountPK = batchPK
 		batchAccountSK = batchSK
-		logrus.Info(batchAccountPK)
-		logrus.Info(batchAccountSK)
+		logrus.Info("batchAccountPK ", batchPK)
+		// logrus.Info(batchAccountSK)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			result := "Can not Create Batch Account " + err.Error()
+			result := "Can not create batch account " + err.Error()
 			json.NewEncoder(w).Encode(result)
 			return
 		}
 
 	} else {
-		// if there is an account go to path payments directly
-		batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK
-		logrus.Info(batchAccountPK)
 
-		batchAccountSK = (data.(model.BatchAccount)).BatchAccountSK
-		logrus.Info(batchAccountSK)
+		_, err := horizonclient.DefaultTestNetClient.AccountDetail(horizonclient.AccountRequest{AccountID: batchAccountPK})
+		if err != nil {
+			logrus.Error("Batch Account Not funded")
+			batchPK, batchSK, err := pools.FundedSponseredAccount(batchAccountPK, batchAccountSK)
+			if err != nil {
+				w.WriteHeader(http.StatusInternalServerError)
+				result := "Can not funded batch account " + err.Error()
+				json.NewEncoder(w).Encode(result)
+				return
+			}
+			batchAccountPK = batchPK
+			batchAccountSK = batchSK
+		} else {
+
+			// if there is an account go to path payments directly
+			batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK
+			logrus.Info(batchAccountPK)
+
+			batchAccountSK = (data.(model.BatchAccount)).BatchAccountSK
+			logrus.Info(batchAccountSK)
+		}
 	}
 
 	if batchAccountPK == "" || batchAccountSK == "" {
