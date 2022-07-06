@@ -337,96 +337,100 @@ type TransactionHashWithIdentifier struct {
 }
 
 type TrustlineHistory struct {
-	CoinIssuer string
+	CoinIssuer   string
 	CoinReceiver string
-	Asset string
+	Asset        string
 }
 
-type MetrixCoin struct{
+type MetrixCoin struct {
 	CoinName string
 }
 
-type SendingCoin struct{
+type SendingCoin struct {
 	CoinName string
-	Amount string
+	Amount   string
 }
 
-type IntermediateCoin struct{
+type IntermediateCoin struct {
 	CoinName string
-	Amount string
+	Amount   string
 }
 
-type ReceivingCoin struct{
+type ReceivingCoin struct {
 	CoinName string
-	Amount string
+	Amount   string
 }
 
-type PathPayment struct{
-	Subportion string
-	SendingCoin []SendingCoin
+type PathPayment struct {
+	Subportion       string
+	SendingCoin      []SendingCoin
 	IntermediateCoin []IntermediateCoin
-	ReceivingCoin []ReceivingCoin
+	ReceivingCoin    []ReceivingCoin
 }
 
-type BatchCoinConvert struct{
-	TenantId string
-	FieldOfficerPK string
-	ProductName string
-	BatchID string
-	BatchName string
-	EquationID string
-	MetrixCoin [] MetrixCoin
-	Equation string
+type BatchCoinConvert struct {
+	TenantId         string
+	FieldOfficerPK   string
+	ProductName      string
+	BatchID          string
+	BatchName        string
+	EquationID       string
+	MetrixCoin       []MetrixCoin
+	Equation         string
 	RestructEquation string
-	PathPayment[] PathPayment 
+	PathPayment      []PathPayment
 }
 
-type BatchAccount struct{
-	BatchID string
-	TenentID string
-	ProductName string
-	EquationID string
-	BatchName string
+type BatchAccount struct {
+	BatchID        string
+	TenentID       string
+	ProductName    string
+	EquationID     string
+	BatchName      string
 	BatchAccountPK string
 	BatchAccountSK string
 }
 
-type MetricFormulas struct{
-	ActivityID string
+type MetricFormulas struct {
+	ActivityID      string
 	MetricFormulaID string
 }
 
-type MetricCoin struct{
-	CoinName string
+type MetricCoin struct {
+	CoinName    string
 	Description string
 }
 
-type FieldAndCoin struct{
-	ID string
-	CoinName string
-	FieldName string
-	Description string
+type FieldAndCoin struct {
+	ID            string
+	CoinName      string
+	FieldName     string
+	Description   string
 	UserInputType string
-	VariableType string
-	Value string
+	VariableType  string
+	Value         string
 }
 
-type EquationSubPortion struct{
-	Subportion string
+type EquationSubPortion struct {
+	Subportion   string
 	FieldAndCoin []FieldAndCoin
 }
 
-type CreatePool struct{
-	EquationID string
-	Timestamp string
-	Description string
-	TenantID string
-	MetricID string
-	MetricName string
-	MetrixType string
-	MetricFormulas []MetricFormulas
+type CreatePool struct {
+	EquationID           string
+	Timestamp            string
+	Description          string
+	TenantID             string
+	MetricID             string
+	MetricName           string
+	MetrixType           string
+	MetricFormulas       []MetricFormulas
 	EquatinStringFormate string
-	SimpleifedEquation string
-	MetricCoin MetricCoin
-	EquationSubPortion []EquationSubPortion
+	SimpleifedEquation   string
+	MetricCoin           MetricCoin
+	EquationSubPortion   []EquationSubPortion
+}
+
+type XDRRuri struct {
+	XDR string
 }

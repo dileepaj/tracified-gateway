@@ -416,7 +416,7 @@ var routes = Routes{
 		"/enable-cors",
 		businessFacades.EnableCorsAndResponse,
 	},
-		Route{
+	Route{
 		"Get all trasacion by identifer",
 		"GET",
 		"/transaction/identifier/{identifier}",
@@ -439,5 +439,11 @@ var routes = Routes{
 		"POST",
 		"/socialimapact/pool",
 		businessFacades.CreatePool,
+	},
+	Route{
+		"SponsorBuyer",
+		"GET",
+		"/nft/sponsor",
+		businessFacades.SponsorBuyer, //Calls the UpdateBuyingStatus in the nftHandler
 	},
 }

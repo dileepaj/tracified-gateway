@@ -32,7 +32,7 @@ func CheckTempOrphan() {
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
-		kp,_ := keypair.Parse(address)
+		kp, _ := keypair.Parse(address)
 
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
@@ -43,7 +43,7 @@ func CheckTempOrphan() {
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
-			seq, err := strconv.Atoi(sourceAccount.Sequence)
+			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
 			if err != nil {
 				log.Error("Error while convert string to int " + err.Error())
 			}
@@ -150,7 +150,7 @@ func CheckTempOrphan() {
 								break
 							}
 						}
-						case "2":
+					case "2":
 
 						// PreviousTXNBuilder := txnbuild.ManageData{
 						// 	Name:  "",
@@ -183,7 +183,7 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
-						
+
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
