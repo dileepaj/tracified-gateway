@@ -1,6 +1,5 @@
 package model
 
-// import "go.mongodb.org/mongo-driver/bson/primitive"
 type Coin struct {
 	Id        string
 	FieldName string
@@ -115,23 +114,25 @@ type UserInput struct {
 	Value     string
 }
 type BatchCoinConvert struct {
-	EquationID  string `json:"EquationId" bson:"EquationId" validate:"required"`
-	TenantId    string `json:"TenantId" bson:"TenantId" validate:"required"`
-	ProductName string `json:"ProductName" bson:"ProductName" validate:"required"`
-	ProductID   string `json:"ProductID" bson:"ProductID" validate:"required"`
-	BatchID     string `json:"BatchId" bson:"BatchId" validate:"required"`
-	BatchName   string `json:"BatchName" bson:"BatchName" validate:"required"`
-	StageId     string `json:"stargeId" bson:"stargeId" validate:"required"`
-	MetricCoin  MetricCoin `json:"metricCoin" bson:"metricCoin" validate:"required"`
+	EquationID  string      `json:"EquationId" bson:"EquationId" validate:"required"`
+	TenantId    string      `json:"TenantId" bson:"TenantId" validate:"required"`
+	ProductName string      `json:"ProductName" bson:"ProductName" validate:"required"`
+	ProductID   string      `json:"ProductID" bson:"ProductID" validate:"required"`
+	BatchID     string      `json:"BatchId" bson:"BatchId" validate:"required"`
+	BatchName   string      `json:"BatchName" bson:"BatchName" validate:"required"`
+	StageId     string      `json:"stargeId" bson:"stargeId" validate:"required"`
+	MetricCoin  MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
 	UserInputs  []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
 type BatchAccount struct {
-	TenentID       string
+	TenantID       string
 	BatchID        string
 	EquationID     string
 	BatchName      string
+	ProductID      string
 	ProductName    string
+	MetricCoin     MetricCoin
 	StageID        string
 	BatchAccountPK string
 	BatchAccountSK string
@@ -165,16 +166,40 @@ type EquationSubPortion struct {
 }
 
 type CreatePool struct {
-	EquationID           string `json:"equationId" bson:"equationId" validate:"required"`
-	Timestamp            string `json:"timestamp" bson:"timestamp" validate:"required"`
-	Description          string `json:"description" bson:"description" validate:"required"`
-	TenantID             string `json:"tenantId" bson:"tenantId" validate:"required"`
-	MetricID             string `json:"metricId" bson:"metricId" validate:"required"`
-	MetricName           string `json:"metricName" bson:"metricName" validate:"required"`
-	MetrixType           string `json:"metrixType" bson:"metrixType" validate:"required"`
-	MetricFormulas       []MetricFormulas `json:"metricFormulas" bson:"metricFormulas"`
-	EquatinStringFormate string `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
-	SimpleifedEquation   string `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
-	MetricCoin           MetricCoin `json:"metricCoin" bson:"metricCoin"`
+	EquationID           string               `json:"equationId" bson:"equationId" validate:"required"`
+	Timestamp            string               `json:"timestamp" bson:"timestamp" validate:"required"`
+	Description          string               `json:"description" bson:"description" validate:"required"`
+	TenantID             string               `json:"tenantId" bson:"tenantId" validate:"required"`
+	MetricID             string               `json:"metricId" bson:"metricId" validate:"required"`
+	MetricName           string               `json:"metricName" bson:"metricName" validate:"required"`
+	MetrixType           string               `json:"metrixType" bson:"metrixType" validate:"required"`
+	MetricFormulas       []MetricFormulas     `json:"metricFormulas" bson:"metricFormulas"`
+	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
+	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
+	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
 	EquationSubPortion   []EquationSubPortion `json:"equationSubPortion" bson:"equationSubPortion"`
+}
+
+type CalculateEquationForBatch struct {
+	TenantID    string
+	ProductName string
+	ProductID   string
+	BatchID     string
+	BatchName   string
+	StageId     string
+	EquationID  string
+	MetrixType  string
+}
+type EquationResultForBatch struct {
+	TenantID       string
+	ProductName    string
+	ProductID      string
+	BatchID        string
+	BatchName      string
+	StageId        string
+	EquationID     string
+	MetrixType     string
+	MetricCoin     MetricCoin
+	BatchAccount   string
+	EquationResult string
 }
