@@ -115,7 +115,7 @@ type UserInput struct {
 }
 type BatchCoinConvert struct {
 	EquationID  string      `json:"EquationId" bson:"EquationId" validate:"required"`
-	TenantId    string      `json:"TenantId" bson:"TenantId" validate:"required"`
+	TenantID    string      `json:"TenantId" bson:"TenantId" validate:"required"`
 	ProductName string      `json:"ProductName" bson:"ProductName" validate:"required"`
 	ProductID   string      `json:"ProductID" bson:"ProductID" validate:"required"`
 	BatchID     string      `json:"BatchId" bson:"BatchId" validate:"required"`
