@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"strconv"
 
 	log "github.com/sirupsen/logrus"
@@ -42,7 +43,7 @@ func CheckTempOrphan() {
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
-			seq, err := strconv.Atoi(sourceAccount.Sequence)
+			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
 			if err != nil {
 				log.Error("Error while convert string to int " + err.Error())
 			}
