@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
@@ -71,20 +72,30 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			}
 
 		} else {
+
+			encryptedPK := (data.(model.BatchAccount)).BatchAccountPK
+			encryptedSK := (data.(model.BatchAccount)).BatchAccountSK
+
+			//decrypt account details
+			decryptedPK := commons.Decrypt([]byte(encryptedPK))
+			decryptedSK := commons.Decrypt([]byte(encryptedSK)) 
+
 			// if there is an account go to path payments directly
-			batchAccountPK = (data.(model.BatchAccount)).BatchAccountPK
+			batchAccountPK = decryptedPK
 			logrus.Info(batchAccountPK)
 
-			batchAccountSK = (data.(model.BatchAccount)).BatchAccountSK
+			batchAccountSK = decryptedSK
 			logrus.Info(batchAccountSK)
+
+			if batchAccountPK == "" || batchAccountSK == "" {
+				w.WriteHeader(http.StatusInternalServerError)
+				result := "Can not find Batch Account " + err.Error()
+				json.NewEncoder(w).Encode(result)
+				return
+			}
+			
 		}
 
-		if batchAccountPK == "" || batchAccountSK == "" {
-			w.WriteHeader(http.StatusInternalServerError)
-			result := "Can not find Batch Account " + err.Error()
-			json.NewEncoder(w).Encode(result)
-			return
-		}
 		// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
 		pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
 		if err != nil {
