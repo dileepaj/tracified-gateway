@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/solana"
@@ -65,7 +64,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 			}
 
 			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
-				Identifier:                       common.PublicKey(*ownerPK).String(),
+				Identifier:                       common.PublicKey(*ATA).String(),
 				Categories:                       TrustLineResponseNFT.Categories,
 				Collection:                       TrustLineResponseNFT.Collection,
 				ImageBase64:                      TrustLineResponseNFT.NFTURL,
@@ -81,9 +80,9 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				Description:                      TrustLineResponseNFT.Description,
 				Copies:                           TrustLineResponseNFT.Copies,
 				OriginPK:                         common.PublicKey(*ownerPK).String(),
-				InitialDistributorPK:             common.PublicKey(*ATA).String(),
+				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
 				InitialIssuerPK:                  common.PublicKey(*mintPK).String(),
-				MainAccountPK:                    commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"),
+				MainAccountPK:                    common.PublicKey(*ownerPK).String(),
 				TrustLineCreatedAt:               "No trust lines for solana",
 				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.OwnerPK,
@@ -123,7 +122,7 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetNFTMinterPKSolana(vars["ImageBase64"])
+	p := object.GetNFTMinterPKSolana(vars["ImageBase64"], vars["blockchain"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.NFTWithTransactionSolana)

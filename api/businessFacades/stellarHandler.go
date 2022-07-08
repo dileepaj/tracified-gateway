@@ -390,7 +390,7 @@ func RetrieveStellarTxn(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetNFTTxnForStellar(vars["ImageBase64"])
+	p := object.GetNFTTxnForStellar(vars["ImageBase64"], vars["blockchain"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.NFTWithTransaction)

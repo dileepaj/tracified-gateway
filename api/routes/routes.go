@@ -108,13 +108,13 @@ var routes = Routes{
 	Route{
 		"GetMinter",
 		"GET",
-		"/nft/mintSolana/getMinter/{ImageBase64}",
+		"/nft/mintSolana/getMinter/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana
 	},
 	Route{
 		"RetrieveStellarTxn",
 		"GET",
-		"/nft/mintStellar/gettxn/{ImageBase64}",
+		"/nft/mintStellar/gettxn/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveStellarTxn, //get txn for minting stellar
 	},
 	Route{
