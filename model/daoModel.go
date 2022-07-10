@@ -23,7 +23,7 @@ type TotalTransaction struct {
 }
 type TransactionCollectionBody struct {
 	Identifier           string
-	RealIdentifier		 string
+	RealIdentifier       string
 	TdpId                string
 	SequenceNo           int64
 	ProfileID            string
@@ -32,6 +32,9 @@ type TransactionCollectionBody struct {
 	FromIdentifier1      string
 	FromIdentifier2      string
 	ToIdentifier         string
+	MapIdentifier1       string
+	MapIdentifier2       string
+	MapIdentifier        string
 	ItemCode             string
 	ItemAmount           string
 	PublicKey            string
@@ -94,26 +97,29 @@ type TransactionIds struct {
 }
 
 type PrevTxnResponse struct {
-	Status         string
-	Blockchain     string
-	Txnhash        string
-	TxnType        string
-	SequenceNo     int64
-	Url            string
-	LabUrl         string
-	From           string
-	To             string
-	SourceAccount  string
-	Identifier     string
-	TdpId          string
-	Timestamp      string
-	Ledger         string
-	FeePaid        string
-	AvailableProof []string
-	DataHash       string
-	ProductName    string
-	Itemcount      string
-	AssetCode      string
+	Status          string
+	Blockchain      string
+	Txnhash         string
+	TxnType         string
+	SequenceNo      int64
+	Url             string
+	LabUrl          string
+	From            string
+	To              string
+	SourceAccount   string
+	Identifier      string
+	TdpId           string
+	Timestamp       string
+	Ledger          string
+	FeePaid         string
+	AvailableProof  []string
+	DataHash        string
+	ProductName     string
+	Itemcount       string
+	AssetCode       string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
 }
 
 type POCOCResponse struct {
@@ -295,7 +301,7 @@ type Services struct {
 	ServiceName       string
 	ServiceURL        string
 	DocumentationLink string
-	//UIAutomationSteps	UIAutomationSteps
+	// UIAutomationSteps	UIAutomationSteps
 }
 
 type ActionParams struct {
@@ -320,7 +326,7 @@ type ProofProtocol struct {
 	ProofName            string
 	ProofDescriptiveName string
 	NumberofSteps        string
-	//Segmants				Segmants
+	// Segmants				Segmants
 	Steps []Steps
 }
 
