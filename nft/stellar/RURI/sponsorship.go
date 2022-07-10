@@ -1,6 +1,7 @@
 package ruri
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -10,8 +11,8 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func SponsorCreateAccount(buyerPK string, issuer string, nftname string) (string, error) {
-
+func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string, error) {
+	fmt.Println("Starting sponsership")
 	client := horizonclient.DefaultTestNetClient
 
 	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
@@ -45,7 +46,7 @@ func SponsorCreateAccount(buyerPK string, issuer string, nftname string) (string
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	fmt.Println("Building new transaction")
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
@@ -53,11 +54,11 @@ func SponsorCreateAccount(buyerPK string, issuer string, nftname string) (string
 			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &changeTrustOp, &endSponsorship},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{},
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatal("Error while trying to build tranaction: ", err)
 	}
 
 	sposorerSK := commons.GoDotEnvVariable("SPONSORERSK")
