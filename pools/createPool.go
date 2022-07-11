@@ -47,6 +47,7 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 
 	//calling the stellar endpoint to see if the pool exists 
 	url1 := commons.GetHorizonClient().HorizonURL + "liquidity_pools/" + poolIdString
+	fmt.Println(url1)
 	result, err0 := http.Get(url1)
 	if err0 != nil{
 		log.Error("Unable to reach Stellar network",url1)
@@ -104,6 +105,8 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 
 		amount1 := fmt.Sprintf("%v", asset1["amount"])
 		amount2 := fmt.Sprintf("%v", asset2["amount"])
+
+		fmt.Println("amount1 ",amount1,"amount2 ",amount2)
 
 		//checking if the pool has been deposited
 		if (amount1 == "0.0000000" && amount2 == "0.0000000"){

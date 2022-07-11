@@ -160,7 +160,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, err := object.GetPool(coinConvertObject.EquationID, coinConvertObject.ProductName, coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
+	data, err := object.GetPoolFromDB(coinConvertObject.EquationID, coinConvertObject.ProductName, coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {

@@ -1910,7 +1910,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 	return p
 }
 
-func (cd *Connection) GetPool(equatonId string, productName string,tenantId string) *promise.Promise{
+func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantId string) *promise.Promise{
 	pool := model.BuildPoolResponse{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {

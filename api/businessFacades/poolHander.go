@@ -163,6 +163,22 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
+		object := dao.Connection{}
+		data, err := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err)
+			return
+		}
+		if data != nil {
+			logrus.Error("Pool already created")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err)
+			return
+		}
 		// reformate the equation json
 		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
 		if err != nil {
