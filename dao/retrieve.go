@@ -1888,7 +1888,6 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 }
 
 func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, productName string,tenantId string) *promise.Promise{
-	fmt.Println(batchID ,equatonId , productName ,tenantId )
 	resultBatchAccountObj := model.BatchAccount{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1906,6 +1905,29 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 			reject(err)
 		} else {
 			resolve(resultBatchAccountObj)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetPool(equatonId string, productName string,tenantId string) *promise.Promise{
+	pool := model.BuildPoolResponse{}
+
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("LiquidityPool")
+		err = c.FindOne(context.TODO(), bson.M{"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&pool)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(pool)
 		}
 	})
 	return p

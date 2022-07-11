@@ -19,26 +19,26 @@ import (
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
 func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
-	if pathPayment.SendingCoin.CoinName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.CoinName == "" || pathPayment.CoinIssuerAccontPK == "" {
+	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.GeneratedName == "" || pathPayment.CoinIssuerAccontPK == "" {
 		log.Error("CoinConvert() method's parameters have a empty values")
 		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
 	}
-	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.CoinName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK)
+	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.GeneratedName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK)
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
 	}
-	_, err0 := CreateCoinSponsering(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
+	_, err0 := CreateCoinSponsering(pathPayment.SendingCoin.GeneratedName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
 	if err0 != nil {
 		logrus.Error(err0)
 		return model.BuildPathPayment{}, err0
 	}
-	_, err1 := CreateCoinSponsering(pathPayment.ReceivingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
+	_, err1 := CreateCoinSponsering(pathPayment.ReceivingCoin.GeneratedName, pathPayment.BatchAccountPK, pathPayment.BatchAccountSK)
 	if err1 != nil {
 		logrus.Error(err1)
 		return model.BuildPathPayment{}, err1
 	}
-	_, err2 := IssueCoin(pathPayment.SendingCoin.CoinName, pathPayment.BatchAccountPK, pathPayment.SendingCoin.Amount)
+	_, err2 := IssueCoin(pathPayment.SendingCoin.GeneratedName, pathPayment.BatchAccountPK, pathPayment.SendingCoin.Amount)
 	if err2 != nil {
 		logrus.Error(err2)
 		return model.BuildPathPayment{}, err2
@@ -62,12 +62,12 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
 	}
-	sendAsset := txnbuild.CreditAsset{pathPayment.SendingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
+	sendAsset := txnbuild.CreditAsset{pathPayment.SendingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK}
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
 	}
-	destAsset := txnbuild.CreditAsset{pathPayment.ReceivingCoin.CoinName, pathPayment.CoinIssuerAccontPK}
+	destAsset := txnbuild.CreditAsset{pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK}
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
@@ -134,7 +134,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 // GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin and get the coin convesion path (using stella call)
 func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (model.DestinationCoin, error) {
 	var destinationAssert model.DestinationCoin
-	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum4&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
+	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum12&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)

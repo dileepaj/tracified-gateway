@@ -6,7 +6,9 @@ import (
 	"math"
 	"strconv"
 	"strings"
+	"time"
 
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -39,9 +41,9 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 
 				coinDetails2 := int(value * float64(multiplicationFactor))
 				pool1 := model.BuildPool{
-					Coin1:               portion[i].FieldAndCoin[j].CoinName,
+					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
 					DepositeAmountCoin1: strconv.Itoa(coinDetails1),
-					Coin2:               portion[i].FieldAndCoin[j+1].CoinName,
+					Coin2:               portion[i].FieldAndCoin[j+1].GeneratedName,
 					DepositeAmountCoin2: strconv.Itoa(coinDetails2),
 					Ratio:               ratio,
 				}
@@ -55,15 +57,23 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 // RemoveDivisionAndRestructed return restructed equato==ion json by
 // turning the divisor (the second fraction) upside down (switching its numerator with its denominator)
 // and changing the division symbol to a multiplication symbol at the same time
-func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool, error) {
+func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool, []model.CoinMap, error) {
 	// equation is a equation-Json
 	portion := equationJson.EquationSubPortion
-
+	var coinMap []model.CoinMap
 	if len(portion) > 0 {
 		for i := 0; i < len(portion); i++ {
-			if len(portion[i].FieldAndCoin) > 0 {
+			if len(portion[i].FieldAndCoin) > 2 {
 				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
+					if portion[i].FieldAndCoin[j].VariableType != "operator" || portion[i].FieldAndCoin[j].CoinName != "" {
+						timestamp := makeTimestamp()
+						strTimestamp := strconv.Itoa(int(timestamp))
+						generatedCoinName := portion[i].FieldAndCoin[j].CoinName[0:1] +
+							equationJson.EquationID[0:3] + equationJson.ProductName[0:1] + equationJson.TenantID[0:4] + strTimestamp[10:13]
+						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
+					}
+
 					// count the userIput type variable in a  sub portion
 					if portion[i].FieldAndCoin[j].VariableType == "userInput" {
 						userInputCount++
@@ -78,10 +88,10 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 				}
 				// checked whether sub-portion contain only one user input
 				if userInputCount != 1 {
-					return model.CreatePool{}, errors.New("Equation's sub portion can not contain two user input")
+					return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation's sub portion can not contain two user input")
 				}
 			} else {
-				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+				return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty or contaion a one element")
 			}
 		}
 		// reomve the oprator from equation
@@ -92,11 +102,27 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						portion[i].FieldAndCoin = append(portion[i].FieldAndCoin[:j], portion[i].FieldAndCoin[j+1:]...)
 					}
 					if j == len(portion[i].FieldAndCoin)-1 {
+						timestamp := makeTimestamp()
+						strTimestamp := strconv.Itoa(int(timestamp))
+						generatedCoinName := equationJson.MetricCoin.CoinName[0:1] +
+							equationJson.EquationID[0:3] + equationJson.ProductName[0:1] + equationJson.TenantID[0:4] + strTimestamp[10:13]
 						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
+						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
+						coinMap1 := model.CoinMap{
+							CoinName:      equationJson.MetricCoin.CoinName,
+							GeneratedName: generatedCoinName,
+						}
+						coinMap = append(coinMap, coinMap1)
+					} else {
+						coinMap1 := model.CoinMap{
+							CoinName:      portion[i].FieldAndCoin[j].CoinName,
+							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
+						}
+						coinMap = append(coinMap, coinMap1)
 					}
 				}
 			} else {
-				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+				return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
 		}
 		// Find element in a slice and move it to first position
@@ -104,13 +130,13 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 			if len(portion[i].FieldAndCoin) > 0 {
 				portion[i].FieldAndCoin = rearrangedArray(portion[i].FieldAndCoin, "userInput")
 			} else {
-				return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+				return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
 		}
 	} else {
-		return model.CreatePool{}, errors.New("Equation-JSON's Sub portions are empty")
+		return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty")
 	}
-	return equationJson, nil
+	return equationJson, coinMap, nil
 }
 
 // rearrangedArray return the orded array ==> Find element(coinsAndFiled) in a slice by variable type and move it to first position
@@ -133,23 +159,56 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 // CoinConvertionJson ==>this method  rerstructed the coinConvertion request body recived by backend
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
+	object := dao.Connection{}
+	data, err := object.GetPool(coinConvertObject.EquationID, coinConvertObject.ProductName, coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		return []model.BuildPathPayment{}, err
+	}
+	if data == nil {
+		return []model.BuildPathPayment{}, errors.New("Can not find Pool")
+	}
+	//find  coin name assign it to generated coin name 
+	for i := 0; i < len(coinConvertObject.UserInputs); i++ {
+		for k := 0; k < len(data.(model.BuildPoolResponse).CoinMap); k++ {
+			fmt.Println(data.(model.BuildPoolResponse).CoinMap[k].CoinName, data.(model.BuildPoolResponse).CoinMap[k].GeneratedName)
+			if coinConvertObject.UserInputs[i].CoinName == data.(model.BuildPoolResponse).CoinMap[k].CoinName {
+				coinConvertObject.UserInputs[i].GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+			}
+			if coinConvertObject.MetricCoin.CoinName == data.(model.BuildPoolResponse).CoinMap[k].CoinName {
+				coinConvertObject.MetricCoin.GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+			}
+		}
+	}
+
 	var buildPathPayments []model.BuildPathPayment
 	if coinConvertObject.UserInputs != nil && len(coinConvertObject.UserInputs) > 0 {
 		for _, inputCoin := range coinConvertObject.UserInputs {
+			fmt.Println(inputCoin.CoinName)
+
 			buildPathPayment := model.BuildPathPayment{
-				SendingCoin:        model.Coin{Id: inputCoin.Id, CoinName: inputCoin.CoinName, Amount: inputCoin.Value},
-				ReceivingCoin:      model.Coin{Id: coinConvertObject.MetricCoin.Id, CoinName: coinConvertObject.MetricCoin.CoinName, FieldName: coinConvertObject.MetricCoin.FieldName},
+				SendingCoin: model.Coin{
+					Id: inputCoin.Id, CoinName: inputCoin.CoinName,
+					Amount: inputCoin.Value, GeneratedName: inputCoin.GeneratedName,
+				},
+				ReceivingCoin: model.Coin{
+					Id: coinConvertObject.MetricCoin.Id, CoinName: coinConvertObject.MetricCoin.CoinName,
+					FieldName: coinConvertObject.MetricCoin.FieldName, GeneratedName: coinConvertObject.MetricCoin.GeneratedName,
+				},
 				BatchAccountPK:     batchAccountPK,
 				BatchAccountSK:     batchAccountSK,
 				CoinIssuerAccontPK: coinIsuserPK,
 				PoolId:             "",
 			}
-
 			buildPathPayments = append(buildPathPayments, buildPathPayment)
-
 		}
 	} else {
-		return buildPathPayments, errors.New("user Input coin values are empty")
+		return []model.BuildPathPayment{}, errors.New("user Input coin values are empty")
 	}
 	return buildPathPayments, nil
+}
+
+func makeTimestamp() int64 {
+	return time.Now().UnixNano() / int64(time.Millisecond)
 }

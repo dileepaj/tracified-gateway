@@ -3,7 +3,6 @@ package pools
 import (
 	"fmt"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
@@ -27,7 +26,7 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	// create keypair
 	pair, err := keypair.Random()
 	if err != nil {
-		logrus.Error("1", err)
+		logrus.Error("", err)
 		return "", "", err
 	}
 
@@ -35,14 +34,14 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	logrus.Info(pair.Address())
 
 	//encrypt key pair and add to DB
-	encPK := commons.Encrypt(pair.Address())
-	encSK := commons.Encrypt(pair.Seed())
+	//encPK := commons.Encrypt(pair.Address())
+	//pair.Seed() := commons.Encrypt(pair.Seed())
 
-	fmt.Println("Encrypted PK", encPK)
-	fmt.Println("Encrypted SK", encSK)
+	fmt.Println("Encrypted PK", pair.Address())
+	fmt.Println("Encrypted SK", pair.Seed())
 
-	batchAccount.BatchAccountPK=encPK
-	batchAccount.BatchAccountSK=encSK
+	batchAccount.BatchAccountPK=pair.Address()
+	batchAccount.BatchAccountSK=pair.Seed()
 
 	object := dao.Connection{}
 	errResult := object.InsertBatchAccount(batchAccount)

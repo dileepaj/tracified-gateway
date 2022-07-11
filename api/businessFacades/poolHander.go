@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
@@ -33,7 +32,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err0 := validations.ValidateBatchCoinConvert(newBatchConvertCoinObj)
-	if err0 != nil{
+	if err0 != nil {
 		logrus.Error(err0)
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -41,10 +40,11 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(result)
 		return
-	}else{
+	} else {
 		// check if there is an account in the DB for the batchID and get the account
 		object := dao.Connection{}
-		data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+		data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID,
+			newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 
@@ -73,12 +73,12 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 
 		} else {
 
-			encryptedPK := (data.(model.BatchAccount)).BatchAccountPK
-			encryptedSK := (data.(model.BatchAccount)).BatchAccountSK
+			decryptedPK := (data.(model.BatchAccount)).BatchAccountPK
+			decryptedSK := (data.(model.BatchAccount)).BatchAccountSK
 
-			//decrypt account details
-			decryptedPK := commons.Decrypt([]byte(encryptedPK))
-			decryptedSK := commons.Decrypt([]byte(encryptedSK)) 
+			// decrypt account details
+			// decryptedPK := commons.Decrypt([]byte(encryptedPK))
+			// decryptedSK := commons.Decrypt([]byte(encryptedSK))
 
 			// if there is an account go to path payments directly
 			batchAccountPK = decryptedPK
@@ -93,7 +93,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 				return
 			}
-			
+
 		}
 
 		// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
@@ -140,7 +140,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
-		
+
 func CreatePool(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
@@ -162,9 +162,9 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(result)
 		return
-	}else{
+	} else {
 		// reformate the equation json
-		equationJson, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -177,7 +177,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logrus.Error(poolCreationJSON, err)
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(err)
+			json.NewEncoder(w).Encode(poolCreationJSON)
 			return
 		}
 
@@ -190,10 +190,13 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		}
 
 		response := model.BuildPoolResponse{
-			MetricId:   equationJsonObj.MetricID,
-			EquationId: equationJsonObj.EquationID,
-			TenantId:   equationJsonObj.TenantID,
-			BuildPools: cratedPools,
+			MetricId:    equationJsonObj.MetricID,
+			EquationId:  equationJsonObj.EquationID,
+			ProductId:   equationJsonObj.ProductID,
+			ProductName: equationJsonObj.ProductName,
+			TenantId:    equationJsonObj.TenantID,
+			CoinMap:     coinMap,
+			BuildPools:  cratedPools,
 		}
 		// check if the pool is created
 		if isPoolCreated {
@@ -221,7 +224,6 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
 }
 
 func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +240,9 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.BatchID, calculateEquationObj.EquationID, calculateEquationObj.ProductName, calculateEquationObj.TenantID).Then(func(data interface{}) interface{} {
+	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.BatchID,
+		calculateEquationObj.EquationID, calculateEquationObj.ProductName,
+		calculateEquationObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 

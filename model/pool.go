@@ -1,10 +1,11 @@
 package model
 
 type Coin struct {
-	Id        string
-	FieldName string
-	CoinName  string
-	Amount    string
+	Id            string
+	FieldName     string
+	CoinName      string
+	GeneratedName string
+	Amount        string
 }
 
 type BuildPathPayment struct {
@@ -38,12 +39,13 @@ type BuildPool struct {
 }
 
 type BuildPoolResponse struct {
-	ProductId    string
-	ProducutName string
-	MetricId     string
-	EquationId   string
-	TenantId     string
-	BuildPools   []BuildPool
+	ProductId   string
+	ProductName string
+	MetricId    string
+	EquationId  string
+	TenantId    string
+	CoinMap     []CoinMap
+	BuildPools  []BuildPool
 }
 
 type CoinPath struct {
@@ -108,10 +110,11 @@ type PathPayment struct {
 }
 
 type UserInput struct {
-	Id        string
-	CoinName  string
-	FieldName string
-	Value     string
+	Id            string
+	CoinName      string
+	GeneratedName string
+	FieldName     string
+	Value         string
 }
 type BatchCoinConvert struct {
 	EquationID  string      `json:"EquationId" bson:"EquationId" validate:"required"`
@@ -144,15 +147,17 @@ type MetricFormulas struct {
 }
 
 type MetricCoin struct {
-	Id          string
-	CoinName    string
-	FieldName   string
-	Description string
+	Id            string
+	CoinName      string
+	GeneratedName string
+	FieldName     string
+	Description   string
 }
 
 type FieldAndCoin struct {
 	ID            string
 	CoinName      string
+	GeneratedName string
 	FieldName     string
 	Description   string
 	UserInputType string
@@ -167,7 +172,9 @@ type EquationSubPortion struct {
 
 type CreatePool struct {
 	EquationID           string               `json:"equationId" bson:"equationId" validate:"required"`
-	Timestamp            string               `json:"timestamp" bson:"timestamp" validate:"required"`
+	ProductName          string               `json:"productName" bson:"productname" validate:"required"`
+	ProductID            string               `json:"productID" bson:"productid" validate:"required"`
+	Timestamp            string               `json:"timestamp" bson:"timestamp"`
 	Description          string               `json:"description" bson:"description" validate:"required"`
 	TenantID             string               `json:"tenantId" bson:"tenantId" validate:"required"`
 	MetricID             string               `json:"metricId" bson:"metricId" validate:"required"`
@@ -202,4 +209,9 @@ type EquationResultForBatch struct {
 	MetricCoin     MetricCoin
 	BatchAccount   string
 	EquationResult string
+}
+
+type CoinMap struct {
+	CoinName      string
+	GeneratedName string
 }
