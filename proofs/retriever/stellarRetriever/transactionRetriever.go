@@ -164,8 +164,14 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 		case "mergeid": 
 			txe.MergeID = dataValue
 			break
-		case "realidentifer":
-			txe.RealIdentifier = dataValue
+		case "mapidentifier":
+			txe.MapIdentifier = dataValue
+			break
+		case "mapidentifier1":
+			txe.MapIdentifier1 = dataValue
+			break
+		case "mapidentifier2":
+			txe.MapIdentifier2 = dataValue
 			break
 	}
 	return txe
