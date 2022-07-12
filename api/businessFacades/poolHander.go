@@ -167,15 +167,9 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		if (equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact"){
 
 			object := dao.Connection{}
-			data, err := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+			data, _ := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err)
-				return
-			}
 			if data != nil {
 				logrus.Error("Pool already created")
 				w.WriteHeader(http.StatusBadRequest)
