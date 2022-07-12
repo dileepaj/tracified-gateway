@@ -38,7 +38,8 @@ func CreatePoolsUsingJson(pools []model.BuildPool) ([]model.BuildPool, error, bo
 // CreatePool carate the pool by handling all blackchain calls
 func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 	var depostHash2 string
-
+	logrus.Info("Coin 1 ", buildPool.Coin1)
+	logrus.Info("Coin 2 ", buildPool.Coin2)
 	poolId, err := GeneratePoolId(buildPool.Coin1, buildPool.Coin2)
 	if !err {
 		return model.BuildPool{}, errors.New("Can not create poold Id"), false

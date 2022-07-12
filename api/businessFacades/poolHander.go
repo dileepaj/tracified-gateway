@@ -180,7 +180,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(poolCreationJSON)
 			return
 		}
-
+		logrus.Info("Payload ", poolCreationJSON)
 		// create the pools
 		cratedPools, err, isPoolCreated := pools.CreatePoolsUsingJson(poolCreationJSON)
 		if err != nil {
