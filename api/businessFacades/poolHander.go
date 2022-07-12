@@ -163,62 +163,75 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		// reformate the equation json
-		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(err)
-			return
-		}
+		//check of the equation type is either batch or artifact
+		if (equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact"){
 
-		// build the pool creation json
-		poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
-		if err != nil {
-			logrus.Error(poolCreationJSON, err)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(poolCreationJSON)
-			return
-		}
-		logrus.Info("Payload ", poolCreationJSON)
-		// create the pools
-		cratedPools, err, isPoolCreated := pools.CreatePoolsUsingJson(poolCreationJSON)
-		if err != nil {
-			logrus.Error(cratedPools, err)
-			json.NewEncoder(w).Encode(err)
-			return
-		}
-
-		response := model.BuildPoolResponse{
-			MetricId:    equationJsonObj.MetricID,
-			EquationId:  equationJsonObj.EquationID,
-			ProductId:   equationJsonObj.ProductID,
-			ProductName: equationJsonObj.ProductName,
-			TenantId:    equationJsonObj.TenantID,
-			CoinMap:     coinMap,
-			BuildPools:  cratedPools,
-		}
-		// check if the pool is created
-		if isPoolCreated {
-			log.Println("New pools are created")
-			// insert the pool to the DB
-			object := dao.Connection{}
-			err1 := object.InsertPool(response)
-			if err1 != nil {
-				log.Println("Error when inserting pool to DB " + err.Error())
-			} else {
-				log.Println("Pool added to the DB")
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode(response)
+			//if batch or artifact continue with the pool creation
+			// reformate the equation json
+			equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+			if err != nil {
+				logrus.Error(err)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(err)
 				return
 			}
+
+			// build the pool creation json
+			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+			if err != nil {
+				logrus.Error(poolCreationJSON, err)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(poolCreationJSON)
+				return
+			}
+			logrus.Info("Payload ", poolCreationJSON)
+			// create the pools
+			cratedPools, err, isPoolCreated := pools.CreatePoolsUsingJson(poolCreationJSON)
+			if err != nil {
+				logrus.Error(cratedPools, err)
+				json.NewEncoder(w).Encode(err)
+				return
+			}
+
+			response := model.BuildPoolResponse{
+				MetricId:    equationJsonObj.MetricID,
+				EquationId:  equationJsonObj.EquationID,
+				ProductId:   equationJsonObj.ProductID,
+				ProductName: equationJsonObj.ProductName,
+				TenantId:    equationJsonObj.TenantID,
+				CoinMap:     coinMap,
+				BuildPools:  cratedPools,
+			}
+			// check if the pool is created
+			if isPoolCreated {
+				log.Println("New pools are created")
+				// insert the pool to the DB
+				object := dao.Connection{}
+				err1 := object.InsertPool(response)
+				if err1 != nil {
+					log.Println("Error when inserting pool to DB " + err.Error())
+				} else {
+					log.Println("Pool added to the DB")
+					w.Header().Set("Content-Type", "application/json")
+					w.WriteHeader(http.StatusOK)
+					json.NewEncoder(w).Encode(response)
+					return
+				}
+			} else {
+				log.Println("New pools are not created")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusBadRequest)
+				result := apiModel.SubmitXDRSuccess{
+					Status: "Pool is already created and deposited",
+				}
+				json.NewEncoder(w).Encode(result)
+				return
+			}
+
 		} else {
-			log.Println("New pools are not created")
-			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
 			result := apiModel.SubmitXDRSuccess{
-				Status: "Pool is already created and deposited",
+				Status: "Invalid equation type",
 			}
 			json.NewEncoder(w).Encode(result)
 			return
