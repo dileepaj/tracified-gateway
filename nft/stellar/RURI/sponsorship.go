@@ -26,6 +26,15 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
 	}
 
+	endSponsorship := txnbuild.EndSponsoringFutureReserves{
+		SourceAccount: buyerPK,
+	}
+
+	beginSponsorship1 := txnbuild.BeginSponsoringFutureReserves{
+		SponsoredID:   buyerPK,
+		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
+	}
+
 	asset, err := txnbuild.CreditAsset{Code: nftname, Issuer: issuer}.ToChangeTrustAsset()
 	if err != nil {
 		log.Fatal("Error on asset", err)
@@ -33,11 +42,11 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 
 	changeTrustOp := txnbuild.ChangeTrust{
 		Line:          asset,
-		Limit:         "1",
+		Limit:         "5",
 		SourceAccount: buyerPK,
 	}
 
-	endSponsorship := txnbuild.EndSponsoringFutureReserves{
+	endSponsorship1 := txnbuild.EndSponsoringFutureReserves{
 		SourceAccount: buyerPK,
 	}
 
@@ -51,7 +60,7 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &changeTrustOp, &endSponsorship},
+			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &endSponsorship, &beginSponsorship1, &changeTrustOp, &endSponsorship1},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
