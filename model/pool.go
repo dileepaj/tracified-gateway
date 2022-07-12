@@ -123,7 +123,7 @@ type BatchCoinConvert struct {
 	ProductID   string      `json:"ProductID" bson:"ProductID" validate:"required"`
 	BatchID     string      `json:"BatchId" bson:"BatchId" validate:"required"`
 	BatchName   string      `json:"BatchName" bson:"BatchName" validate:"required"`
-	StageId     string      `json:"stargeId" bson:"stargeId" validate:"required"`
+	StageId     string      `json:"stageId" bson:"stageId" validate:"required"`
 	MetricCoin  MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
 	UserInputs  []UserInput `json:"userInputs" bson:"userInputs"`
 }
@@ -174,13 +174,15 @@ type CreatePool struct {
 	EquationID           string               `json:"equationId" bson:"equationId" validate:"required"`
 	ProductName          string               `json:"productName" bson:"productname" validate:"required"`
 	ProductID            string               `json:"productID" bson:"productid" validate:"required"`
-	Timestamp            string               `json:"timestamp" bson:"timestamp"`
+	Timestamp            string               `json:"timestamp" bson:"timestamp" validate:"required"`
 	Description          string               `json:"description" bson:"description" validate:"required"`
 	TenantID             string               `json:"tenantId" bson:"tenantId" validate:"required"`
 	MetricID             string               `json:"metricId" bson:"metricId" validate:"required"`
 	MetricName           string               `json:"metricName" bson:"metricName" validate:"required"`
 	MetrixType           string               `json:"metrixType" bson:"metrixType" validate:"required"`
-	MetricFormulas       []MetricFormulas     `json:"metricFormulas" bson:"metricFormulas"`
+	ActivityId           string				  `json:"activityId" bson:"activityId" validate:"required"`
+	MetricFormulaId      string               `json:"metricFormulaId" bson:"metricFormulaId" validate:"required"`
+	EquationType         string				  `json:"equationType" bson:"equationType" validate:"required"`
 	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
 	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
 	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
