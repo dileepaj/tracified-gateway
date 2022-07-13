@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	depositorPK = "GBBW4XYGCVOYMMIVABFZH7ZPZDKWWOPYRS5W23L2JYFH3DEPUU2PAZQ7"
-	depositorSK = "SD7D26XD37Y746MUQCAOEHGTPV6F3RVTEUPIJUILXV4O3EG3WORPLVO4"
+	depositorPK = "GAOVSPGKC366UUMOUDN7QCRGOOTZEEFRO7LPZABW3ATOFCEMSR4W5E6T"
+	depositorSK = "SAUYALHUE3KL37DFETVFYJQHZZ4V44KYUP7VKCOTU5LTZ2VFSP4GDLIW"
 )
 
 // CreatePoolsUsingJson , loop the pool creation-Josn and call poolcreation method
@@ -105,7 +105,7 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 
 		amount1 := fmt.Sprintf("%v", asset1["amount"])
 		amount2 := fmt.Sprintf("%v", asset2["amount"])
-		
+
 		// checking if the pool has been deposited
 		if amount1 == "0.0000000" && amount2 == "0.0000000" {
 			logrus.Info("Pool " + poolIdString + " is not deposited")
@@ -151,11 +151,11 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 	logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 	object := dao.Connection{}
-	data, _ := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data != nil {
-		logrus.Error("Pool already created")
+		logrus.Error("GetLiquidityPool did not empty, Pool already created")
 		return "", errors.New("Pool already created")
 	}
 	// create the pools
@@ -178,7 +178,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		logrus.Println("New pools are created")
 		// insert the pool to the DB
 		object := dao.Connection{}
-		err1 := object.InsertPool(response)
+		err1 := object.InsertLiquidityPool(response)
 		if err1 != nil {
 			logrus.Println("Error when inserting pool to DB " + err.Error())
 			return "", errors.New("Error when inserting pool to DB " + err.Error())

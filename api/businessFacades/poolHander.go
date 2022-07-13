@@ -84,11 +84,11 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		if equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact" {
 
 			object := dao.Connection{}
-			data, _ := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+			data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if data != nil {
-				logrus.Error("Pool already created")
+				logrus.Error("GetLiquidityPool did not empty, Pool already created")
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode(err)
 				return
@@ -108,7 +108,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				logrus.Error(poolCreationJSON, err)
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(poolCreationJSON)
+				json.NewEncoder(w).Encode(err)
 				return
 			}
 			logrus.Info("Payload ", poolCreationJSON)
@@ -126,7 +126,6 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				CoinMap:           coinMap,
 				PoolCreationArray: poolCreationJSON,
 			}
-
 			// sent data to mgs amq queue
 			fmt.Println("Sent..", queue)
 			services.SendToQueue(queue)

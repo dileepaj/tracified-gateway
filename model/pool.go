@@ -225,3 +225,26 @@ type SendToQueue struct {
 	PoolCreationArray []BuildPool
 	CoinConvert       BatchCoinConvert
 }
+
+type CoinName struct {
+	TenantID          string
+	EquationID        string
+	Type              string
+	CoinName          string
+	GeneratedCoinName string
+	FieldName         string
+	Description       string
+	Count             string
+}
+
+type Pool struct {
+	EquationId          string
+	ProductId           string
+	TenantId            string
+	FormulatType        string
+	Coin1               string
+	DepositeAmountCoin1 string
+	Coin2               string
+	DepositeAmountCoin2 string
+	Ratio               string
+}

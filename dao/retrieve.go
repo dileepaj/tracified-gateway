@@ -1885,7 +1885,6 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 		}
 	})
 	return p
-
 }
 
 func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, productName string,tenantId string) *promise.Promise{
@@ -1900,7 +1899,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("BatchAccount")
-		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID,"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&resultBatchAccountObj)
+		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID, "equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&resultBatchAccountObj)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
@@ -1911,10 +1910,10 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 	return p
 }
 
-func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantId string) *promise.Promise{
+func (cd *Connection) GetLiquidityPool(equatonId string, productName string, tenantId string) *promise.Promise {
 	pool := model.BuildPoolResponse{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Error("Error when connecting to DB " + err.Error())
@@ -1923,12 +1922,63 @@ func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantI
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("LiquidityPool")
-		err = c.FindOne(context.TODO(), bson.M{"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&pool)
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
 		} else {
 			resolve(pool)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetCoinName(coinName string) *promise.Promise {
+	var coin model.CoinName
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("CoinName")
+		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName}).Decode(&coin)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(coin)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetPool(coin1, coin2 string) *promise.Promise {
+	var coin model.Pool
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		filter := bson.M{
+			"$or": []interface{}{
+				bson.M{"coin1": coin1, "coin2": coin2},
+				bson.M{"coin1": coin2, "coin2": coin1},
+			},
+		}
+		c := session.Client().Database(dbName).Collection("Pool")
+		err = c.FindOne(context.TODO(), filter).Decode(&coin)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(coin)
 		}
 	})
 	return p

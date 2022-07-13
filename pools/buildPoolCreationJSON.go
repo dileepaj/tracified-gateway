@@ -4,26 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"math"
-	"math/rand"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
-	"github.com/teris-io/shortid"
 )
 
-// todo con description aka validate karanna wenwa
-// todo con equal data chech karanwa
-
-// todo coin name minium akauru 4raka namak
-
-// todo tft - 3
-
-// todo tenatn - 3
-// todo BuildPoolCreationJSON return the pool creation json by Restructing the admin equationJson
 func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, error) {
 	var poolJson []model.BuildPool
 	portion := equationJson.EquationSubPortion
@@ -58,6 +46,32 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 					DepositeAmountCoin2: strconv.Itoa(coinDetails2),
 					Ratio:               ratio,
 				}
+				object := dao.Connection{}
+				data, _ := object.GetPool(pool1.Coin1, pool1.Coin2).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if data != nil {
+					logrus.Error("pool already deposited " + " Coin2 " + pool1.Coin1 + " Coin2 " + pool1.Coin2)
+					return []model.BuildPool{}, errors.New("pool is already deposited " + " Coin2 " + pool1.Coin1 + " Coin2 " + pool1.Coin2)
+				}
+
+				pool2 := model.Pool{
+					EquationId:          equationJson.EquationID,
+					ProductId:           equationJson.ProductID,
+					TenantId:            equationJson.TenantID,
+					FormulatType:        equationJson.EquationType,
+					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
+					DepositeAmountCoin1: strconv.Itoa(coinDetails1),
+					Coin2:               portion[i].FieldAndCoin[j+1].GeneratedName,
+					DepositeAmountCoin2: strconv.Itoa(coinDetails2),
+					Ratio:               ratio,
+				}
+				err := object.InsertPoool(pool2)
+				if err != nil {
+					logrus.Error("Pool did not add to DB ", err)
+					return nil, err
+				}
+				logrus.Info("pool deposite" + " Coin2 " + pool1.Coin1 + " Coin2 " + pool1.Coin2)
 				poolJson = append(poolJson, pool1)
 			}
 		}
@@ -70,7 +84,6 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 // and changing the division symbol to a multiplication symbol at the same time
 func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool, []model.CoinMap, error) {
 	// equation is a equation-Json
-	var generatedCoinName string
 	portion := equationJson.EquationSubPortion
 	var coinMap []model.CoinMap
 	if len(portion) > 0 {
@@ -80,40 +93,14 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
 					if portion[i].FieldAndCoin[j].VariableType != "operator" || portion[i].FieldAndCoin[j].CoinName != "" {
 						// timestamp := makeTimestamp()
-						// strTimestamp := strconv.Itoa(int(timestamp))
-						// generatedCoinName := portion[i].FieldAndCoin[j].CoinName[0:1] +
-						// 	equationJson.EquationID[0:3] + equationJson.ProductName[0:1] + equationJson.TenantID[0:4] + strTimestamp[10:13]
-						generatedSID, err := shortid.Generate()
+						generatedSID, err := GenerateCoinName(equationJson.TenantID, portion[i].FieldAndCoin[j].CoinName, portion[i].FieldAndCoin[j].Description,
+							portion[i].FieldAndCoin[j].VariableType, equationJson.EquationID, portion[i].FieldAndCoin[j].FieldName)
 						if err != nil {
 							logrus.Error("Cannot generate ShortID", err.Error())
+							return model.CreatePool{}, []model.CoinMap{}, err
 						}
-
-						logrus.Info("Generated string ", generatedSID)
-
-						replacerOne := strings.Replace(generatedSID, "-", randomChar(), 12)
-						replacerTwo := strings.Replace(replacerOne, "_", randomChar(), 12)
-
-						logrus.Info("Replaced string ", replacerTwo)
-
-						// check if the length is less than 12
-						if len(replacerTwo) < 12 {
-							remainingChars := 12 - len(replacerTwo)
-							if remainingChars == 3 {
-								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + equationJson.TenantID[0:1] + equationJson.EquationID[0:1] + replacerTwo
-							} else if remainingChars == 2 {
-								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + equationJson.TenantID[0:1] + replacerTwo
-							} else if remainingChars == 1 {
-								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + replacerTwo
-							} else {
-								generatedCoinName = replacerTwo
-							}
-						} else {
-							generatedCoinName = replacerTwo
-						}
-
-						logrus.Info("Generated and modified Coin name  01 : ", generatedCoinName)
-						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
-
+						logrus.Info("Generated and modified Coin name  01 : ", generatedSID)
+						portion[i].FieldAndCoin[j].GeneratedName = generatedSID
 					}
 
 					// count the userIput type variable in a  sub portion
@@ -136,36 +123,6 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 				return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty or contaion a one element")
 			}
 		}
-		// reomve the oprator from equation
-		generatedSID, err := shortid.Generate()
-		if err != nil {
-			logrus.Error("Cannot generate ShortID", err.Error())
-		}
-
-		logrus.Info("Genereated string ", generatedSID)
-
-		replacerOne := strings.Replace(generatedSID, "-", randomChar(), 12)
-		replacerTwo := strings.Replace(replacerOne, "_", randomChar(), 12)
-
-		logrus.Info("Replaced string ", replacerTwo)
-
-		// check if the length is less than 12
-		if len(replacerTwo) < 12 {
-			remainingChars := 12 - len(replacerTwo)
-			if remainingChars == 3 {
-				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + equationJson.TenantID[0:1] + equationJson.EquationID[0:1] + replacerTwo
-			} else if remainingChars == 2 {
-				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + equationJson.TenantID[0:1] + replacerTwo
-			} else if remainingChars == 1 {
-				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + replacerTwo
-			} else {
-				generatedCoinName = replacerTwo
-			}
-		} else {
-			generatedCoinName = replacerTwo
-		}
-
-		logrus.Info("Generated and modified Coin name  02 : ", generatedCoinName)
 
 		for i := 0; i < len(portion); i++ {
 			if len(portion[i].FieldAndCoin) > 0 {
@@ -174,25 +131,16 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						portion[i].FieldAndCoin = append(portion[i].FieldAndCoin[:j], portion[i].FieldAndCoin[j+1:]...)
 					}
 					if j == len(portion[i].FieldAndCoin)-1 {
-						// timestamp := makeTimestamp()
-						// strTimestamp := strconv.Itoa(int(timestamp))
-						// generatedCoinName := equationJson.MetricCoin.CoinName[0:1] +
-						// 	equationJson.EquationID[0:3] + equationJson.ProductName[0:1] + equationJson.TenantID[0:4] + strTimestamp[10:13]
-
+						generatedSID, err := GenerateCoinName(equationJson.TenantID, equationJson.MetricCoin.CoinName,
+							equationJson.MetricCoin.Description, "result", equationJson.EquationID, "")
+						if err != nil {
+							logrus.Error("Can not generate Coin name", err.Error())
+							return model.CreatePool{}, []model.CoinMap{}, err
+						}
+						logrus.Info("Generated string ", generatedSID)
 						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
-						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
-
-						coinMap1 := model.CoinMap{
-							CoinName:      equationJson.MetricCoin.CoinName,
-							GeneratedName: generatedCoinName,
-						}
-						coinMap = append(coinMap, coinMap1)
-					} else {
-						coinMap1 := model.CoinMap{
-							CoinName:      portion[i].FieldAndCoin[j].CoinName,
-							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
-						}
-						coinMap = append(coinMap, coinMap1)
+						portion[i].FieldAndCoin[j].GeneratedName = generatedSID
+						equationJson.MetricCoin.GeneratedName = generatedSID
 					}
 				}
 			} else {
@@ -234,7 +182,8 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, err := object.GetPoolFromDB(coinConvertObject.EquationID, coinConvertObject.ProductName, coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
+	data, err := object.GetLiquidityPool(coinConvertObject.EquationID, coinConvertObject.ProductName,
+		coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -280,14 +229,63 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 	return buildPathPayments, nil
 }
 
-func makeTimestamp() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
-}
-
-func randomChar() string {
-	rand.Seed(time.Now().UnixNano())
-	charset := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	c := charset[rand.Intn(len(charset))]
-	logrus.Info("Generated character ", string(c))
-	return string(c)
+// GenerateCoinName return a generated coin name
+// Coin name structure
+//! generated coin include 12 characters
+//! start	 characters 	0-1 "TF" -->  2 characters Tracifed
+//! 		 characters 	2-4 ""   --> first 3 character of tenant Id  -upper case
+//! 		 characters 	5-7 ""   --> first 3 character of user insertd coin name -upper case
+//! 		 characters 	8-12 ""   -->  4 character  straing from 0001 (if coin description not equal ,auto increment count)
+func GenerateCoinName(tenantID, coinName, description, coinType, fieldName, equationId string) (string, error) {
+	var generatedCoinName string
+	object := dao.Connection{}
+	data, _ := object.GetCoinName(strings.ToUpper(coinName)).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	coinNameObj := model.CoinName{
+		TenantID:    tenantID,
+		EquationID:  equationId,
+		FieldName:   fieldName,
+		Type:        coinType,
+		CoinName:    strings.ToUpper(coinName),
+		Description: description,
+		Count:       "0001",
+	}
+	if data != nil {
+		fmt.Println(strings.Replace(strings.ToLower(data.(model.CoinName).Description), " ", "", -1))
+		if strings.Replace(strings.ToLower(data.(model.CoinName).Description), " ", "", -1) == strings.Replace(strings.ToLower(description), " ", "", -1) {
+			generatedCoinName = data.(model.CoinName).GeneratedCoinName
+		} else {
+			// string to int
+			i, err := strconv.Atoi(data.(model.CoinName).Count)
+			if err != nil {
+				return "", err
+			}
+			i++
+			count := strconv.Itoa(i)
+			if len(strconv.Itoa(i)) < 4 {
+				zero := `%0` + `4` + `d`
+				count = fmt.Sprintf(zero, i)
+			}
+			generatedCoinName = "TF" + strings.ToUpper(tenantID[0:3]) + strings.ToUpper(coinName[0:3]) + count
+			coinNameObj.GeneratedCoinName = generatedCoinName
+			err1 := object.InsertCoinName(coinNameObj)
+			if err1 != nil {
+				return "", err1
+			}
+		}
+	} else {
+		generatedCoinName = "TF" + strings.ToUpper(tenantID[0:3]) + strings.ToUpper(coinName[0:3]) + "0001"
+		coinNameObj.GeneratedCoinName = generatedCoinName
+		err := object.InsertCoinName(coinNameObj)
+		if err != nil {
+			return "", err
+		}
+	}
+	logrus.Info("coinname: ", coinName, "generatedCoinName  ", generatedCoinName)
+	if len(generatedCoinName) != 12 {
+		logrus.Error("coinname: ", coinName, "generatedCoinName: ", generatedCoinName)
+		return "", errors.New("length issue in generated coin name ")
+	}
+	return generatedCoinName, nil
 }
