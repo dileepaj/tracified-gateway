@@ -15,7 +15,15 @@ import (
 	"github.com/teris-io/shortid"
 )
 
-// BuildPoolCreationJSON return the pool creation json by Restructing the admin equationJson
+// todo con description aka validate karanna wenwa
+// todo con equal data chech karanwa
+
+// todo coin name minium akauru 4raka namak
+
+// todo tft - 3
+
+// todo tenatn - 3
+// todo BuildPoolCreationJSON return the pool creation json by Restructing the admin equationJson
 func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, error) {
 	var poolJson []model.BuildPool
 	portion := equationJson.EquationSubPortion
@@ -87,25 +95,25 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 
 						logrus.Info("Replaced string ", replacerTwo)
 
-						//check if the length is less than 12
-						if(len(replacerTwo) < 12){
+						// check if the length is less than 12
+						if len(replacerTwo) < 12 {
 							remainingChars := 12 - len(replacerTwo)
-							if(remainingChars == 3){
+							if remainingChars == 3 {
 								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + equationJson.TenantID[0:1] + equationJson.EquationID[0:1] + replacerTwo
-							} else if(remainingChars == 2){
+							} else if remainingChars == 2 {
 								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + equationJson.TenantID[0:1] + replacerTwo
-							} else if(remainingChars == 1){
+							} else if remainingChars == 1 {
 								generatedCoinName = portion[i].FieldAndCoin[j].CoinName[0:1] + replacerTwo
-							} else{
+							} else {
 								generatedCoinName = replacerTwo
 							}
-						} else{
+						} else {
 							generatedCoinName = replacerTwo
 						}
-	
+
 						logrus.Info("Generated and modified Coin name  01 : ", generatedCoinName)
 						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
-						
+
 					}
 
 					// count the userIput type variable in a  sub portion
@@ -141,22 +149,22 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 
 		logrus.Info("Replaced string ", replacerTwo)
 
-		//check if the length is less than 12
-		if(len(replacerTwo) < 12){
+		// check if the length is less than 12
+		if len(replacerTwo) < 12 {
 			remainingChars := 12 - len(replacerTwo)
-			if(remainingChars == 3){
+			if remainingChars == 3 {
 				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + equationJson.TenantID[0:1] + equationJson.EquationID[0:1] + replacerTwo
-			} else if(remainingChars == 2){
-				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + equationJson.TenantID[0:1] +  replacerTwo
-			} else if(remainingChars == 1){
-				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] +  replacerTwo
-			} else{
+			} else if remainingChars == 2 {
+				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + equationJson.TenantID[0:1] + replacerTwo
+			} else if remainingChars == 1 {
+				generatedCoinName = equationJson.MetricCoin.CoinName[0:1] + replacerTwo
+			} else {
 				generatedCoinName = replacerTwo
 			}
-		} else{
+		} else {
 			generatedCoinName = replacerTwo
 		}
-		
+
 		logrus.Info("Generated and modified Coin name  02 : ", generatedCoinName)
 
 		for i := 0; i < len(portion); i++ {
@@ -170,10 +178,10 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						// strTimestamp := strconv.Itoa(int(timestamp))
 						// generatedCoinName := equationJson.MetricCoin.CoinName[0:1] +
 						// 	equationJson.EquationID[0:3] + equationJson.ProductName[0:1] + equationJson.TenantID[0:4] + strTimestamp[10:13]
-						
+
 						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
 						portion[i].FieldAndCoin[j].GeneratedName = generatedCoinName
-						
+
 						coinMap1 := model.CoinMap{
 							CoinName:      equationJson.MetricCoin.CoinName,
 							GeneratedName: generatedCoinName,
@@ -235,10 +243,9 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 	if data == nil {
 		return []model.BuildPathPayment{}, errors.New("Can not find Pool")
 	}
-	//find  coin name assign it to generated coin name 
+	// find  coin name assign it to generated coin name
 	for i := 0; i < len(coinConvertObject.UserInputs); i++ {
 		for k := 0; k < len(data.(model.BuildPoolResponse).CoinMap); k++ {
-			fmt.Println(data.(model.BuildPoolResponse).CoinMap[k].CoinName, data.(model.BuildPoolResponse).CoinMap[k].GeneratedName)
 			if coinConvertObject.UserInputs[i].CoinName == data.(model.BuildPoolResponse).CoinMap[k].CoinName {
 				coinConvertObject.UserInputs[i].GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
 			}
@@ -251,8 +258,6 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 	var buildPathPayments []model.BuildPathPayment
 	if coinConvertObject.UserInputs != nil && len(coinConvertObject.UserInputs) > 0 {
 		for _, inputCoin := range coinConvertObject.UserInputs {
-			fmt.Println(inputCoin.CoinName)
-
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin: model.Coin{
 					Id: inputCoin.Id, CoinName: inputCoin.CoinName,
@@ -279,11 +284,10 @@ func makeTimestamp() int64 {
 	return time.Now().UnixNano() / int64(time.Millisecond)
 }
 
-
-func randomChar() string{
+func randomChar() string {
 	rand.Seed(time.Now().UnixNano())
 	charset := "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	c := charset[rand.Intn(len(charset))]
-	logrus.Info("Generated character " ,string(c))
+	logrus.Info("Generated character ", string(c))
 	return string(c)
 }

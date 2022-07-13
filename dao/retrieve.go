@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -170,7 +171,7 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error while connecting to db " + err.Error())
+			logrus.Info("Error while connecting to db " + err.Error())
 			reject(err)
 		}
 
@@ -179,7 +180,7 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 		err1 := c.FindOne(context.TODO(), bson.M{"accepttxn": accepttxn}).Decode(&result)
 
 		if err1 != nil {
-			log.Error("Error while getting COC from db " + err.Error())
+			logrus.Info("Error while getting COC from db " + err.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -1877,7 +1878,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 		c := session.Client().Database(dbName).Collection("TrustlineHistory")
 		err = c.FindOne(context.TODO(), bson.M{"coinissuer" : coinIssuer, "coinreceiver" : coinReceiver, "asset" : coinName}).Decode(&resultTrustlineObj)
 		if err != nil {
-			log.Error("Error when fetching data from DB " + err.Error())
+			logrus.Info("Error when fetching data from DB " + err.Error())
 			reject(err)
 		} else {
 			resolve(resultTrustlineObj)
@@ -1893,7 +1894,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error when connecting to DB " + err.Error())
+			logrus.Error("Error when connecting to DB " + err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -1916,7 +1917,7 @@ func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantI
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error when connecting to DB " + err.Error())
+			logrus.Error("Error when connecting to DB " + err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())

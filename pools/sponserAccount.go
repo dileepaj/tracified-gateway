@@ -1,8 +1,6 @@
 package pools
 
 import (
-	"fmt"
-
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
@@ -37,8 +35,8 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	//encPK := commons.Encrypt(pair.Address())
 	//pair.Seed() := commons.Encrypt(pair.Seed())
 
-	fmt.Println("Encrypted PK", pair.Address())
-	fmt.Println("Encrypted SK", pair.Seed())
+	logrus.Info("Encrypted PK", pair.Address())
+	logrus.Info("Encrypted SK", pair.Seed())
 
 	batchAccount.BatchAccountPK=pair.Address()
 	batchAccount.BatchAccountSK=pair.Seed()

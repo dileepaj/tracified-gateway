@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -160,8 +161,8 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 
 	out2, _ := json.Marshal(raw["records"])
 	json.Unmarshal(out2, &raw1)
-	if len(raw1)<=0{
-		return destinationAssert,errors.New("pool not Created")
+	if len(raw1) <= 0 {
+		return destinationAssert, errors.New("pool not Created")
 	}
 	record := raw1[0].(map[string]interface{})
 	// retrive the distination recived coin ammount
@@ -175,7 +176,7 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 	json.Unmarshal(out3, &raw2)
 
 	// retrive the coin converion paths and push it to array
-	for i,_ := range raw2 {
+	for i := range raw2 {
 		path := raw2[i].(map[string]interface{})
 		pathAssert := model.CoinPath{
 			Type:     fmt.Sprintf("%v", path["asset_type"]),
@@ -189,4 +190,99 @@ func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssu
 		return destinationAssert, errors.New("Destination amount is empty")
 	}
 	return destinationAssert, nil
+}
+
+func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, error) {
+	var batchAccountPK string
+	var batchAccountSK string
+	var coinConversions []model.BuildPathPayment
+	// check if there is an account in the DB for the batchID and get the account
+	object := dao.Connection{}
+	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID,
+		newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+
+	if data == nil {
+		// add account to the DB
+		batchAccount := model.BatchAccount{
+			BatchID:     newBatchConvertCoinObj.BatchID,
+			BatchName:   newBatchConvertCoinObj.BatchName,
+			TenantID:    newBatchConvertCoinObj.TenantID,
+			ProductName: newBatchConvertCoinObj.ProductName,
+			EquationID:  newBatchConvertCoinObj.EquationID,
+			StageID:     newBatchConvertCoinObj.StageId,
+		}
+		// if not create the sponsering account
+		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
+		batchAccountPK = batchPK
+		batchAccountSK = batchSK
+
+		if err != nil {
+			logrus.Error("Can not Create Batch Account " + err.Error())
+			return "", err
+		}
+
+	} else {
+
+		decryptedPK := (data.(model.BatchAccount)).BatchAccountPK
+		decryptedSK := (data.(model.BatchAccount)).BatchAccountSK
+
+		// decrypt account details
+		// decryptedPK := commons.Decrypt([]byte(encryptedPK))
+		// decryptedSK := commons.Decrypt([]byte(encryptedSK))
+
+		// if there is an account go to path payments directly
+		batchAccountPK = decryptedPK
+		batchAccountSK = decryptedSK
+
+		logrus.Info("account PK", batchAccountPK)
+		logrus.Info("account SK", batchAccountPK)
+
+		if batchAccountPK == "" || batchAccountSK == "" {
+			logrus.Error("Can not Create Batch Account")
+			return "", errors.New("Can not Create Batch Account")
+		}
+
+	}
+
+	// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
+	pathpayments, err := CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
+	if err != nil {
+		logrus.Error("Can not create Path Payment Json ", err)
+		return "", err
+	}
+
+	for _, pathPayment := range pathpayments {
+		coinConversion, err := CoinConvert(pathPayment)
+		if err != nil {
+			logrus.Error("Coin converion issue ", err)
+		} else {
+			coinConversions = append(coinConversions, coinConversion)
+		}
+	}
+	if len(coinConversions) <= 0 {
+		logrus.Info("Can not convert any Coin ", coinConversions)
+		return "", errors.New("an not convert any Coin")
+	}
+	// build response with all coin details
+	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
+		CoinConertions: coinConversions,
+		ProductId:      newBatchConvertCoinObj.ProductID,
+		ProductIdName:  newBatchConvertCoinObj.ProductName,
+		EquationId:     newBatchConvertCoinObj.EquationID,
+		TenantId:       newBatchConvertCoinObj.TenantID,
+	}
+	err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
+	if err1 != nil {
+		logrus.Error("Error when inserting coin conversion details to DB " + err.Error())
+		return "", nil
+	} else {
+		logrus.Info("Coin conversion details added to the DB")
+		out, err := json.Marshal(buildCoinConvertionResponse)
+		if err != nil {
+			logrus.Info("Path payment to the DB JSON Marshal Error")
+		}
+		return string(out), nil
+	}
 }

@@ -19,6 +19,7 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
+	github.com/rabbitmq/amqp091-go v1.3.4 // indirect
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569 // indirect
 )
 

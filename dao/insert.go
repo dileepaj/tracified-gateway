@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -224,14 +225,14 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHistory) error{
 	session, err := cd.connect()
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("TrustlineHistory")
 	_, err = c.InsertOne(context.TODO(), trustlineHistory)
 	if err != nil {
-		fmt.Println("Error when inserting data to DB " + err.Error())
+		logrus.Info("Error when inserting data to DB " + err.Error())
 	}
 	return err
 }
@@ -239,14 +240,14 @@ func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHis
 func (cd *Connection) InsertBatchAccount(batchAccount model.BatchAccount) error{
 	session, err := cd.connect()
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("BatchAccount")
 	_, err = c.InsertOne(context.TODO(), batchAccount)
 	if err != nil {
-		fmt.Println("Error when inserting data to DB " + err.Error())
+		logrus.Info("Error when inserting data to DB " + err.Error())
 	}
 	return err
 }
@@ -256,14 +257,14 @@ func (cd *Connection) InsertPool(pool model.BuildPoolResponse) error{
 	session, err := cd.connect()
 
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("LiquidityPool")
 	_, err = c.InsertOne(context.TODO(), pool)
 	if err != nil {
-		fmt.Println("Error when inserting data to DB " + err.Error())
+		logrus.Info("Error when inserting data to DB " + err.Error())
 	}
 	return err
 	
@@ -274,14 +275,14 @@ func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.B
 	session, err := cd.connect()
 
 	if err != nil{
-		fmt.Println("Error when connecting to DB " + err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("CoinConversion")
 	_, err = c.InsertOne(context.TODO(), buildCoinConvertionObj)
 	if err != nil {
-		fmt.Println("Error when inserting data to DB " + err.Error())
+		logrus.Info("Error when inserting data to DB " + err.Error())
 	}
 	return err
 }

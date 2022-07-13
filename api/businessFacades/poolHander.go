@@ -2,12 +2,14 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/validations"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -16,9 +18,6 @@ import (
 func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var newBatchConvertCoinObj model.BatchCoinConvert
-	var batchAccountPK string
-	var batchAccountSK string
-	var coinConversions []model.BuildPathPayment
 	err := json.NewDecoder(r.Body).Decode(&newBatchConvertCoinObj)
 	if err != nil {
 		logrus.Info(err)
@@ -41,103 +40,21 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		// check if there is an account in the DB for the batchID and get the account
-		object := dao.Connection{}
-		data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID,
-			newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
-			return data
-		}).Await()
 
-		if data == nil {
-			// add account to the DB
-			batchAccount := model.BatchAccount{
-				BatchID:     newBatchConvertCoinObj.BatchID,
-				BatchName:   newBatchConvertCoinObj.BatchName,
-				TenantID:    newBatchConvertCoinObj.TenantID,
-				ProductName: newBatchConvertCoinObj.ProductName,
-				EquationID:  newBatchConvertCoinObj.EquationID,
-				StageID:     newBatchConvertCoinObj.StageId,
-			}
-			// if not create the sponsering account
-			batchPK, batchSK, err := pools.CreateSponseredAccount(batchAccount)
-			batchAccountPK = batchPK
-			batchAccountSK = batchSK
-			logrus.Info(batchAccountPK)
-			logrus.Info(batchAccountSK)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				result := "Can not Create Batch Account " + err.Error()
-				json.NewEncoder(w).Encode(result)
-				return
-			}
-
-		} else {
-
-			decryptedPK := (data.(model.BatchAccount)).BatchAccountPK
-			decryptedSK := (data.(model.BatchAccount)).BatchAccountSK
-
-			// decrypt account details
-			// decryptedPK := commons.Decrypt([]byte(encryptedPK))
-			// decryptedSK := commons.Decrypt([]byte(encryptedSK))
-
-			// if there is an account go to path payments directly
-			batchAccountPK = decryptedPK
-			logrus.Info(batchAccountPK)
-
-			batchAccountSK = decryptedSK
-			logrus.Info(batchAccountSK)
-
-			if batchAccountPK == "" || batchAccountSK == "" {
-				w.WriteHeader(http.StatusInternalServerError)
-				result := "Can not find Batch Account " + err.Error()
-				json.NewEncoder(w).Encode(result)
-				return
-			}
-
+		queue := model.SendToQueue{
+			Type:        "CionConvert",
+			CoinConvert: newBatchConvertCoinObj,
 		}
 
-		// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
-		pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
-		if err != nil {
-			logrus.Error("Can not create Path Payment Json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode("Can not create Path Payment Json")
-			return
-		}
+		logrus.Info("Sent..", queue)
+		// sent data to mgs amq queue
+		services.SendToQueue(queue)
 
-		for _, pathPayment := range pathpayments {
-			coinConversion, err := pools.CoinConvert(pathPayment)
-			if err != nil {
-				logrus.Error("Coin converion issue ", err)
-			} else {
-				coinConversions = append(coinConversions, coinConversion)
-			}
-		}
-		if len(coinConversions) <= 0 {
-			logrus.Info("Can not convert any Coin")
-			w.WriteHeader(http.StatusInternalServerError)
-			result := "Empty coin convertion"
-			json.NewEncoder(w).Encode(result)
-			return
-		}
-		// build response with all coin details
-		buildCoinConvertionResponse := model.BuildPathPaymentJSon{
-			CoinConertions: coinConversions,
-			ProductId:      newBatchConvertCoinObj.ProductID,
-			ProductIdName:  newBatchConvertCoinObj.ProductName,
-			EquationId:     newBatchConvertCoinObj.EquationID,
-			TenantId:       newBatchConvertCoinObj.TenantID,
-		}
-		err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
-		if err1 != nil {
-			log.Println("Error when inserting coin conversion details to DB " + err.Error())
-		} else {
-			log.Println("Coin conversion details added to the DB")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(buildCoinConvertionResponse)
-			return
-		}
+		log.Println("Coin conversion details added to the DB")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode("Path payment added to queue")
+		return
 	}
 }
 
@@ -163,8 +80,8 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		//check of the equation type is either batch or artifact
-		if (equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact"){
+		// //check of the equation type is either batch or artifact
+		if equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact" {
 
 			object := dao.Connection{}
 			data, _ := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
@@ -186,7 +103,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			// build the pool creation json
+			// 	// build the pool creation json
 			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
 			if err != nil {
 				logrus.Error(poolCreationJSON, err)
@@ -195,48 +112,30 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				return
 			}
 			logrus.Info("Payload ", poolCreationJSON)
-			// create the pools
-			cratedPools, err, isPoolCreated := pools.CreatePoolsUsingJson(poolCreationJSON)
-			if err != nil {
-				logrus.Error(cratedPools, err)
-				json.NewEncoder(w).Encode(err)
-				return
+
+			equationDetails := model.CreatePool{
+				EquationID:  equationJsonObj.EquationID,
+				ProductName: equationJsonObj.ProductName,
+				ProductID:   equationJsonObj.ProductID,
+				TenantID:    equationJsonObj.TenantID,
 			}
 
-			response := model.BuildPoolResponse{
-				MetricId:    equationJsonObj.MetricID,
-				EquationId:  equationJsonObj.EquationID,
-				ProductId:   equationJsonObj.ProductID,
-				ProductName: equationJsonObj.ProductName,
-				TenantId:    equationJsonObj.TenantID,
-				CoinMap:     coinMap,
-				BuildPools:  cratedPools,
+			queue := model.SendToQueue{
+				Type:              "Pool",
+				EqationJson:       equationDetails,
+				CoinMap:           coinMap,
+				PoolCreationArray: poolCreationJSON,
 			}
-			// check if the pool is created
-			if isPoolCreated {
-				log.Println("New pools are created")
-				// insert the pool to the DB
-				object := dao.Connection{}
-				err1 := object.InsertPool(response)
-				if err1 != nil {
-					log.Println("Error when inserting pool to DB " + err.Error())
-				} else {
-					log.Println("Pool added to the DB")
-					w.Header().Set("Content-Type", "application/json")
-					w.WriteHeader(http.StatusOK)
-					json.NewEncoder(w).Encode(response)
-					return
-				}
-			} else {
-				log.Println("New pools are not created")
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusBadRequest)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Pool is already created and deposited",
-				}
-				json.NewEncoder(w).Encode(result)
-				return
-			}
+
+			// sent data to mgs amq queue
+			fmt.Println("Sent..", queue)
+			services.SendToQueue(queue)
+
+			log.Println("Pool added to the Queue")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode("Pool added to the Queue")
+			return
 
 		} else {
 			w.WriteHeader(http.StatusBadRequest)

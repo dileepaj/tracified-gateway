@@ -180,9 +180,9 @@ type CreatePool struct {
 	MetricID             string               `json:"metricId" bson:"metricId" validate:"required"`
 	MetricName           string               `json:"metricName" bson:"metricName" validate:"required"`
 	MetrixType           string               `json:"metrixType" bson:"metrixType" validate:"required"`
-	ActivityId           string				  `json:"activityId" bson:"activityId" validate:"required"`
+	ActivityId           string               `json:"activityId" bson:"activityId" validate:"required"`
 	MetricFormulaId      string               `json:"metricFormulaId" bson:"metricFormulaId" validate:"required"`
-	EquationType         string				  `json:"equationType" bson:"equationType" validate:"required"`
+	EquationType         string               `json:"equationType" bson:"equationType" validate:"required"`
 	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
 	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
 	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
@@ -216,4 +216,12 @@ type EquationResultForBatch struct {
 type CoinMap struct {
 	CoinName      string
 	GeneratedName string
+}
+
+type SendToQueue struct {
+	Type              string
+	EqationJson       CreatePool
+	CoinMap           []CoinMap
+	PoolCreationArray []BuildPool
+	CoinConvert       BatchCoinConvert
 }
