@@ -236,14 +236,14 @@ func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHis
 	return err
 }
 
-func (cd *Connection) InsertBatchAccount(batchAccount model.BatchAccount) error{
+func (cd *Connection) InsertCoinAccount(batchAccount model.CoinAccount) error{
 	session, err := cd.connect()
 	if err != nil{
 		fmt.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("BatchAccount")
+	c := session.Client().Database(dbName).Collection("CoinAccount")
 	_, err = c.InsertOne(context.TODO(), batchAccount)
 	if err != nil {
 		fmt.Println("Error when inserting data to DB " + err.Error())

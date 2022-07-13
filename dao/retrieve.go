@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -1888,7 +1889,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 }
 
 func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, productName string,tenantId string) *promise.Promise{
-	resultBatchAccountObj := model.BatchAccount{}
+	resultBatchAccountObj := model.CoinAccount{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1898,7 +1899,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 		}
 		defer session.EndSession(context.TODO())
 
-		c := session.Client().Database(dbName).Collection("BatchAccount")
+		c := session.Client().Database(dbName).Collection("CoinAccount")
 		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID,"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&resultBatchAccountObj)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
@@ -1910,8 +1911,9 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, p
 	return p
 }
 
-func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantId string) *promise.Promise{
+func (cd *Connection) GetPoolFromDB(formulaType string, equatonId string, productName string,tenantId string) *promise.Promise{
 	pool := model.BuildPoolResponse{}
+	logrus.Info("Fiters used ", formulaType, equatonId, productName, tenantId)
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1922,7 +1924,7 @@ func (cd *Connection) GetPoolFromDB(equatonId string, productName string,tenantI
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("LiquidityPool")
-		err = c.FindOne(context.TODO(), bson.M{"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&pool)
+		err = c.FindOne(context.TODO(), bson.M{"formulatype":formulaType,"equationid":equatonId,"productname":productName,"tenantid":tenantId}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

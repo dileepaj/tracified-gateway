@@ -41,104 +41,115 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		// check if there is an account in the DB for the batchID and get the account
-		object := dao.Connection{}
-		data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID,
-			newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
-			return data
-		}).Await()
+		//check if the formula type is batch or artifact
+		if(newBatchConvertCoinObj.FormulaType == "Batch" || newBatchConvertCoinObj.FormulaType == "Artifact"){
+			// check if there is an account in the DB for the batchID and get the account
+			object := dao.Connection{}
+			data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaType, newBatchConvertCoinObj.EquationID,
+				newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
 
-		if data == nil {
-			// add account to the DB
-			batchAccount := model.BatchAccount{
-				BatchID:     newBatchConvertCoinObj.BatchID,
-				BatchName:   newBatchConvertCoinObj.BatchName,
-				TenantID:    newBatchConvertCoinObj.TenantID,
-				ProductName: newBatchConvertCoinObj.ProductName,
-				EquationID:  newBatchConvertCoinObj.EquationID,
-				StageID:     newBatchConvertCoinObj.StageId,
-			}
-			// if not create the sponsering account
-			batchPK, batchSK, err := pools.CreateSponseredAccount(batchAccount)
-			batchAccountPK = batchPK
-			batchAccountSK = batchSK
-			logrus.Info(batchAccountPK)
-			logrus.Info(batchAccountSK)
-			if err != nil {
-				w.WriteHeader(http.StatusInternalServerError)
-				result := "Can not Create Batch Account " + err.Error()
-				json.NewEncoder(w).Encode(result)
-				return
-			}
+			if data == nil {
+				// add account to the DB
+				coinAccount := model.CoinAccount{
+					FormulaType:       newBatchConvertCoinObj.FormulaType,
+					FormulaTypeID:     newBatchConvertCoinObj.FormulaTypeID,
+					FormulaTypeName:   newBatchConvertCoinObj.FormulaTypeName,
+					TenantID:          newBatchConvertCoinObj.TenantID,
+					ProductName:       newBatchConvertCoinObj.ProductName,
+					EquationID:        newBatchConvertCoinObj.EquationID,
+					StageID:           newBatchConvertCoinObj.StageId,
+				}
+				// if not create the sponsering account
+				batchPK, batchSK, err := pools.CreateSponseredAccount(coinAccount)
+				batchAccountPK = batchPK
+				batchAccountSK = batchSK
+				logrus.Info(batchAccountPK)
+				logrus.Info(batchAccountSK)
+				if err != nil {
+					w.WriteHeader(http.StatusInternalServerError)
+					result := "Can not Create Batch Account " + err.Error()
+					json.NewEncoder(w).Encode(result)
+					return
+				}
 
-		} else {
-
-			decryptedPK := (data.(model.BatchAccount)).BatchAccountPK
-			decryptedSK := (data.(model.BatchAccount)).BatchAccountSK
-
-			// decrypt account details
-			// decryptedPK := commons.Decrypt([]byte(encryptedPK))
-			// decryptedSK := commons.Decrypt([]byte(encryptedSK))
-
-			// if there is an account go to path payments directly
-			batchAccountPK = decryptedPK
-			logrus.Info(batchAccountPK)
-
-			batchAccountSK = decryptedSK
-			logrus.Info(batchAccountSK)
-
-			if batchAccountPK == "" || batchAccountSK == "" {
-				w.WriteHeader(http.StatusInternalServerError)
-				result := "Can not find Batch Account " + err.Error()
-				json.NewEncoder(w).Encode(result)
-				return
-			}
-
-		}
-
-		// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
-		pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
-		if err != nil {
-			logrus.Error("Can not create Path Payment Json")
-			w.WriteHeader(http.StatusInternalServerError)
-			json.NewEncoder(w).Encode("Can not create Path Payment Json")
-			return
-		}
-
-		for _, pathPayment := range pathpayments {
-			coinConversion, err := pools.CoinConvert(pathPayment)
-			if err != nil {
-				logrus.Error("Coin converion issue ", err)
 			} else {
-				coinConversions = append(coinConversions, coinConversion)
+
+				decryptedPK := (data.(model.CoinAccount)).CoinAccountPK
+				decryptedSK := (data.(model.CoinAccount)).CoinAccountSK
+
+				// decrypt account details
+				// decryptedPK := commons.Decrypt([]byte(encryptedPK))
+				// decryptedSK := commons.Decrypt([]byte(encryptedSK))
+
+				// if there is an account go to path payments directly
+				batchAccountPK = decryptedPK
+				logrus.Info(batchAccountPK)
+
+				batchAccountSK = decryptedSK
+				logrus.Info(batchAccountSK)
+
+				if batchAccountPK == "" || batchAccountSK == "" {
+					w.WriteHeader(http.StatusInternalServerError)
+					result := "Can not find Batch Account " + err.Error()
+					json.NewEncoder(w).Encode(result)
+					return
+				}
+
 			}
-		}
-		if len(coinConversions) <= 0 {
-			logrus.Info("Can not convert any Coin")
-			w.WriteHeader(http.StatusInternalServerError)
-			result := "Empty coin convertion"
+
+			// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
+			pathpayments, err := pools.CoinConvertionJson(newBatchConvertCoinObj, batchAccountPK, batchAccountSK)
+			if err != nil {
+				logrus.Error("Can not create Path Payment Json")
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode("Can not create Path Payment Json")
+				return
+			}
+
+			for _, pathPayment := range pathpayments {
+				coinConversion, err := pools.CoinConvert(pathPayment)
+				if err != nil {
+					logrus.Error("Coin converion issue ", err)
+				} else {
+					coinConversions = append(coinConversions, coinConversion)
+				}
+			}
+			if len(coinConversions) <= 0 {
+				logrus.Info("Can not convert any Coin")
+				w.WriteHeader(http.StatusInternalServerError)
+				result := "Empty coin convertion"
+				json.NewEncoder(w).Encode(result)
+				return
+			}
+			// build response with all coin details
+			buildCoinConvertionResponse := model.BuildPathPaymentJSon{
+				CoinConertions: coinConversions,
+				ProductId:      newBatchConvertCoinObj.ProductID,
+				ProductIdName:  newBatchConvertCoinObj.ProductName,
+				EquationId:     newBatchConvertCoinObj.EquationID,
+				TenantId:       newBatchConvertCoinObj.TenantID,
+			}
+			err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
+			if err1 != nil {
+				log.Println("Error when inserting coin conversion details to DB " + err.Error())
+			} else {
+				log.Println("Coin conversion details added to the DB")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(buildCoinConvertionResponse)
+				return
+			}
+		} else{
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Invalid equation type",
+			}
 			json.NewEncoder(w).Encode(result)
 			return
 		}
-		// build response with all coin details
-		buildCoinConvertionResponse := model.BuildPathPaymentJSon{
-			CoinConertions: coinConversions,
-			ProductId:      newBatchConvertCoinObj.ProductID,
-			ProductIdName:  newBatchConvertCoinObj.ProductName,
-			EquationId:     newBatchConvertCoinObj.EquationID,
-			TenantId:       newBatchConvertCoinObj.TenantID,
-		}
-		err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
-		if err1 != nil {
-			log.Println("Error when inserting coin conversion details to DB " + err.Error())
-		} else {
-			log.Println("Coin conversion details added to the DB")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(buildCoinConvertionResponse)
-			return
-		}
-	}
+	}	
 }
 
 func CreatePool(w http.ResponseWriter, r *http.Request) {
@@ -164,10 +175,10 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		//check of the equation type is either batch or artifact
-		if (equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact"){
+		if (equationJsonObj.FormulaType == "Batch" || equationJsonObj.FormulaType == "Artifact"){
 
 			object := dao.Connection{}
-			data, _ := object.GetPoolFromDB(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+			data, _ := object.GetPoolFromDB(equationJsonObj.FormulaType, equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if data != nil {
@@ -209,6 +220,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				ProductId:   equationJsonObj.ProductID,
 				ProductName: equationJsonObj.ProductName,
 				TenantId:    equationJsonObj.TenantID,
+				FormulaType: equationJsonObj.FormulaType,
 				CoinMap:     coinMap,
 				BuildPools:  cratedPools,
 			}
@@ -276,7 +288,7 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-	dbData := data.(model.BatchAccount)
+	dbData := data.(model.CoinAccount)
 	coinBalance, err := pools.CalculateCoin(dbData)
 	if err != nil {
 		logrus.Info("Can not find the assert in account")
@@ -286,17 +298,17 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	equationResponse = model.EquationResultForBatch{
-		TenantID:       dbData.TenantID,
-		ProductName:    dbData.ProductName,
-		ProductID:      dbData.ProductID,
-		BatchID:        dbData.BatchID,
-		BatchName:      dbData.BatchName,
-		StageId:        dbData.StageID,
-		EquationID:     dbData.EquationID,
-		MetrixType:     calculateEquationObj.MetrixType,
-		MetricCoin:     dbData.MetricCoin,
-		BatchAccount:   dbData.BatchAccountPK,
-		EquationResult: coinBalance,
+		TenantID:        	dbData.TenantID,
+		ProductName:    	dbData.ProductName,
+		ProductID:      	dbData.ProductID,
+		BatchID:  	        dbData.FormulaTypeID,
+		BatchName:          dbData.FormulaTypeName,
+		StageId:        	dbData.StageID,
+		EquationID:     	dbData.EquationID,
+		MetrixType:     	calculateEquationObj.MetrixType,
+		MetricCoin:     	dbData.MetricCoin,
+		BatchAccount:   	dbData.CoinAccountPK,
+		EquationResult: 	coinBalance,
 	}
 
 	log.Println("Equation result")

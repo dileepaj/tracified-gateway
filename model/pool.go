@@ -44,6 +44,7 @@ type BuildPoolResponse struct {
 	MetricId    string
 	EquationId  string
 	TenantId    string
+	FormulaType string
 	CoinMap     []CoinMap
 	BuildPools  []BuildPool
 }
@@ -117,28 +118,31 @@ type UserInput struct {
 	Value         string
 }
 type BatchCoinConvert struct {
-	EquationID  string      `json:"EquationId" bson:"EquationId" validate:"required"`
-	TenantID    string      `json:"TenantId" bson:"TenantId" validate:"required"`
-	ProductName string      `json:"ProductName" bson:"ProductName" validate:"required"`
-	ProductID   string      `json:"ProductID" bson:"ProductID" validate:"required"`
-	BatchID     string      `json:"BatchId" bson:"BatchId" validate:"required"`
-	BatchName   string      `json:"BatchName" bson:"BatchName" validate:"required"`
-	StageId     string      `json:"stageId" bson:"stageId" validate:"required"`
-	MetricCoin  MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
-	UserInputs  []UserInput `json:"userInputs" bson:"userInputs"`
+	ProductName     string      `json:"ProductName" bson:"ProductName" validate:"required"`
+	ProductID       string      `json:"ProductID" bson:"ProductID" validate:"required"`
+	MetricId        string      `json:"MetricId" bson:"MetricId" validate:"required"`
+	EquationID      string      `json:"EquationId" bson:"EquationId" validate:"required"`
+	TenantID        string      `json:"TenantId" bson:"TenantId" validate:"required"`
+	FormulaType     string      `json:"FormulaType" bson:"FormulaType" validate:"required"`
+	FormulaTypeID   string      `json:"FormulaTypeID" bson:"FormulaTypeID" validate:"required"`
+	FormulaTypeName string      `json:"FormulaTypeName" bson:"FormulaTypeName" validate:"required"`
+	StageId         string      `json:"stageId" bson:"stageId" validate:"required"`
+	MetricCoin      MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
+	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
-type BatchAccount struct {
-	TenantID       string
-	BatchID        string
-	EquationID     string
-	BatchName      string
-	ProductID      string
-	ProductName    string
-	MetricCoin     MetricCoin
-	StageID        string
-	BatchAccountPK string
-	BatchAccountSK string
+type CoinAccount struct {
+	TenantID             string
+	FormulaType          string
+	FormulaTypeID        string
+	FormulaTypeName      string
+	EquationID           string
+	ProductID            string
+	ProductName          string
+	MetricCoin           MetricCoin
+	StageID              string
+	CoinAccountPK        string
+	CoinAccountSK        string
 }
 
 type MetricFormulas struct {
@@ -182,7 +186,7 @@ type CreatePool struct {
 	MetrixType           string               `json:"metrixType" bson:"metrixType" validate:"required"`
 	ActivityId           string				  `json:"activityId" bson:"activityId" validate:"required"`
 	MetricFormulaId      string               `json:"metricFormulaId" bson:"metricFormulaId" validate:"required"`
-	EquationType         string				  `json:"equationType" bson:"equationType" validate:"required"`
+	FormulaType          string				  `json:"FormulaType" bson:"FormulaType" validate:"required"`
 	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
 	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
 	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
@@ -200,17 +204,17 @@ type CalculateEquationForBatch struct {
 	MetrixType  string
 }
 type EquationResultForBatch struct {
-	TenantID       string
-	ProductName    string
-	ProductID      string
-	BatchID        string
-	BatchName      string
-	StageId        string
-	EquationID     string
-	MetrixType     string
-	MetricCoin     MetricCoin
-	BatchAccount   string
-	EquationResult string
+	TenantID         string
+	ProductName      string
+	ProductID        string
+	BatchID		     string
+	BatchName        string
+	StageId          string
+	EquationID       string
+	MetrixType       string
+	MetricCoin       MetricCoin
+	BatchAccount     string
+	EquationResult   string
 }
 
 type CoinMap struct {

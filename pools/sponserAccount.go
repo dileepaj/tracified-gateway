@@ -22,7 +22,7 @@ var (
 var netClient = sdk.DefaultTestNetClient
 
 // CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
-func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, error) {
+func CreateSponseredAccount(coinAccount model.CoinAccount) (string, string, error) {
 	// create keypair
 	pair, err := keypair.Random()
 	if err != nil {
@@ -40,11 +40,11 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	fmt.Println("Encrypted PK", pair.Address())
 	fmt.Println("Encrypted SK", pair.Seed())
 
-	batchAccount.BatchAccountPK=pair.Address()
-	batchAccount.BatchAccountSK=pair.Seed()
+	coinAccount.CoinAccountPK=pair.Address()
+	coinAccount.CoinAccountSK=pair.Seed()
 
 	object := dao.Connection{}
-	errResult := object.InsertBatchAccount(batchAccount)
+	errResult := object.InsertCoinAccount(coinAccount)
 	if errResult != nil {
 		logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
 		return "","",errResult
@@ -108,7 +108,7 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 		logrus.Error(err)
 		return "", "", err
 	} else {
-		logrus.Info("Batch account created ", response.Hash)
+		logrus.Info("Coin account created ", response.Hash)
 		return pair.Address(), pair.Seed(), nil
 	}
 }
