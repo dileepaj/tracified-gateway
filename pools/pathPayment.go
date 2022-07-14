@@ -20,7 +20,7 @@ import (
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
 func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
-	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.GeneratedName == "" || pathPayment.CoinIssuerAccontPK == "" {
+	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.CoinName == "" || pathPayment.CoinIssuerAccontPK == "" {
 		log.Error("CoinConvert() method's parameters have a empty values")
 		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
 	}
