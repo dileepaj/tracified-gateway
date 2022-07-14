@@ -21,10 +21,9 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-
 var (
-	coinIsuserPK = "GDKOWBTSGLZJDP7QGX533AFLPD47J5AZIJ7R3WBCUHWN5NOTYS5E44FD"
-	coinIsuserSK = "SC3SYZ3OMREXJAKAD55EHYH3XTRQMCCURWA3BVETEJM6JRWQN6BNIQ2Q"
+	coinIsuserPK = "GD4TJJW4X5VIGHUTDTNNY3UWKWDFLKQG33BQIZKBZU6OBGTWUQ3TO74K"
+	coinIsuserSK = "SBI57JP57LWU72PCJF7GH3CAJWWM5YBSVBNCDBH6G5WBICCM3GDYCUKO"
 )
 var poolCoin []txnbuild.Asset
 
@@ -175,7 +174,7 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 				SponsoredID:   coinReceiverPK,
 				SourceAccount: sponsorPK,
 			},
-	
+
 			&txnbuild.ChangeTrust{
 				Line:          coin,
 				Limit:         "",

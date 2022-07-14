@@ -119,28 +119,30 @@ type UserInput struct {
 	Value         string
 }
 type BatchCoinConvert struct {
-	EquationID  string      `json:"EquationId" bson:"EquationId" validate:"required"`
-	TenantID    string      `json:"TenantId" bson:"TenantId" validate:"required"`
-	ProductName string      `json:"ProductName" bson:"ProductName" validate:"required"`
-	ProductID   string      `json:"ProductID" bson:"ProductID" validate:"required"`
-	BatchID     string      `json:"BatchId" bson:"BatchId" validate:"required"`
-	BatchName   string      `json:"BatchName" bson:"BatchName" validate:"required"`
-	StageId     string      `json:"stageId" bson:"stageId" validate:"required"`
-	MetricCoin  MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
-	UserInputs  []UserInput `json:"userInputs" bson:"userInputs"`
+	EquationID      string      `json:"EquationId" bson:"EquationId" validate:"required"`
+	TenantID        string      `json:"TenantId" bson:"TenantId" validate:"required"`
+	ProductName     string      `json:"ProductName" bson:"ProductName" validate:"required"`
+	ProductID       string      `json:"ProductID" bson:"ProductID" validate:"required"`
+	FormulaType     string      `json:"FormulaType" bson:"FormulaType" validate:"required"`
+	FormulaTypeID   string      `json:"FormulaTypeID" bson:"FormulaTypeID" validate:"required"`
+	FormulaTypeName string      `json:"FormulaTypeName" bson:"FormulaTypeName" validate:"required"`
+	StageId         string      `json:"stageId" bson:"stageId" validate:"required"`
+	MetricCoin      MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
+	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
-type BatchAccount struct {
-	TenantID       string
-	BatchID        string
-	EquationID     string
-	BatchName      string
-	ProductID      string
-	ProductName    string
-	MetricCoin     MetricCoin
-	StageID        string
-	BatchAccountPK string
-	BatchAccountSK string
+type CoinAccount struct {
+	TenantID        string
+	FormulaType     string
+	FormulaTypeID   string
+	FormulaTypeName string
+	EquationID      string
+	ProductID       string
+	ProductName     string
+	MetricCoin      MetricCoin
+	StageID         string
+	CoinAccountPK   string
+	CoinAccountSK   string
 }
 
 type MetricFormulas struct {

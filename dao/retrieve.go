@@ -1888,7 +1888,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 }
 
 func (cd *Connection) GetBatchSpecificAccount(batchID string, equatonId string, productName string, tenantId string) *promise.Promise {
-	resultBatchAccountObj := model.BatchAccount{}
+	resultBatchAccountObj := model.CoinAccount{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1898,7 +1898,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string, equatonId string, 
 		}
 		defer session.EndSession(context.TODO())
 
-		c := session.Client().Database(dbName).Collection("BatchAccount")
+		c := session.Client().Database(dbName).Collection("CoinAccount")
 		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID, "equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&resultBatchAccountObj)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())

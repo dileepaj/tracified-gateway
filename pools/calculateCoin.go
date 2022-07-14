@@ -12,8 +12,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func CalculateCoin(batchAccount model.BatchAccount) (string, error) {
-	url := commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.BatchAccountPK
+func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
+	url := commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.CoinAccountPK
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)

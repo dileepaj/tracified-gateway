@@ -198,20 +198,21 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 	var coinConversions []model.BuildPathPayment
 	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.BatchID, newBatchConvertCoinObj.EquationID,
+	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaTypeID, newBatchConvertCoinObj.EquationID,
 		newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 
 	if data == nil {
 		// add account to the DB
-		batchAccount := model.BatchAccount{
-			BatchID:     newBatchConvertCoinObj.BatchID,
-			BatchName:   newBatchConvertCoinObj.BatchName,
-			TenantID:    newBatchConvertCoinObj.TenantID,
-			ProductName: newBatchConvertCoinObj.ProductName,
-			EquationID:  newBatchConvertCoinObj.EquationID,
-			StageID:     newBatchConvertCoinObj.StageId,
+		batchAccount := model.CoinAccount{
+			FormulaType:     newBatchConvertCoinObj.FormulaType,
+			FormulaTypeID:   newBatchConvertCoinObj.FormulaTypeID,
+			FormulaTypeName: newBatchConvertCoinObj.FormulaTypeName,
+			TenantID:        newBatchConvertCoinObj.TenantID,
+			ProductName:     newBatchConvertCoinObj.ProductName,
+			EquationID:      newBatchConvertCoinObj.EquationID,
+			StageID:         newBatchConvertCoinObj.StageId,
 		}
 		// if not create the sponsering account
 		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
@@ -225,8 +226,8 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 
 	} else {
 
-		decryptedPK := (data.(model.BatchAccount)).BatchAccountPK
-		decryptedSK := (data.(model.BatchAccount)).BatchAccountSK
+		decryptedPK := (data.(model.CoinAccount)).CoinAccountPK
+		decryptedSK := (data.(model.CoinAccount)).CoinAccountSK
 
 		// decrypt account details
 		// decryptedPK := commons.Decrypt([]byte(encryptedPK))

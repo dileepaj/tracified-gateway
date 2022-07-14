@@ -13,14 +13,14 @@ import (
 )
 
 var (
-	sponsorPK = "GBSRUSQCEKMIJPPIXFVWTP2EAOU3QHWDVBIKAWBLUEK7VEUTZJK3OXLL"
-	sponsorSK = "SCYSUJCORHLZ3MJPXI7YCW7K2ASN55UURXWUHTJ4D3LD3UFOC7IXRRK3"
+	sponsorPK = "GA4WH5WORLGW3IWZYMABDCLIFPUSLVV4YXKZEJACAOJPPKKWYOYO4Q5C"
+	sponsorSK = "SBBKIRTPRJK6L63Q7COXOUAZOUKFBTUIRIEMK22ODAPIWRTTLQHXGN2H"
 )
 
 var netClient = sdk.DefaultTestNetClient
 
 // CreateSponseredAccount() retur the new stellar account ket pair (created 0 lumen account )
-func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, error) {
+func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, error) {
 	// create keypair
 	pair, err := keypair.Random()
 	if err != nil {
@@ -38,17 +38,17 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 	logrus.Info("Encrypted PK", pair.Address())
 	logrus.Info("Encrypted SK", pair.Seed())
 
-	batchAccount.BatchAccountPK=pair.Address()
-	batchAccount.BatchAccountSK=pair.Seed()
+	batchAccount.CoinAccountPK = pair.Address()
+	batchAccount.CoinAccountSK = pair.Seed()
 
 	object := dao.Connection{}
 	errResult := object.InsertBatchAccount(batchAccount)
 	if errResult != nil {
 		logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
-		return "","",errResult
+		return "", "", errResult
 	}
 	address := pair.Address()
-	generatedAccount,err := keypair.ParseFull(pair.Seed())
+	generatedAccount, err := keypair.ParseFull(pair.Seed())
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err
@@ -95,7 +95,7 @@ func CreateSponseredAccount(batchAccount model.BatchAccount) (string, string, er
 		return "", "", err
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor,generatedAccount)
+	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor, generatedAccount)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err

@@ -16,6 +16,7 @@ import (
 
 func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	var coinValidationPassed bool
 	var newBatchConvertCoinObj model.BatchCoinConvert
 	err := json.NewDecoder(r.Body).Decode(&newBatchConvertCoinObj)
 	if err != nil {
@@ -39,21 +40,69 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-
-		queue := model.SendToQueue{
-			Type:        "CionConvert",
-			CoinConvert: newBatchConvertCoinObj,
+		//Check if the coin name is more than 4 characters
+		logrus.Info("Coin name length ", len(newBatchConvertCoinObj.MetricCoin.CoinName))
+		if len(newBatchConvertCoinObj.MetricCoin.CoinName) <= 4 {
+			//loop through the user inputs
+			userInputs := newBatchConvertCoinObj.UserInputs
+			for i := 0; i < len(userInputs); i++ {
+				logrus.Info("Coin name length ", len(userInputs[i].CoinName))
+				//check the string length
+				if len(userInputs[i].CoinName) > 4 {
+					coinValidationPassed = false
+					logrus.Error("Coin name exceeded character limit of 4")
+					w.WriteHeader(http.StatusBadRequest)
+					result := apiModel.SubmitXDRSuccess{
+						Status: "Coin name exceeded character limit of 4",
+					}
+					json.NewEncoder(w).Encode(result)
+					return
+				} else {
+					coinValidationPassed = true
+				}
+			}
+		} else {
+			coinValidationPassed = false
 		}
 
-		logrus.Info("Sent..", queue)
-		// sent data to mgs amq queue
-		services.SendToQueue(queue)
+		//check if the coin validations are passed
+		if coinValidationPassed {
+			//check if the formula type is batch or artifact
+			if newBatchConvertCoinObj.FormulaType == "Batch" || newBatchConvertCoinObj.FormulaType == "Artifact" {
+				//execute the rest
+				queue := model.SendToQueue{
+					Type:        "CionConvert",
+					CoinConvert: newBatchConvertCoinObj,
+				}
 
-		log.Println("Coin conversion details added to the DB")
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode("Path payment added to queue")
-		return
+				logrus.Info("Sent..", queue)
+				// sent data to mgs amq queue
+				services.SendToQueue(queue)
+
+				log.Println("Coin conversion details added to the DB")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode("Path payment added to queue")
+				return
+			} else {
+				logrus.Error("Invalid formula type")
+				w.WriteHeader(http.StatusBadRequest)
+				result := apiModel.SubmitXDRSuccess{
+					Status: "Invalid formula type",
+				}
+				json.NewEncoder(w).Encode(result)
+				return
+			}
+
+		} else {
+			logrus.Error("Coin name exceeded character limit of 4")
+			w.WriteHeader(http.StatusBadRequest)
+			result := apiModel.SubmitXDRSuccess{
+				Status: "Coin name exceeded character limit of 4",
+			}
+			json.NewEncoder(w).Encode(result)
+			return
+		}
 	}
 }
 
@@ -214,7 +263,7 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-	dbData := data.(model.BatchAccount)
+	dbData := data.(model.CoinAccount)
 	coinBalance, err := pools.CalculateCoin(dbData)
 	if err != nil {
 		logrus.Info("Can not find the assert in account")
@@ -227,13 +276,13 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		TenantID:       dbData.TenantID,
 		ProductName:    dbData.ProductName,
 		ProductID:      dbData.ProductID,
-		BatchID:        dbData.BatchID,
-		BatchName:      dbData.BatchName,
+		BatchID:        dbData.FormulaTypeID,
+		BatchName:      dbData.FormulaTypeName,
 		StageId:        dbData.StageID,
 		EquationID:     dbData.EquationID,
 		MetrixType:     calculateEquationObj.MetrixType,
 		MetricCoin:     dbData.MetricCoin,
-		BatchAccount:   dbData.BatchAccountPK,
+		BatchAccount:   dbData.CoinAccountPK,
 		EquationResult: coinBalance,
 	}
 
