@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -102,7 +101,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(err)
 				return
 			}
-
+			logrus.Info("CoinMap ",coinMap)
 			// 	// build the pool creation json
 			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
 			if err != nil {
@@ -111,7 +110,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(err)
 				return
 			}
-			logrus.Info("Payload ", poolCreationJSON)
+			logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 			equationDetails := model.CreatePool{
 				EquationID:  equationJsonObj.EquationID,
@@ -127,7 +126,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 				PoolCreationArray: poolCreationJSON,
 			}
 			// sent data to mgs amq queue
-			fmt.Println("Sent..", queue)
+			logrus.Info("Sent..", queue)
 			services.SendToQueue(queue)
 
 			log.Println("Pool added to the Queue")

@@ -1484,8 +1484,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				to := ""
 				assetcode := ""
 				result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-				fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-				fmt.Println(result1)
 				if err != nil {
 					log.Error("Unable to reach Stellar network in result1")
 					status = "Unable to reach Stellar network"
@@ -1515,8 +1513,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					}
 					if TxnBody.TxnType == "10" {
 						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
-						fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-						fmt.Println(result1,err)
 						if err != nil {
 							log.Error("Unable to reach Stellar network in result1")
 							status = "Unable to reach Stellar network"
@@ -1573,8 +1569,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						acceptTxn := string(acceptTxn_byteData)
 						log.Info("acceptTxn: " + acceptTxn)
 						acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
-						fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-						fmt.Println(acceptresult1, err)
 						if err != nil {
 							log.Error("Unable to reach Stellar network in acceptresult1")
 							status = "Unable to reach Stellar network"

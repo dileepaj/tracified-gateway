@@ -141,6 +141,18 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
 						portion[i].FieldAndCoin[j].GeneratedName = generatedSID
 						equationJson.MetricCoin.GeneratedName = generatedSID
+
+						coinMap1 := model.CoinMap{
+							CoinName:      equationJson.MetricCoin.CoinName,
+							GeneratedName: generatedSID,
+						}
+						coinMap = append(coinMap, coinMap1)
+					} else {
+						coinMap1 := model.CoinMap{
+							CoinName:      portion[i].FieldAndCoin[j].CoinName,
+							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
+						}
+						coinMap = append(coinMap, coinMap1)
 					}
 				}
 			} else {
@@ -249,10 +261,9 @@ func GenerateCoinName(tenantID, coinName, description, coinType, fieldName, equa
 		Type:        coinType,
 		CoinName:    strings.ToUpper(coinName),
 		Description: description,
-		Count:       "0001",
+		Count:       "00001",
 	}
 	if data != nil {
-		fmt.Println(strings.Replace(strings.ToLower(data.(model.CoinName).Description), " ", "", -1))
 		if strings.Replace(strings.ToLower(data.(model.CoinName).Description), " ", "", -1) == strings.Replace(strings.ToLower(description), " ", "", -1) {
 			generatedCoinName = data.(model.CoinName).GeneratedCoinName
 		} else {
@@ -263,11 +274,11 @@ func GenerateCoinName(tenantID, coinName, description, coinType, fieldName, equa
 			}
 			i++
 			count := strconv.Itoa(i)
-			if len(strconv.Itoa(i)) < 4 {
-				zero := `%0` + `4` + `d`
+			if len(strconv.Itoa(i)) < 5 {
+				zero := `%0` + `5` + `d`
 				count = fmt.Sprintf(zero, i)
 			}
-			generatedCoinName = "TF" + strings.ToUpper(tenantID[0:3]) + strings.ToUpper(coinName[0:3]) + count
+			generatedCoinName = "TFD" + strings.ToUpper(coinName[0:4]) + count
 			coinNameObj.GeneratedCoinName = generatedCoinName
 			err1 := object.InsertCoinName(coinNameObj)
 			if err1 != nil {
@@ -275,7 +286,7 @@ func GenerateCoinName(tenantID, coinName, description, coinType, fieldName, equa
 			}
 		}
 	} else {
-		generatedCoinName = "TF" + strings.ToUpper(tenantID[0:3]) + strings.ToUpper(coinName[0:3]) + "0001"
+		generatedCoinName = "TFD" + strings.ToUpper(coinName[0:4]) + "00001"
 		coinNameObj.GeneratedCoinName = generatedCoinName
 		err := object.InsertCoinName(coinNameObj)
 		if err != nil {
