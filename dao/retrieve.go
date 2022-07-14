@@ -1814,7 +1814,7 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promise.Promise {
 	//map identifiers objcet array
 	var mapIdentifiers []apiModel.IdentifierModel
-	// only map identifiers 
+	// only map identifiers
 	var mapIdentifiersArray []string
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
 		session1, err := cd.connect()
@@ -1824,7 +1824,7 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 		defer session1.EndSession(context.TODO())
 		c1 := session1.Client().Database(dbName).Collection("IdentifierMap")
 		//find map identifiers using real identifers
-		rst, err1 := c1.Find(context.TODO(),bson.D{{"identifier", bson.D{{"$in", identifier}}}})
+		rst, err1 := c1.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", identifier}}}})
 		// check for errors in the finding
 		if err1 != nil {
 			reject(err1)
@@ -1850,20 +1850,20 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 		cursor, err4 := c2.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", mapIdentifiersArray}}}})
 		if err4 != nil {
 			reject(err1)
-		} 
+		}
 		err5 := cursor.All(context.TODO(), &result1)
 		if err5 != nil || len(result1) == 0 {
 			reject(err5)
 		} else {
 			resolve(result1)
 		}
-		
+
 	})
 	p.Await()
 	return p
 }
 
-func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinReceiver string) *promise.Promise{
+func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinReceiver string) *promise.Promise {
 
 	resultTrustlineObj := model.TrustlineHistory{}
 
@@ -1876,7 +1876,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("TrustlineHistory")
-		err = c.FindOne(context.TODO(), bson.M{"coinissuer" : coinIssuer, "coinreceiver" : coinReceiver, "asset" : coinName}).Decode(&resultTrustlineObj)
+		err = c.FindOne(context.TODO(), bson.M{"coinissuer": coinIssuer, "coinreceiver": coinReceiver, "asset": coinName}).Decode(&resultTrustlineObj)
 		if err != nil {
 			logrus.Info("Error when fetching data from DB " + err.Error())
 			reject(err)
@@ -1887,7 +1887,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(batchID string,equatonId string, productName string,tenantId string) *promise.Promise{
+func (cd *Connection) GetBatchSpecificAccount(batchID string, equatonId string, productName string, tenantId string) *promise.Promise {
 	resultBatchAccountObj := model.BatchAccount{}
 
 	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1921,7 +1921,7 @@ func (cd *Connection) GetLiquidityPool(equatonId string, productName string, ten
 		}
 		defer session.EndSession(context.TODO())
 
-		c := session.Client().Database(dbName).Collection("LiquidityPool")
+		c := session.Client().Database(dbName).Collection("PoolDetails")
 		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())

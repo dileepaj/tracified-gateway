@@ -260,7 +260,7 @@ func (cd *Connection) InsertLiquidityPool(pool model.BuildPoolResponse) error {
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("LiquidityPool")
+	c := session.Client().Database(dbName).Collection("PoolDetails")
 	_, err = c.InsertOne(context.TODO(), pool)
 	if err != nil {
 		logrus.Info("Error when inserting data to DB " + err.Error())

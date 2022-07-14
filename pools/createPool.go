@@ -164,14 +164,18 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		logrus.Error(cratedPools, err)
 		return "", err
 	}
-
+	logrus.Info("Data", equationJsonObj.ActivityId, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
+	//todo add other data
 	response := model.BuildPoolResponse{
-		EquationId:  equationJsonObj.EquationID,
-		ProductId:   equationJsonObj.ProductID,
-		ProductName: equationJsonObj.ProductName,
-		TenantId:    equationJsonObj.TenantID,
-		CoinMap:     coinMap,
-		BuildPools:  cratedPools,
+		EquationId:           equationJsonObj.EquationID,
+		ProductId:            equationJsonObj.ProductID,
+		ProductName:          equationJsonObj.ProductName,
+		TenantId:             equationJsonObj.TenantID,
+		ActivityId:           equationJsonObj.ActivityId,
+		EquationStringFormat: equationJsonObj.EquatinStringFormate,
+		SimplifiedEquation:   equationJsonObj.SimpleifedEquation,
+		CoinMap:              coinMap,
+		BuildPools:           cratedPools,
 	}
 	// check if the pool is created
 	if isPoolCreated {

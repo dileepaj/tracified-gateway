@@ -61,6 +61,7 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var equationJsonObj model.CreatePool
+	var coinValidationPassed bool
 	err := json.NewDecoder(r.Body).Decode(&equationJsonObj)
 	if err != nil {
 		logrus.Error(err)
@@ -79,66 +80,106 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		// //check of the equation type is either batch or artifact
-		if equationJsonObj.EquationType == "Batch" || equationJsonObj.EquationType == "Artifact" {
+		//Check if the coin name is more than 4 characters
+		logrus.Info("Coin name length ", len(equationJsonObj.MetricCoin.CoinName))
+		if len(equationJsonObj.MetricCoin.CoinName) <= 4 {
+			//loop through the equation sub portions to check the coin name
+			subportion := equationJsonObj.EquationSubPortion
+			for i := 0; i < len(subportion); i++ {
+				for j := 0; j < len(subportion[i].FieldAndCoin); j++ {
+					logrus.Info("Coin name length ", len(subportion[i].FieldAndCoin[j].CoinName))
+					//check the coin name length
+					if len(subportion[i].FieldAndCoin[j].CoinName) > 4 {
+						coinValidationPassed = false
+						logrus.Error("Coin name exceeded character limit of 4")
+						w.WriteHeader(http.StatusBadRequest)
+						result := apiModel.SubmitXDRSuccess{
+							Status: "Coin name exceeded character limit of 4",
+						}
+						json.NewEncoder(w).Encode(result)
+						return
+					} else {
+						coinValidationPassed = true
+					}
+				}
+			}
+		} else {
+			coinValidationPassed = false
+		}
+		//chceck if the coin validations are passed
+		if coinValidationPassed {
+			logrus.Error("Coin name validations passed")
 
-			object := dao.Connection{}
-			data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
-				return data
-			}).Await()
-			if data != nil {
-				logrus.Error("GetLiquidityPool did not empty, Pool already created")
+			//check if the equation type is either batch or artifact
+			if equationJsonObj.FormulaType == "Batch" || equationJsonObj.FormulaType == "Artifact" {
+
+				object := dao.Connection{}
+				data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if data != nil {
+					logrus.Error("GetLiquidityPool did not empty, Pool already created")
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(err)
+					return
+				}
+
+				// reformate the equation json
+				equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+				if err != nil {
+					logrus.Error(err)
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(err)
+					return
+				}
+				logrus.Info("CoinMap ", coinMap)
+				// 	// build the pool creation json
+				poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+				if err != nil {
+					logrus.Error(poolCreationJSON, err)
+					w.WriteHeader(http.StatusBadRequest)
+					json.NewEncoder(w).Encode(err)
+					return
+				}
+				logrus.Info("PoolCreationJSON ", poolCreationJSON)
+
+				equationDetails := model.CreatePool{
+					EquationID:  equationJsonObj.EquationID,
+					ProductName: equationJsonObj.ProductName,
+					ProductID:   equationJsonObj.ProductID,
+					TenantID:    equationJsonObj.TenantID,
+				}
+
+				queue := model.SendToQueue{
+					Type:              "Pool",
+					EqationJson:       equationDetails,
+					CoinMap:           coinMap,
+					PoolCreationArray: poolCreationJSON,
+				}
+				// sent data to mgs amq queue
+				logrus.Info("Sent..", queue)
+				services.SendToQueue(queue)
+
+				log.Println("Pool added to the Queue")
+				w.Header().Set("Content-Type", "application/json")
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode("Pool added to the Queue")
+				return
+
+			} else {
 				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err)
+				result := apiModel.SubmitXDRSuccess{
+					Status: "Invalid equation type",
+				}
+				json.NewEncoder(w).Encode(result)
 				return
 			}
-
-			// reformate the equation json
-			equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err)
-				return
-			}
-			logrus.Info("CoinMap ",coinMap)
-			// 	// build the pool creation json
-			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
-			if err != nil {
-				logrus.Error(poolCreationJSON, err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err)
-				return
-			}
-			logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
-			equationDetails := model.CreatePool{
-				EquationID:  equationJsonObj.EquationID,
-				ProductName: equationJsonObj.ProductName,
-				ProductID:   equationJsonObj.ProductID,
-				TenantID:    equationJsonObj.TenantID,
-			}
-
-			queue := model.SendToQueue{
-				Type:              "Pool",
-				EqationJson:       equationDetails,
-				CoinMap:           coinMap,
-				PoolCreationArray: poolCreationJSON,
-			}
-			// sent data to mgs amq queue
-			logrus.Info("Sent..", queue)
-			services.SendToQueue(queue)
-
-			log.Println("Pool added to the Queue")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode("Pool added to the Queue")
-			return
 
 		} else {
+			logrus.Error("Coin name exceeded character limit of 4")
 			w.WriteHeader(http.StatusBadRequest)
 			result := apiModel.SubmitXDRSuccess{
-				Status: "Invalid equation type",
+				Status: "Coin name exceeded character limit of 4",
 			}
 			json.NewEncoder(w).Encode(result)
 			return

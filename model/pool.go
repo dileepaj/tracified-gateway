@@ -39,13 +39,15 @@ type BuildPool struct {
 }
 
 type BuildPoolResponse struct {
-	ProductId   string
-	ProductName string
-	MetricId    string
-	EquationId  string
-	TenantId    string
-	CoinMap     []CoinMap
-	BuildPools  []BuildPool
+	ProductId            string
+	ProductName          string
+	EquationId           string
+	TenantId             string
+	ActivityId           string
+	EquationStringFormat string
+	SimplifiedEquation   string
+	CoinMap              []CoinMap
+	BuildPools           []BuildPool
 }
 
 type CoinPath struct {
@@ -147,7 +149,6 @@ type MetricFormulas struct {
 }
 
 type MetricCoin struct {
-	Id            string
 	CoinName      string
 	GeneratedName string
 	FieldName     string
@@ -155,7 +156,6 @@ type MetricCoin struct {
 }
 
 type FieldAndCoin struct {
-	ID            string
 	CoinName      string
 	GeneratedName string
 	FieldName     string
@@ -174,15 +174,9 @@ type CreatePool struct {
 	EquationID           string               `json:"equationId" bson:"equationId" validate:"required"`
 	ProductName          string               `json:"productName" bson:"productname" validate:"required"`
 	ProductID            string               `json:"productID" bson:"productid" validate:"required"`
-	Timestamp            string               `json:"timestamp" bson:"timestamp" validate:"required"`
-	Description          string               `json:"description" bson:"description" validate:"required"`
 	TenantID             string               `json:"tenantId" bson:"tenantId" validate:"required"`
-	MetricID             string               `json:"metricId" bson:"metricId" validate:"required"`
-	MetricName           string               `json:"metricName" bson:"metricName" validate:"required"`
-	MetrixType           string               `json:"metrixType" bson:"metrixType" validate:"required"`
 	ActivityId           string               `json:"activityId" bson:"activityId" validate:"required"`
-	MetricFormulaId      string               `json:"metricFormulaId" bson:"metricFormulaId" validate:"required"`
-	EquationType         string               `json:"equationType" bson:"equationType" validate:"required"`
+	FormulaType          string               `json:"FormulaType" bson:"FormulaType" validate:"required"`
 	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
 	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
 	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
@@ -226,6 +220,7 @@ type SendToQueue struct {
 	CoinConvert       BatchCoinConvert
 }
 
+//TODO add FORMULA TYPE
 type CoinName struct {
 	TenantID          string
 	EquationID        string

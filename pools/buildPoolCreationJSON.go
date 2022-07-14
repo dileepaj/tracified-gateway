@@ -59,7 +59,7 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 					EquationId:          equationJson.EquationID,
 					ProductId:           equationJson.ProductID,
 					TenantId:            equationJson.TenantID,
-					FormulatType:        equationJson.EquationType,
+					FormulatType:        equationJson.FormulaType,
 					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
 					DepositeAmountCoin1: strconv.Itoa(coinDetails1),
 					Coin2:               portion[i].FieldAndCoin[j+1].GeneratedName,
@@ -224,8 +224,7 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 					Id: inputCoin.Id, CoinName: inputCoin.CoinName,
 					Amount: inputCoin.Value, GeneratedName: inputCoin.GeneratedName,
 				},
-				ReceivingCoin: model.Coin{
-					Id: coinConvertObject.MetricCoin.Id, CoinName: coinConvertObject.MetricCoin.CoinName,
+				ReceivingCoin: model.Coin{CoinName: coinConvertObject.MetricCoin.CoinName,
 					FieldName: coinConvertObject.MetricCoin.FieldName, GeneratedName: coinConvertObject.MetricCoin.GeneratedName,
 				},
 				BatchAccountPK:     batchAccountPK,
