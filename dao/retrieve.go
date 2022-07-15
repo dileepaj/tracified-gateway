@@ -24,14 +24,12 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -48,11 +46,9 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
@@ -63,14 +59,12 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -90,7 +84,6 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		result2.Receiver = result.Receiver
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
@@ -116,11 +109,9 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		}
 
 		resolve(result2)
-
 	})
 
 	return p
-
 }
 
 /*GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
@@ -130,14 +121,12 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -154,11 +143,9 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
@@ -167,7 +154,7 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -196,14 +183,12 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -213,15 +198,12 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
 	})
 
 	return p
-
 }
 
 /*GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
@@ -231,14 +213,12 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -255,11 +235,9 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
@@ -270,14 +248,12 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -300,11 +276,9 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		}
 
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
@@ -315,14 +289,12 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -335,11 +307,9 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 		}
 
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
@@ -349,14 +319,12 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -373,11 +341,9 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 				resolve(result[len(result)-1])
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
@@ -387,14 +353,12 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -404,14 +368,11 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
@@ -421,14 +382,12 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -439,16 +398,12 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
@@ -457,7 +412,7 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -482,7 +437,7 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 /*Get total transaction count in a collection
  */
 func (cd *Connection) GetTransactionCount() *promise.Promise {
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error while getting db connection " + err.Error())
@@ -504,7 +459,7 @@ func (cd *Connection) GetTransactionCount() *promise.Promise {
 func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -553,14 +508,12 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -570,16 +523,12 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
@@ -588,7 +537,7 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -619,14 +568,12 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -636,16 +583,12 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
@@ -655,14 +598,12 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -672,14 +613,11 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
@@ -689,14 +627,12 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -706,14 +642,11 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
@@ -723,14 +656,12 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -740,14 +671,11 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
 /*GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
@@ -757,14 +685,12 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -776,16 +702,12 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result[len(result)-1])
-
 		}
-
 	})
 
 	return p
-
 }
 
 /*GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
@@ -795,14 +717,12 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -815,7 +735,6 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result[len(result)-1])
 		}
@@ -830,14 +749,12 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -850,30 +767,24 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 	result := []model.TransactionId{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
@@ -889,25 +800,21 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -917,30 +824,24 @@ func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer s
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
@@ -956,25 +857,21 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -991,28 +888,23 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-//GetSpecialForPkAndSeq ...
+// GetSpecialForPkAndSeq ...
 func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) *promise.Promise {
 	// fmt.Println("Address to get special ", Publickey)
 	// fmt.Println("Sequence no of the address ", SequenceNo)
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1020,26 +912,21 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
 
 		if err1 != nil {
-
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
-//GetTransactionByTxnhash ..
+// GetTransactionByTxnhash ..
 func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 	session, err := cd.connect()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 
 		if err != nil {
@@ -1064,7 +951,7 @@ func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 	result := []model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1093,7 +980,7 @@ func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 func (cd *Connection) GetOrganizationByAuthor(publickey string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1117,7 +1004,7 @@ func (cd *Connection) GetOrganizationByAuthor(publickey string) *promise.Promise
 func (cd *Connection) GetOrganizationByAcceptTxn(acceptTxn string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1142,7 +1029,7 @@ func (cd *Connection) GetOrganizationByAcceptTxn(acceptTxn string) *promise.Prom
 func (cd *Connection) GetOrganizationByRejectTxn(rejectTxn string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1167,7 +1054,7 @@ func (cd *Connection) GetOrganizationByRejectTxn(rejectTxn string) *promise.Prom
 func (cd *Connection) GetTestimonialBySenderPublickey(publickey string) *promise.Promise {
 	result := []model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1197,7 +1084,7 @@ func (cd *Connection) GetTestimonialBySenderPublickey(publickey string) *promise
 func (cd *Connection) GetTestimonialByRecieverPublickey(publickey string) *promise.Promise {
 	result := []model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1227,7 +1114,7 @@ func (cd *Connection) GetTestimonialByRecieverPublickey(publickey string) *promi
 func (cd *Connection) GetTestimonialByAcceptTxn(acceptTxn string) *promise.Promise {
 	result := model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1252,7 +1139,7 @@ func (cd *Connection) GetTestimonialByAcceptTxn(acceptTxn string) *promise.Promi
 func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promise {
 	result := model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1279,14 +1166,12 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Organizations")
@@ -1302,7 +1187,6 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
 		if err1 != nil {
 			reject(err1)
-
 		}
 		result2.Receiver = result.ApprovedBy
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
@@ -1328,11 +1212,9 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 		}
 
 		resolve(result2)
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise.Promise {
@@ -1340,14 +1222,12 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Testimonials")
@@ -1366,7 +1246,6 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 
 		result2.Receiver = result.Reciever
@@ -1393,17 +1272,15 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		}
 
 		resolve(result2)
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	result := []model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1421,7 +1298,6 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 		} else {
 			resolve(result)
 		}
-
 	})
 	return p
 }
@@ -1429,19 +1305,17 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("Transactions")
-		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
+		// count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"publickey": Publickey}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
 
 		if er != nil {
@@ -1470,17 +1344,15 @@ func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page in
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForTdpId_Paginated(TdpId string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1522,14 +1394,12 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1556,30 +1426,24 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 		if err1 != nil || err2 != nil || len(result.Transactions) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 	result := []model.Testimonial{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1596,25 +1460,21 @@ func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise.Promise {
 	result := []model.TestimonialOrganization{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1631,18 +1491,16 @@ func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-//get proof protocol by proof name
+// get proof protocol by proof name
 func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise {
 	resultProtocolObj := model.ProofProtocol{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
@@ -1662,11 +1520,11 @@ func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Pro
 	return p
 }
 
-//get all approved organizations with pagination
+// get all approved organizations with pagination
 func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page int) *promise.Promise {
 	result := []model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1732,7 +1590,7 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
@@ -1755,7 +1613,7 @@ func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
@@ -1774,9 +1632,10 @@ func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
 	})
 	return p
 }
+
 func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
@@ -1812,24 +1671,24 @@ func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Pr
 }
 
 func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promise.Promise {
-	//map identifiers objcet array
+	// map identifiers objcet array
 	var mapIdentifiers []apiModel.IdentifierModel
 	// only map identifiers
 	var mapIdentifiersArray []string
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session1, err := cd.connect()
 		if err != nil {
 			reject(err)
 		}
 		defer session1.EndSession(context.TODO())
 		c1 := session1.Client().Database(dbName).Collection("IdentifierMap")
-		//find map identifiers using real identifers
+		// find map identifiers using real identifers
 		rst, err1 := c1.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", identifier}}}})
 		// check for errors in the finding
 		if err1 != nil {
 			reject(err1)
 		}
-		//read the douments and assign it to mapIdentifiers
+		// read the douments and assign it to mapIdentifiers
 		if err2 := rst.All(context.TODO(), &mapIdentifiers); err != nil {
 			reject(err2)
 		}
@@ -1846,7 +1705,7 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 		}
 		defer session2.EndSession(context.TODO())
 		c2 := session2.Client().Database(dbName).Collection("Transactions")
-		//find transacions using mapIdentifers in gateway
+		// find transacions using mapIdentifers in gateway
 		cursor, err4 := c2.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", mapIdentifiersArray}}}})
 		if err4 != nil {
 			reject(err1)
@@ -1857,17 +1716,15 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 		} else {
 			resolve(result1)
 		}
-
 	})
 	p.Await()
 	return p
 }
 
 func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinReceiver string) *promise.Promise {
-
 	resultTrustlineObj := model.TrustlineHistory{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error when connecting to DB " + err.Error())
@@ -1887,10 +1744,11 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(batchID string, equatonId string, productName string, tenantId string) *promise.Promise {
+func (cd *Connection) GetBatchSpecificAccount(formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
+	fmt.Println("---  ",formulaTypeName, equatonId, productName, tenantId)
 	resultBatchAccountObj := model.CoinAccount{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Error("Error when connecting to DB " + err.Error())
@@ -1899,7 +1757,7 @@ func (cd *Connection) GetBatchSpecificAccount(batchID string, equatonId string, 
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("CoinAccount")
-		err = c.FindOne(context.TODO(), bson.M{"batchid": batchID, "equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&resultBatchAccountObj)
+		err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&resultBatchAccountObj)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

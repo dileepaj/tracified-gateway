@@ -91,7 +91,11 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 			if len(portion[i].FieldAndCoin) > 2 {
 				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
-					if portion[i].FieldAndCoin[j].VariableType != "operator" || portion[i].FieldAndCoin[j].CoinName != "" {
+					// Check if the coin name's character equalto 4
+					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" && len(portion[i].FieldAndCoin[j].CoinName) != 4 {
+						return model.CreatePool{}, []model.CoinMap{}, errors.New("Coin name character limit should be 4")
+					}
+					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" || portion[i].FieldAndCoin[j].CoinName != "" {
 						// timestamp := makeTimestamp()
 						generatedSID, err := GenerateCoinName(equationJson.TenantID, portion[i].FieldAndCoin[j].CoinName, portion[i].FieldAndCoin[j].Description,
 							portion[i].FieldAndCoin[j].VariableType, equationJson.EquationID, portion[i].FieldAndCoin[j].FieldName)
@@ -104,10 +108,10 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 					}
 
 					// count the userIput type variable in a  sub portion
-					if portion[i].FieldAndCoin[j].VariableType == "userInput" {
+					if portion[i].FieldAndCoin[j].VariableType == "USERINPUT" {
 						userInputCount++
 					}
-					if portion[i].FieldAndCoin[j].VariableType == "operator" && portion[i].FieldAndCoin[j].Value == "/" {
+					if portion[i].FieldAndCoin[j].VariableType == "OPERATOR" && portion[i].FieldAndCoin[j].Value == "/" {
 						portion[i].FieldAndCoin[j].Value = "*"
 						if float, err := strconv.ParseFloat(portion[i].FieldAndCoin[j+1].Value, 32); err == nil {
 							var value float64 = 1 / float
@@ -127,7 +131,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 		for i := 0; i < len(portion); i++ {
 			if len(portion[i].FieldAndCoin) > 0 {
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
-					if portion[i].FieldAndCoin[j].VariableType == "operator" {
+					if portion[i].FieldAndCoin[j].VariableType == "OPERATOR" {
 						portion[i].FieldAndCoin = append(portion[i].FieldAndCoin[:j], portion[i].FieldAndCoin[j+1:]...)
 					}
 					if j == len(portion[i].FieldAndCoin)-1 {
@@ -138,18 +142,18 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 							return model.CreatePool{}, []model.CoinMap{}, err
 						}
 						logrus.Info("Generated string ", generatedSID)
-						portion[i].FieldAndCoin[j].CoinName = equationJson.MetricCoin.CoinName
+						portion[i].FieldAndCoin[j].CoinName = strings.ToUpper(equationJson.MetricCoin.CoinName)
 						portion[i].FieldAndCoin[j].GeneratedName = generatedSID
 						equationJson.MetricCoin.GeneratedName = generatedSID
 
 						coinMap1 := model.CoinMap{
-							CoinName:      equationJson.MetricCoin.CoinName,
+							CoinName:      strings.ToUpper(equationJson.MetricCoin.CoinName),
 							GeneratedName: generatedSID,
 						}
 						coinMap = append(coinMap, coinMap1)
 					} else {
 						coinMap1 := model.CoinMap{
-							CoinName:      portion[i].FieldAndCoin[j].CoinName,
+							CoinName:      strings.ToUpper(portion[i].FieldAndCoin[j].CoinName),
 							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
 						}
 						coinMap = append(coinMap, coinMap1)
@@ -162,7 +166,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 		// Find element in a slice and move it to first position
 		for i := 0; i < len(portion); i++ {
 			if len(portion[i].FieldAndCoin) > 0 {
-				portion[i].FieldAndCoin = rearrangedArray(portion[i].FieldAndCoin, "userInput")
+				portion[i].FieldAndCoin = rearrangedArray(portion[i].FieldAndCoin, "USERINPUT")
 			} else {
 				return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty")
 			}
@@ -170,6 +174,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 	} else {
 		return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation-JSON's Sub portions are empty")
 	}
+	equationJson.MetricCoin.CoinName = strings.ToUpper(equationJson.MetricCoin.CoinName)
 	return equationJson, coinMap, nil
 }
 
@@ -194,7 +199,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, _:= object.GetLiquidityPool(coinConvertObject.EquationID, coinConvertObject.ProductName,
+	data, _ := object.GetLiquidityPool(coinConvertObject.EquationID, coinConvertObject.ProductName,
 		coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -221,7 +226,8 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 					Id: inputCoin.Id, CoinName: inputCoin.CoinName,
 					Amount: inputCoin.Value, GeneratedName: inputCoin.GeneratedName,
 				},
-				ReceivingCoin: model.Coin{CoinName: coinConvertObject.MetricCoin.CoinName,
+				ReceivingCoin: model.Coin{
+					CoinName:  coinConvertObject.MetricCoin.CoinName,
 					FieldName: coinConvertObject.MetricCoin.FieldName, GeneratedName: coinConvertObject.MetricCoin.GeneratedName,
 				},
 				BatchAccountPK:     batchAccountPK,

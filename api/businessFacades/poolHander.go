@@ -3,8 +3,8 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
@@ -23,10 +23,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		logrus.Info(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode("Error while decoding the body")
 		return
 	}
 
@@ -34,42 +31,52 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	if err0 != nil {
 		logrus.Error(err0)
 		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Request body is invalid",
-		}
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode("Request body is invalid")
 		return
 	} else {
-		//Check if the coin name is more than 4 characters
-		logrus.Info("Coin name length ", len(newBatchConvertCoinObj.MetricCoin.CoinName))
-		if len(newBatchConvertCoinObj.MetricCoin.CoinName) <= 4 {
-			//loop through the user inputs
+		object := dao.Connection{}
+		data, _ := object.GetLiquidityPool(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if data == nil {
+			logrus.Error("Can not find the pool from DB")
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Can not find the pool from DB")
+			return
+		}
+		for _, coin := range data.(model.BuildPoolResponse).CoinMap {
+			if coin.CoinName == strings.ToUpper(newBatchConvertCoinObj.MetricCoin.CoinName) {
+				newBatchConvertCoinObj.MetricCoin.GeneratedName = coin.GeneratedName
+				break
+			}
+		}
+		// Check if the coin name is more than 4 characters
+		if len(newBatchConvertCoinObj.MetricCoin.CoinName) == 4 || len(newBatchConvertCoinObj.MetricCoin.GeneratedName) == 12 {
+			// loop through the user inputs
 			userInputs := newBatchConvertCoinObj.UserInputs
 			for i := 0; i < len(userInputs); i++ {
 				logrus.Info("Coin name length ", len(userInputs[i].CoinName))
-				//check the string length
-				if len(userInputs[i].CoinName) > 4 {
+				// check the string length
+				if len(userInputs[i].CoinName) != 4 {
 					coinValidationPassed = false
-					logrus.Error("Coin name exceeded character limit of 4")
+					logrus.Error("Coin name character limit should be 4")
 					w.WriteHeader(http.StatusBadRequest)
-					result := apiModel.SubmitXDRSuccess{
-						Status: "Coin name exceeded character limit of 4",
-					}
-					json.NewEncoder(w).Encode(result)
+					json.NewEncoder(w).Encode("Coin name character limit should be 4")
 					return
 				} else {
 					coinValidationPassed = true
 				}
 			}
 		} else {
+			logrus.Error("Metric coin name or generated name length error")
 			coinValidationPassed = false
 		}
 
-		//check if the coin validations are passed
+		// check if the coin validations are passed
 		if coinValidationPassed {
-			//check if the formula type is batch or artifact
-			if newBatchConvertCoinObj.FormulaType == "Batch" || newBatchConvertCoinObj.FormulaType == "Artifact" {
-				//execute the rest
+			// check if the formula type is batch or artifact
+			if newBatchConvertCoinObj.FormulaType == "BATCH" || newBatchConvertCoinObj.FormulaType == "ARTIFACT" {
+				// execute the rest
 				queue := model.SendToQueue{
 					Type:        "CionConvert",
 					CoinConvert: newBatchConvertCoinObj,
@@ -87,20 +94,13 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			} else {
 				logrus.Error("Invalid formula type")
 				w.WriteHeader(http.StatusBadRequest)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Invalid formula type",
-				}
-				json.NewEncoder(w).Encode(result)
+				json.NewEncoder(w).Encode("Invalid formula type")
 				return
 			}
-
 		} else {
-			logrus.Error("Coin name exceeded character limit of 4")
+			logrus.Error("Coin name character limit should be 4")
 			w.WriteHeader(http.StatusBadRequest)
-			result := apiModel.SubmitXDRSuccess{
-				Status: "Coin name exceeded character limit of 4",
-			}
-			json.NewEncoder(w).Encode(result)
+			json.NewEncoder(w).Encode("Coin name character limit should be 4")
 			return
 		}
 	}
@@ -110,7 +110,6 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var equationJsonObj model.CreatePool
-	var coinValidationPassed bool
 	err := json.NewDecoder(r.Body).Decode(&equationJsonObj)
 	if err != nil {
 		logrus.Error(err)
@@ -123,120 +122,81 @@ func CreatePool(w http.ResponseWriter, r *http.Request) {
 	if err1 != nil {
 		logrus.Error(err1)
 		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Request body is invalid",
-		}
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode("Request body is invalid")
 		return
 	} else {
-		//Check if the coin name is more than 4 characters
-		logrus.Info("Coin name length ", len(equationJsonObj.MetricCoin.CoinName))
-		if len(equationJsonObj.MetricCoin.CoinName) <= 4 {
-			//loop through the equation sub portions to check the coin name
-			subportion := equationJsonObj.EquationSubPortion
-			for i := 0; i < len(subportion); i++ {
-				for j := 0; j < len(subportion[i].FieldAndCoin); j++ {
-					logrus.Info("Coin name length ", len(subportion[i].FieldAndCoin[j].CoinName))
-					//check the coin name length
-					if len(subportion[i].FieldAndCoin[j].CoinName) > 4 {
-						coinValidationPassed = false
-						logrus.Error("Coin name exceeded character limit of 4")
-						w.WriteHeader(http.StatusBadRequest)
-						result := apiModel.SubmitXDRSuccess{
-							Status: "Coin name exceeded character limit of 4",
-						}
-						json.NewEncoder(w).Encode(result)
-						return
-					} else {
-						coinValidationPassed = true
-					}
-				}
-			}
-		} else {
-			coinValidationPassed = false
-		}
-		//chceck if the coin validations are passed
-		if coinValidationPassed {
-			logrus.Error("Coin name validations passed")
-
-			//check if the equation type is either batch or artifact
-			if equationJsonObj.FormulaType == "Batch" || equationJsonObj.FormulaType == "Artifact" {
-
-				object := dao.Connection{}
-				data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
-					return data
-				}).Await()
-				if data != nil {
-					logrus.Error("GetLiquidityPool did not empty, Pool already created")
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(err)
-					return
-				}
-
-				// reformate the equation json
-				equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
-				if err != nil {
-					logrus.Error(err)
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(err)
-					return
-				}
-				logrus.Info("CoinMap ", coinMap)
-				// 	// build the pool creation json
-				poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
-				if err != nil {
-					logrus.Error(poolCreationJSON, err)
-					w.WriteHeader(http.StatusBadRequest)
-					json.NewEncoder(w).Encode(err)
-					return
-				}
-				logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
-				equationDetails := model.CreatePool{
-					EquationID:  equationJsonObj.EquationID,
-					ProductName: equationJsonObj.ProductName,
-					ProductID:   equationJsonObj.ProductID,
-					TenantID:    equationJsonObj.TenantID,
-				}
-
-				queue := model.SendToQueue{
-					Type:              "Pool",
-					EqationJson:       equationDetails,
-					CoinMap:           coinMap,
-					PoolCreationArray: poolCreationJSON,
-				}
-				// sent data to mgs amq queue
-				logrus.Info("Sent..", queue)
-				services.SendToQueue(queue)
-
-				log.Println("Pool added to the Queue")
-				w.Header().Set("Content-Type", "application/json")
-				w.WriteHeader(http.StatusOK)
-				json.NewEncoder(w).Encode("Pool added to the Queue")
-				return
-
-			} else {
-				w.WriteHeader(http.StatusBadRequest)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Invalid equation type",
-				}
-				json.NewEncoder(w).Encode(result)
-				return
-			}
-
-		} else {
-			logrus.Error("Coin name exceeded character limit of 4")
+		// Check if the coin name's character equalto 4
+		if len(equationJsonObj.MetricCoin.CoinName) != 4 {
+			logrus.Error("Coin name character limit should be 4")
 			w.WriteHeader(http.StatusBadRequest)
-			result := apiModel.SubmitXDRSuccess{
-				Status: "Coin name exceeded character limit of 4",
+			json.NewEncoder(w).Encode("Metric Coin name character limit should be 4")
+			return
+		}
+		// check if the equation type is either batch or artifact
+		if equationJsonObj.FormulaType == "BATCH" || equationJsonObj.FormulaType == "ARTIFACAT" {
+
+			object := dao.Connection{}
+			data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+			if data != nil {
+				logrus.Error("GetLiquidityPool did not empty, Pool already created")
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(err.Error())
+				return
 			}
-			json.NewEncoder(w).Encode(result)
+
+			// reformate the equation json
+			equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+			if err != nil {
+				logrus.Error(err)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(err.Error())
+				return
+			}
+			logrus.Info("CoinMap ", coinMap)
+			// 	// build the pool creation json
+			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+			if err != nil {
+				logrus.Error(poolCreationJSON, err)
+				w.WriteHeader(http.StatusBadRequest)
+				json.NewEncoder(w).Encode(err.Error())
+				return
+			}
+			logrus.Info("PoolCreationJSON ", poolCreationJSON)
+
+			equationDetails := model.CreatePool{
+				EquationID:  equationJsonObj.EquationID,
+				ProductName: equationJsonObj.ProductName,
+				ProductID:   equationJsonObj.ProductID,
+				TenantID:    equationJsonObj.TenantID,
+			}
+
+			queue := model.SendToQueue{
+				Type:              "Pool",
+				EqationJson:       equationDetails,
+				CoinMap:           coinMap,
+				PoolCreationArray: poolCreationJSON,
+			}
+			// sent data to mgs amq queue
+			logrus.Info("Sent..", queue)
+			services.SendToQueue(queue)
+
+			log.Println("Pool added to the Queue")
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode("Pool added to the Queue")
+			return
+
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode("Invalid equation type")
 			return
 		}
 	}
 }
 
-func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
+func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
 	var calculateEquationObj model.CalculateEquationForBatch
@@ -250,7 +210,7 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.BatchID,
+	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.FormulaTypeName,
 		calculateEquationObj.EquationID, calculateEquationObj.ProductName,
 		calculateEquationObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
@@ -273,17 +233,15 @@ func CacluateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	equationResponse = model.EquationResultForBatch{
-		TenantID:       dbData.TenantID,
-		ProductName:    dbData.ProductName,
-		ProductID:      dbData.ProductID,
-		BatchID:        dbData.FormulaTypeID,
-		BatchName:      dbData.FormulaTypeName,
-		StageId:        dbData.StageID,
-		EquationID:     dbData.EquationID,
-		MetrixType:     calculateEquationObj.MetrixType,
-		MetricCoin:     dbData.MetricCoin,
-		BatchAccount:   dbData.CoinAccountPK,
-		EquationResult: coinBalance,
+		EquationID:      dbData.EquationID,
+		TenantID:        dbData.TenantID,
+		ProductName:     dbData.ProductName,
+		FormulaTypeName: dbData.FormulaTypeName,
+		StageId:         dbData.StageID,
+		MetrixType:      calculateEquationObj.MetrixType,
+		MetricCoin:      dbData.MetricCoin,
+		BatchAccount:    dbData.CoinAccountPK,
+		EquationResult:  coinBalance,
 	}
 
 	log.Println("Equation result")

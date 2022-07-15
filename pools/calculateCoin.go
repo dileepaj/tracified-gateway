@@ -14,6 +14,7 @@ import (
 
 func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
 	url := commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.CoinAccountPK
+	fmt.Println(url)
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)
@@ -42,7 +43,7 @@ func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
 		accoutBalance := raw1[i].(map[string]interface{})
 		assetCode := fmt.Sprintf("%v", accoutBalance["asset_code"])
 		balance := fmt.Sprintf("%v", accoutBalance["balance"])
-		if batchAccount.MetricCoin.CoinName == assetCode {
+		if batchAccount.MetricCoin.GeneratedName == assetCode {
 			return balance, nil
 		}
 	}

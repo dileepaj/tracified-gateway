@@ -39,9 +39,9 @@ type BuildPool struct {
 }
 
 type BuildPoolResponse struct {
+	EquationId           string
 	ProductId            string
 	ProductName          string
-	EquationId           string
 	TenantId             string
 	ActivityId           string
 	EquationStringFormat string
@@ -186,27 +186,25 @@ type CreatePool struct {
 }
 
 type CalculateEquationForBatch struct {
-	TenantID    string
-	ProductName string
-	ProductID   string
-	BatchID     string
-	BatchName   string
-	StageId     string
-	EquationID  string
-	MetrixType  string
+	TenantID        string
+	ProductName     string
+	FormulaType     string
+	FormulaTypeID   string
+	FormulaTypeName string
+	StageId         string
+	EquationID      string
+	MetrixType      string
 }
 type EquationResultForBatch struct {
-	TenantID       string
-	ProductName    string
-	ProductID      string
-	BatchID        string
-	BatchName      string
-	StageId        string
-	EquationID     string
-	MetrixType     string
-	MetricCoin     MetricCoin
-	BatchAccount   string
-	EquationResult string
+	TenantID        string
+	ProductName     string
+	FormulaTypeName string
+	StageId         string
+	EquationID      string
+	MetrixType      string
+	MetricCoin      MetricCoin
+	BatchAccount    string
+	EquationResult  string
 }
 
 type CoinMap struct {
@@ -222,7 +220,7 @@ type SendToQueue struct {
 	CoinConvert       BatchCoinConvert
 }
 
-//TODO add FORMULA TYPE
+// TODO add FORMULA TYPE
 type CoinName struct {
 	TenantID          string
 	EquationID        string

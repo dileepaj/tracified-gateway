@@ -441,9 +441,9 @@ var routes = Routes{
 		businessFacades.CreatePool,
 	},
 	Route{
-		"Calculate equation result for specific batch",
+		"Calculate equation result for specific Account",
 		"POST",
 		"/socialimapact/batch",
-		businessFacades.CacluateEquationForBatch,
+		businessFacades.CalculateEquationForBatch,
 	},
 }

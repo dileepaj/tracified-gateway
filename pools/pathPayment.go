@@ -198,7 +198,7 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 	var coinConversions []model.BuildPathPayment
 	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaTypeID, newBatchConvertCoinObj.EquationID,
+	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaTypeName, newBatchConvertCoinObj.EquationID,
 		newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -213,6 +213,7 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 			ProductName:     newBatchConvertCoinObj.ProductName,
 			EquationID:      newBatchConvertCoinObj.EquationID,
 			StageID:         newBatchConvertCoinObj.StageId,
+			MetricCoin: newBatchConvertCoinObj.MetricCoin,
 		}
 		// if not create the sponsering account
 		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
@@ -237,8 +238,8 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 		batchAccountPK = decryptedPK
 		batchAccountSK = decryptedSK
 
-		logrus.Info("account PK", batchAccountPK)
-		logrus.Info("account SK", batchAccountPK)
+		logrus.Info("account PK  ", batchAccountPK)
+		logrus.Info("account SK  ", batchAccountPK)
 
 		if batchAccountPK == "" || batchAccountSK == "" {
 			logrus.Error("Can not Create Batch Account")
@@ -269,7 +270,6 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 	// build response with all coin details
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
 		CoinConertions: coinConversions,
-		ProductId:      newBatchConvertCoinObj.ProductID,
 		ProductIdName:  newBatchConvertCoinObj.ProductName,
 		EquationId:     newBatchConvertCoinObj.EquationID,
 		TenantId:       newBatchConvertCoinObj.TenantID,
