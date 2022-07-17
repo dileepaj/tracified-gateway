@@ -1744,7 +1744,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
+func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
 	resultBatchAccountObj := model.CoinAccount{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1756,7 +1756,11 @@ func (cd *Connection) GetBatchSpecificAccount(formulaTypeName, equatonId, produc
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("CoinAccount")
-		err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&resultBatchAccountObj)
+		if formulType == "BATCH" {
+			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productname": productName, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
+		} else {
+			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
+		}
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
@@ -1767,7 +1771,7 @@ func (cd *Connection) GetBatchSpecificAccount(formulaTypeName, equatonId, produc
 	return p
 }
 
-func (cd *Connection) GetLiquidityPool(equatonId string, productName string, tenantId string) *promise.Promise {
+func (cd *Connection) GetLiquidityPool(equatonId string, productName string, tenantId string, formulatype string) *promise.Promise {
 	pool := model.BuildPoolResponse{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1779,7 +1783,30 @@ func (cd *Connection) GetLiquidityPool(equatonId string, productName string, ten
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "productname": productName, "tenantid": tenantId}).Decode(&pool)
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "productname": productName, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(pool)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetLiquidityPoolForArtifact(equatonId string, tenantId string, formulatype string) *promise.Promise {
+	pool := model.BuildPoolResponse{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("PoolDetails")
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

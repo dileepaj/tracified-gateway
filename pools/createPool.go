@@ -151,7 +151,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 	logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID,equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data != nil {
@@ -165,7 +165,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		return "", err
 	}
 	logrus.Info("Data", equationJsonObj.ActivityId, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
-	//todo add other data
+	// todo add other data
 	response := model.BuildPoolResponse{
 		EquationId:           equationJsonObj.EquationID,
 		ProductId:            equationJsonObj.ProductID,
@@ -174,6 +174,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		ActivityId:           equationJsonObj.ActivityId,
 		EquationStringFormat: equationJsonObj.EquatinStringFormate,
 		SimplifiedEquation:   equationJsonObj.SimpleifedEquation,
+		FormulaType:          equationJsonObj.FormulaType,
 		CoinMap:              coinMap,
 		BuildPools:           cratedPools,
 	}

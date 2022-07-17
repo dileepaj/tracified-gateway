@@ -7,12 +7,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	log "github.com/sirupsen/logrus"
 )
 
-func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
-	url := ""//commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.CoinAccountPK
+func CalculateCoin(account model.CoinAccount) (string, error) {
+	url := commons.GetHorizonClient().HorizonURL + "accounts/" + account.CoinAccountPK
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)
@@ -41,7 +42,7 @@ func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
 		accoutBalance := raw1[i].(map[string]interface{})
 		assetCode := fmt.Sprintf("%v", accoutBalance["asset_code"])
 		balance := fmt.Sprintf("%v", accoutBalance["balance"])
-		if batchAccount.MetricCoin.GeneratedName == assetCode {
+		if account.MetricCoin.GeneratedName == assetCode {
 			return balance, nil
 		}
 	}

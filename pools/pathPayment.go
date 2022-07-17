@@ -198,11 +198,14 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 	var coinConversions []model.BuildPathPayment
 	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
-	data, _ := object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaTypeName, newBatchConvertCoinObj.EquationID,
-		newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
-		return data
-	}).Await()
+	var data interface{}
 
+
+		data, _ = object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaType, newBatchConvertCoinObj.FormulaTypeName, newBatchConvertCoinObj.EquationID,
+			newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+	
 	if data == nil {
 		// add account to the DB
 		batchAccount := model.CoinAccount{
@@ -235,11 +238,11 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 		// decryptedSK := commons.Decrypt([]byte(encryptedSK))
 
 		// if there is an account go to path payments directly
-		batchAccountPK = decryptedPK 
+		batchAccountPK = decryptedPK
 		batchAccountSK = commons.Decrypt([]byte(decryptedSK))
 
 		logrus.Info("account PK  ", batchAccountPK)
-		//logrus.Info("account SK  ", batchAccountPK)
+		// logrus.Info("account SK  ", batchAccountPK)
 
 		if batchAccountPK == "" || batchAccountSK == "" {
 			logrus.Error("Can not Create Batch Account")
@@ -270,9 +273,11 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 	// build response with all coin details
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
 		CoinConertions: coinConversions,
+		ProductId:      newBatchConvertCoinObj.ProductID,
 		ProductIdName:  newBatchConvertCoinObj.ProductName,
 		EquationId:     newBatchConvertCoinObj.EquationID,
 		TenantId:       newBatchConvertCoinObj.TenantID,
+		FormulaType: newBatchConvertCoinObj.FormulaType,
 	}
 	err1 := object.InsertCoinConversionDetails(buildCoinConvertionResponse)
 	if err1 != nil {
