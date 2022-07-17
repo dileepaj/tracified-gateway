@@ -213,7 +213,7 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 			ProductName:     newBatchConvertCoinObj.ProductName,
 			EquationID:      newBatchConvertCoinObj.EquationID,
 			StageID:         newBatchConvertCoinObj.StageId,
-			MetricCoin: newBatchConvertCoinObj.MetricCoin,
+			MetricCoin:      newBatchConvertCoinObj.MetricCoin,
 		}
 		// if not create the sponsering account
 		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
@@ -235,11 +235,11 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 		// decryptedSK := commons.Decrypt([]byte(encryptedSK))
 
 		// if there is an account go to path payments directly
-		batchAccountPK = decryptedPK
-		batchAccountSK = decryptedSK
+		batchAccountPK = decryptedPK 
+		batchAccountSK = commons.Decrypt([]byte(decryptedSK))
 
 		logrus.Info("account PK  ", batchAccountPK)
-		logrus.Info("account SK  ", batchAccountPK)
+		//logrus.Info("account SK  ", batchAccountPK)
 
 		if batchAccountPK == "" || batchAccountSK == "" {
 			logrus.Error("Can not Create Batch Account")

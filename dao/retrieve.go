@@ -1745,7 +1745,6 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 }
 
 func (cd *Connection) GetBatchSpecificAccount(formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
-	fmt.Println("---  ",formulaTypeName, equatonId, productName, tenantId)
 	resultBatchAccountObj := model.CoinAccount{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {

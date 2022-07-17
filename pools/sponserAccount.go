@@ -1,6 +1,7 @@
 package pools
 
 import (
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
@@ -13,8 +14,8 @@ import (
 )
 
 var (
-	sponsorPK = "GA4WH5WORLGW3IWZYMABDCLIFPUSLVV4YXKZEJACAOJPPKKWYOYO4Q5C"
-	sponsorSK = "SBBKIRTPRJK6L63Q7COXOUAZOUKFBTUIRIEMK22ODAPIWRTTLQHXGN2H"
+	sponsorPK = commons.GoDotEnvVariable("SPONSORPK")
+	sponsorSK = commons.GoDotEnvVariable("SPONSORSeed")
 )
 
 var netClient = sdk.DefaultTestNetClient
@@ -28,18 +29,18 @@ func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, err
 		return "", "", err
 	}
 
-	logrus.Info(pair.Seed())
 	logrus.Info(pair.Address())
+	logrus.Info(pair.Seed())
 
-	//encrypt key pair and add to DB
-	//encPK := commons.Encrypt(pair.Address())
-	//pair.Seed() := commons.Encrypt(pair.Seed())
+	// encrypt key pair and add to DB
+	encSK := commons.Encrypt(pair.Seed())
+	// logrus.Info("keys ----------------------+++++++-------------- ",encPK,"   ",encSK)
 
-	logrus.Info("Encrypted PK", pair.Address())
-	logrus.Info("Encrypted SK", pair.Seed())
+	logrus.Info("Encrypted PK ", pair.Address())
+	//logrus.Info("Encrypted SK ", encSK)
 
 	batchAccount.CoinAccountPK = pair.Address()
-	batchAccount.CoinAccountSK = pair.Seed()
+	batchAccount.CoinAccountSK = encSK
 
 	object := dao.Connection{}
 	errResult := object.InsertBatchAccount(batchAccount)

@@ -91,6 +91,9 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 			if len(portion[i].FieldAndCoin) > 2 {
 				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
+					if portion[i].FieldAndCoin[j].Value=="(" || portion[i].FieldAndCoin[j].Value==")" {
+						return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation can not caontaion  ( , ) oprators")
+					}
 					// Check if the coin name's character equalto 4
 					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" && len(portion[i].FieldAndCoin[j].CoinName) != 4 {
 						return model.CreatePool{}, []model.CoinMap{}, errors.New("Coin name character limit should be 4")

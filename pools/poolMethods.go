@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	//"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
@@ -22,8 +23,8 @@ import (
 )
 
 var (
-	coinIsuserPK = "GCVOOOB7QFOBXWBEBQL4HPMWLU24QJJSOTS36ZPHPXX4URYO7CPJOIU2"
-	coinIsuserSK = "SAMRTVGBY6EDXCTNZMPZ4JWZYM3LCOWVHGNNIK2BVAK5D5WYQ5XCGXZG"
+	coinIsuserPK = commons.GoDotEnvVariable("COINISSUERPK")
+	coinIsuserSK = commons.GoDotEnvVariable("COINISSUERSeed")
 )
 var poolCoin []txnbuild.Asset
 

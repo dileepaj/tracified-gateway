@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	depositorPK = "GBQA55G3W53QLZOCT2XNKI5QGT6HZ54JD26EWMQ77UYHQXXID3CXSGC6"
-	depositorSK = "SBRUFMJHRCN2TEM3KIRQNE25F63BCPTUK6F52OTX6B7HWL5MOP6VXIYP"
+	depositorPK = commons.GoDotEnvVariable("DEPOSITEPK")
+	depositorSK = commons.GoDotEnvVariable("DEPOSITERSeed")
 )
 
 // CreatePoolsUsingJson , loop the pool creation-Josn and call poolcreation method

@@ -7,14 +7,12 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	log "github.com/sirupsen/logrus"
 )
 
 func CalculateCoin(batchAccount model.CoinAccount) (string, error) {
-	url := commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.CoinAccountPK
-	fmt.Println(url)
+	url := ""//commons.GetHorizonClient().HorizonURL + "accounts/" + batchAccount.CoinAccountPK
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)

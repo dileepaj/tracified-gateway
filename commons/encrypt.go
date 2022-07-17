@@ -2,19 +2,25 @@ package commons
 
 import (
 	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
+	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/sirupsen/logrus"
 )
-import "github.com/aws/aws-sdk-go/service/kms"
 
-func Encrypt(key string)string{
+func Encrypt(key string) []byte {
+	logrus.Info("AWS_REGION  ",GoDotEnvVariable("AWS_REGION"))
+	// Load the Shared AWS Configuration (~/.aws/config)
 	svc := kms.New(session.New(&aws.Config{
-		Region: aws.String("ap-south-1")}))
-
+		Region:      aws.String(GoDotEnvVariable("AWS_REGION")),
+		Credentials: credentials.NewStaticCredentials(GoDotEnvVariable("AWS_ACCESS_KEY"), GoDotEnvVariable("AWS_SECRET_KEY"), ""),
+	}))
 
 	input := &kms.EncryptInput{
-		KeyId:     aws.String("arn:aws:kms:ap-south-1:453230908534:key/bb30cf72-5ab7-4c6b-8d8f-3f71b8377976"),
+		KeyId:     aws.String(GoDotEnvVariable("AWS_KMS_KEY_ID")),
 		Plaintext: []byte(key),
 	}
 
@@ -46,24 +52,27 @@ func Encrypt(key string)string{
 			// Message from an error.
 			fmt.Println(err.Error())
 		}
-		return ""
+		return []byte{}
 	}
 
-	stgOne := string(result.CiphertextBlob)
+	//stgOne := string(result.CiphertextBlob)
 
-	//fmt.Println(stgOne)
-	//bone := []byte(stgOne)
-	//Decrypt(bone)
+	// fmt.Println(stgOne)
+	// bone := []byte(stgOne)
+	// Decrypt(bone)
 
-	return stgOne
+	return result.CiphertextBlob
 }
 
-func Decrypt (arr []byte) string {
+func Decrypt(arr []byte) string {
 	svc := kms.New(session.New(&aws.Config{
-		Region: aws.String("ap-south-1")}))
+		Region:      aws.String(GoDotEnvVariable("AWS_REGION")),
+		Credentials: credentials.NewStaticCredentials(GoDotEnvVariable("AWS_ACCESS_KEY"), GoDotEnvVariable("AWS_SECRET_KEY"), ""),
+	}))
+
 	input := &kms.DecryptInput{
 		CiphertextBlob: arr,
-		KeyId:          aws.String("arn:aws:kms:ap-south-1:453230908534:key/bb30cf72-5ab7-4c6b-8d8f-3f71b8377976"),
+		KeyId:          aws.String(GoDotEnvVariable("AWS_KMS_KEY_ID")),
 	}
 
 	result, err := svc.Decrypt(input)
@@ -101,6 +110,6 @@ func Decrypt (arr []byte) string {
 		return ""
 	}
 
-	//fmt.Println(string(result.Plaintext))
+	// fmt.Println(string(result.Plaintext))
 	return string(result.Plaintext)
 }

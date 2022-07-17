@@ -11,8 +11,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ReciverRmq() {
+func ReciverRmq() error{
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	if err != nil {
+		return err
+	}
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -21,7 +24,7 @@ func ReciverRmq() {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"hello", // name
+		"socialimpact", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -50,7 +53,6 @@ func ReciverRmq() {
 				logrus.Error(err)
 			}
 			logrus.Info("Recivered ", queue)
-			//--------------------------------------------------------------------------
 			if queue.Type == "Pool" {
 				response, err = pools.PoolCreateHandle(queue.EqationJson, queue.CoinMap, queue.PoolCreationArray)
 				if err != nil {
@@ -73,11 +75,14 @@ func ReciverRmq() {
 
 	logrus.Info(" [*] Waiting for messages. To exit press CTRL+C")
 	<-forever
+	return nil
 }
 
-func SendToQueue(queue model.SendToQueue) string {
+func SendToQueue(queue model.SendToQueue) (string,error) {
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
-	failOnError(err, "Failed to connect to RabbitMQ")
+	if err != nil {
+		return "",err
+	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
@@ -85,7 +90,7 @@ func SendToQueue(queue model.SendToQueue) string {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"hello", // name
+		"socialimpact", // name
 		false,   // durable
 		false,   // delete when unused
 		false,   // exclusive
@@ -109,7 +114,7 @@ func SendToQueue(queue model.SendToQueue) string {
 		})
 	failOnError(err, "Failed to publish a message")
 	log.Printf(" [x] Sent ")
-	return "sent"
+	return "sent",nil
 }
 
 func failOnError(err error, msg string) {

@@ -142,7 +142,7 @@ type CoinAccount struct {
 	MetricCoin      MetricCoin
 	StageID         string
 	CoinAccountPK   string
-	CoinAccountSK   string
+	CoinAccountSK   []byte
 }
 
 type MetricFormulas struct {
