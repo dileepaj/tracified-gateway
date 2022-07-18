@@ -4,8 +4,11 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/stellar/go/build"
+	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 )
 
 /*CreateNFTIssuerAccount
@@ -14,48 +17,60 @@ import (
 */
 func CreateIssuerAccount() (string, string, error) {
 	var NFTAccountKeyEncodedPassword string = commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
-	//generate new issuer keypair
+	// generate new issuer keypair
 	pair, err := keypair.Random()
 	if err != nil {
 		log.Fatal(err)
 		panic(err)
 	}
-	//NFT issuer keys
+	// NFT issuer keys
 	nftIssuerPK := pair.Address()
 	nftIssuerSK := pair.Seed()
-	//Account Creater keys(Tracified main account)
+	// Account Creater keys(Tracified main account)
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
-	transactionNft, err := build.Transaction(
-		commons.GetHorizonNetwork(),
-		build.SourceAccount{AddressOrSeed: issuerPK},
-		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
-		build.CreateAccount(
-			build.Destination{AddressOrSeed: nftIssuerPK},
-			build.NativeAmount{
-				Amount: "2"},
-		),
-	)
+	request := horizonclient.AccountRequest{AccountID: issuerPK}
+	issuerAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+	if err != nil {
+		logrus.Error(err)
+		return "", "", err
+	}
+	issuerSign, err := keypair.ParseFull(issuerSK)
+	if err != nil {
+		return "", "", err
+	}
+	CreateAccount := []txnbuild.Operation{
+		&txnbuild.CreateAccount{
+			Destination:   nftIssuerPK,
+			Amount:        "0",
+			SourceAccount: issuerPK,
+		},
+	}
+	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &issuerAccount,
+		IncrementSequenceNum: true,
+		Operations:           CreateAccount,
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+	})
 	if err != nil {
 		log.Fatal("Error when build transaction : ", err)
 		panic(err)
 	}
-	txen64, err := transactionNft.Sign(issuerSK)
+
+	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
 	if err != nil {
-		log.Fatal("Error when sign the transaction : ", err)
-		panic(err)
+		logrus.Error(err)
+		return "", "", err
 	}
-	txen, err := txen64.Base64()
-	if err != nil {
-		panic(err)
-	}
-	//submit transaction
-	respn, err := commons.GetHorizonClient().SubmitTransaction(txen)
+	// submit transaction
+	respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
 	if err != nil {
 		log.Fatal("Error submitting transaction:", err)
 		panic(err)
 	}
-	//encrypt the issuer secret key
+	// encrypt the issuer secret key
 	encryptedSK, err := Encrypt(nftIssuerSK, NFTAccountKeyEncodedPassword)
 	if err != nil {
 		panic(err)
