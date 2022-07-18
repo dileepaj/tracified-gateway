@@ -470,7 +470,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
-		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}})
+		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}})
 		// count only genesis, TDP, splitparent, splitchild and COC transactions
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
@@ -490,7 +490,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		}
 
 		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
-		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}, opt)
+		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}}, opt)
 		// retrieve only genesis, TDP, splitparent, splitchild and COC transactions
 		err2 := cursor.All(context.TODO(), &result)
 
@@ -1587,7 +1587,7 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 	return p
 }
 
-func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
+func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1599,12 +1599,18 @@ func (cd *Connection) GetRealIdentifier(MapValue string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err = c.FindOne(context.TODO(), bson.M{"mapvalue": MapValue}).Decode(&result)
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue}).Decode(&result)
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
 		} else {
-			resolve(result)
+			if result.Identifier != "" {
+				resolve(result)
+			} else {
+				result.MapValue = mapValue
+				result.Identifier = mapValue
+				resolve(result)
+			}
 		}
 	})
 	return p
@@ -1794,6 +1800,94 @@ func (cd *Connection) GetLiquidityPool(equatonId string, productName string, ten
 	return p
 }
 
+func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise {
+	result := model.NFTWithTransactionSolana{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTSolana")
+		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
+}
+
+func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string) *promise.Promise {
+	result := model.NFTWithTransaction{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTStellar")
+		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
+}
+func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, distributorPK string) *promise.Promise {
+	result := model.MarketPlaceNFTTrasactionWithCount{}
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+		if distributorPK != "withoutKey" {
+			cursor, er := c.Find(context.TODO(), bson.M{
+				"currentownernftpk": distributorPK,
+				"$or": []interface{}{
+					bson.M{"sellingstatus": "FORSALE"},
+					bson.M{"sellingstatus": "NOTFORSALE"},
+				},
+			})
+			if er != nil {
+				reject(er)
+			} else {
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		} else {
+			cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
+			if er != nil {
+				reject(er)
+			} else {
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		}
+	})
+	return p
+}
+
 func (cd *Connection) GetLiquidityPoolForArtifact(equatonId string, tenantId string, formulatype string) *promise.Promise {
 	pool := model.BuildPoolResponse{}
 
@@ -1812,6 +1906,27 @@ func (cd *Connection) GetLiquidityPoolForArtifact(equatonId string, tenantId str
 			reject(err)
 		} else {
 			resolve(pool)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
+	result := model.MarketPlaceNFT{}
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		err1 := c.FindOne(context.TODO(), bson.M{"nfttxnhash": NFTTXNhash}).Decode(&result)
+		if err1 != nil {
+			log.Error("Error while getting NFT TXN Hash from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
 		}
 	})
 	return p
@@ -1866,4 +1981,59 @@ func (cd *Connection) GetPool(coin1, coin2 string) *promise.Promise {
 		}
 	})
 	return p
+}
+
+func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK string) *promise.Promise {
+	result := []model.MarketPlaceNFT{}
+	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"initialdistributorpk": InitialDistributorPK})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
+	result := []model.NFTKeys{}
+	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTKeys")
+		cursor, err := dbclient.Find(context.TODO(), bson.M{"publickey": isserPK})
+		if err != nil {
+			reject(err)
+		} else {
+			err := cursor.All(context.TODO(), &(result))
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return promise
 }
