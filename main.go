@@ -22,7 +22,6 @@ func getPort() string {
 }
 
 func main() {
-
 	// godotenv package
 	envName := commons.GoDotEnvVariable("BRANCH_NAME")
 
@@ -48,9 +47,10 @@ func main() {
 		services.CheckTempOrphan()
 	})
 	c.Start()
-
 	router := routes.NewRouter()
+
+	go services.ReciverRmq()
+
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
-
 }

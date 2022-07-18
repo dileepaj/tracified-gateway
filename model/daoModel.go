@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/txnbuild"
 )
 
 type COCCollectionBody struct {
@@ -73,7 +73,7 @@ type CertificateCollectionBody struct {
 	Status              string
 }
 type XDR struct {
-	XDR build.TransactionMutator
+	XDR txnbuild.Transaction
 }
 
 type LastTxnResponse struct {

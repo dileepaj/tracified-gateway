@@ -1,13 +1,15 @@
 package deprecatedStellarExecuter
 
 import (
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/model"
 	"net/http"
 
-	"github.com/stellar/go/build"
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/model"
+
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 )
 
 type ConcreteSendAssest struct {
@@ -41,19 +43,49 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 	// if err != nil {
 	// 	log.Fatal(err)
 	// }
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: cd.Assest.Issuerkey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(cd.Assest.Issuerkey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
+	
+	asset := txnbuild.CreditAsset{Code:cd.Assest.Code, Issuer:  cd.Assest.Issuerkey}
 
-	paymentTx, err := build.Transaction(
-		build.SourceAccount{cd.Assest.Issuerkey},
-		commons.GetHorizonNetwork(),
-		build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
-		build.SetData("Transaction Type", []byte(cd.Assest.Type)),
-		build.SetData("PreviousTXNID", []byte(cd.Assest.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.Assest.ProfileID)),
-		build.Payment(
-			build.Destination{AddressOrSeed: cd.Assest.Reciverkey},
-			build.CreditAmount{cd.Assest.Code, cd.Assest.Issuerkey, cd.Assest.Amount},
-		),
-	)
+	transactionTypeTXNBuilder := txnbuild.ManageData{Name: "Transaction Type", Value: []byte(cd.Assest.Type)}
+	previousTXNIDTXNBuilder := txnbuild.ManageData{Name: "PreviousTXNID", Value:  []byte(cd.Assest.Type)}
+	profileIDTXNBuilder := txnbuild.ManageData{Name: "ProfileID", Value: []byte(cd.Assest.ProfileID)}
+	paymentTXNBuilder := txnbuild.Payment{ Asset:asset,Destination: cd.Assest.Reciverkey, SourceAccount: cd.Assest.Issuerkey,Amount: cd.Assest.Amount}
+
+
+	// BUILD THE GATEWAY XDR
+	paymentTx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &account,
+		IncrementSequenceNum: true,
+		Operations:           []txnbuild.Operation{&transactionTypeTXNBuilder, &previousTXNIDTXNBuilder, &profileIDTXNBuilder, &paymentTXNBuilder},
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{},
+	})
+	
+	//!------------------------------------------ not added payment
+	
+	//!------------------------------------------ not added payment
+	
+	//!------------------------------------------ not added payment
+	// paymentTx, err := build.Transaction(
+	// 	build.SourceAccount{cd.Assest.Issuerkey},
+	// 	commons.GetHorizonNetwork(),
+	// 	build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
+	// 	build.SetData("Transaction Type", []byte(cd.Assest.Type)),
+	// 	build.SetData("PreviousTXNID", []byte(cd.Assest.PreviousTXNID)),
+	// 	build.SetData("ProfileID", []byte(cd.Assest.ProfileID)),
+	// 	build.Payment(
+	// 		build.Destination{AddressOrSeed: cd.Assest.Reciverkey},
+	// 		build.CreditAmount{cd.Assest.Code, cd.Assest.Issuerkey, cd.Assest.Amount},
+	// 	),
+	// )
 	if err != nil {
 		// log.Fatal(err)
 		response.Error.Code = http.StatusNotFound
@@ -74,7 +106,7 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 		response.Error.Message = "Transaction Converter Issues"
 		return response
 	}
-	resp, err := commons.GetHorizonClient().SubmitTransaction(paymentTxeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransactionXDR(paymentTxeB64)
 	if err != nil {
 		// log.Fatal(err)
 		response.Error.Code = http.StatusNotFound

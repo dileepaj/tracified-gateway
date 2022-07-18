@@ -7,8 +7,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
-
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 )
 
 type ConcreteProfile struct {
@@ -20,7 +21,6 @@ type ConcreteProfile struct {
 }
 
 func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
-
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertProfileResponse
@@ -29,17 +29,40 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	response.Identifiers = cd.InsertProfileStruct.Identifier
 	response.TxnType = cd.InsertProfileStruct.Type
 
-	// save data
-	tx, err := build.Transaction(
-		commons.GetHorizonNetwork(),
-		build.SourceAccount{publicKey},
-		build.AutoSequence{commons.GetHorizonClient()},
-		build.SetData("Transaction Type", []byte(cd.InsertProfileStruct.Type)),
-		build.SetData("PreviousTXNID", []byte(cd.InsertProfileStruct.PreviousTXNID)),
-		build.SetData("PreviousProfileID", []byte(cd.InsertProfileStruct.PreviousProfileID)),
-		build.SetData("Identifiers", []byte(cd.InsertProfileStruct.Identifier)),
-	)
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
+	if err != nil {
+		// log.Fatal(err)
+	}
 
+	typeTXNBuilder := txnbuild.ManageData{Name: "Transaction Type", Value: []byte(cd.InsertProfileStruct.Type)}
+	previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXNID", Value: []byte(cd.InsertProfileStruct.PreviousTXNID)}
+	profileIDTXNBuilder := txnbuild.ManageData{Name: "PreviousProfileID", Value: []byte(cd.InsertProfileStruct.PreviousTXNID)}
+	identifierTXNBuilder := txnbuild.ManageData{Name: "Identifier", Value: []byte(cd.InsertProfileStruct.Identifier)}
+	// BUILD THE GATEWAY XDR
+	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &account,
+		IncrementSequenceNum: true,
+		Operations:           []txnbuild.Operation{&previousTXNBuilder, &typeTXNBuilder, &identifierTXNBuilder, &profileIDTXNBuilder},
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{},
+	})
+	// save data
+	// tx, err := build.Transaction(
+	// 	commons.GetHorizonNetwork(),
+	// 	build.SourceAccount{publicKey},
+	// 	build.AutoSequence{commons.GetHorizonClient()},
+	// 	build.SetData("Transaction Type", []byte(cd.InsertProfileStruct.Type)),
+	// 	build.SetData("PreviousTXNID", []byte(cd.InsertProfileStruct.PreviousTXNID)),
+	// 	build.SetData("PreviousProfileID", []byte(cd.InsertProfileStruct.PreviousProfileID)),
+	// 	build.SetData("Identifiers", []byte(cd.InsertProfileStruct.Identifier)),
+	// )
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -65,7 +88,7 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransactionXDR(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -82,5 +105,4 @@ func (cd *ConcreteProfile) InsertProfile() model.InsertProfileResponse {
 	response.ProfileTxn = resp.Hash
 
 	return response
-
 }

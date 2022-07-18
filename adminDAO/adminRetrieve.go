@@ -12,7 +12,7 @@ import (
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetPublicKeysOfFO() []string {
-	log.Debug("----------------- GetPublicKeysOfFO ------------------")
+	//log.Debug("----------------- GetPublicKeysOfFO ------------------")
 	var strArray []string
 	var result []FOPK
 	session, err := cd.adminConnect()
@@ -26,7 +26,6 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 
 		findCursor, err1 := c.Find(context.TODO(), bson.M{"accounts.FO": true})
 		if err1 != nil {
-			// fmt.Println(err1)
 			log.Error(err1.Error())
 		}
 

@@ -9,7 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/model"
@@ -18,7 +17,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -32,6 +33,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	log.Debug("--------------------------------- SubmitSplit -------------------------------------")
+
 	var Done []bool
 	Done = append(Done, true)
 	var id apiModel.IdentifierModel
@@ -46,7 +48,14 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	// var result model.SubmitXDRResponse
-
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(ar)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	time.Sleep(4 * time.Second)
 
 	for i, TxnBody := range AP.TxnBody {
@@ -139,9 +148,15 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		var SplitParentProfile string
 		var PreviousSplitProfile string
 		for i, TxnBody := range AP.TxnBody {
-			var PreviousTXNBuilder build.ManageDataBuilder
 
-			PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
+			previousTXNBuilder := txnbuild.ManageData{Name:"PreviousTXN", Value:[]byte(PreviousTxn)}
+			typeTXNBuilder := txnbuild.ManageData{Name:"Tyepe", Value:[]byte("G"+TxnBody.TxnType)}
+			currentTXNBuilder := txnbuild.ManageData{Name:"CurrentTXN", Value:[]byte(UserSplitTxnHashes[i])}
+			identifierTXNBuilder := txnbuild.ManageData{Name:"Identifier",Value:  []byte(AP.TxnBody[i].Identifier)}
+			profileIDTXNBuilder := txnbuild.ManageData{Name:"ProfileID",Value:  []byte(AP.TxnBody[i].ProfileID)}
+			PreviousProfileTXNBuilder := txnbuild.ManageData{Name:"PreviousProfile",Value:  []byte(PreviousSplitProfile)}
+
+
 			AP.TxnBody[i].PreviousTxnHash = PreviousTxn
 
 			//ASSIGN THE PREVIOUS PROFILE ID USING THE PARENT FOR THE CHILDREN AND A DB CALL FOR PARENT
@@ -151,18 +166,17 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			} else {
 				PreviousSplitProfile = SplitParentProfile
 			}
-			//BUILD THE GATEWAY XDR
-			tx, err := build.Transaction(
-				commons.GetHorizonNetwork(),
-				build.SourceAccount{publicKey},
-				build.AutoSequence{commons.GetHorizonClient()},
-				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
-				PreviousTXNBuilder,
-				build.SetData("CurrentTXN", []byte(UserSplitTxnHashes[i])),
-				build.SetData("Identifier", []byte(AP.TxnBody[i].Identifier)),
-				build.SetData("ProfileID", []byte(AP.TxnBody[i].ProfileID)),
-				build.SetData("PreviousProfile", []byte(PreviousSplitProfile)),
-			)
+
+				// BUILD THE GATEWAY XDR
+				tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+					SourceAccount:        &account,
+					IncrementSequenceNum: true,
+					Operations:           []txnbuild.Operation{&previousTXNBuilder, &typeTXNBuilder, &currentTXNBuilder,&identifierTXNBuilder,&profileIDTXNBuilder,&PreviousProfileTXNBuilder},
+					BaseFee:              txnbuild.MinBaseFee,
+					Memo:                 nil,
+					Preconditions:        txnbuild.Preconditions{},
+				})
+
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 			GatewayTXE, err := tx.Sign(secretKey)

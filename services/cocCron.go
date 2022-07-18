@@ -1,9 +1,12 @@
 package services
 
 import (
+	//"fmt"
+	"time"
+
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
-	"time"
+
 	// "github.com/stellar/go/clients/horizon"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -12,7 +15,8 @@ import (
 
 // CheckCOCStatus
 func CheckCOCStatus() {
-	log.Debug("----------------------------------- CheckCOCStatus -------------------------------------")
+	// log.Debug("----------------------------------- CheckCOCStatus -------------------------------------")
+	//fmt.Println("-=p=-=-=-=-=-=-=-=-=-= Check COC sTATUS +=-=-+-=_+_+_=_")
 	// fmt.Println("NEW STUFF")
 	object := dao.Connection{}
 	p := object.GetCOCbyStatus("pending")
@@ -32,7 +36,7 @@ func CheckCOCStatus() {
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
-				if int64(txe.TimeBounds.MaxTime) < time.Now().Unix() {
+				if int64(txe.TimeBounds().MaxTime) < time.Now().Unix() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{
@@ -73,7 +77,7 @@ func CheckCOCExpired() {
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
-				if int64(txe.TimeBounds.MaxTime) < time.Now().Unix() {
+				if int64(txe.TimeBounds().MaxTime) < time.Now().Unix() {
 					// result[i].Status="expired"
 					err1:=object.UpdateCOC(result[i],temp)
 					if err1!= nil{

@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -105,10 +105,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	brr,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t, _ := brr.Hash()
+	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
 	err = xdr.SafeUnmarshalBase64(GObj.RejectXdr, &reject)
@@ -116,10 +116,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	brr1,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t1, _ := brr1.Hash()
+	t1, _ := brr1.Hash(network.TestNetworkPassphrase)
 	test1 := fmt.Sprintf("%x", t1)
 
 	var txe xdr.Transaction
@@ -132,7 +132,6 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(txe.Operations); i++ {
 
 		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			fmt.Println("HAHAHAHA BUMPY")
 			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
 			fmt.Println(v)
 			GObj.SequenceNo = v

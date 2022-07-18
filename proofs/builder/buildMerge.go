@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -19,7 +18,9 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -38,6 +39,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 	object := dao.Connection{}
 	var id apiModel.IdentifierModel
 	var UserMergeTxnHashes []string
+	//netClient := commons.GetHorizonClient()
 	// var MergeID string
 
 	///HARDCODED CREDENTIALS
@@ -157,23 +159,47 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		var PreviousTxn string
 
 		for i, TxnBody := range AP.TxnBody {
-			var TypeTXNBuilder build.ManageDataBuilder
-			var PreviousTXNBuilder build.ManageDataBuilder
-			var MergeIDBuilder build.ManageDataBuilder
+			var TypeTXNBuilder txnbuild.ManageData
+			var PreviousTXNBuilder txnbuild.ManageData
+			var MergeIDBuilder txnbuild.ManageData
 
 			////GET THE PREVIOUS TRANSACTION FOR THE IDENTIFIER
 			//INCASE OF FIRST MERGE BLOCK THE PREVIOUS IS TAKEN FROM IDENTIFIER
 			//&
 			//INCASE OF GREATER THAN ONE THE PREVIOUS TXN IS THE PREVIOUS MERGE
 			if i == 0 {
-				TypeTXNBuilder = build.SetData("Type", []byte("G8"))
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
-				MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				// TypeTXNBuilder = build.SetData("Type", []byte("G8"))
+				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				// MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				TypeTXNBuilder = txnbuild.ManageData{
+					Name: "Type",
+					Value: []byte("G8"),
+				}
+				PreviousTXNBuilder = txnbuild.ManageData{
+					Name: "PreviousTXN",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash),
+				}
+				MergeIDBuilder = txnbuild.ManageData{
+					Name: "MergeID",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash2),
+				}
 				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
 			} else {
-				TypeTXNBuilder = build.SetData("Type", []byte("G7"))
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
-				MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				// TypeTXNBuilder = build.SetData("Type", []byte("G7"))
+				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
+				// MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+				TypeTXNBuilder = txnbuild.ManageData{
+					Name: "Type",
+					Value: []byte("G7"),
+				}
+				PreviousTXNBuilder = txnbuild.ManageData{
+					Name: "PreviousTXN",
+					Value: []byte(PreviousTxn),
+				}
+				MergeIDBuilder = txnbuild.ManageData{
+					Name: "MergeID",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash2),
+				}
 				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
 			}
 
@@ -196,15 +222,37 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				}
 			}
 
+			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+
+			kp,_ := keypair.Parse(publicKey)
+			client := horizonclient.DefaultTestNetClient
+			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+			pubaccount, err := client.AccountDetail(ar)
+			
+			if err != nil{
+				log.Fatal(err)
+			}
+
 			//BUILD THE GATEWAY XDR
-			tx, err := build.Transaction(
-				commons.GetHorizonNetwork(),
-				build.SourceAccount{publicKey},
-				build.AutoSequence{commons.GetHorizonClient()},
-				TypeTXNBuilder,
-				PreviousTXNBuilder,
-				build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
-				MergeIDBuilder,
+			// tx, err := build.Transaction(
+			// 	commons.GetHorizonNetwork(),
+			// 	build.SourceAccount{publicKey},
+			// 	build.AutoSequence{commons.GetHorizonClient()},
+			// 	TypeTXNBuilder,
+			// 	PreviousTXNBuilder,
+			// 	build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
+			// 	MergeIDBuilder,
+			// )
+
+			tx, err := txnbuild.NewTransaction(
+				txnbuild.TransactionParams{
+					SourceAccount: &pubaccount,
+					IncrementSequenceNum: true,
+					Operations: []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder},
+					BaseFee: txnbuild.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{},
+				},
 			)
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY

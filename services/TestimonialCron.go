@@ -31,7 +31,7 @@ func CheckTestimonialStatus() {
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
-				if int64(txe.TimeBounds.MaxTime) < time.Now().Unix() {
+				if int64(txe.TimeBounds().MaxTime) < time.Now().Unix() {
 					// result[i].Status="expired"
 					err1 := object.UpdateTestimonial(result[i], temp)
 					if err1 != nil {
