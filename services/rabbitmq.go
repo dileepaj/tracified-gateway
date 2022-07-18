@@ -12,8 +12,10 @@ import (
 )
 
 func ReciverRmq() error{
+	logrus.Info("connection")
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	if err != nil {
+		logrus.Info("connection error ",err)
 		return err
 	}
 	failOnError(err, "Failed to connect to RabbitMQ")
