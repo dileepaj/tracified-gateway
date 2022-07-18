@@ -351,7 +351,7 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	logrus.Info("SubmitSplit  ",TDP)
+	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSplit(w, r)
@@ -396,7 +396,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	logrus.Info("SubmitMerge  ",TDP)
+	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitMerge(w, r)
@@ -485,7 +485,7 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	logrus.Info("SubmitTransfer ",TDP)
+	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecialTransfer(w, r)

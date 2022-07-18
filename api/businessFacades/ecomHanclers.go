@@ -2,19 +2,21 @@ package businessFacades
 
 import (
 	"encoding/base64"
-	"encoding/json"
-	"fmt"
 	"io/ioutil"
-	"net/http"
-	"regexp"
 	"sort"
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/stellar/go/xdr"
+
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"regexp"
+
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -91,7 +93,7 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 			temp := model.TransactionIds{Txnhash: TxnHash,
 				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier:commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier)}
+				Identifier: TxnBody.Identifier}
 			result = append(result, temp)
 		}
 		// res := TDP{TdpId: result.TdpId}
@@ -171,8 +173,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				// text := encoded
 				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
 					Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
-				}
-        
+
 				resultArray = append(resultArray, temp)
 			}
 
@@ -205,7 +206,6 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			// text := encoded
 			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
-			}
 			resultArray = append(resultArray, temp)
 			return nil
 		}).Catch(func(error error) error {
@@ -242,7 +242,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 			temp := model.TransactionIds{Txnhash: TxnHash,
 				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier:commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier), TdpId: TxnBody.TdpId,}
+				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
 			result = append(result, temp)
 		}
 		// res := TDP{TdpId: result.TdpId}
@@ -320,15 +320,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
 
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
 
-			// if err != nil {
-			// 	log.Print("Unable to get real identifier")
-			// }
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
 
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
@@ -499,25 +499,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:           TxnBody.TdpId,
-				DataHash:        TxnBody.DataHash,
-				Blockchain:      "Stellar",
-				Timestamp:       timestamp,
-				TxnType:         GetTransactiontype(TxnBody.TxnType),
-				FeePaid:         feePaid,
-				Ledger:          ledger,
-				SourceAccount:   TxnBody.PublicKey,
-				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
-				AvailableProof:  GetProofName(TxnBody.TxnType),
-				To:              to,
-				ProductName:     TxnBody.ProductName,
-				Itemcount:       count,
-				AssetCode:       assetcode,
-				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-			}
+				Identifier:     TxnBody.Identifier,
+				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
+				Blockchain:     "Stellar",
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to,
+				ProductName:    TxnBody.ProductName,
+				Itemcount:      count,
+				AssetCode:      assetcode}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
 				w.WriteHeader(response.Code)
@@ -555,15 +552,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		res := qdata.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
 
-			// if err != nil {
-			// 	log.Print("Unable to get real identifier")
-			// }
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
 
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
@@ -732,24 +729,21 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:           TxnBody.TdpId,
-				Blockchain:      "Stellar",
-				DataHash:        TxnBody.DataHash,
-				Timestamp:       timestamp,
-				TxnType:         GetTransactiontype(TxnBody.TxnType),
-				FeePaid:         feePaid,
-				Ledger:          ledger,
-				SourceAccount:   TxnBody.PublicKey,
-				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
-				AvailableProof:  GetProofName(TxnBody.TxnType),
-				To:              to,
-				ProductName:     TxnBody.ProductName,
-				AssetCode:       assetcode,
-				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-			}
+				Identifier:     TxnBody.Identifier,
+				TdpId:          TxnBody.TdpId,
+				Blockchain:     "Stellar",
+				DataHash:       TxnBody.DataHash,
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to,
+				ProductName:    TxnBody.ProductName,
+				AssetCode:      assetcode}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
 				w.WriteHeader(response.Code)
@@ -785,15 +779,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
 
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
 
-			// if err != nil {
-			// 	log.Print("Unable to get real identifier")
-			// }
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
 
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
@@ -961,25 +955,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				Blockchain:      "Stellar",
-				TdpId:           TxnBody.TdpId,
-				DataHash:        TxnBody.DataHash,
-				Timestamp:       timestamp,
-				TxnType:         GetTransactiontype(TxnBody.TxnType),
-				FeePaid:         feePaid,
-				Ledger:          ledger,
-				SourceAccount:   TxnBody.PublicKey,
-				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
-				AvailableProof:  GetProofName(TxnBody.TxnType),
-				To:              to,
-				ProductName:     TxnBody.ProductName,
-				Itemcount:       count,
-				AssetCode:       assetcode,
-				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-			}
+				Identifier:     TxnBody.Identifier,
+				Blockchain:     "Stellar",
+				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to,
+				ProductName:    TxnBody.ProductName,
+				Itemcount:      count,
+				AssetCode:      assetcode}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
 				w.WriteHeader(response.Code)
@@ -997,15 +988,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 	case "":
 
-		// _, err := object.GetMapValue(txn).Then(func(data interface{}) interface{} {
-		// 	realIdentifier := data.(apiModel.IdentifierModel)
-		// 	txn = realIdentifier.MapValue
-		// 	return nil
-		// }).Await()
+		_, err := object.GetMapValue(txn).Then(func(data interface{}) interface{} {
+			realIdentifier := data.(apiModel.IdentifierModel)
+			txn = realIdentifier.MapValue
+			return nil
+		}).Await()
 
-		// if err != nil {
-		// 	log.Print("Unable to get real identifier")
-		// }
+		if err != nil {
+			log.Print("Unable to get real identifier")
+		}
 
 		qdata, err := object.GetTransactionsbyIdentifier_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
@@ -1028,15 +1019,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
 
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
 
-			// if err != nil {
-			// 	log.Print("Unable to get real identifier")
-			// }
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
 
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
@@ -1204,25 +1195,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				Blockchain:      "Stellar",
-				TdpId:           TxnBody.TdpId,
-				DataHash:        TxnBody.DataHash,
-				Timestamp:       timestamp,
-				TxnType:         GetTransactiontype(TxnBody.TxnType),
-				FeePaid:         feePaid,
-				Ledger:          ledger,
-				SourceAccount:   TxnBody.PublicKey,
-				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
-				AvailableProof:  GetProofName(TxnBody.TxnType),
-				To:              to,
-				ProductName:     TxnBody.ProductName,
-				Itemcount:       count,
-				AssetCode:       assetcode,
-				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-			}
+				Identifier:     TxnBody.Identifier,
+				Blockchain:     "Stellar",
+				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to,
+				ProductName:    TxnBody.ProductName,
+				Itemcount:      count,
+				AssetCode:      assetcode}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
 				w.WriteHeader(response.Code)
@@ -1306,21 +1294,18 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:           TxnBody.TdpId,
-				DataHash:        TxnBody.DataHash,
-				Timestamp:       timestamp,
-				TxnType:         GetTransactiontype(TxnBody.TxnType),
-				FeePaid:         feePaid,
-				Ledger:          ledger,
-				SourceAccount:   TxnBody.PublicKey,
-				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
-				AvailableProof:  GetProofName(TxnBody.TxnType),
-				To:              to,
-				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-			}
+				Identifier:     TxnBody.Identifier,
+				TdpId:          TxnBody.TdpId,
+				DataHash:       TxnBody.DataHash,
+				Timestamp:      timestamp,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				FeePaid:        feePaid,
+				Ledger:         ledger,
+				SourceAccount:  TxnBody.PublicKey,
+				From:           from,
+				SequenceNo:     TxnBody.SequenceNo,
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				To:             to}
 
 			result = append(result, temp)
 		}
@@ -1478,15 +1463,15 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
 
-			// if err != nil {
-			// 	log.Print("Unable to get real identifier")
-			// }
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
 
 			if TxnBody.TxnType != "11" {
 				TxnHash := TxnBody.TxnHash
@@ -1654,24 +1639,21 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url:             commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-					Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-					TdpId:           TxnBody.TdpId,
-					DataHash:        TxnBody.DataHash,
-					Timestamp:       timestamp,
-					TxnType:         GetTransactiontype(TxnBody.TxnType),
-					FeePaid:         feePaid,
-					Ledger:          ledger,
-					SourceAccount:   TxnBody.PublicKey,
-					From:            from,
-					SequenceNo:      TxnBody.SequenceNo,
-					AvailableProof:  GetProofName(TxnBody.TxnType),
-					To:              to,
-					ProductName:     TxnBody.ProductName,
-					AssetCode:       assetcode,
-					FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
-					FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-				}
+					Url:            commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+					Identifier:     TxnBody.Identifier,
+					TdpId:          TxnBody.TdpId,
+					DataHash:       TxnBody.DataHash,
+					Timestamp:      timestamp,
+					TxnType:        GetTransactiontype(TxnBody.TxnType),
+					FeePaid:        feePaid,
+					Ledger:         ledger,
+					SourceAccount:  TxnBody.PublicKey,
+					From:           from,
+					SequenceNo:     TxnBody.SequenceNo,
+					AvailableProof: GetProofName(TxnBody.TxnType),
+					To:             to,
+					ProductName:    TxnBody.ProductName,
+					AssetCode:      assetcode}
 				result = append(result, temp)
 			}
 		}

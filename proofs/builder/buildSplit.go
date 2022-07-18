@@ -1,6 +1,7 @@
 package builder
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -110,7 +111,6 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 
 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
 		display := stellarExecuter.ConcreteSubmitXDR{XDR: TxnBody.XDR}
-
 		result := display.SubmitXDR(AP.TxnBody[i].TxnType)
 		UserSplitTxnHashes = append(UserSplitTxnHashes, result.TXNID)
 
@@ -126,8 +126,17 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			log.Info((i + 1), " Submitted")
 		}
 		if AP.TxnBody[i].TxnType == "6" {
+			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
+			if err != nil {
+				panic(err)
+			}
+
+			var jsonID Identifier
+			json.Unmarshal([]byte(rawDecodedText), &jsonID)
 			id.MapValue = AP.TxnBody[i].Identifier
-			id.Identifier = AP.TxnBody[i].MapIdentifier
+			id.Identifier = jsonID.Id
+			id.Type = jsonID.Type
+
 			err3 := object.InsertIdentifier(id)
 			if err3 != nil {
 				fmt.Println("identifier map failed" + err3.Error())
@@ -184,7 +193,6 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			}
 			//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 			txeB64, err := GatewayTXE.Base64()
-
 			if err != nil {
 				log.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
 				AP.TxnBody[i].TxnHash = UserSplitTxnHashes[i]
