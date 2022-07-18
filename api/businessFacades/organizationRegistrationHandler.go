@@ -8,13 +8,13 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -52,9 +52,9 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
-	acc, _ := acceptBuild.Hash()
+	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
 
 	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
@@ -62,9 +62,10 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	rejectBuild,_ :=  txnbuild.TransactionFromXDR(Obj.RejectXDR)
 
-	rej, _ := rejectBuild.Hash()
+
+	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
 
 	Obj.AcceptTxn = validAccept

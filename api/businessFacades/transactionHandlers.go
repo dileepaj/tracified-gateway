@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -15,7 +14,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -262,8 +262,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	fmt.Println(TDP)
-
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecial(w, r)
 	// 	display.SubmitGenesis(w,r)
@@ -308,8 +306,8 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(TDP)
-
+	//fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
+	//fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
 	display.SubmitSpecial(w, r)
@@ -736,10 +734,11 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err1)
 	}
 
-	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	//brr := txnbuild.TransactionFrom{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	brr,_ := txnbuild.TransactionFromXDR(TDP.XDR)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 	// fmt.Println(brr.Hash())
-	t, _ := brr.Hash()
+	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
 	w.WriteHeader(http.StatusOK)

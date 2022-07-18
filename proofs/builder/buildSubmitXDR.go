@@ -3,18 +3,20 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -30,6 +32,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("-------------------------------- @SubmitXDR ------------------------------")
+	//netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -40,18 +43,29 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(ar)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// var result model.SubmitXDRResponse
 	var OrphanBoolArray []bool
 	var OrphanBool bool
 
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
-		//decode the XDR
+		// decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @SafeUnmarshalBase64 @SubmitXDR " +err.Error())
+			log.Error("Error @SafeUnmarshalBase64 @SubmitXDR " + err.Error())
 		}
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
+		// GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
@@ -68,7 +82,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 			log.Info("Adopting from Orphanage! or Just Submitting")
 			return nil
 		}).Catch(func(error error) error {
-			log.Error("Error @GetLastTransactionbyIdentifier @SubmitXDR " +error.Error())
+			log.Error("Error @GetLastTransactionbyIdentifier @SubmitXDR " + error.Error())
 			log.Info("Sending to Orphanage!")
 			OrphanBoolArray = append(OrphanBoolArray, true)
 			AP.TxnBody[i].Orphan = true
@@ -80,11 +94,11 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 	OrphanBool = checkBoolArray(OrphanBoolArray)
 
 	if OrphanBool {
-		for i, _ := range AP.TxnBody {
-			//INSERT THE TXN INTO THE BUFFER
+		for i := range AP.TxnBody {
+			// INSERT THE TXN INTO THE BUFFER
 			err := object.InsertToOrphan(AP.TxnBody[i])
 			if err != nil {
-				log.Error("Error @InsertToOrphan @SubmitXDR " +err.Error())
+				log.Error("Error @InsertToOrphan @SubmitXDR " + err.Error())
 				Done = append(Done, false)
 				w.WriteHeader(400)
 				response := apiModel.SubmitXDRSuccess{
@@ -95,8 +109,8 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 			}
 		}
 	} else {
-		for i, _ := range AP.TxnBody {
-			//SUBMIT THE FIRST XDR SIGNED BY THE USER
+		for i := range AP.TxnBody {
+			// SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
 			result1 := display.SubmitXDR(AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result1.TXNID)
@@ -150,53 +164,63 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
 
-				var PreviousTXNBuilder build.ManageDataBuilder
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
-
-				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					commons.GetHorizonNetwork(),
-					build.SourceAccount{publicKey},
-					build.AutoSequence{commons.GetHorizonClient()},
-					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				)
-
-				if err != nil{
-					log.Error("Error @build.Transaction @SubmitXDR "+err.Error())
+				PreviousTXNBuilder := txnbuild.ManageData{
+					Name:  "PreviousTXN",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash),
+				}
+				TypeTxnBuilder := txnbuild.ManageData{
+					Name:  "Type",
+					Value: []byte("G" + AP.TxnBody[i].TxnType),
 				}
 
-				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+				CurrentTXNBuilder := txnbuild.ManageData{
+					Name:  "CurrentTXN",
+					Value: []byte(UserTxnHashes[i]),
+				}
+				// BUILD THE GATEWAY XDR
+				// BUILD THE GATEWAY XDR
+				tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+					SourceAccount:        &account,
+					IncrementSequenceNum: true,
+					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
+					BaseFee:              txnbuild.MinBaseFee,
+					Memo:                 nil,
+					Preconditions:        txnbuild.Preconditions{},
+				})
+				if err != nil {
+					log.Error("Error @build.Transaction @SubmitXDR " + err.Error())
+				}
+
+				// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 				GatewayTXE, err := tx.Sign(secretKey)
 				if err != nil {
-					log.Error("Error @tx.Sign @SubmitXDR "+err.Error())
+					log.Error("Error @tx.Sign @SubmitXDR " + err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitXDR " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitXDR " + err2.Error())
 					}
 				}
-				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+				// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 				txeB64, err := GatewayTXE.Base64()
 				if err != nil {
-					log.Error("Error @GatewayTXE.Base64 @SubmitXDR "+err.Error())
+					log.Error("Error @GatewayTXE.Base64 @SubmitXDR " + err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitXDR " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitXDR " + err2.Error())
 					}
 				}
 
-				//SUBMIT THE GATEWAY'S SIGNED XDR
+				// SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+				response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					log.Error("Error got 400 @ConcreteSubmitXDR @SubmitXDR ")
@@ -206,17 +230,17 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitXDR " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitXDR " + err2.Error())
 					}
 				} else {
-					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+					// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 					AP.TxnBody[i].TxnHash = response1.TXNID
 					AP.TxnBody[i].Status = "done"
 
 					///INSERT INTO TRANSACTION COLLECTION
 					err2 := object.InsertTransaction(AP.TxnBody[i])
 					if err2 != nil {
-						log.Error("Error @InsertTransaction @SubmitXDR " +err2.Error())
+						log.Error("Error @InsertTransaction @SubmitXDR " + err2.Error())
 					}
 				}
 			}

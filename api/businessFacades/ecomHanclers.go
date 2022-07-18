@@ -50,7 +50,7 @@ func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 		text := encoded
 		result := model.TransactionId{Txnhash: TxnHash,
-			Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public"}
 
 		// res := TDP{TdpId: result.TdpId}
@@ -89,7 +89,7 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
 				Identifier:commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier)}
 			result = append(result, temp)
@@ -169,11 +169,10 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				// identifer = Txn.Identifier
 				// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 				// text := encoded
-				temp := model.TransactionIds{
-					Txnhash: Txn.TxnHash,
-					Url:     commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i],
+				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
+					Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 				}
-
+        
 				resultArray = append(resultArray, temp)
 			}
 
@@ -204,9 +203,8 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 
 			// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			// text := encoded
-			temp := model.TransactionIds{
-				Txnhash: Txn.TxnHash,
-				Url:     commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: commons.ValidateStrings(Txn.MapIdentifier, Txn.Identifier), TdpId: TDPs.TdpID[i],
+			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 			}
 			resultArray = append(resultArray, temp)
 			return nil
@@ -242,7 +240,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
 				Identifier:commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier), TdpId: TxnBody.TdpId,}
 			result = append(result, temp)
@@ -341,7 +339,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
@@ -374,7 +372,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					//log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
 						log.Error("Error while getting transactions by txnhash ")
 						w.WriteHeader(http.StatusNotFound)
@@ -429,7 +427,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					}
 					acceptTxn := string(acceptTxn_byteData)
 					//log.Info("acceptTxn: " + acceptTxn)
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
@@ -498,8 +496,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:           TxnBody.TdpId,
@@ -576,7 +574,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
@@ -605,7 +603,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					//log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
@@ -661,7 +659,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					}
 					acceptTxn := string(acceptTxn_byteData)
 					//log.Info("acceptTxn: " + acceptTxn)
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
@@ -731,8 +729,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:           TxnBody.TdpId,
@@ -806,7 +804,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
@@ -835,7 +833,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					//log.Error("Error SafeUnmarshalBase64" + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
@@ -891,7 +889,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					}
 					acceptTxn := string(acceptTxn_byteData)
 					//log.Info("acceptTxn: " + acceptTxn)
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
@@ -960,8 +958,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				Blockchain:      "Stellar",
@@ -1049,7 +1047,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				log.Error("Unable to reach Stellar network in result1")
 				status = "Unable to reach Stellar network"
@@ -1078,7 +1076,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					//log.Error("Error SafeUnmarshalBase64" + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in result1")
 						status = "Unable to reach Stellar network"
@@ -1134,7 +1132,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					}
 					acceptTxn := string(acceptTxn_byteData)
 					//log.Info("acceptTxn: " + acceptTxn)
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
 						log.Error("Unable to reach Stellar network in acceptresult1")
 						status = "Unable to reach Stellar network"
@@ -1203,8 +1201,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				Blockchain:      "Stellar",
@@ -1264,7 +1262,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
 			}
@@ -1305,8 +1303,8 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+				LabUrl: commons.GetStellarLaboratoryClient() + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:           TxnBody.TdpId,
@@ -1500,7 +1498,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 				assetcode := ""
-				result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 				if err != nil {
 					log.Error("Unable to reach Stellar network in result1")
 					status = "Unable to reach Stellar network"
@@ -1529,7 +1527,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						//log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 						if err != nil {
 							log.Error("Unable to reach Stellar network in result1")
 							status = "Unable to reach Stellar network"
@@ -1585,7 +1583,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						}
 						acceptTxn := string(acceptTxn_byteData)
 						log.Info("acceptTxn: " + acceptTxn)
-						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 						if err != nil {
 							log.Error("Unable to reach Stellar network in acceptresult1")
 							status = "Unable to reach Stellar network"

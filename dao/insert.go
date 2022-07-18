@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -34,7 +35,7 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
 	log.Println("--------------------------- InsertTransaction ------------------------")
-	//result := model.TransactionCollectionBody{}
+	// result := model.TransactionCollectionBody{}
 	session, err := cd.connect()
 	if err != nil {
 		log.Println("Error while getting session " + err.Error())
@@ -69,7 +70,7 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("TempOrphan")
+	c := session.Client().Database(dbName).Collection("TESTTempOrphan")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
@@ -189,7 +190,7 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	return err
 }
 
-//insert new proof presentation protocol
+// insert new proof presentation protocol
 func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -217,6 +218,190 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 
 	if err != nil {
 		log.Println("Error while inserting to TempOrphan " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHistory) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("TrustlineHistory")
+	_, err = c.InsertOne(context.TODO(), trustlineHistory)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertBatchAccount(batchAccount model.CoinAccount) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("CoinAccount")
+	_, err = c.InsertOne(context.TODO(), batchAccount)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+// insert created pool details to the DB
+func (cd *Connection) InsertLiquidityPool(pool model.BuildPoolResponse) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("PoolDetails")
+	_, err = c.InsertOne(context.TODO(), pool)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+// insert coin convert details to the DB
+func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.BuildPathPaymentJSon) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("CoinConversion")
+	_, err = c.InsertOne(context.TODO(), buildCoinConvertionObj)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+// insert coinName
+func (cd *Connection) InsertCoinName(coinName model.CoinName) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("CoinName")
+	_, err = c.InsertOne(context.TODO(), coinName)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+// insert Poool to DB
+func (cd *Connection) InsertPoool(pool model.Pool) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("Pool")
+	_, err = c.InsertOne(context.TODO(), pool)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTSolana")
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), solanaNFT)
+	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
+	if err != nil {
+		log.Println("Error when inserting data to NFTSolana DB " + err.Error())
+	}
+	if err2 != nil {
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+	}
+	return err, err2
+}
+
+func (cd *Connection) InsertPolygonNFT(polyNFT model.NFTWithTransactionContracts, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTPolygon")
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), polyNFT)
+	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
+	if err != nil {
+		log.Println("Error when inserting data to NFTPolygon DB " + err.Error())
+	}
+	if err2 != nil {
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+	}
+	return err, err2
+}
+
+func (cd *Connection) InsertEthereumNFT(etherNFT model.NFTWithTransactionContracts, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTEthereum")
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), etherNFT)
+	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
+	if err != nil {
+		log.Println("Error when inserting data to NFTEthereum DB " + err.Error())
+	}
+	if err2 != nil {
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+	}
+	return err, err2
+}
+
+func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTStellar")
+	c2 := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+	_, err2 := c.InsertOne(context.TODO(), stellarNFT)
+	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	if err2 != nil {
+		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+	}
+	return err, err2
+}
+
+func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("NFTKeys")
+	_, err = c.InsertOne(context.TODO(), nftKeys)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	return err
 }

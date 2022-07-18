@@ -85,7 +85,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		return error
 	}).Await()
 
-	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + result.TxnHash + "/operations")
+	result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + result.TxnHash + "/operations")
+	fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + result.TxnHash + "/operations")
+	fmt.Println(result1,err)
 	if err != nil {
 		log.Error("Error while getting transactions by txnhash " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -135,7 +137,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	var response model.POE
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
 	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
-
+	fmt.Println(url)
 	bearer := "Bearer " + constants.BackendToken
 
 	// Create a new request using http
@@ -181,7 +183,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	TxnHash := CurrentTxn
 	PublicKey := result.PublicKey
 
-	result2, err2 := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+	result2, err2 := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
+	fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
+	fmt.Println(result2,err)
 	if err2 != nil {
 		log.Error("Error while get transactions by TxnHash " + err2.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -236,7 +240,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+		Url:            commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
@@ -306,7 +310,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 
 		// 	for i := len(res) - 1; i >= 0; i-- {
 
-		// 		result1, err1 := http.Get("https://horizon.stellar.org/transactions/" + res[i].TxnHash + "/operations")
+		// 		result1, err1 := http.Get("https://horizon.stellar.orgtransactions/" + res[i].TxnHash + "/operations")
 		// 		if err1 != nil {
 		// 			// Rerr.Code = result1.StatusCode
 		// 			// Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -599,7 +603,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 			FirstTxnGateway := data.(model.TransactionCollectionBody)
 
 			//First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS
-			result1, err := http.Get("https://horizon.stellar.org/transactions/" + FirstTxnGateway.TxnHash + "/operations")
+			result1, err := http.Get("https://horizon.stellar.orgtransactions/" + FirstTxnGateway.TxnHash + "/operations")
 			if err != nil {
 
 			} else {
@@ -695,7 +699,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 
 	TxnHash := res.TxnHash
 	PublicKey := res.PublicKey
-	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+	result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 	if err != nil {
 		log.Error("Error while getting transactions by TxnHash " + err.Error())
 		response := model.Error{Message: "Txn Id Not Found in Stellar Public Net " + err.Error()}
@@ -731,7 +735,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	// 	return nil
 	// }
 
-	result2, _ := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+	result2, _ := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 	data2, _ := ioutil.ReadAll(result2.Body)
 	var raw2 map[string]interface{}
 	var raw4 map[string]interface{}
@@ -768,7 +772,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	result3, err4 := http.Get(commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations")
+	result3, err4 := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + string(CurrentTxnDecoded) + "/operations")
 	if err4 != nil {
 		log.Error("Error while getting the current transaction by TxnHash " + err.Error())
 		response := model.Error{Message: "Current Txn Id Not Found in Stellar Public Net " + err.Error()}
@@ -831,7 +835,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 
 	temp := model.POGResponse{
 		Txnhash:        TxnHash,
-		Url:            commons.GetHorizonClient().URL + "/transactions/" + string(CurrentTxnDecoded) + "/operations",
+		Url:            commons.GetHorizonClient().HorizonURL + "transactions/" + string(CurrentTxnDecoded) + "/operations",
 		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     res.Identifier,
@@ -875,7 +879,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	var txe interpreter.XDR
 	vars := mux.Vars(r)
 
-	result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + vars["TxnId"] + "/operations")
+	result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + vars["TxnId"] + "/operations")
 	if err != nil {
 		log.Error("Error while getting transactions by txnhash " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -955,7 +959,7 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		display := &interpreter.AbstractPOCOC{Txn: vars["TxnId"], DBCOC: txe, XDR: COC.AcceptXdr, ProofHash: proofhash, COCStatus: COCStatus, SequenceNo: COC.SequenceNo}
 		display.InterpretPOCOC(w, r)
 		*/
-		result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+		result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 		if err != nil {
 			log.Error("Error while getting transactions by txnhash " + err.Error())
 			w.WriteHeader(http.StatusBadRequest)

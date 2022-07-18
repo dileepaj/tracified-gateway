@@ -8,7 +8,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 )
 
 type ConcreteGenesis struct {
@@ -21,23 +23,45 @@ type ConcreteGenesis struct {
 // var GenesisTxn string
 
 func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
-
 	publicKey := "GD3EEFYWEP2XLLHONN2TRTQV4H5GSXJGCSUXZJGXGNZT4EFACOXEVLDJ"
 	secretKey := "SA46OTS655ZDALIAODVCBWLWBXZWO6VUS6TU4U4GAIUVCKS2SYPDS7N4"
 	var response model.InsertGenesisResponse
 	response.Identifiers = cd.InsertGenesisStruct.Identifier
 	response.TxnType = cd.InsertGenesisStruct.Type
 
-	// save data
-	tx, err := build.Transaction(
-		commons.GetHorizonNetwork(),
-		build.SourceAccount{publicKey},
-		build.AutoSequence{commons.GetHorizonClient()},
-		build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
-		build.SetData("PreviousTXNID", []byte("")),
-		build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
-	)
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
+	if err != nil {
+		// log.Fatal(err)
+	}
 
+	typeTXNBuilder := txnbuild.ManageData{Name: "Transaction Type", Value: []byte(cd.InsertGenesisStruct.Type)}
+	CertTypeTXNBuilder := txnbuild.ManageData{Name: "PreviousTXNID", Value: []byte("")}
+	IdentifierTXNBuilder := txnbuild.ManageData{Name: "Identifier", Value: []byte(cd.InsertGenesisStruct.Identifier)}
+
+	// BUILD THE GATEWAY XDR
+	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &account,
+		IncrementSequenceNum: true,
+		Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &IdentifierTXNBuilder},
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{},
+	})
+	// // save data
+	// tx, err := build.Transaction(
+	// 	commons.GetHorizonNetwork(),
+	// 	build.SourceAccount{publicKey},
+	// 	build.AutoSequence{commons.GetHorizonClient()},
+	// 	build.SetData("Transaction Type", []byte(cd.InsertGenesisStruct.Type)),
+	// 	build.SetData("PreviousTXNID", []byte("")),
+	// 	build.SetData("Identifiers", []byte(cd.InsertGenesisStruct.Identifier)),
+	// )
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -63,7 +87,7 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransactionXDR(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -82,5 +106,4 @@ func (cd *ConcreteGenesis) InsertGenesis() model.InsertGenesisResponse {
 	// cd.PreviousTXNID = resp.Hash
 
 	return response
-
 }
