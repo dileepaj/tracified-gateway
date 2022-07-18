@@ -66,7 +66,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		//fmt.Println("xxxxxxxxxxxxxxxxxxxxxxxxx",strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&"))
+		// AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
@@ -88,7 +88,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		if (AP.TxnBody[i].TxnType == "0" || AP.TxnBody[i].TxnType=="5"|| AP.TxnBody[i].TxnType=="6"|| AP.TxnBody[i].TxnType=="7"){
+		if AP.TxnBody[i].TxnType == "0" {
 			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
 			if err != nil {
 				panic(err)
