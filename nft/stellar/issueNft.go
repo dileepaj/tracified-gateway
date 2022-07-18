@@ -8,7 +8,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/sirupsen/logrus"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 )
 
 /*IssueNft
@@ -33,43 +36,58 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			panic(data)
 		}
 		var nftConten = []byte(svg)
-		txn, err := build.Transaction(
-			commons.GetHorizonNetwork(),
-			build.SourceAccount{AddressOrSeed: CurrentIssuerPK},
-			build.AutoSequence{SequenceProvider: commons.GetHorizonClient()},
-			build.Payment(
-				build.Destination{AddressOrSeed: distributerPK},
-				build.CreditAmount{
-					Code:   assetcode,
-					Issuer: CurrentIssuerPK,
-					Amount: "1",
+	
+		request := horizonclient.AccountRequest{AccountID: distributerPK}
+		issuerAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+		if err != nil {
+			return "","", err
+		}
+		issuerSign, err := keypair.ParseFull(decrpytNftissuerSecretKey)
+		if err != nil {
+			return "","", err
+		}
+		var currentPk string=CurrentIssuerPK
+		var homeDomain string=commons.GoDotEnvVariable("HOMEDOMAIN")
+
+		payments := []txnbuild.Operation{
+			&txnbuild.Payment{Destination: distributerPK, Asset:txnbuild.CreditAsset{	Code   :assetcode,
+				Issuer : CurrentIssuerPK}, Amount: "1"},
+				&txnbuild.ManageData{
+					Name:          assetcode,
+					Value:         nftConten,
 				},
-			),
-			build.SetData(assetcode, nftConten),
-			build.SetOptions(
-				build.HomeDomain(commons.GoDotEnvVariable("HOMEDOMAIN")),
-				build.MasterWeight(0),
-				build.InflationDest(CurrentIssuerPK),
-			),
+				&txnbuild.SetOptions{
+					InflationDestination: &currentPk,
+					SetFlags:             []txnbuild.AccountFlag{},
+					ClearFlags:           []txnbuild.AccountFlag{},
+					HomeDomain:           &homeDomain ,
+					Signer:               &txnbuild.Signer{},
+					SourceAccount:        "",
+				},
+		}
+		tx, err := txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        &issuerAccount,
+				IncrementSequenceNum: true,
+				Operations:           payments,
+				BaseFee:              txnbuild.MinBaseFee,
+				Memo:                 nil,
+				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+			},
 		)
 		if err != nil {
 			log.Fatal(err)
 			return "", "", err
 		}
-		signTxn, err := txn.Sign(decrpytNftissuerSecretKey)
+		signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
 		if err != nil {
-			log.Fatal("Error when submitting the transaction : ", " hError")
-			return "", "", err
+			return "","", err
 		}
-		encodedTxn, err := signTxn.Base64()
-		if err != nil {
-			return "", "", err
-		}
-		//submit transaction
-		respn, err := commons.GetHorizonClient().SubmitTransaction(encodedTxn)
+		// submit transaction
+		respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
 		if err != nil {
 			log.Fatal("Error submitting transaction:", err)
-			return "", "", err
+			panic(err)
 		}
 		return respn.Hash, string(nftConten), nil
 	}

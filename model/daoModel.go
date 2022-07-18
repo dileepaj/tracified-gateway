@@ -324,18 +324,18 @@ type ProofProtocol struct {
 	Steps []Steps
 }
 
-type TransactionHashWithIdentifier struct {
-	Status          string
-	Txnhash         string
-	TxnType         string
-	Identifier      string
-	FromIdentifier1 string
-	FromIdentifier2 string
-	ToIdentifier    string
-	AvailableProof  []string
-	ProductName     string
-	ProductID       string
-}
+// type TransactionHashWithIdentifier struct {
+// 	Status          string
+// 	Txnhash         string
+// 	TxnType         string
+// 	Identifier      string
+// 	FromIdentifier1 string
+// 	FromIdentifier2 string
+// 	ToIdentifier    string
+// 	AvailableProof  []string
+// 	ProductName     string
+// 	ProductID       string
+// }
 
 type NFTSolana struct {
 	OwnerPK       string
