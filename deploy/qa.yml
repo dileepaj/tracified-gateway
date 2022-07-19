@@ -47,9 +47,6 @@
       debugger: on_failed
       docker_container:
         name: tracified-gateway
-        networks: 
-          -name: tillitgatewaynetwork
-          -links: rabbitmq-1
         image: 453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-qa        
         published_ports: "8000:8000"
         restart: yes
@@ -93,3 +90,9 @@
             RABBITPASSWORD: "{{ lookup('env','RABBITPASSWORD') }}"
             RABBITHOSTNAME: "{{ lookup('env','RABBITHOSTNAME') }}"
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
+    - name: Add a container to a network, leaving existing containers connected
+      docker_network:
+        name:  tillitgatewaynetwork
+        connected:
+         - tracified-gateway
+        appends: yes  
