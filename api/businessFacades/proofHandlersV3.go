@@ -210,8 +210,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error while json.Unmarshal(data2, &raw3) " + err.Error())
 	}
 
-	fmt.Println(raw3["envelope_xdr"])
-	fmt.Println("HAHAHAHAAHAHAH")
 	timestamp := fmt.Sprintf("%s", raw3["created_at"])
 	ledger := fmt.Sprintf("%.0f", raw3["ledger"])
 	feePaid := fmt.Sprintf("%s", raw3["fee_charged"])
@@ -227,6 +225,16 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
 	}
 	fmt.Println(string(mapB))
+
+	_, err = object.GetRealIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
+		realIdentifier := data.(apiModel.IdentifierModel)
+		result.Identifier = realIdentifier.Identifier
+		return nil
+	}).Await()
+
+	if err != nil {
+		log.Error("Unable to get real identifier")
+	}
 
 	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 	text := encoded
@@ -811,6 +819,16 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
 	}
 	fmt.Println(string(mapB))
+	
+	_, err = object.GetRealIdentifier(res.Identifier).Then(func(data interface{}) interface{} {
+		realIdentifier := data.(apiModel.IdentifierModel)
+		res.Identifier = realIdentifier.Identifier
+		return nil
+	}).Await()
+
+	if err != nil {
+		log.Error("Unable to get real identifier")
+	}
 
 	encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 	text := encoded

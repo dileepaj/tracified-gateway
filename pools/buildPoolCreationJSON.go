@@ -203,7 +203,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
 	data, _ := object.GetLiquidityPool(coinConvertObject.EquationID, coinConvertObject.ProductName,
-		coinConvertObject.TenantID).Then(func(data interface{}) interface{} {
+		coinConvertObject.TenantID,coinConvertObject.FormulaType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {
