@@ -63,23 +63,23 @@ func ReciverRmq() error{
 				logrus.Error(err)
 			}
 			logrus.Info("Recivered ", queue)
-			if queue.Type == "Pool" {
+			if queue.Type == "POOL" {
 				response, err = pools.PoolCreateHandle(queue.EqationJson, queue.CoinMap, queue.PoolCreationArray)
 				if err != nil {
 					logrus.Error(err)
 				}
 				logrus.Info("Pools Created")
-			} else if queue.Type == "CionConvert" {
+			} else if queue.Type == "COINCONVERT" {
 				response, err = pools.PathPaymentHandle(queue.CoinConvert)
 				if err != nil {
 					logrus.Error(err)
 				}
 				logrus.Info("Coin Converted")
+				logrus.Info("QUEUE TASK DONE")
 			} else {
 				logrus.Error("Queue Request Type Error")
 			}
 			logrus.Info(response)
-			logrus.Info("QUEUE TASK DONE")
 		}
 	}()
 

@@ -24,6 +24,7 @@ type BuildPathPaymentJSon struct {
 	ProductIdName  string
 	EquationId     string
 	TenantId       string
+	FormulaType    string
 }
 
 type BuildPool struct {
@@ -36,6 +37,7 @@ type BuildPool struct {
 	PoolId              string
 	EquationId          string
 	PoolDepositeHash    string
+	FormulatType        string
 }
 
 type BuildPoolResponse struct {
@@ -46,6 +48,7 @@ type BuildPoolResponse struct {
 	ActivityId           string
 	EquationStringFormat string
 	SimplifiedEquation   string
+	FormulaType          string
 	CoinMap              []CoinMap
 	BuildPools           []BuildPool
 }
@@ -131,6 +134,19 @@ type BatchCoinConvert struct {
 	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
+type ArtifactCoinConvert struct {
+	EquationID      string      `json:"EquationId" bson:"EquationId" validate:"required"`
+	TenantID        string      `json:"TenantId" bson:"TenantId" validate:"required"`
+	ProductName     string      `json:"ProductName" bson:"ProductName"`
+	ProductID       string      `json:"ProductID" bson:"ProductID"`
+	FormulaType     string      `json:"FormulaType" bson:"FormulaType" validate:"required"`
+	FormulaTypeID   string      `json:"FormulaTypeID" bson:"FormulaTypeID" validate:"required"`
+	FormulaTypeName string      `json:"FormulaTypeName" bson:"FormulaTypeName" validate:"required"`
+	StageId         string      `json:"stageId" bson:"stageId"`
+	MetricCoin      MetricCoin  `json:"metricCoin" bson:"metricCoin" validate:"required"`
+	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
+}
+
 type CoinAccount struct {
 	TenantID        string
 	FormulaType     string
@@ -185,6 +201,19 @@ type CreatePool struct {
 	EquationSubPortion   []EquationSubPortion `json:"equationSubPortion" bson:"equationSubPortion"`
 }
 
+type CreatePoolForArtifact struct {
+	EquationID           string               `json:"equationId" bson:"equationId" validate:"required"`
+	ProductName          string               `json:"productName" bson:"productname"`
+	ProductID            string               `json:"productID" bson:"productid"`
+	TenantID             string               `json:"tenantId" bson:"tenantId" validate:"required"`
+	ActivityId           string               `json:"activityId" bson:"activityId" validate:"required"`
+	FormulaType          string               `json:"FormulaType" bson:"FormulaType" validate:"required"`
+	EquatinStringFormate string               `json:"equatinStringFormate" bson:"equatinStringFormate" validate:"required"`
+	SimpleifedEquation   string               `json:"simpleifedEquation" bson:"simpleifedEquation" validate:"required"`
+	MetricCoin           MetricCoin           `json:"metricCoin" bson:"metricCoin"`
+	EquationSubPortion   []EquationSubPortion `json:"equationSubPortion" bson:"equationSubPortion"`
+}
+
 type CalculateEquationForBatch struct {
 	TenantID        string
 	ProductName     string
@@ -198,12 +227,12 @@ type CalculateEquationForBatch struct {
 type EquationResultForBatch struct {
 	TenantID        string
 	ProductName     string
+	FormulaType     string
 	FormulaTypeName string
 	StageId         string
 	EquationID      string
-	MetrixType      string
 	MetricCoin      MetricCoin
-	BatchAccount    string
+	Account         string
 	EquationResult  string
 }
 
@@ -235,6 +264,7 @@ type CoinName struct {
 type Pool struct {
 	EquationId          string
 	ProductId           string
+	ProductName         string
 	TenantId            string
 	FormulatType        string
 	Coin1               string
