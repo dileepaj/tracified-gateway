@@ -90,9 +90,3 @@
             RABBITPASSWORD: "{{ lookup('env','RABBITPASSWORD') }}"
             RABBITHOSTNAME: "{{ lookup('env','RABBITHOSTNAME') }}"
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
-    - name: Add a container to a network, leaving existing containers connected
-      docker_network:
-        name:  tillitgatewaynetwork
-        connected:
-         - tracified-gateway
-        appends: yes  
