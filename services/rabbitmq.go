@@ -5,15 +5,25 @@ import (
 	"encoding/json"
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 )
 
+var (
+	USER     = commons.GoDotEnvVariable("RABBITUSER")
+	PASSWORD = commons.GoDotEnvVariable("RABBITPASSWORD")
+	HOSTNAME = commons.GoDotEnvVariable("RABBITHOSTNAME")
+	PORT     = commons.GoDotEnvVariable("RABBITPORT")
+)
+
 func ReciverRmq() error{
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	rabbitCoonection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitCoonection)
 	if err != nil {
+		logrus.Error("rabbitmq connection issue ", err)
 		return err
 	}
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -79,8 +89,10 @@ func ReciverRmq() error{
 }
 
 func SendToQueue(queue model.SendToQueue) (string,error) {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
+		logrus.Error("rabbitmq connection issue ", err)
 		return "",err
 	}
 	defer conn.Close()

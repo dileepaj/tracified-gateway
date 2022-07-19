@@ -76,3 +76,7 @@
             STELLARLABORATORYCLIENT: "{{ lookup('env','STELLARLABORATORYCLIENT') }}"
             TRACIFIEDBACKEND: "{{ lookup('env','TRACIFIEDBACKEND') }}"
             TRACIFIEDBACKENDTOKEN: "{{ lookup('env','TRACIFIEDBACKENDTOKEN') }}"
+            RABBITUSER: "{{ lookup('env','RABBITUSER') }}"
+            RABBITPASSWORD: "{{ lookup('env','RABBITPASSWORD') }}"
+            RABBITHOSTNAME: "{{ lookup('env','RABBITHOSTNAME') }}"
+            RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
