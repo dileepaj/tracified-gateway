@@ -457,7 +457,7 @@ var routes = Routes{
 		"POST",
 		"/socialimapact/accont",
 		businessFacades.CalculateEquationForBatch,
-    },
+	},
 	Route{
 		"MintNFTStellarAndAddToDB",
 		"POST",
@@ -523,5 +523,11 @@ var routes = Routes{
 		"GET",
 		"/nft/fundAccount",
 		businessFacades.FundAccount, //Calls the UpdateBuyingStatus in the nftHandler
+	},
+	Route{
+		"Get coin convert details",
+		"GET",
+		"/socialimapact/pathPaymentDetails",
+		businessFacades.GetPathPaymentDetails, //Get the path payment details
 	},
 }
