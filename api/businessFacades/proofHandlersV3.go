@@ -87,7 +87,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + result.TxnHash + "/operations")
 	fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + result.TxnHash + "/operations")
-	fmt.Println(result1,err)
 	if err != nil {
 		log.Error("Error while getting transactions by txnhash " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -184,8 +183,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	PublicKey := result.PublicKey
 
 	result2, err2 := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-	fmt.Println(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
-	fmt.Println(result2,err)
 	if err2 != nil {
 		log.Error("Error while get transactions by TxnHash " + err2.Error())
 		w.WriteHeader(http.StatusBadRequest)
@@ -240,9 +237,9 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	text := encoded
 	temp := model.POEResponse{
 		Txnhash: TxnHash,
-		Url:            commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Url:     commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
 		SequenceNo:     result.SequenceNo,
 		TxnType:        "tdp",
@@ -757,8 +754,8 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(out6, &raw5)
 
 	//GET THE USER SIGNED GENESIS TXN
-	Type := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
-	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	Type := strings.TrimLeft(fmt.Sprintf("%s", raw2["value"]), "&")
+	Previous := strings.TrimLeft(fmt.Sprintf("%s", raw4["value"]), "&")
 	CurrentTxn := strings.TrimLeft(fmt.Sprintf("%s", raw5["value"]), "&")
 
 	TypeDecoded, _ := base64.StdEncoding.DecodeString(Type)
@@ -834,10 +831,10 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	text := encoded
 
 	temp := model.POGResponse{
-		Txnhash:        TxnHash,
-		Url:            commons.GetHorizonClient().HorizonURL + "transactions/" + string(CurrentTxnDecoded) + "/operations",
-		LabUrl:			commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
-		text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
+		Txnhash: TxnHash,
+		Url:     commons.GetHorizonClient().HorizonURL + "transactions/" + string(CurrentTxnDecoded) + "/operations",
+		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     res.Identifier,
 		SequenceNo:     res.SequenceNo,
 		TxnType:        "genesis",
