@@ -32,7 +32,7 @@ func CheckTempOrphan() {
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
-		kp,_ := keypair.Parse(address)
+		kp, _ := keypair.Parse(address)
 
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
@@ -149,7 +149,7 @@ func CheckTempOrphan() {
 								break
 							}
 						}
-						case "2":
+					case "2":
 
 						// PreviousTXNBuilder := txnbuild.ManageData{
 						// 	Name:  "",
@@ -179,15 +179,14 @@ func CheckTempOrphan() {
 							Name:  "Type",
 							Value: []byte("G" + result.TxnType),
 						}
+						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
+						response := display.SubmitXDR(result.TxnType)
+						UserTxnHash = response.TXNID
 
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
-						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-						response := display.SubmitXDR(result.TxnType)
-						UserTxnHash = response.TXNID
-            
 						if response.Error.Code == 400 {
 							log.Println("Response code 400 for SubmitXDR")
 							break
