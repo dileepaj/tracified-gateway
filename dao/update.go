@@ -702,7 +702,7 @@ func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateSt
 		Copies:                           selector.Copies,
 		PreviousOwnerNFTPK:               updatePreviousPK,
 		CurrentOwnerNFTPK:                updateCurrentPK,
-		OriginPK:                         selector.OriginPK,
+		OriginPK:                         updateCurrentPK,
 		SellingStatus:                    updateStatus,
 		Amount:                           selector.Amount,
 		Price:                            selector.Price,
