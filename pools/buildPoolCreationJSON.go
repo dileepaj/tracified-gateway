@@ -91,7 +91,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 			if len(portion[i].FieldAndCoin) > 2 {
 				userInputCount := 0
 				for j := 0; j < len(portion[i].FieldAndCoin); j++ {
-					if portion[i].FieldAndCoin[j].Value=="(" || portion[i].FieldAndCoin[j].Value==")" {
+					if portion[i].FieldAndCoin[j].Value == "(" || portion[i].FieldAndCoin[j].Value == ")" {
 						return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation can not caontaion  ( , ) oprators")
 					}
 					// Check if the coin name's character equalto 4
@@ -203,7 +203,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
 	data, _ := object.GetLiquidityPool(coinConvertObject.EquationID, coinConvertObject.ProductName,
-		coinConvertObject.TenantID,coinConvertObject.FormulaType).Then(func(data interface{}) interface{} {
+		coinConvertObject.TenantID, coinConvertObject.FormulaType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {

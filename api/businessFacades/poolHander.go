@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/pools"
@@ -271,13 +272,13 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 			equationDetails := model.CreatePool{
-				EquationID:  equationJsonObj.EquationID,
-				ProductName: equationJsonObj.ProductName,
-				ProductID:   equationJsonObj.ProductID,
-				TenantID:    equationJsonObj.TenantID,
-				FormulaType: equationJson.FormulaType,
+				EquationID:           equationJsonObj.EquationID,
+				ProductName:          equationJsonObj.ProductName,
+				ProductID:            equationJsonObj.ProductID,
+				TenantID:             equationJsonObj.TenantID,
+				FormulaType:          equationJson.FormulaType,
 				EquatinStringFormate: equationJsonObj.EquatinStringFormate,
-				SimpleifedEquation: equationJsonObj.SimpleifedEquation,
+				SimpleifedEquation:   equationJsonObj.SimpleifedEquation,
 			}
 
 			queue := model.SendToQueue{
@@ -377,10 +378,10 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 			equationDetails := model.CreatePool{
-				EquationID: equationJsonObj.EquationID,
-				TenantID:   equationJsonObj.TenantID,
+				EquationID:  equationJsonObj.EquationID,
+				TenantID:    equationJsonObj.TenantID,
 				ProductName: equationJson.ProductName,
-				ProductID: equationJson.ProductID,
+				ProductID:   equationJson.ProductID,
 				FormulaType: equationJson.FormulaType,
 			}
 
@@ -452,7 +453,7 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		FormulaType:     dbData.FormulaType,
 		StageId:         dbData.StageID,
 		MetricCoin:      dbData.MetricCoin,
-		Account:    dbData.CoinAccountPK,
+		Account:         dbData.CoinAccountPK,
 		EquationResult:  coinBalance,
 	}
 
@@ -461,4 +462,81 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(equationResponse)
 	return
+}
+
+//get the path payment details
+func GetPathPaymentDetails(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	tenantid, error := r.URL.Query()["tenantid"]
+	if !error || len(tenantid[0]) < 1 {
+		logrus.Error("Url Parameter 'tenantid' is missing")
+		w.WriteHeader(http.StatusNotFound)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Url Parameter 'tenantid' is missing",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	equationid, error := r.URL.Query()["equationid"]
+	if !error || len(equationid[0]) < 1 {
+		logrus.Error("Url Parameter 'equationid' is missing")
+		w.WriteHeader(http.StatusNotFound)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Url Parameter 'equationid' is missing",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	//getting query parameters
+	formulatype, error := r.URL.Query()["formulatype"]
+	if !error || len(formulatype[0]) < 1 {
+		logrus.Error("Url Parameter 'formulatype' is missing")
+		w.WriteHeader(http.StatusNotFound)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Url Parameter 'formulatype' is missing",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	productname, error := r.URL.Query()["productname"]
+	if !error {
+		logrus.Error("Url Parameter 'productname' is having an error")
+		w.WriteHeader(http.StatusNotFound)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Url Parameter 'productname' is having an error",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	object := dao.Connection{}
+
+	qData, err := object.GetCoinConversionDetails(formulatype[0], equationid[0], productname[0], tenantid[0]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		logrus.Error("Unable to connect gateway datastore")
+		w.WriteHeader(http.StatusNotFound)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Unable to connect gateway datastore",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	if qData == nil {
+		logrus.Error("Coin convert details are not found in gateway datastore")
+		w.WriteHeader(http.StatusNoContent)
+		response := apiModel.SubmitXDRSuccess{
+			Status: "Coin convert details are not found in gateway datastore",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(qData)
 }

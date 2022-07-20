@@ -273,3 +273,35 @@ type Pool struct {
 	DepositeAmountCoin2 string
 	Ratio               string
 }
+
+type Sendingcoin struct {
+	Id            string
+	Fieldname     string
+	Coinname      string
+	GeneratedName string
+	Amount        string
+}
+
+type Receivingcoin struct {
+	Id            string
+	Fieldname     string
+	Coinname      string
+	GeneratedName string
+	Amount        string
+}
+type Coinconertions struct {
+	Sendingcoin        Sendingcoin
+	ReceivingCoin      Receivingcoin
+	BatchAccountPK     string
+	BatchAccountSK     string
+	CoinIssuerAccontPK string
+	PoolID             string
+	Hash               string
+}
+type CoinConversionDetails struct {
+	Coinconertions []Coinconertions
+	ProductID      string
+	EquationID     string
+	TenantID       string
+	FormulaType    string
+}

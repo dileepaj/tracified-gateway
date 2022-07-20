@@ -2037,3 +2037,49 @@ func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 	})
 	return promise
 }
+
+//get path payment details from the CoinConversion collection
+func (cd *Connection) GetCoinConversionDetails(formulType, equatonId, productName, tenantId string) *promise.Promise {
+	result := []model.CoinConversionDetails{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("CoinConversion")
+		if formulType == "BATCH" {
+			cursor, err1 := c.Find(context.TODO(), bson.M{"formulatype": formulType, "equationid": equatonId, "productidname": productName, "tenantid": tenantId})
+
+			if err1 != nil {
+				reject(err1)
+			} else {
+				err2 := cursor.All(context.TODO(), &result)
+				if err2 != nil || len(result) == 0 {
+					log.Error("Error while getting coin convert details from db " + err.Error())
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		} else {
+			cursor, err1 := c.Find(context.TODO(), bson.M{"formulatype": formulType, "equationid": equatonId, "tenantid": tenantId})
+
+			if err1 != nil {
+				reject(err1)
+			} else {
+				err2 := cursor.All(context.TODO(), &result)
+				if err2 != nil || len(result) == 0 {
+					log.Error("Error while getting coin convert details from db " + err.Error())
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		}
+
+	})
+	return p
+}
