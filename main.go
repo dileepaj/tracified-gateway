@@ -11,6 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
+	"github.com/go-openapi/runtime/middleware"
 )
 
 func getPort() string {
@@ -48,6 +49,12 @@ func main() {
 	})
 	c.Start()
 	router := routes.NewRouter()
+
+	//serve swagger documentation
+	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.SwaggerUI(opts, nil)
+	router.Handle("/docs", sh)
+	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 
 	go services.ReciverRmq()
 
