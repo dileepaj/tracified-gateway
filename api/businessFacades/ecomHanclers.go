@@ -1463,11 +1463,11 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 
-			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-				realIdentifier := data.(apiModel.IdentifierModel)
-				TxnBody.Identifier = realIdentifier.Identifier
-				return nil
-			}).Await()
+			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+			// 	realIdentifier := data.(apiModel.IdentifierModel)
+			// 	TxnBody.Identifier = realIdentifier.Identifier
+			// 	return nil
+			// }).Await()
 
 			if err != nil {
 				log.Print("Unable to get real identifier")

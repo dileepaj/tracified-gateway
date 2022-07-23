@@ -9,6 +9,7 @@ import (
 
 	log "github.com/sirupsen/logrus"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -43,6 +44,10 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// var result model.SubmitXDRResponse
 
 	for i, TxnBody := range AP.TxnBody {
@@ -84,7 +89,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)			
 
 			kp,_ := keypair.Parse(publicKey)
-			client := horizonclient.DefaultTestNetClient
+			client :=commons.GetHorizonClient()
 			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 			pubaccount, err := client.AccountDetail(ar)
 			//var PreviousTXNBuilder txnbuild.ManageData
@@ -129,7 +134,7 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 			}
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-			GatewayTXE, err := tx.Sign(secretKey)
+			GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(),tracifiedAccount)
 			if err != nil {
 				log.Error("Error while Sign @SubmitGenesis " + err.Error())
 				AP.TxnBody[i].TxnHash = UserTxnHashes[i]
