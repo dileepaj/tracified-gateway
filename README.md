@@ -71,10 +71,11 @@ Steps to contribute:
     run rabbitmq
     build gateway 
     run gateway
+    The Rabbitmq hostname and container name should be the same otherwise can not ping the rabbit server(container) from the gateway
 
     docker network create tillitgatewaynetwork
 
-    docker run -itd --rm --hostname rabbit-1 --name rabbitmq-1 --network tillitgatewaynetwork -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
+    docker run -itd --rm --hostname rabbit-1 --name rabbit-1 --network tillitgatewaynetwork -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
 
     docker build . -t [gateway tag name]
 

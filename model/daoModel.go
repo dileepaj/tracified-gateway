@@ -31,10 +31,10 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash      string
 	FromIdentifier1      string
 	FromIdentifier2      string
-	MapFromIdentifier1   string
-	MapFromIdentifier2   string
-	MapIdentifier        string
 	ToIdentifier         string
+	MapIdentifier1       string
+	MapIdentifier2       string
+	MapIdentifier        string
 	ItemCode             string
 	ItemAmount           string
 	PublicKey            string
@@ -117,6 +117,9 @@ type PrevTxnResponse struct {
 	ProductName    string
 	Itemcount      string
 	AssetCode      string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
 }
 
 type POCOCResponse struct {
@@ -298,7 +301,7 @@ type Services struct {
 	ServiceName       string
 	ServiceURL        string
 	DocumentationLink string
-	// UIAutomationSteps	UIAutomationSteps
+	//UIAutomationSteps	UIAutomationSteps
 }
 
 type ActionParams struct {
@@ -323,7 +326,7 @@ type ProofProtocol struct {
 	ProofName            string
 	ProofDescriptiveName string
 	NumberofSteps        string
-	// Segmants				Segmants
+	//Segmants				Segmants
 	Steps []Steps
 }
 
