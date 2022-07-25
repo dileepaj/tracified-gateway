@@ -16,7 +16,6 @@ import (
 	"github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/support/log"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
@@ -28,7 +27,7 @@ var (
 )
 var poolCoin []txnbuild.Asset
 
-var client = sdk.DefaultTestNetClient
+var client = commons.GetHorizonClient()
 
 // IssueCoin ==> issue coin to given specific account
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
@@ -60,7 +59,7 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 		},
 	)
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuer)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), issuer)
 	if err != nil {
 		logrus.Error(err)
 		return "", err
@@ -117,7 +116,7 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 			},
 		)
-		signedTx, err := tx.Sign(network.TestNetworkPassphrase, coinReceiver)
+		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiver)
 		if err != nil {
 			logrus.Error(err)
 			return "", err
@@ -201,7 +200,7 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 			logrus.Error(err)
 			return "", err
 		}
-		signedTx, err := tx.Sign(network.TestNetworkPassphrase, coinReceiverSign,sponserSign)
+		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiverSign,sponserSign)
 		if err != nil {
 			logrus.Error(err)
 			return "", err
@@ -305,7 +304,7 @@ func EstablishPoolTrustline(a string, b string, coinReceiverPK string, coinReciv
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 		},
 	)
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), distributor)
 	if err != nil {
 		logrus.Error(err)
 		return "", err
@@ -366,7 +365,7 @@ func DepositeToPool(poolId txnbuild.LiquidityPoolId, coinReceiverPK string, coin
 		logrus.Error(err)
 		return "", err
 	}
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, distributor)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), distributor)
 	if err != nil {
 		logrus.Error(err)
 		return "", err

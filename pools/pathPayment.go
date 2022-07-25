@@ -14,7 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -114,7 +113,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		return model.BuildPathPayment{}, err
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, traderSign, sponserAccountSign)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), traderSign, sponserAccountSign)
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err

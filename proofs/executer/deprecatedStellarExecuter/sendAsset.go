@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/clients/horizonclient"
@@ -50,7 +51,11 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 	client := horizonclient.DefaultTestNetClient
 	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
 	account, err := client.AccountDetail(accountRequest)
-	
+
+	AssestSigner, err := keypair.ParseFull(cd.Assest.Signer)
+	if err != nil {
+		logrus.Error(err)
+	}
 	asset := txnbuild.CreditAsset{Code:cd.Assest.Code, Issuer:  cd.Assest.Issuerkey}
 
 	transactionTypeTXNBuilder := txnbuild.ManageData{Name: "Transaction Type", Value: []byte(cd.Assest.Type)}
@@ -92,7 +97,7 @@ func (cd *ConcreteSendAssest) SendAsset() model.SendAssetResponse {
 		response.Error.Message = "Transaction Build Issues"
 		return response
 	}
-	paymentTxe, err := paymentTx.Sign(cd.Assest.Signer)
+	paymentTxe, err := paymentTx.Sign(commons.GetStellarNetwork(),AssestSigner)
 	if err != nil {
 		// log.Fatal(err)
 		response.Error.Code = http.StatusNotFound

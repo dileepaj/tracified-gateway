@@ -38,7 +38,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 		var nftConten = []byte(svg)
 	
 		request := horizonclient.AccountRequest{AccountID: distributerPK}
-		issuerAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+		issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
 		if err != nil {
 			return "","", err
 		}

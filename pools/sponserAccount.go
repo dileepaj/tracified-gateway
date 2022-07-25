@@ -8,7 +8,6 @@ import (
 	"github.com/stellar/go/clients/horizonclient"
 	sdk "github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 	//"github.com/stellar/go/txnbuild"
 )
@@ -55,7 +54,7 @@ func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, err
 		return "", "", err
 	}
 	request := horizonclient.AccountRequest{AccountID: sponsorPK}
-	sponsorAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+	sponsorAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err
@@ -96,7 +95,7 @@ func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, err
 		return "", "", err
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, sponsor, generatedAccount)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), sponsor, generatedAccount)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", err

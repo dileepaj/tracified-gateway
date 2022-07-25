@@ -908,7 +908,7 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		}
 
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TESTTempOrphan")
+		c := session.Client().Database(dbName).Collection("FINALTempOrphan")
 		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
 
 		if err1 != nil {

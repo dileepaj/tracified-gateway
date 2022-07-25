@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/clients/horizonclient"
@@ -16,7 +17,10 @@ func TransformMerge(code1 string, limit1 string, code2 string, limit2 string, co
 	// router := routes.NewRouter()
 
 	// log.Fatal(http.ListenAndServe(":8030", router))
-
+	reciverSign1, err := keypair.ParseFull(reciver1)
+	if err != nil {
+		logrus.Error(err)
+	}
 	// RA
 	issuerSeed := "GASTEFX4WMC7PN3WIJTHYDJHR3D4FXVTKR7JWMBL4OUYEMPQDNPGNOAG"
 
@@ -86,7 +90,7 @@ func TransformMerge(code1 string, limit1 string, code2 string, limit2 string, co
 	if err != nil {
 		log.Fatal(err)
 	}
-	paymentTxe, err := paymentTx.Sign(reciver1)
+	paymentTxe, err := paymentTx.Sign(commons.GetStellarNetwork(),reciverSign1)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -124,7 +128,10 @@ func (cd *ConcreteTransform) TransformMerge() string {
 	Reciver2 := cd.AssetTransfer.Reciver
 	recipientSeed := cd.AssetTransfer.Sender // factory
 	// recipientSeed2 := reciver2 //reg
-
+	recipientSign, err := keypair.ParseFull(recipientSeed)
+	if err != nil {
+		logrus.Error(err)
+	}
 	// issuer, err := keypair.Parse(issuerSeed)
 	// if err != nil {
 	// 	log.Fatal(err)
@@ -235,7 +242,7 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		return "Transaction Build issue"
 	}
 
-	paymentTxe, err := tx.Sign(recipientSeed)
+	paymentTxe, err := tx.Sign(commons.GetStellarNetwork(),recipientSign)
 	if err != nil {
 		log.Fatal(err)
 		return "Transaction Signed issue"
