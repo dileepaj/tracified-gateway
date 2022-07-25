@@ -49,7 +49,7 @@
         name: tracified-gateway
         image: 453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-qa 
         networks:
-          - tillitgatewaynetwork
+          -name: tillitgatewaynetwork
         published_ports: "8000:8000"
         restart: yes
         restart_policy: on-failure
