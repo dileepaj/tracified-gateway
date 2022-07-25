@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -31,6 +32,10 @@ type ConcreteMerge struct {
 func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		logrus.Error(err)
+	}
 	var response model.MergeProfileResponse
 
 	var MergeTXN []string
@@ -40,9 +45,8 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 		// netClient := commons.GetHorizonClient()
 		// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 		// account, err := netClient.AccountDetail(accountRequest)
-		kp,_ := keypair.Parse(publicKey)
 		client := horizonclient.DefaultTestNetClient
-		accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+		accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 		account, err := client.AccountDetail(accountRequest)
 		if err != nil {
 			// log.Fatal(err)
@@ -88,7 +92,7 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 			}
 
 			// Sign the transaction to prove you are actually the person sending it.
-			txe, err := tx.Sign(secretKey)
+			txe, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 			if err != nil {
 				// panic(err)
 				response.Error.Code = http.StatusNotFound

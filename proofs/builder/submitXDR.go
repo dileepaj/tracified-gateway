@@ -17,6 +17,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -198,6 +199,10 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// Get information about the account we just created
 	//accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	//account, err := netClient.AccountDetail(accountRequest)
@@ -282,7 +287,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 					BaseFee:              txnbuild.MinBaseFee,
 					Memo:                 nil,
-					Preconditions:        txnbuild.Preconditions{},
+					Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 				})
 				if err != nil {
 					log.Error("Error @ builder @XDRSubmitter " + err.Error())
@@ -290,7 +295,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 				}
 
 				// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-				GatewayTXE, err := tx.Sign(secretKey)
+				GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 				if err != nil {
 					log.Error("Error @ Sign @XDRSubmitter " + err.Error())
 

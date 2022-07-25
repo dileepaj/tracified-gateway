@@ -70,7 +70,7 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("TESTTempOrphan")
+	c := session.Client().Database(dbName).Collection("FINALTempOrphan")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
@@ -90,7 +90,7 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("Orphan")
+	c := session.Client().Database(dbName).Collection("FINALTempOrphan")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {

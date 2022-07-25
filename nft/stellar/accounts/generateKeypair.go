@@ -13,7 +13,7 @@ import (
 func FundAccount(buyerPK string) (string, error) {
 
 	request := horizonclient.AccountRequest{AccountID: commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")}
-	issuerAccount, err := horizonclient.DefaultTestNetClient.AccountDetail(request)
+	issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
 	if err != nil {
 		return "", err
 	}

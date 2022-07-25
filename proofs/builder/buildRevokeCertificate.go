@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -45,6 +46,10 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// var result model.SubmitXDRResponse
 
 	for i, TxnBody := range AP.TxnBody {
@@ -154,7 +159,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
 			kp,_ := keypair.Parse(publicKey)
-			client := horizonclient.DefaultTestNetClient
+			client := commons.GetHorizonNetwork()
 			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 			pubaccount, err := client.AccountDetail(ar)
 			if err != nil {
@@ -177,7 +182,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 					BaseFee: txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{},
+					Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 				},
 			)
 
@@ -186,7 +191,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			}
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-			GatewayTXE, err := tx.Sign(secretKey)
+			GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 			if err != nil {
 				log.Error("Error while sign @SubmitRevokeCertificate "+err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]
