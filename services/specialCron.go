@@ -32,7 +32,7 @@ func CheckTempOrphan() {
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
-		kp,_ := keypair.Parse(address)
+		kp, _ := keypair.Parse(address)
 
 		client := horizonclient.DefaultTestNetClient
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
@@ -128,7 +128,6 @@ func CheckTempOrphan() {
 							log.Println("Error while converting GatewayTXE to base64 " + err.Error())
 							break
 						}
-						fmt.Println("XDR -----------------", txeB64)
 						// SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 						response1 := display1.SubmitXDR("G" + result.TxnType)
@@ -150,7 +149,7 @@ func CheckTempOrphan() {
 								break
 							}
 						}
-						case "2":
+					case "2":
 
 						// PreviousTXNBuilder := txnbuild.ManageData{
 						// 	Name:  "",
@@ -183,7 +182,7 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
-						
+
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
