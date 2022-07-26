@@ -23,16 +23,7 @@ func ValidateArtifactCoinConvert(e model.ArtifactCoinConvert) error {
 	return nil
 }
 
-func ValidateCreatePool(e model.CreatePool) error {
-	validate := validator.New()
-	err := validate.Struct(e)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func ValidateCreatePoolForArtifact(e model.CreatePoolForArtifact) error {
+func ValidateCreatePool(e model.CreatePoolBody) error {
 	validate := validator.New()
 	err := validate.Struct(e)
 	if err != nil {
