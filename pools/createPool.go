@@ -151,7 +151,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 	logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID,equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.TenantID,equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data != nil {

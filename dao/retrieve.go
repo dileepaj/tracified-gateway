@@ -1777,7 +1777,7 @@ func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equat
 	return p
 }
 
-func (cd *Connection) GetLiquidityPool(equatonId string, productName string, tenantId string, formulatype string) *promise.Promise {
+func (cd *Connection) GetLiquidityPool(equatonId string, tenantId string, formulatype string) *promise.Promise {
 	pool := model.BuildPoolResponse{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1789,7 +1789,7 @@ func (cd *Connection) GetLiquidityPool(equatonId string, productName string, ten
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "productname": productName, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
