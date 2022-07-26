@@ -23,6 +23,7 @@ type TotalTransaction struct {
 }
 type TransactionCollectionBody struct {
 	Identifier           string
+	RealIdentifier 		 string
 	TdpId                string
 	SequenceNo           int64
 	ProfileID            string
@@ -31,6 +32,9 @@ type TransactionCollectionBody struct {
 	FromIdentifier1      string
 	FromIdentifier2      string
 	ToIdentifier         string
+	MapIdentifier1       string
+	MapIdentifier2       string
+	MapIdentifier        string
 	ItemCode             string
 	ItemAmount           string
 	PublicKey            string
@@ -113,6 +117,9 @@ type PrevTxnResponse struct {
 	ProductName    string
 	Itemcount      string
 	AssetCode      string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
 }
 
 type POCOCResponse struct {

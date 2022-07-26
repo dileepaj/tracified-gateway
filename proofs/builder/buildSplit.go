@@ -1,7 +1,6 @@
 package builder
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -126,16 +125,8 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			log.Info((i + 1), " Submitted")
 		}
 		if AP.TxnBody[i].TxnType == "6" {
-			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
-			if err != nil {
-				panic(err)
-			}
-
-			var jsonID Identifier
-			json.Unmarshal([]byte(rawDecodedText), &jsonID)
 			id.MapValue = AP.TxnBody[i].Identifier
-			id.Identifier = jsonID.Id
-			id.Type = jsonID.Type
+			id.Identifier =AP.TxnBody[i].MapIdentifier
 
 			err3 := object.InsertIdentifier(id)
 			if err3 != nil {
