@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/sirupsen/logrus"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -28,11 +29,14 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 	//RA sign
 	// signerSeed := cd.coc.Sender
 	// recipientSeed := reciverkey
-
+	changeOfCustodyLinkSigner, err := keypair.ParseFull(cd.ChangeOfCustodyLink.SignerKey)
+	if err != nil {
+		logrus.Error(err)
+	}
 	// // Keys for accounts to issue and receive the new asset
 	signerSeed, err := keypair.Parse(cd.ChangeOfCustodyLink.SignerKey)
 	if err != nil {
-		log.Fatal(err)
+		logrus.Error(err)
 	}
 	// recipient, err := keypair.Parse(recipientSeed)
 	// if err != nil {
@@ -72,7 +76,7 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 	if err != nil {
 		log.Fatal(err)
 	}
-	paymentTxe, err := paymentTx.Sign(cd.ChangeOfCustodyLink.SignerKey)
+	paymentTxe, err := paymentTx.Sign(commons.GetStellarNetwork(), changeOfCustodyLinkSigner)
 	if err != nil {
 		log.Fatal(err)
 	}

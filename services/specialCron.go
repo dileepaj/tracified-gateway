@@ -12,11 +12,11 @@ import (
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 
 	// "fmt"
 	"github.com/dileepaj/tracified-gateway/adminDAO"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -34,7 +34,7 @@ func CheckTempOrphan() {
 	for _, address := range clientList {
 		kp, _ := keypair.Parse(address)
 
-		client := horizonclient.DefaultTestNetClient
+		client := commons.GetHorizonClient()
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
 
@@ -43,7 +43,7 @@ func CheckTempOrphan() {
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
-			seq, err := strconv.Atoi(sourceAccount.Sequence)
+			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
 			if err != nil {
 				log.Error("Error while convert string to int " + err.Error())
 			}
@@ -71,7 +71,7 @@ func CheckTempOrphan() {
 					if err != nil {
 						log.Error(err)
 					}
-					client := horizonclient.DefaultTestNetClient
+					client := commons.GetHorizonClient()
 					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 					pubaccount, err := client.AccountDetail(pubaccountRequest)
 
@@ -117,7 +117,7 @@ func CheckTempOrphan() {
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
+						GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
@@ -205,7 +205,7 @@ func CheckTempOrphan() {
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
+						GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 							break
@@ -295,7 +295,7 @@ func CheckTempOrphan() {
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-						GatewayTXE, err := tx.Sign(network.TestNetworkPassphrase, tracifiedAccount)
+						GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 						if err != nil {
 							log.Println("Error while getting GatewayTXE " + err.Error())
 							break

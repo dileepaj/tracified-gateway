@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/sirupsen/logrus"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -48,7 +50,11 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 			log.Fatal(err)
 			panic(err)
 		}
-
+		
+		appointRegistrar, err := keypair.ParseFull(cd.AppointRegistrar.AccountKey)
+		if err != nil {
+			logrus.Error(err)
+		}
 	// // passphrase := network.TestNetworkPassphrase
 	// weight32, err := strconv.ParseUint(cd.AppointRegistrar.Weight, 10, 64)
 	                                                                                                                                                                                                            
@@ -103,7 +109,7 @@ func (cd *ConcreteAppointReg) RegistrarRequest() string {
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(cd.AppointRegistrar.AccountKey)
+	txe, err := tx.Sign(commons.GetStellarNetwork(),appointRegistrar)
 	if err != nil {
 		panic(err)
 	}

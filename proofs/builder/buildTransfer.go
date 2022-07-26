@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -42,12 +43,16 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// netClient := commons.GetHorizonClient()
 	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	// account, err := netClient.AccountDetail(accountRequest)
-	kp,_ := keypair.Parse(publicKey)
+
 	client := horizonclient.DefaultTestNetClient
-	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+	ar := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := client.AccountDetail(ar)
 	if err != nil {
 		log.Fatal(err)
@@ -190,16 +195,15 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
 					BaseFee:              txnbuild.MinBaseFee,
 					Memo:                 nil,
-					Preconditions:        txnbuild.Preconditions{},
+					Preconditions:       txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 				})
 
 				if err != nil{
 					log.Error("Error @ build.Transaction @SubmitTransfer " +err.Error())
 				}
 
-
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-				GatewayTXE, err := tx.Sign(secretKey)
+				GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 				if err != nil {
 					log.Error("Error @sign"+err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]

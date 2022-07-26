@@ -31,6 +31,9 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash      string
 	FromIdentifier1      string
 	FromIdentifier2      string
+	MapFromIdentifier1   string
+	MapFromIdentifier2   string
+	MapIdentifier        string
 	ToIdentifier         string
 	MapIdentifier1       string
 	MapIdentifier2       string
@@ -301,7 +304,7 @@ type Services struct {
 	ServiceName       string
 	ServiceURL        string
 	DocumentationLink string
-	//UIAutomationSteps	UIAutomationSteps
+	// UIAutomationSteps	UIAutomationSteps
 }
 
 type ActionParams struct {
@@ -326,114 +329,198 @@ type ProofProtocol struct {
 	ProofName            string
 	ProofDescriptiveName string
 	NumberofSteps        string
-	//Segmants				Segmants
+	// Segmants				Segmants
 	Steps []Steps
 }
 
-type TransactionHashWithIdentifier struct {
-	Status          string
-	Txnhash         string
-	TxnType         string
-	Identifier      string
-	FromIdentifier1 string
-	FromIdentifier2 string
-	ToIdentifier    string
-	AvailableProof  []string
-	ProductName     string
-	ProductID       string
+// type TransactionHashWithIdentifier struct {
+// 	Status          string
+// 	Txnhash         string
+// 	TxnType         string
+// 	Identifier      string
+// 	FromIdentifier1 string
+// 	FromIdentifier2 string
+// 	ToIdentifier    string
+// 	AvailableProof  []string
+// 	ProductName     string
+// 	ProductID       string
+// }
+
+type NFTSolana struct {
+	OwnerPK       string
+	Asset_code    string
+	NFTURL        string
+	Description   string
+	Collection    string
+	NFTBlockChain string
+	Tags          string
+	Categories    string
+	Copies        string
+	NFTLinks      string
+	ArtistName    string
+	ArtistLink    string
 }
 
-type TrustlineHistory struct {
-	CoinIssuer string
-	CoinReceiver string
-	Asset string
+type NFTWithTransactionSolana struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	MinterPK                         string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	Description                      string
+	Copies                           string
 }
 
-type MetrixCoin struct{
-	CoinName string
+type MarketPlaceNFT struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
+	OriginPK                         string
+	SellingStatus                    string
+	Amount                           string
+	Price                            string
+	InitialDistributorPK             string
+	InitialIssuerPK                  string
+	MainAccountPK                    string
+	PreviousOwnerNFTPK               string
+	CurrentOwnerNFTPK                string
 }
 
-type SendingCoin struct{
-	CoinName string
-	Amount string
+type NFTContracts struct {
+	NFTContract         string
+	MarketplaceContract string
+	MintNFTTxn          string
+	OwnerPK             string
+	Asset_code          string
+	NFTURL              string
+	Description         string
+	Collection          string
+	NFTBlockChain       string
+	Tags                string
+	Categories          string
+	Copies              string
+	NFTLinks            string
+	ArtistName          string
+	ArtistLink          string
+	Identifier          string
 }
 
-type IntermediateCoin struct{
-	CoinName string
-	Amount string
+type NFTWithTransactionContracts struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	NFTContract                      string
+	MarketplaceContract              string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	Description                      string
+	Copies                           string
 }
 
-type ReceivingCoin struct{
-	CoinName string
-	Amount string
+type NFTCreactedResponse struct {
+	NFTTxnHash         string
+	TDPTxnHash         string
+	NFTName            string
+	NFTIssuerPublicKey string
 }
 
-type PathPayment struct{
-	Subportion string
-	SendingCoin []SendingCoin
-	IntermediateCoin []IntermediateCoin
-	ReceivingCoin []ReceivingCoin
+type Minter struct {
+	NFTIssuerPK   string `json:"NFTIssuerPK"`
+	NFTTxnHash    string `json:"NFTTxnHash"`
+	NFTIdentifier string `json:"NFTIdentifier"`
 }
 
-type BatchCoinConvert struct{
-	TenantId string
-	FieldOfficerPK string
-	ProductName string
-	BatchID string
-	BatchName string
-	EquationID string
-	MetrixCoin [] MetrixCoin
-	Equation string
-	RestructEquation string
-	PathPayment[] PathPayment 
+type NFTWithTransaction struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	CuurentIssuerPK                  string
+	MainAccountPK                    string
+	InitialDistributorPublickKey     string
+	InitialIssuerPK                  string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
 }
 
-type BatchAccount struct{
-	BatchID string
-	TenentID string
-	ProductName string
-	EquationID string
-	BatchName string
-	BatchAccountPK string
-	BatchAccountSK string
+type TrustLineResponseNFT struct {
+	DistributorPublickKey string
+	IssuerPublicKey       string
+	Asset_code            string
+	NFTURL                string
+	Description           string
+	Collection            string
+	NFTBlockChain         string
+	Tags                  string
+	Categories            string
+	Copies                string
+	NFTLinks              string
+	ArtistName            string
+	ArtistLink            string
+	Successfull           bool
+	TrustLineCreatedAt    string
 }
 
-type MetricFormulas struct{
-	ActivityID string
-	MetricFormulaID string
+type MarketPlaceNFTTrasactionWithCount struct {
+	Count               int64
+	MarketPlaceNFTItems []MarketPlaceNFT
 }
 
-type MetricCoin struct{
-	CoinName string
-	Description string
+type NFTKeys struct {
+	PublicKey string
+	SecretKey string
 }
 
-type FieldAndCoin struct{
-	ID string
-	CoinName string
-	FieldName string
-	Description string
-	UserInputType string
-	VariableType string
-	Value string
+type NFTIssuerAccount struct {
+	NFTIssuerPK string
 }
 
-type EquationSubPortion struct{
-	Subportion string
-	FieldAndCoin []FieldAndCoin
+type StellarMintTXN struct {
+	NFTTxnHash string `json:"NFTTxnHash"`
 }
 
-type CreatePool struct{
-	EquationID string
-	Timestamp string
-	Description string
-	TenantID string
-	MetricID string
-	MetricName string
-	MetrixType string
-	MetricFormulas []MetricFormulas
-	EquatinStringFormate string
-	SimpleifedEquation string
-	MetricCoin MetricCoin
-	EquationSubPortion []EquationSubPortion
+type PublicKey struct {
+	PublicKey string `json:"PublicKey"`
 }
