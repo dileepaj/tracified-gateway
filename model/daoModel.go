@@ -31,9 +31,6 @@ type TransactionCollectionBody struct {
 	PreviousTxnHash      string
 	FromIdentifier1      string
 	FromIdentifier2      string
-	MapIdentifier1   	 string
-	MapIdentifier2   	 string
-	MapIdentifier        string
 	ToIdentifier         string
 	MapIdentifier1       string
 	MapIdentifier2       string
