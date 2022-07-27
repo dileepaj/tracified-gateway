@@ -49,8 +49,6 @@ func main() {
 	c.Start()
 	router := routes.NewRouter()
 
-	go services.ReciverRmq()
-
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }
