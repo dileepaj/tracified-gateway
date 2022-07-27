@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 /*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
@@ -718,6 +719,43 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 		return err
 	}
 	_, err = c.UpdateOne(context.TODO(), bson.M{"nfttxnhash": selector.NFTTXNhash}, bson.D{{Key: "$set", Value: updateNew}})
+	if err != nil {
+		log.Println("Error while updating NFT Stellar " + err.Error())
+	}
+	return err
+}
+
+
+func (cd *Connection) UpdateCoinName(selector model.CoinName) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error while getting session " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := selector
+	c := session.Client().Database(dbName).Collection("CoinName")
+	pByte, err := bson.Marshal(selector)
+	if err != nil {
+		return err
+	}
+	var filter bson.D
+	err = bson.Unmarshal(pByte, &filter)
+	if err != nil {
+		return err
+	}
+	pByte, err = bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	opts := options.Update().SetUpsert(true)
+	_, err = c.UpdateOne(context.TODO(), bson.M{"coinname": selector.CoinName,"equationid":selector.EquationID,"tenantid":selector.TenantID,"metricid":selector.MetricID},
+	 bson.D{{Key: "$set", Value: updateNew}},opts)
 	if err != nil {
 		log.Println("Error while updating NFT Stellar " + err.Error())
 	}
