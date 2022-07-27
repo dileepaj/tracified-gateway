@@ -316,6 +316,21 @@ func (cd *Connection) InsertPoool(pool model.Pool) error {
 	return err
 }
 
+func (cd *Connection) InsertCreatedPoool(pool model.BuildPool) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("CreatedPool")
+	_, err = c.InsertOne(context.TODO(), pool)
+	if err != nil {
+		logrus.Info("Error when inserting data to DB " + err.Error())
+	}
+	return err
+}
+
 func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
 	session, err := cd.connect()
 	if err != nil {
