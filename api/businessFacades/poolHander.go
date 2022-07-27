@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -36,7 +37,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		object := dao.Connection{}
-		data, _ := object.GetLiquidityPool(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType).Then(func(data interface{}) interface{} {
+		data, _ := object.GetLiquidityPool(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if data == nil {
@@ -215,8 +216,9 @@ func ArtifactConvertCoin(w http.ResponseWriter, r *http.Request) {
 func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	var equationJsonObj model.CreatePool
-	err := json.NewDecoder(r.Body).Decode(&equationJsonObj)
+	var equationJsonBody model.CreatePoolBody
+
+	err := json.NewDecoder(r.Body).Decode(&equationJsonBody)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -224,13 +226,96 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err1 := validations.ValidateCreatePool(equationJsonObj)
+	err1 := validations.ValidateCreatePool(equationJsonBody)
 	if err1 != nil {
 		logrus.Error(err1)
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Request body is invalid")
 		return
 	} else {
+
+		var equationSubPortions []model.EquationSubPortion
+
+		for i := 0; i < len(equationJsonBody.Subsets); i++ {
+			var fieldAndCoins []model.FieldAndCoin
+
+			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
+					fieldAndCoin := model.FieldAndCoin{
+						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+						CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+						GeneratedName: "",
+						FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+						Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+						Value:         "",
+					}
+					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
+					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingValue(equationJsonBody.Subsets[i].SubSet[j].Value),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Value,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					}
+				} else {
+					fieldAndCoin := model.FieldAndCoin{
+						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+						CoinName:      "",
+						GeneratedName: "",
+						FullCoinName:  "",
+						Description:   "",
+						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+						Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+					}
+					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+				}
+			}
+			equationSubPortion := model.EquationSubPortion{
+				Subportion:   equationJsonBody.Subsets[i].SubsetAsString,
+				FieldAndCoin: fieldAndCoins,
+			}
+			equationSubPortions = append(equationSubPortions, equationSubPortion)
+		}
+
+		equationJsonObj := model.CreatePool{
+			EquationID:           equationJsonBody.ID,
+			ProductName:          equationJsonBody.ProductName,
+			ProductID:            equationJsonBody.ProductID,
+			TenantID:             equationJsonBody.TenantID,
+			Activity:             equationJsonBody.Activity,
+			FormulaType:          "BATCH",
+			EquatinStringFormate: equationJsonBody.FormulaAsString,
+			SimpleifedEquation:   equationJsonBody.FormulaAsString,
+			MetricCoin: model.MetricCoin{
+				ID:           equationJsonBody.Metric.ID,
+				CoinName:     equationJsonBody.Metric.Name[0:4],
+				FullCoinName: equationJsonBody.Metric.Name,
+				Description:  equationJsonBody.Metric.Description,
+			},
+			EquationSubPortion: equationSubPortions,
+			CreatedAt:          equationJsonBody.CreatedAt,
+			UpdatedAt:          equationJsonBody.UpdatedAt,
+			Active:             equationJsonBody.Active,
+		}
+
 		// Check if the coin name's character equalto 4
 		if len(equationJsonObj.MetricCoin.CoinName) != 4 {
 			logrus.Error("Coin name character limit should be 4")
@@ -238,79 +323,81 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("Metric Coin name character limit should be 4")
 			return
 		}
-		// check if the equation type is either batch or artifact
-		if equationJsonObj.FormulaType == "BATCH" {
 
-			object := dao.Connection{}
-			data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
-				return data
-			}).Await()
-			if data != nil {
-				logrus.Error("GetLiquidityPool did not empty, Pool already created")
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err.Error())
-				return
-			}
+		object := dao.Connection{}
+		data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
 
-			// reformate the equation json
-			equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err.Error())
-				return
-			}
-			logrus.Info("CoinMap ", coinMap)
-			// 	// build the pool creation json
-			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
-			if err != nil {
-				logrus.Error(poolCreationJSON, err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err.Error())
-				return
-			}
-			logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
-			equationDetails := model.CreatePool{
-				EquationID:           equationJsonObj.EquationID,
-				ProductName:          equationJsonObj.ProductName,
-				ProductID:            equationJsonObj.ProductID,
-				TenantID:             equationJsonObj.TenantID,
-				FormulaType:          equationJson.FormulaType,
-				EquatinStringFormate: equationJsonObj.EquatinStringFormate,
-				SimpleifedEquation:   equationJsonObj.SimpleifedEquation,
-			}
-
-			queue := model.SendToQueue{
-				Type:              "POOL",
-				EqationJson:       equationDetails,
-				CoinMap:           coinMap,
-				PoolCreationArray: poolCreationJSON,
-			}
-			// sent data to mgs amq queue
-			logrus.Info("Sent..", queue)
-			services.SendToQueue(queue)
-
-			log.Println("Pool added to the Queue")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode("Pool added to the Queue")
-			return
-
-		} else {
+		if data != nil {
+			logrus.Error("GetLiquidityPool did not empty, Pool already created")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode("Invalid equation type")
+			json.NewEncoder(w).Encode(err.Error())
 			return
 		}
+
+		// reformate the equation json
+		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		logrus.Info("CoinMap ", coinMap)
+		// 	// build the pool creation json
+		poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+		if err != nil {
+			logrus.Error(poolCreationJSON, err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		logrus.Info("PoolCreationJSON ", poolCreationJSON)
+
+		equationDetails := model.CreatePool{
+			EquationID:           equationJsonObj.EquationID,
+			ProductName:          equationJson.ProductName,
+			ProductID:            equationJson.ProductID,
+			TenantID:             equationJsonObj.TenantID,
+			Activity:             equationJson.Activity,
+			FormulaType:          equationJson.FormulaType,
+			EquatinStringFormate: equationJson.EquatinStringFormate,
+			SimpleifedEquation:   equationJson.EquatinStringFormate,
+			MetricCoin:           equationJson.MetricCoin,
+			EquationSubPortion:   equationSubPortions,
+			CreatedAt:            equationJson.CreatedAt,
+			UpdatedAt:            equationJson.UpdatedAt,
+			Active:               equationJson.Active,
+		}
+		queue := model.SendToQueue{
+			Type:              "POOL",
+			EqationJson:       equationDetails,
+			CoinMap:           coinMap,
+			PoolCreationArray: poolCreationJSON,
+		}
+		// sent data to mgs amq queue
+		out, err := json.Marshal(queue)
+		if err != nil {
+			log.Error(err)
+		}
+
+		fmt.Println("SENT", string(out))
+		services.SendToQueue(queue)
+
+		log.Println("Pool added to the Queue")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode("Pool added to the Queue")
+		return
 	}
 }
 
 func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
-	var equationJsonObjValidate model.CreatePoolForArtifact
+	var equationJsonBody model.CreatePoolBody
 	// var equationJsonObj model.CreatePool
-	errValidate := json.NewDecoder(r.Body).Decode(&equationJsonObjValidate)
+	errValidate := json.NewDecoder(r.Body).Decode(&equationJsonBody)
 	if errValidate != nil {
 		logrus.Error(errValidate)
 		w.WriteHeader(http.StatusBadRequest)
@@ -318,24 +405,93 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err1 := validations.ValidateCreatePoolForArtifact(equationJsonObjValidate)
+	err1 := validations.ValidateCreatePool(equationJsonBody)
 	if err1 != nil {
 		logrus.Error(err1)
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Request body is invalid")
 		return
 	} else {
+		var equationSubPortions []model.EquationSubPortion
+
+		for i := 0; i < len(equationJsonBody.Subsets); i++ {
+			var fieldAndCoins []model.FieldAndCoin
+
+			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
+					fieldAndCoin := model.FieldAndCoin{
+						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+						CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+						GeneratedName: "",
+						FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+						Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+						Value:         "",
+					}
+					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
+					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingValue(equationJsonBody.Subsets[i].SubSet[j].Value),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Value,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					}
+				} else {
+					fieldAndCoin := model.FieldAndCoin{
+						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+						CoinName:      "",
+						GeneratedName: "",
+						FullCoinName:  "",
+						Description:   "",
+						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+						Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+					}
+					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+				}
+			}
+			equationSubPortion := model.EquationSubPortion{
+				Subportion:   equationJsonBody.Subsets[i].SubsetAsString,
+				FieldAndCoin: fieldAndCoins,
+			}
+			equationSubPortions = append(equationSubPortions, equationSubPortion)
+		}
+		fmt.Println("ej  --==--===---==--     ", equationSubPortions)
 		equationJsonObj := model.CreatePool{
-			EquationID:           equationJsonObjValidate.EquationID,
-			ProductName:          equationJsonObjValidate.ProductName,
-			ProductID:            equationJsonObjValidate.ProductID,
-			TenantID:             equationJsonObjValidate.TenantID,
-			ActivityId:           equationJsonObjValidate.ActivityId,
-			FormulaType:          equationJsonObjValidate.FormulaType,
-			EquatinStringFormate: equationJsonObjValidate.EquatinStringFormate,
-			SimpleifedEquation:   equationJsonObjValidate.SimpleifedEquation,
-			MetricCoin:           equationJsonObjValidate.MetricCoin,
-			EquationSubPortion:   equationJsonObjValidate.EquationSubPortion,
+			EquationID:           equationJsonBody.ID,
+			ProductName:          equationJsonBody.ProductName,
+			ProductID:            equationJsonBody.ProductID,
+			TenantID:             equationJsonBody.TenantID,
+			Activity:             equationJsonBody.Activity,
+			FormulaType:          "BATCH",
+			EquatinStringFormate: equationJsonBody.FormulaAsString,
+			SimpleifedEquation:   equationJsonBody.FormulaAsString,
+			MetricCoin: model.MetricCoin{
+				ID:           equationJsonBody.Metric.ID,
+				CoinName:     equationJsonBody.Metric.Name[0:4],
+				FullCoinName: equationJsonBody.Metric.Name,
+				Description:  equationJsonBody.Metric.Description,
+			},
+			EquationSubPortion: equationSubPortions,
+			CreatedAt:          equationJsonBody.CreatedAt,
+			UpdatedAt:          equationJsonBody.UpdatedAt,
+			Active:             equationJsonBody.Active,
 		}
 		// Check if the coin name's character equalto 4
 		if len(equationJsonObj.MetricCoin.CoinName) != 4 {
@@ -345,67 +501,74 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		// check if the equation type is either batch or artifact
-		if equationJsonObj.FormulaType == "ARTIFACT" {
-
-			object := dao.Connection{}
-			data, _ := object.GetLiquidityPoolForArtifact(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
-				return data
-			}).Await()
-			if data != nil {
-				logrus.Error("GetLiquidityPool did not empty, Pool already created")
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode("GetLiquidityPool did not empty, Pool already created")
-				return
-			}
-
-			// reformate the equation json
-			equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err.Error())
-				return
-			}
-			logrus.Info("CoinMap ", coinMap)
-			// 	// build the pool creation json
-			poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
-			if err != nil {
-				logrus.Error(poolCreationJSON, err)
-				w.WriteHeader(http.StatusBadRequest)
-				json.NewEncoder(w).Encode(err.Error())
-				return
-			}
-			logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
-			equationDetails := model.CreatePool{
-				EquationID:  equationJsonObj.EquationID,
-				TenantID:    equationJsonObj.TenantID,
-				ProductName: equationJson.ProductName,
-				ProductID:   equationJson.ProductID,
-				FormulaType: equationJson.FormulaType,
-			}
-
-			queue := model.SendToQueue{
-				Type:              "POOL",
-				EqationJson:       equationDetails,
-				CoinMap:           coinMap,
-				PoolCreationArray: poolCreationJSON,
-			}
-			// sent data to mgs amq queue
-			logrus.Info("Sent..", queue)
-			services.SendToQueue(queue)
-
-			log.Println("Pool added to the Queue   (Artifact)")
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode("Pool added to the Queue  (Artifact)")
-			return
-
-		} else {
+		object := dao.Connection{}
+		data, _ := object.GetLiquidityPoolForArtifact(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if data != nil {
+			logrus.Error("GetLiquidityPool did not empty, Pool already created")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode("Invalid equation type")
+			json.NewEncoder(w).Encode("GetLiquidityPool did not empty, Pool already created")
 			return
 		}
+
+		// reformate the equation json
+		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		logrus.Info("CoinMap ", coinMap)
+		// 	// build the pool creation json
+		poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
+		if err != nil {
+			logrus.Error(poolCreationJSON, err)
+			w.WriteHeader(http.StatusBadRequest)
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+		logrus.Info("PoolCreationJSON ", poolCreationJSON)
+
+		equationDetails := model.CreatePool{
+			EquationID:           equationJsonObj.EquationID,
+			ProductName:          equationJson.ProductName,
+			ProductID:            equationJson.ProductID,
+			TenantID:             equationJsonObj.TenantID,
+			Activity:             equationJson.Activity,
+			FormulaType:          equationJson.FormulaType,
+			EquatinStringFormate: equationJson.EquatinStringFormate,
+			SimpleifedEquation:   equationJson.EquatinStringFormate,
+			MetricCoin:           equationJson.MetricCoin,
+			EquationSubPortion:   equationSubPortions,
+			CreatedAt:            equationJson.CreatedAt,
+			UpdatedAt:            equationJson.UpdatedAt,
+			Active:               equationJson.Active,
+		}
+
+		queue := model.SendToQueue{
+			Type:              "POOL",
+			EqationJson:       equationDetails,
+			CoinMap:           coinMap,
+			PoolCreationArray: poolCreationJSON,
+		}
+		// sent data to mgs amq queue
+		//logrus.Info("Sent..", queue)
+		services.SendToQueue(queue)
+		// sent data to mgs amq queue
+		out, err := json.Marshal(queue)
+		if err != nil {
+			log.Error(err)
+		}
+
+		fmt.Println("SENT", string(out))
+
+		log.Println("Pool added to the Queue   (Artifact)")
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode("Pool added to the Queue  (Artifact)")
+		return
 	}
 }
 
@@ -464,7 +627,7 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-//get the path payment details
+// get the path payment details
 func GetPathPaymentDetails(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -490,7 +653,7 @@ func GetPathPaymentDetails(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//getting query parameters
+	// getting query parameters
 	formulatype, error := r.URL.Query()["formulatype"]
 	if !error || len(formulatype[0]) < 1 {
 		logrus.Error("Url Parameter 'formulatype' is missing")

@@ -130,9 +130,10 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		}
 
 		if AP.TxnBody[i].TxnType == "6" {
-
+    
 			id.MapValue = AP.TxnBody[i].Identifier
 			id.Identifier = AP.TxnBody[i].MapIdentifier
+      
 			err3 := object.InsertIdentifier(id)
 			if err3 != nil {
 				fmt.Println("identifier map failed" + err3.Error())

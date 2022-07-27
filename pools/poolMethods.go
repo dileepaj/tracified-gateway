@@ -92,17 +92,17 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 		// Load the corresponding account for both A and C.
 		coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("CreateCoin Account load ",err)
 			return "", err
 		}
 		coinReceiver, err := keypair.ParseFull(coinReciverSK)
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("CreateCoin seed load ",err)
 			return "", err
 		}
 		coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIsuserPK}.ToChangeTrustAsset()
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("CreateCoin create assetn name ",err)
 			return "", err
 		}
 		// First, the receiving (distribution) account must trust the asset from the issuer.
@@ -118,12 +118,12 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 		)
 		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiver)
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("Sumitting sign CreateCoin ",err)
 			return "", err
 		}
 		resp, err := client.SubmitTransaction(signedTx)
 		if err != nil {
-			logrus.Error(err)
+			logrus.Error("Sumitting create CreateCoin to BC ",err)
 			return "", err
 		}
 		if err != nil {

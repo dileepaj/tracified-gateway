@@ -21,22 +21,41 @@ var (
 
 // CreatePoolsUsingJson , loop the pool creation-Josn and call poolcreation method
 func CreatePoolsUsingJson(pools []model.BuildPool) ([]model.BuildPool, error, bool) {
+	object := dao.Connection{}
 	var createdPools []model.BuildPool
 	var isCreated bool
 	for i := 0; i < len(pools); i++ {
-		pool, err, created := CreatePool(pools[i])
-		if err == nil {
-			createdPools = append(createdPools, pool)
-			isCreated = created
-		} else {
-			logrus.Error(err)
+		data, _ := object.GetCreatedPool(pools[i].Coin1, pools[i].Coin2).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if data == nil {
+			pool, err, created := CreatePool(pools[i])
+			logrus.Error("Pool does not added to Creat Pool")
+			logrus.Info("Pool added to Creat Pool")
+			if err == nil {
+				createdPools = append(createdPools, pool)
+				isCreated = created
+			} else {
+				logrus.Error(err)
+			}
+		}else {
+			pools[i].PoolDepositeHash=data.(model.BuildPool).PoolDepositeHash
+			pools[i].PoolId=data.(model.BuildPool).PoolId
+			err1 := object.InsertCreatedPoool(pools[i])
+			createdPools = append(createdPools, pools[i])
+			isCreated = true
+			if err1 != nil {
+				logrus.Error("Pool did not add to DB ", err1)
+			}
 		}
+		logrus.Error("pool already deposited " + " Coin1 " + pools[i].Coin1 + " Coin2 " + pools[i].Coin2)
 	}
 	return createdPools, nil, isCreated
 }
 
 // CreatePool carate the pool by handling all blackchain calls
 func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
+	object := dao.Connection{}
 	var depostHash2 string
 	logrus.Info("Coin 1 ", buildPool.Coin1)
 	logrus.Info("Coin 2 ", buildPool.Coin2)
@@ -84,6 +103,12 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 		buildPool.PoolDepositeHash = depostHash2
 		buildPool.PoolId = poolIdString
 		logrus.Info(depostHash2, err)
+		if buildPool.PoolDepositeHash!=""{
+			err1 := object.InsertCreatedPoool(buildPool)
+			if err1 != nil {
+				logrus.Error("Pool did not add to DB ", err1)
+			}
+		}
 		return buildPool, nil, true
 	}
 	if result.StatusCode == 200 {
@@ -151,7 +176,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 	logrus.Info("PoolCreationJSON ", poolCreationJSON)
 
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.ProductName, equationJsonObj.TenantID,equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data != nil {
@@ -164,19 +189,24 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		logrus.Error(cratedPools, err)
 		return "", err
 	}
-	logrus.Info("Data", equationJsonObj.ActivityId, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
+	logrus.Info("Data", equationJsonObj.Activity, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
 	// todo add other data
 	response := model.BuildPoolResponse{
 		EquationId:           equationJsonObj.EquationID,
 		ProductId:            equationJsonObj.ProductID,
 		ProductName:          equationJsonObj.ProductName,
 		TenantId:             equationJsonObj.TenantID,
-		ActivityId:           equationJsonObj.ActivityId,
+		Activity:             equationJsonObj.Activity,
+		MetricCoin:           equationJsonObj.MetricCoin,
 		EquationStringFormat: equationJsonObj.EquatinStringFormate,
 		SimplifiedEquation:   equationJsonObj.SimpleifedEquation,
 		FormulaType:          equationJsonObj.FormulaType,
 		CoinMap:              coinMap,
 		BuildPools:           cratedPools,
+		EquationSubPortion:   equationJsonObj.EquationSubPortion,
+		CreatedAt:            equationJsonObj.CreatedAt,
+		UpdatedAt:            equationJsonObj.UpdatedAt,
+		Active:               false,
 	}
 	// check if the pool is created
 	if isPoolCreated {
