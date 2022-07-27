@@ -1,8 +1,8 @@
 package model
 
 type Coin struct {
-	Id            string
-	FieldName     string
+	ID            string
+	FullCoinName  string
 	CoinName      string
 	GeneratedName string
 	Amount        string
@@ -29,15 +29,22 @@ type BuildPathPaymentJSon struct {
 
 type BuildPool struct {
 	Coin1               string
+	Coin1Name           string
+	Coin1FullName       string
 	DepositeAmountCoin1 string
+	Coin2Name           string
+	Coin2FullName       string
 	Coin2               string
 	DepositeAmountCoin2 string
 	Ratio               string
 	poolDepositorPK     string
 	PoolId              string
 	EquationId          string
+	TenantId            string
 	PoolDepositeHash    string
 	FormulatType        string
+	Activity             Activity
+	MetricCoin           MetricCoin	
 }
 
 type BuildPoolResponse struct {
@@ -45,12 +52,17 @@ type BuildPoolResponse struct {
 	ProductId            string
 	ProductName          string
 	TenantId             string
-	ActivityId           string
+	Activity             Activity
+	MetricCoin           MetricCoin	
 	EquationStringFormat string
 	SimplifiedEquation   string
 	FormulaType          string
 	CoinMap              []CoinMap
 	BuildPools           []BuildPool
+	EquationSubPortion   []EquationSubPortion
+	CreatedAt            string
+	UpdatedAt            string
+	Active               bool
 }
 
 type CoinPath struct {
@@ -167,9 +179,10 @@ type MetricFormulas struct {
 }
 
 type MetricCoin struct {
+	ID            string
 	CoinName      string
 	GeneratedName string
-	FieldName     string
+	FullCoinName  string
 	Description   string
 }
 
@@ -180,11 +193,11 @@ type Metric struct {
 }
 
 type FieldAndCoin struct {
+	ID            string
 	CoinName      string
 	GeneratedName string
-	FieldName     string
+	FullCoinName  string
 	Description   string
-	UserInputType string
 	VariableType  string
 	Value         string
 }
@@ -212,7 +225,7 @@ type CreatePool struct {
 	ProductName          string
 	ProductID            string
 	TenantID             string
-	ActivityId           string
+	Activity             Activity
 	FormulaType          string
 	EquatinStringFormate string
 	SimpleifedEquation   string
@@ -220,6 +233,7 @@ type CreatePool struct {
 	EquationSubPortion   []EquationSubPortion
 	CreatedAt            string
 	UpdatedAt            string
+	Active               bool
 }
 
 type CreatePoolBody struct {
@@ -296,9 +310,10 @@ type CoinName struct {
 	Type              string
 	CoinName          string
 	GeneratedCoinName string
-	FieldName         string
+	FullCoinName      string
 	Description       string
 	Count             string
+	MetricID          string
 }
 
 type Pool struct {
@@ -308,8 +323,12 @@ type Pool struct {
 	TenantId            string
 	FormulatType        string
 	Coin1               string
+	Coin1Name           string
+	Coin1FullName       string
 	DepositeAmountCoin1 string
 	Coin2               string
+	Coin2Name           string
+	Coin2FullName       string
 	DepositeAmountCoin2 string
 	Ratio               string
 }
