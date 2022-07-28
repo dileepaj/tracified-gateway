@@ -1,7 +1,6 @@
 package stellar
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -12,7 +11,6 @@ import (
 )
 
 func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string, error) {
-	fmt.Println("Starting sponsership")
 	client := horizonclient.DefaultTestNetClient
 
 	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
@@ -55,7 +53,7 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Println("Building new transaction")
+
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
@@ -84,6 +82,5 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 		panic(err)
 	}
 
-	log.Println("Signed XDR is: ", txe)
 	return txe, nil
 }
