@@ -201,7 +201,7 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 
 
 		data, _ = object.GetBatchSpecificAccount(newBatchConvertCoinObj.FormulaType, newBatchConvertCoinObj.FormulaTypeName, newBatchConvertCoinObj.EquationID,
-			newBatchConvertCoinObj.ProductName, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
+			newBatchConvertCoinObj.ProductID, newBatchConvertCoinObj.TenantID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	
@@ -212,7 +212,7 @@ func PathPaymentHandle(newBatchConvertCoinObj model.BatchCoinConvert) (string, e
 			FormulaTypeID:   newBatchConvertCoinObj.FormulaTypeID,
 			FormulaTypeName: newBatchConvertCoinObj.FormulaTypeName,
 			TenantID:        newBatchConvertCoinObj.TenantID,
-			ProductName:     newBatchConvertCoinObj.ProductName,
+			ProductID:     newBatchConvertCoinObj.ProductID,
 			EquationID:      newBatchConvertCoinObj.EquationID,
 			StageID:         newBatchConvertCoinObj.StageId,
 			MetricCoin:      newBatchConvertCoinObj.MetricCoin,

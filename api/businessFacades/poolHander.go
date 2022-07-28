@@ -37,7 +37,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		object := dao.Connection{}
-		data, _ := object.GetLiquidityPool(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType).Then(func(data interface{}) interface{} {
+		data, _ := object.GetLiquidityPoolByProductAndActivity(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType,newBatchConvertCoinObj.ProductID,newBatchConvertCoinObj.StageId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if data == nil {
@@ -84,7 +84,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 					CoinConvert: newBatchConvertCoinObj,
 				}
 
-				logrus.Info("Sent..", queue)
+				logrus.Info("Sent.. to rabbitmq")
 				// sent data to mgs amq queue
 				services.SendToQueue(queue)
 
@@ -235,11 +235,12 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		var equationSubPortions []model.EquationSubPortion
-
+		//build the 4 charater coin name by using equation jason
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
 
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+				//if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
 					fieldAndCoin := model.FieldAndCoin{
 						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
@@ -252,6 +253,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 					}
 					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
 				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
+					//if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
@@ -264,6 +266,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 						}
 						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
 					} else {
+						//if subset elemet's type eqal to "CONSTANT" and did not send the coin name uild the coin name by using the CreateCoinnameUsingValue
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
 							CoinName:      pools.CreateCoinnameUsingValue(equationJsonBody.Subsets[i].SubSet[j].Value),
@@ -295,12 +298,25 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			equationSubPortions = append(equationSubPortions, equationSubPortion)
 		}
 
+		var activity []model.Activity
+		activity = append(activity, model.Activity{
+			ID:          equationJsonBody.Activity.ID,
+			Name:        equationJsonBody.Activity.Name,
+			ProductName: equationJsonBody.ProductName,
+			ProductID:   equationJsonBody.ProductID,
+		})
+
+		var products []model.Product
+		products = append(products, model.Product{
+			ProductName: equationJsonBody.ProductName,
+			ProductID:   equationJsonBody.ProductID,
+		})
+
 		equationJsonObj := model.CreatePool{
 			EquationID:           equationJsonBody.ID,
-			ProductName:          equationJsonBody.ProductName,
-			ProductID:            equationJsonBody.ProductID,
+			Products:             products,
 			TenantID:             equationJsonBody.TenantID,
-			Activity:             equationJsonBody.Activity,
+			Activity:             activity,
 			FormulaType:          "BATCH",
 			EquatinStringFormate: equationJsonBody.FormulaAsString,
 			SimpleifedEquation:   equationJsonBody.FormulaAsString,
@@ -353,12 +369,9 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(err.Error())
 			return
 		}
-		logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
 		equationDetails := model.CreatePool{
 			EquationID:           equationJsonObj.EquationID,
-			ProductName:          equationJson.ProductName,
-			ProductID:            equationJson.ProductID,
+			Products:             equationJson.Products,
 			TenantID:             equationJsonObj.TenantID,
 			Activity:             equationJson.Activity,
 			FormulaType:          equationJson.FormulaType,
@@ -472,13 +485,26 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			}
 			equationSubPortions = append(equationSubPortions, equationSubPortion)
 		}
-		fmt.Println("ej  --==--===---==--     ", equationSubPortions)
+
+		var activity []model.Activity
+		activity = append(activity, model.Activity{
+			ID:          equationJsonBody.Activity.ID,
+			Name:        equationJsonBody.Activity.Name,
+			ProductName: equationJsonBody.ProductName,
+			ProductID:   equationJsonBody.ProductID,
+		})
+
+		var products []model.Product
+		products = append(products, model.Product{
+			ProductName: equationJsonBody.ProductName,
+			ProductID:   equationJsonBody.ProductID,
+		})
+
 		equationJsonObj := model.CreatePool{
 			EquationID:           equationJsonBody.ID,
-			ProductName:          equationJsonBody.ProductName,
-			ProductID:            equationJsonBody.ProductID,
+			Products:             products,
 			TenantID:             equationJsonBody.TenantID,
-			Activity:             equationJsonBody.Activity,
+			Activity:             activity,
 			FormulaType:          "BATCH",
 			EquatinStringFormate: equationJsonBody.FormulaAsString,
 			SimpleifedEquation:   equationJsonBody.FormulaAsString,
@@ -533,8 +559,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 
 		equationDetails := model.CreatePool{
 			EquationID:           equationJsonObj.EquationID,
-			ProductName:          equationJson.ProductName,
-			ProductID:            equationJson.ProductID,
+			Products:             equationJson.Products,
 			TenantID:             equationJsonObj.TenantID,
 			Activity:             equationJson.Activity,
 			FormulaType:          equationJson.FormulaType,
@@ -554,7 +579,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			PoolCreationArray: poolCreationJSON,
 		}
 		// sent data to mgs amq queue
-		//logrus.Info("Sent..", queue)
 		services.SendToQueue(queue)
 		// sent data to mgs amq queue
 		out, err := json.Marshal(queue)
@@ -587,7 +611,7 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	}
 	object := dao.Connection{}
 	data, _ := object.GetBatchSpecificAccount(calculateEquationObj.FormulaType, calculateEquationObj.FormulaTypeName,
-		calculateEquationObj.EquationID, calculateEquationObj.ProductName,
+		calculateEquationObj.EquationID, calculateEquationObj.ProductID,
 		calculateEquationObj.TenantID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -702,4 +726,92 @@ func GetPathPaymentDetails(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(qData)
+}
+
+func UpdateEquation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	object := dao.Connection{}
+	var addStageAndProduct model.AddStageAndProduct
+
+	err := json.NewDecoder(r.Body).Decode(&addStageAndProduct)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while decoding the body")
+		return
+	}
+	data, _ := object.GetLiquidityPool(addStageAndProduct.EquationID, addStageAndProduct.TenantID, addStageAndProduct.Type).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+
+	if data == nil {
+		logrus.Info("Can not find the Batch account")
+		w.WriteHeader(http.StatusNoContent)
+		result := "Can not find the Batch account"
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	dbData := data.(model.BuildPoolResponse)
+	products := dbData.Products
+	activity := dbData.Activity
+
+	productExist := false
+	activityExist := false
+	for _, element := range dbData.Products {
+		if addStageAndProduct.ProductID != "" && element.ProductID == addStageAndProduct.ProductID {
+			productExist = true
+		}
+	}
+	if !productExist || len(dbData.Products) == 0 {
+		products = append(dbData.Products, model.Product{
+			ProductName: addStageAndProduct.ProductName,
+			ProductID:   addStageAndProduct.ProductID,
+		})
+	}
+
+	for i, element := range dbData.Activity {
+		if addStageAndProduct.Activity.ID != "" && element.ID == addStageAndProduct.Activity.ID {
+			activityExist = true
+			if dbData.Activity[i].ProductID == "" {
+				dbData.Activity[i].ProductID = addStageAndProduct.ProductID
+				dbData.Activity[i].ProductName = addStageAndProduct.ProductName
+			} else if addStageAndProduct.ProductID != "" && element.ProductID != addStageAndProduct.ProductID {
+				activity = append(activity, model.Activity{
+					ID:          addStageAndProduct.Activity.ID,
+					Name:        addStageAndProduct.Activity.Name,
+					ProductName: addStageAndProduct.ProductName,
+					ProductID:   addStageAndProduct.ProductID,
+				})
+			}
+		}
+	}
+
+	if !activityExist || len(dbData.Activity) == 0 {
+		activity = append(activity, model.Activity{
+			ID:          addStageAndProduct.Activity.ID,
+			Name:        addStageAndProduct.Activity.Name,
+			ProductName: addStageAndProduct.ProductName,
+			ProductID:   addStageAndProduct.ProductID,
+		})
+	}
+	fmt.Println(products)
+	fmt.Println(activity)
+	dbData.Activity = activity
+	dbData.Products = products
+	object.UpdateLiquidityPool(dbData)
+
+	if err != nil {
+		logrus.Info("Can not find the Equation")
+		w.WriteHeader(http.StatusNoContent)
+		result := "Can not find the Equation"
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	log.Println("Equation result")
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(dbData)
+	return
 }
