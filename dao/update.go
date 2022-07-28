@@ -634,7 +634,7 @@ func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateSt
 		Copies:                           selector.Copies,
 		PreviousOwnerNFTPK:               updatePreviousPK,
 		CurrentOwnerNFTPK:                updateCurrentPK,
-		OriginPK:                         selector.OriginPK,
+		OriginPK:                         updateCurrentPK,
 		SellingStatus:                    updateStatus,
 		Amount:                           selector.Amount,
 		Price:                            selector.Price,
@@ -725,7 +725,6 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	return err
 }
 
-
 func (cd *Connection) UpdateCoinName(selector model.CoinName) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -754,8 +753,8 @@ func (cd *Connection) UpdateCoinName(selector model.CoinName) error {
 		return err
 	}
 	opts := options.Update().SetUpsert(true)
-	_, err = c.UpdateOne(context.TODO(), bson.M{"coinname": selector.CoinName,"equationid":selector.EquationID,"tenantid":selector.TenantID,"metricid":selector.MetricID},
-	 bson.D{{Key: "$set", Value: updateNew}},opts)
+	_, err = c.UpdateOne(context.TODO(), bson.M{"coinname": selector.CoinName, "equationid": selector.EquationID, "tenantid": selector.TenantID, "metricid": selector.MetricID},
+		bson.D{{Key: "$set", Value: updateNew}}, opts)
 	if err != nil {
 		log.Println("Error while updating NFT Stellar " + err.Error())
 	}
