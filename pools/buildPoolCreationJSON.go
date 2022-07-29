@@ -42,7 +42,11 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 				coinDetails2 := int(value * float64(multiplicationFactor))
 				pool1 := model.BuildPool{
 					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
+					Coin1Name:           portion[i].FieldAndCoin[j].CoinName[0:4],
+					Coin1FullName:       portion[i].FieldAndCoin[j].FullCoinName,
 					DepositeAmountCoin1: strconv.Itoa(coinDetails1),
+					Coin2Name:           portion[i].FieldAndCoin[j+1].CoinName[0:4],
+					Coin2FullName:       portion[i].FieldAndCoin[j+1].FullCoinName,
 					Coin2:               portion[i].FieldAndCoin[j+1].GeneratedName,
 					DepositeAmountCoin2: strconv.Itoa(coinDetails2),
 					Ratio:               ratio,
@@ -63,7 +67,7 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 
 				pool2 := model.Pool{
 					EquationId:          equationJson.EquationID,
-					ProductId:           equationJson.ProductID,
+					Products:           equationJson.Products,
 					TenantId:            equationJson.TenantID,
 					FormulatType:        equationJson.FormulaType,
 					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
@@ -113,7 +117,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						// timestamp := makeTimestamp()
 						if j != len(portion[i].FieldAndCoin)-1 {
 						generatedSID, err := GenerateCoinName(equationJson.TenantID, portion[i].FieldAndCoin[j].CoinName, portion[i].FieldAndCoin[j].Description,
-							portion[i].FieldAndCoin[j].VariableType, equationJson.EquationID, equationJson.MetricCoin.ID,portion[i].FieldAndCoin[j].FullCoinName)
+							portion[i].FieldAndCoin[j].VariableType, equationJson.EquationID, equationJson.MetricCoin.ID,portion[i].FieldAndCoin[j].FullCoinName,portion[i].FieldAndCoin[j].ID)
 						if err != nil {
 							logrus.Error("Cannot generate ShortID", err.Error())
 							return model.CreatePool{}, []model.CoinMap{}, err
@@ -153,7 +157,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 					if j == len(portion[i].FieldAndCoin)-1 {
 						generatedSID, err := GenerateCoinName(equationJson.TenantID, equationJson.MetricCoin.CoinName,
 							equationJson.MetricCoin.Description, "result", equationJson.EquationID, equationJson.MetricCoin.ID,
-						equationJson.MetricCoin.FullCoinName)
+						equationJson.MetricCoin.FullCoinName,equationJson.MetricCoin.ID)
 						if err != nil {
 							logrus.Error("Can not generate Coin name ", err.Error())
 							return model.CreatePool{}, []model.CoinMap{}, err
@@ -164,13 +168,17 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						equationJson.MetricCoin.GeneratedName = generatedSID
 
 						coinMap1 := model.CoinMap{
+							ID:            equationJson.MetricCoin.ID,
 							CoinName:      strings.ToUpper(equationJson.MetricCoin.CoinName),
+							FullCoinName:  equationJson.MetricCoin.FullCoinName,
 							GeneratedName: generatedSID,
 						}
 						coinMap = append(coinMap, coinMap1)
 					} else {
 						coinMap1 := model.CoinMap{
+							ID:            portion[i].FieldAndCoin[j].ID,
 							CoinName:      strings.ToUpper(portion[i].FieldAndCoin[j].CoinName),
+							FullCoinName:  portion[i].FieldAndCoin[j].FullCoinName,
 							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
 						}
 						coinMap = append(coinMap, coinMap1)
@@ -216,8 +224,8 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPool(coinConvertObject.EquationID,
-		coinConvertObject.TenantID, coinConvertObject.FormulaType).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPoolByProductAndActivity(coinConvertObject.EquationID,
+		coinConvertObject.TenantID, coinConvertObject.FormulaType,coinConvertObject.StageId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {
@@ -226,10 +234,10 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 	// find  coin name assign it to generated coin name
 	for i := 0; i < len(coinConvertObject.UserInputs); i++ {
 		for k := 0; k < len(data.(model.BuildPoolResponse).CoinMap); k++ {
-			if coinConvertObject.UserInputs[i].CoinName == data.(model.BuildPoolResponse).CoinMap[k].CoinName {
+			if coinConvertObject.UserInputs[i].ID == data.(model.BuildPoolResponse).CoinMap[k].ID {
 				coinConvertObject.UserInputs[i].GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
 			}
-			if coinConvertObject.MetricCoin.CoinName == data.(model.BuildPoolResponse).CoinMap[k].CoinName {
+			if coinConvertObject.MetricCoin.ID == data.(model.BuildPoolResponse).CoinMap[k].ID {
 				coinConvertObject.MetricCoin.GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
 			}
 		}
@@ -240,7 +248,7 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 		for _, inputCoin := range coinConvertObject.UserInputs {
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin: model.Coin{
-					ID: inputCoin.Id, CoinName: inputCoin.CoinName,
+					ID: inputCoin.ID, CoinName: inputCoin.CoinName,
 					Amount: inputCoin.Value, GeneratedName: inputCoin.GeneratedName,
 				},
 				ReceivingCoin: model.Coin{
@@ -268,7 +276,7 @@ func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK
 //! 		 characters 	2-4 ""   --> first 3 character of tenant Id  -upper case
 //! 		 characters 	5-7 ""   --> first 3 character of user insertd coin name -upper case
 //! 		 characters 	8-12 ""   -->  4 character  straing from 0001 (if coin description not equal ,auto increment count)
-func GenerateCoinName(tenantID, coinName, description, coinType, equationId, metricId, fullCoinName string) (string, error) {
+func GenerateCoinName(tenantID, coinName, description, coinType, equationId, metricId, fullCoinName,coinID string) (string, error) {
 	var generatedCoinName string
 	object := dao.Connection{}
 	data, _ := object.GetCoinName(strings.ToUpper(coinName)).Then(func(data interface{}) interface{} {
@@ -278,6 +286,7 @@ func GenerateCoinName(tenantID, coinName, description, coinType, equationId, met
 		TenantID:          tenantID,
 		EquationID:        equationId,
 		Type:              coinType,
+		CoinID:            coinID,
 		CoinName:          strings.ToUpper(coinName),
 		GeneratedCoinName: generatedCoinName,
 		FullCoinName:      fullCoinName,
@@ -286,12 +295,14 @@ func GenerateCoinName(tenantID, coinName, description, coinType, equationId, met
 		MetricID:          metricId,
 	}
 	if data != nil {
+		// if coin name are equal check the discription
 		if strings.Replace(strings.ToLower(data.(model.CoinName).Description), " ", "", -1) == strings.Replace(strings.ToLower(description), " ", "", -1) {
 			generatedCoinName = data.(model.CoinName).GeneratedCoinName
 						coinNameObj := model.CoinName{
 							TenantID:          tenantID,
 							EquationID:        equationId,
 							Type:              data.(model.CoinName).Type,
+							CoinID:            coinID,
 							CoinName:          data.(model.CoinName).CoinName,
 							GeneratedCoinName: data.(model.CoinName).GeneratedCoinName,
 							FullCoinName:      data.(model.CoinName).FullCoinName,
@@ -304,6 +315,7 @@ func GenerateCoinName(tenantID, coinName, description, coinType, equationId, met
 				return "", err1
 			}
 		} else {
+			// if description and coin anme does not equal create new coin name by increting count by 1
 			// string to int
 			i, err := strconv.Atoi(data.(model.CoinName).Count)
 			if err != nil {
@@ -339,9 +351,11 @@ func GenerateCoinName(tenantID, coinName, description, coinType, equationId, met
 	return generatedCoinName, nil
 }
 
+// CreateCoinnameUsingValue ==> convert CONSTANT value to 4 character coin name
 func CreateCoinnameUsingValue(value string) string {
+	//replace . with "D"
 	coinName := strings.Replace(value, ".", "D", 1)
-
+	// replace 0 with "Z"
 	if len(coinName) < 4 {
 		var buffer bytes.Buffer
 		count := 4 - len(coinName)
@@ -350,5 +364,6 @@ func CreateCoinnameUsingValue(value string) string {
 		}
 		return coinName + buffer.String()
 	}
+	//return first 4 charater
 	return coinName[0:4]
 }

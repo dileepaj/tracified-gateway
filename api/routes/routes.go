@@ -530,4 +530,10 @@ var routes = Routes{
 		"/socialimapact/pathPaymentDetails",
 		businessFacades.GetPathPaymentDetails, //Get the path payment details
 	},
+	Route{
+		"Update Equation stages and product details",
+		"PUT",
+		"/socialimapact",
+		businessFacades.UpdateEquation, //Update pool's activities and products details
+	},
 }

@@ -1750,7 +1750,7 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
+func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equatonId, productId, tenantId string) *promise.Promise {
 	resultBatchAccountObj := model.CoinAccount{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1763,7 +1763,7 @@ func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equat
 
 		c := session.Client().Database(dbName).Collection("CoinAccount")
 		if formulType == "BATCH" {
-			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productname": productName, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
+			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productid": productId, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
 		} else {
 			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
 		}
@@ -1790,6 +1790,30 @@ func (cd *Connection) GetLiquidityPool(equatonId string,tenantId string, formula
 
 		c := session.Client().Database(dbName).Collection("PoolDetails")
 		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId,"tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(pool)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId ,tenantId , formulatype,activityId string) *promise.Promise {
+	fmt.Println("---  ",equatonId ,tenantId , formulatype ,activityId)
+	pool := model.BuildPoolResponse{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("PoolDetails")
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId,"tenantid": tenantId, "formulatype": formulatype,"activity.id":activityId}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

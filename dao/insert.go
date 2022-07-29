@@ -223,6 +223,7 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 }
 
 func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHistory) error {
+	logrus.Info("--------------------------- InsertTrustlineHistory ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -238,6 +239,7 @@ func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHis
 }
 
 func (cd *Connection) InsertBatchAccount(batchAccount model.CoinAccount) error {
+	logrus.Info("--------------------------- InsertBatchAccount ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -254,6 +256,7 @@ func (cd *Connection) InsertBatchAccount(batchAccount model.CoinAccount) error {
 
 // insert created pool details to the DB
 func (cd *Connection) InsertLiquidityPool(pool model.BuildPoolResponse) error {
+	logrus.Info("--------------------------- InsertLiquidityPool ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -270,6 +273,7 @@ func (cd *Connection) InsertLiquidityPool(pool model.BuildPoolResponse) error {
 
 // insert coin convert details to the DB
 func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.BuildPathPaymentJSon) error {
+	logrus.Info("--------------------------- InsertCoinConversionDetails ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -286,6 +290,7 @@ func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.B
 
 // insert coinName
 func (cd *Connection) InsertCoinName(coinName model.CoinName) error {
+	logrus.Info("--------------------------- InsertCoinName ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -317,6 +322,7 @@ func (cd *Connection) InsertPoool(pool model.Pool) error {
 }
 
 func (cd *Connection) InsertCreatedPoool(pool model.BuildPool) error {
+	logrus.Info("--------------------------- InsertCreatedPoool ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
