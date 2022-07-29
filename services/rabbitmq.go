@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -79,7 +80,12 @@ func ReciverRmq() error{
 			} else {
 				logrus.Error("Queue Request Type Error")
 			}
-			logrus.Info(response)
+			out, err := json.Marshal(response)
+			if err != nil {
+				logrus.Error(err)
+			}
+	
+			fmt.Println("--------------- Pool response ---------  ", string(out))
 		}
 	}()
 
