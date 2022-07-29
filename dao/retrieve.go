@@ -1800,8 +1800,8 @@ func (cd *Connection) GetLiquidityPool(equatonId string,tenantId string, formula
 	return p
 }
 
-func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId ,tenantId , formulatype ,productId ,activityId string) *promise.Promise {
-	fmt.Println("---  ",equatonId ,tenantId , formulatype ,productId ,activityId)
+func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId ,tenantId , formulatype,activityId string) *promise.Promise {
+	fmt.Println("---  ",equatonId ,tenantId , formulatype ,activityId)
 	pool := model.BuildPoolResponse{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1813,7 +1813,7 @@ func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId ,tenantId ,
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId,"tenantid": tenantId, "formulatype": formulatype,"activity.id":activityId,"activity.productid":productId}).Decode(&pool)
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId,"tenantid": tenantId, "formulatype": formulatype,"activity.id":activityId}).Decode(&pool)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

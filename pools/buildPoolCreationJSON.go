@@ -42,7 +42,11 @@ func BuildPoolCreationJSON(equationJson model.CreatePool) ([]model.BuildPool, er
 				coinDetails2 := int(value * float64(multiplicationFactor))
 				pool1 := model.BuildPool{
 					Coin1:               portion[i].FieldAndCoin[j].GeneratedName,
+					Coin1Name:           portion[i].FieldAndCoin[j].CoinName[0:4],
+					Coin1FullName:       portion[i].FieldAndCoin[j].FullCoinName,
 					DepositeAmountCoin1: strconv.Itoa(coinDetails1),
+					Coin2Name:           portion[i].FieldAndCoin[j+1].CoinName[0:4],
+					Coin2FullName:       portion[i].FieldAndCoin[j+1].FullCoinName,
 					Coin2:               portion[i].FieldAndCoin[j+1].GeneratedName,
 					DepositeAmountCoin2: strconv.Itoa(coinDetails2),
 					Ratio:               ratio,
@@ -166,6 +170,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						coinMap1 := model.CoinMap{
 							ID:            equationJson.MetricCoin.ID,
 							CoinName:      strings.ToUpper(equationJson.MetricCoin.CoinName),
+							FullCoinName:  equationJson.MetricCoin.FullCoinName,
 							GeneratedName: generatedSID,
 						}
 						coinMap = append(coinMap, coinMap1)
@@ -173,6 +178,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						coinMap1 := model.CoinMap{
 							ID:            portion[i].FieldAndCoin[j].ID,
 							CoinName:      strings.ToUpper(portion[i].FieldAndCoin[j].CoinName),
+							FullCoinName:  portion[i].FieldAndCoin[j].FullCoinName,
 							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
 						}
 						coinMap = append(coinMap, coinMap1)
@@ -219,7 +225,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
 	data, _ := object.GetLiquidityPoolByProductAndActivity(coinConvertObject.EquationID,
-		coinConvertObject.TenantID, coinConvertObject.FormulaType,coinConvertObject.ProductID,coinConvertObject.StageId).Then(func(data interface{}) interface{} {
+		coinConvertObject.TenantID, coinConvertObject.FormulaType,coinConvertObject.StageId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {

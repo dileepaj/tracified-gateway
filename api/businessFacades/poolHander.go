@@ -16,6 +16,9 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+//! CoinName = first 4 chacter form coin name
+//! fullCoinName = user inserted coin name
+
 func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var coinValidationPassed bool
@@ -37,7 +40,7 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		object := dao.Connection{}
-		data, _ := object.GetLiquidityPoolByProductAndActivity(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType,newBatchConvertCoinObj.ProductID,newBatchConvertCoinObj.StageId).Then(func(data interface{}) interface{} {
+		data, _ := object.GetLiquidityPoolByProductAndActivity(newBatchConvertCoinObj.EquationID, newBatchConvertCoinObj.TenantID, newBatchConvertCoinObj.FormulaType, newBatchConvertCoinObj.StageId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if data == nil {
@@ -235,12 +238,12 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		var equationSubPortions []model.EquationSubPortion
-		//build the 4 charater coin name by using equation jason
+		// build the 4 charater coin name by using equation jason
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
 
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
-				//if subset elemet's type eqal to "DATA" take first 4 charter from coin name
+				// if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
 					fieldAndCoin := model.FieldAndCoin{
 						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
@@ -253,7 +256,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 					}
 					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
 				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
-					//if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
+					// if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
@@ -266,7 +269,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 						}
 						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
 					} else {
-						//if subset elemet's type eqal to "CONSTANT" and did not send the coin name uild the coin name by using the CreateCoinnameUsingValue
+						// if subset elemet's type eqal to "CONSTANT" and did not send the coin name uild the coin name by using the CreateCoinnameUsingValue
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
 							CoinName:      pools.CreateCoinnameUsingValue(equationJsonBody.Subsets[i].SubSet[j].Value),
@@ -303,7 +306,8 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			ID:          equationJsonBody.Activity.ID,
 			Name:        equationJsonBody.Activity.Name,
 			ProductName: equationJsonBody.ProductName,
-			ProductID:   equationJsonBody.ProductID,
+			TracifiedItemId:   equationJsonBody.Activity.TracifiedItemId,
+			StageId: equationJsonBody.Activity.StageId,
 		})
 
 		var products []model.Product
@@ -322,6 +326,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			SimpleifedEquation:   equationJsonBody.FormulaAsString,
 			MetricCoin: model.MetricCoin{
 				ID:           equationJsonBody.Metric.ID,
+				Name:         equationJsonBody.Metric.Name,
 				CoinName:     equationJsonBody.Metric.Name[0:4],
 				FullCoinName: equationJsonBody.Metric.Name,
 				Description:  equationJsonBody.Metric.Description,
@@ -491,7 +496,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			ID:          equationJsonBody.Activity.ID,
 			Name:        equationJsonBody.Activity.Name,
 			ProductName: equationJsonBody.ProductName,
-			ProductID:   equationJsonBody.ProductID,
+			TracifiedItemId:   equationJsonBody.ProductID,
 		})
 
 		var products []model.Product
@@ -773,15 +778,15 @@ func UpdateEquation(w http.ResponseWriter, r *http.Request) {
 	for i, element := range dbData.Activity {
 		if addStageAndProduct.Activity.ID != "" && element.ID == addStageAndProduct.Activity.ID {
 			activityExist = true
-			if dbData.Activity[i].ProductID == "" {
-				dbData.Activity[i].ProductID = addStageAndProduct.ProductID
+			if dbData.Activity[i].TracifiedItemId == "" {
+				dbData.Activity[i].TracifiedItemId = addStageAndProduct.ProductID
 				dbData.Activity[i].ProductName = addStageAndProduct.ProductName
-			} else if addStageAndProduct.ProductID != "" && element.ProductID != addStageAndProduct.ProductID {
+			} else if addStageAndProduct.ProductID != "" && element.TracifiedItemId != addStageAndProduct.ProductID {
 				activity = append(activity, model.Activity{
 					ID:          addStageAndProduct.Activity.ID,
 					Name:        addStageAndProduct.Activity.Name,
 					ProductName: addStageAndProduct.ProductName,
-					ProductID:   addStageAndProduct.ProductID,
+					TracifiedItemId:   addStageAndProduct.ProductID,
 				})
 			}
 		}
@@ -792,7 +797,7 @@ func UpdateEquation(w http.ResponseWriter, r *http.Request) {
 			ID:          addStageAndProduct.Activity.ID,
 			Name:        addStageAndProduct.Activity.Name,
 			ProductName: addStageAndProduct.ProductName,
-			ProductID:   addStageAndProduct.ProductID,
+			TracifiedItemId:   addStageAndProduct.ProductID,
 		})
 	}
 	fmt.Println(products)
