@@ -84,7 +84,6 @@ func ReciverRmq() error{
 			if err != nil {
 				logrus.Error(err)
 			}
-	
 			fmt.Println("--------------- Pool response ---------  ", string(out))
 		}
 	}()

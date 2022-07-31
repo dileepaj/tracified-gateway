@@ -172,6 +172,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 							CoinName:      strings.ToUpper(equationJson.MetricCoin.CoinName),
 							FullCoinName:  equationJson.MetricCoin.FullCoinName,
 							GeneratedName: generatedSID,
+							Description: equationJson.MetricCoin.Description,
 						}
 						coinMap = append(coinMap, coinMap1)
 					} else {
@@ -180,6 +181,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 							CoinName:      strings.ToUpper(portion[i].FieldAndCoin[j].CoinName),
 							FullCoinName:  portion[i].FieldAndCoin[j].FullCoinName,
 							GeneratedName: portion[i].FieldAndCoin[j].GeneratedName,
+							Description: portion[i].FieldAndCoin[j].Description,
 						}
 						coinMap = append(coinMap, coinMap1)
 					}
@@ -222,39 +224,45 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 
 // CoinConvertionJson ==>this method  rerstructed the coinConvertion request body recived by backend
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
-func CoinConvertionJson(coinConvertObject model.BatchCoinConvert, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
+func CoinConvertionJson(coinConvertObject model.CoinAccount, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPoolByProductAndActivity(coinConvertObject.EquationID,
-		coinConvertObject.TenantID, coinConvertObject.FormulaType,coinConvertObject.StageId).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPoolByProductAndActivity(coinConvertObject.MetricFormulaId,
+		coinConvertObject.TenantID, coinConvertObject.Type,coinConvertObject.MetricActivivtyId,coinConvertObject.Event.Details.StageID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {
 		return []model.BuildPathPayment{}, errors.New("Can not find Pool")
 	}
 	// find  coin name assign it to generated coin name
-	for i := 0; i < len(coinConvertObject.UserInputs); i++ {
+	for i := 0; i < len(coinConvertObject.Inputs); i++ {
 		for k := 0; k < len(data.(model.BuildPoolResponse).CoinMap); k++ {
-			if coinConvertObject.UserInputs[i].ID == data.(model.BuildPoolResponse).CoinMap[k].ID {
-				coinConvertObject.UserInputs[i].GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+			if coinConvertObject.Inputs[i].CoinName == data.(model.BuildPoolResponse).CoinMap[k].FullCoinName{
+				coinConvertObject.Inputs[i].GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+				coinConvertObject.Inputs[i].ID=data.(model.BuildPoolResponse).CoinMap[k].ID
 			}
-			if coinConvertObject.MetricCoin.ID == data.(model.BuildPoolResponse).CoinMap[k].ID {
-				coinConvertObject.MetricCoin.GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+			if coinConvertObject.Metric.Name == data.(model.BuildPoolResponse).CoinMap[k].FullCoinName {
+				coinConvertObject.Metric.GeneratedName = data.(model.BuildPoolResponse).CoinMap[k].GeneratedName
+				coinConvertObject.Metric.ID=data.(model.BuildPoolResponse).CoinMap[k].ID
 			}
 		}
 	}
 
 	var buildPathPayments []model.BuildPathPayment
-	if coinConvertObject.UserInputs != nil && len(coinConvertObject.UserInputs) > 0 {
-		for _, inputCoin := range coinConvertObject.UserInputs {
+	if coinConvertObject.Inputs != nil && len(coinConvertObject.Inputs) > 0 {
+		for _, inputCoin := range coinConvertObject.Inputs {
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin: model.Coin{
-					ID: inputCoin.ID, CoinName: inputCoin.CoinName,
-					Amount: inputCoin.Value, GeneratedName: inputCoin.GeneratedName,
+					ID:            inputCoin.ID,
+					FullCoinName:  inputCoin.CoinName,
+					CoinName:      strings.ToUpper(inputCoin.CoinName[0:4]),
+					GeneratedName: inputCoin.GeneratedName,
+					Amount:        inputCoin.Input,
 				},
 				ReceivingCoin: model.Coin{
-					ID:           coinConvertObject.MetricCoin.ID,
-					CoinName:     coinConvertObject.MetricCoin.CoinName,
-					FullCoinName: coinConvertObject.MetricCoin.FullCoinName, GeneratedName: coinConvertObject.MetricCoin.GeneratedName,
+					ID:            coinConvertObject.Metric.ID,
+					FullCoinName:  coinConvertObject.Metric.Name,
+					CoinName:      strings.ToUpper(coinConvertObject.Metric.Name[0:4]),
+					GeneratedName: coinConvertObject.Metric.GeneratedName,
 				},
 				BatchAccountPK:     batchAccountPK,
 				BatchAccountSK:     batchAccountSK,

@@ -41,11 +41,9 @@ type BuildPathPaymentJSonResponse struct {
 
 type BuildPathPaymentJSon struct {
 	CoinConertions []BuildPathPayment
-	ProductId      string
-	ProductIdName  string
-	EquationId     string
-	TenantId       string
-	FormulaType    string
+	FirstEvent     CoinAccount
+	AccountPK      string
+	CreatedAt      string
 }
 
 type BuildPool struct {
@@ -173,23 +171,16 @@ type ArtifactCoinConvert struct {
 }
 
 type CoinAccount struct {
-	TenantID         string
-	FormulaType      string
-	FormulaTypeID    string
-	FormulaTypeName  string
-	EquationID       string
-	ProductID        string
-	ProductName      string
-	MetricCoin       MetricCoin
-	StageID          string
-	CoinAccountPK    string
-	CoinAccountSK    []byte
-	Event            string
-	EventModel       string
-	EventModelId     string
-	MetricFormulaId  string
-	MetricActivityId string
-	CreatedAt        string
+	Metric            Metric
+	Inputs            []Input
+	Event             Event
+	Type              string
+	MetricFormulaId   string
+	MetricActivivtyId string
+	TenantID          string
+	CreatedAt         string
+	CoinAccountPK     string
+	CoinAccountSK     []byte
 }
 
 type MetricFormulas struct {
@@ -206,11 +197,14 @@ type MetricCoin struct {
 	Description   string
 }
 
+// in coin conversion request name eqaualto full coin name
 type Metric struct {
-	ID          string
-	Name        string
-	CoinName    string
-	Description string
+	ID            string
+	Name          string
+	GeneratedName string
+	FullCoinName  string
+	CoinName      string
+	Description   string
 }
 
 type FieldAndCoin struct {
@@ -295,27 +289,28 @@ type Activity struct {
 // 	EquationSubPortion   []EquationSubPortion `json:"equationSubPortion" bson:"equationSubPortion"`
 // }
 
-type CalculateEquationForBatch struct {
-	TenantID        string
-	ProductID       string
-	ProductName     string
-	FormulaType     string
-	FormulaTypeID   string
-	FormulaTypeName string
-	StageId         string
-	EquationID      string
-	MetrixType      string
+type CalculateEquation struct {
+	MetricFormulaId  string `json:"MetricFormulaId" bson:"metricformulaid" validate:"required"`
+	TenantID         string `json:"TenantID" bson:"tenantid" validate:"required"`
+	MetricActivityId string `json:"MetricActivityId" bson:"metricactivityid"`
+	Type             string `json:"Type" bson:"type" validate:"required"`
+	BatchID          string `json:"BatchID" bson:"batchid"`
+	ArtifactID       string `json:"artifactID" bson:"artifactid"`
+	StageID          string `json:"StageID" bson:"stageid" validate:"required"`
+	TracifiedItemId  string `json:"TracifiedItemId" bson:"tracifieditemid"`
 }
 type EquationResultForBatch struct {
-	TenantID        string
-	ProductName     string
-	FormulaType     string
-	FormulaTypeName string
-	StageId         string
-	EquationID      string
-	MetricCoin      MetricCoin
-	Account         string
-	EquationResult  string
+	MetricFormulaId  string
+	TenantID         string
+	MetricActivityId string
+	Type             string
+	BatchID          string
+	ArtifactID       string
+	StageID          string
+	TracifiedItemId  string
+	Metric           Metric
+	Account          string
+	EquationResult   string
 }
 
 type CoinMap struct {
@@ -323,6 +318,7 @@ type CoinMap struct {
 	CoinName      string
 	FullCoinName  string
 	GeneratedName string
+	Description   string
 }
 
 type SendToQueue struct {
@@ -330,7 +326,7 @@ type SendToQueue struct {
 	EqationJson       CreatePool
 	CoinMap           []CoinMap
 	PoolCreationArray []BuildPool
-	CoinConvert       BatchCoinConvert
+	CoinConvert       CoinConvertBody
 }
 
 // TODO add FORMULA TYPE
@@ -403,4 +399,46 @@ type AddStageAndProduct struct {
 	ProductID   string
 	ProductName string
 	Activity    Activity
+}
+
+type Input struct {
+	ID            string
+	Key           string
+	Input         string
+	CoinName      string
+	GeneratedName string
+	Description   string
+}
+
+type Identifier struct {
+	Identifier string
+	Type       string
+}
+
+type Details struct {
+	StageID           string
+	BatchID           string
+	ArtifactID        string
+	Identifier        Identifier
+	TracifiedItemId   string
+	TracifiedItemName string
+}
+type Event struct {
+	Type    string
+	ID      string
+	Model   string
+	Details Details
+}
+
+type CoinConvertBody struct {
+	ID               string
+	Value            float64 `json:"Value" bson:"real" validate:"required"`
+	Metric           Metric
+	Inputs           []Input
+	Event            Event
+	Type             string
+	MetricFormulaId  string
+	MetricActivityId string
+	TenantID         string
+	CreatedAt        string
 }
