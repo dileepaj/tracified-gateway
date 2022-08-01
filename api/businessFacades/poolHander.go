@@ -264,7 +264,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Check if the coin name's character equalto 4
-		if len(equationJsonObj.MetricCoin.CoinName) != 4 {
+		if len(equationJsonObj.MetricCoin.CoinName) > 4 {
 			logrus.Error("Coin name character limit should be 4")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Metric Coin name character limit should be 4")
@@ -451,7 +451,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			Active:             equationJsonBody.Active,
 		}
 		// Check if the coin name's character equalto 4
-		if len(equationJsonObj.MetricCoin.CoinName) != 4 {
+		if len(equationJsonObj.MetricCoin.CoinName) > 4 {
 			logrus.Error("Coin name character limit should be 4")
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Metric Coin name character limit should be 4")
