@@ -42,7 +42,7 @@ func CalculateCoin(account model.CoinAccount) (string, error) {
 		accoutBalance := raw1[i].(map[string]interface{})
 		assetCode := fmt.Sprintf("%v", accoutBalance["asset_code"])
 		balance := fmt.Sprintf("%v", accoutBalance["balance"])
-		if account.MetricCoin.GeneratedName == assetCode {
+		if account.Metric.GeneratedName == assetCode {
 			return balance, nil
 		}
 	}
