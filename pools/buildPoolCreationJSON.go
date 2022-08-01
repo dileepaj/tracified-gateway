@@ -110,7 +110,7 @@ func RemoveDivisionAndOperator(equationJson model.CreatePool) (model.CreatePool,
 						return model.CreatePool{}, []model.CoinMap{}, errors.New("Equation can not caontaion  ( , ) oprators")
 					}
 					// Check if the coin name's character equalto 4
-					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" && len(portion[i].FieldAndCoin[j].CoinName) != 4 {
+					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" && len(portion[i].FieldAndCoin[j].CoinName) > 4 {
 						return model.CreatePool{}, []model.CoinMap{}, errors.New("Coin name character limit should be 4")
 					}
 					if portion[i].FieldAndCoin[j].VariableType != "OPERATOR" || portion[i].FieldAndCoin[j].CoinName != "" {
