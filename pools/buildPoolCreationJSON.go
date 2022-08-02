@@ -256,7 +256,7 @@ func CoinConvertionJson(coinConvertObject model.CoinAccount, batchAccountPK stri
 					FullCoinName:  inputCoin.CoinName,
 					CoinName:      strings.ToUpper(inputCoin.CoinName[0:4]),
 					GeneratedName: inputCoin.GeneratedName,
-					Amount:        inputCoin.Input,
+					Amount:        fmt.Sprintf("%f", inputCoin.Input),
 				},
 				ReceivingCoin: model.Coin{
 					ID:            coinConvertObject.Metric.ID,

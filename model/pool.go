@@ -404,7 +404,7 @@ type AddStageAndProduct struct {
 type Input struct {
 	ID            string
 	Key           string
-	Input         string
+	Input         float32
 	CoinName      string
 	GeneratedName string
 	Description   string
