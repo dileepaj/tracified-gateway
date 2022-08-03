@@ -1,5 +1,7 @@
 package model
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 //! CoinName = first 4 chacter form coin name
 //! fullCoinName = user inserted coin name
 //! generatedName = gateway generated coin name
@@ -8,6 +10,7 @@ type Coin struct {
 	FullCoinName  string
 	CoinName      string
 	GeneratedName string
+	Description   string
 	Amount        string
 }
 
@@ -341,6 +344,7 @@ type CoinName struct {
 	Description       string
 	Count             string
 	MetricID          string
+	Timestamp		  primitive.DateTime
 }
 
 type Pool struct {

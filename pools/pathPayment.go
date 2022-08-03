@@ -237,6 +237,7 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 
 	} else {
 		batchAccount = (data.(model.CoinAccount))
+		batchAccount.Metric=batchConvertCoinObj.Metric
 		decryptedPK := (data.(model.CoinAccount)).CoinAccountPK
 		decryptedSK := (data.(model.CoinAccount)).CoinAccountSK
 
