@@ -53,16 +53,11 @@ func BatchConvertCoin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		for _, coin := range data.(model.BuildPoolResponse).CoinMap {
-			if coin.FullCoinName == coinConvertBody.Metric.Name {
-				coinConvertBody.ID = coin.ID
-				coinConvertBody.Metric.Description = coin.Description
-				coinConvertBody.Metric.GeneratedName = coin.GeneratedName
-				coinConvertBody.Metric.FullCoinName = coin.FullCoinName
-				coinConvertBody.Metric.CoinName = coin.CoinName
-				break
-			}
-		}
+		coinConvertBody.Metric.ID = data.(model.BuildPoolResponse).MetricCoin.ID
+		coinConvertBody.Metric.Description = data.(model.BuildPoolResponse).MetricCoin.Description
+		coinConvertBody.Metric.GeneratedName = data.(model.BuildPoolResponse).MetricCoin.GeneratedName
+		coinConvertBody.Metric.FullCoinName = data.(model.BuildPoolResponse).MetricCoin.FullCoinName
+		coinConvertBody.Metric.CoinName = data.(model.BuildPoolResponse).MetricCoin.CoinName
 
 		queue := model.SendToQueue{
 			Type:        "COINCONVERT",
@@ -115,16 +110,11 @@ func ArtifactConvertCoin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		for _, coin := range data.(model.BuildPoolResponse).CoinMap {
-			if coin.FullCoinName == coinConvertBody.Metric.Name {
-				coinConvertBody.ID = coin.ID
-				coinConvertBody.Metric.Description = coin.Description
-				coinConvertBody.Metric.GeneratedName = coin.GeneratedName
-				coinConvertBody.Metric.FullCoinName = coin.FullCoinName
-				coinConvertBody.Metric.CoinName = coin.CoinName
-				break
-			}
-		}
+		coinConvertBody.Metric.ID = data.(model.BuildPoolResponse).MetricCoin.ID
+		coinConvertBody.Metric.Description = data.(model.BuildPoolResponse).MetricCoin.Description
+		coinConvertBody.Metric.GeneratedName = data.(model.BuildPoolResponse).MetricCoin.GeneratedName
+		coinConvertBody.Metric.FullCoinName = data.(model.BuildPoolResponse).MetricCoin.FullCoinName
+		coinConvertBody.Metric.CoinName = data.(model.BuildPoolResponse).MetricCoin.CoinName
 
 		queue := model.SendToQueue{
 			Type:        "COINCONVERT",
@@ -144,9 +134,7 @@ func ArtifactConvertCoin(w http.ResponseWriter, r *http.Request) {
 
 func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-
 	var equationJsonBody model.CreatePoolBody
-
 	err := json.NewDecoder(r.Body).Decode(&equationJsonBody)
 	if err != nil {
 		logrus.Error(err)
@@ -154,7 +142,6 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Error while decoding the body")
 		return
 	}
-
 	err1 := validations.ValidateCreatePool(equationJsonBody)
 	if err1 != nil {
 		logrus.Error(err1)
@@ -162,33 +149,55 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid")
 		return
 	} else {
-
 		var equationSubPortions []model.EquationSubPortion
 		// build the 4 charater coin name by using equation jason
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
-
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
 				// if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
-					fieldAndCoin := model.FieldAndCoin{
-						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
-						CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
-						GeneratedName: "",
-						FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
-						Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
-						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
-						Value:         "",
-					}
-					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
-				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
-					// if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
 							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
 							GeneratedName: "",
 							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         "",
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingDescription(equationJsonBody.Subsets[i].SubSet[j].Description),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Description,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         "",
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					}
+				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
+					// if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
+					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" && equationJsonBody.Subsets[i].SubSet[j].Description != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else if equationJsonBody.Subsets[i].SubSet[j].CoinName == "" && equationJsonBody.Subsets[i].SubSet[j].Description != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingDescription(equationJsonBody.Subsets[i].SubSet[j].Description),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Description,
 							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
 							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
 							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
@@ -226,7 +235,6 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			}
 			equationSubPortions = append(equationSubPortions, equationSubPortion)
 		}
-
 		var activity []model.Activity
 		activity = append(activity, model.Activity{
 			ID:              equationJsonBody.Activity.ID,
@@ -235,13 +243,11 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			TracifiedItemId: equationJsonBody.Activity.TracifiedItemId,
 			StageId:         equationJsonBody.Activity.StageId,
 		})
-
 		var products []model.Product
 		products = append(products, model.Product{
 			ProductName: equationJsonBody.ProductName,
 			ProductID:   equationJsonBody.ProductID,
 		})
-
 		equationJsonObj := model.CreatePool{
 			EquationID:           equationJsonBody.ID,
 			Products:             products,
@@ -253,8 +259,8 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			MetricCoin: model.MetricCoin{
 				ID:           equationJsonBody.Metric.ID,
 				Name:         equationJsonBody.Metric.Name,
-				CoinName:     equationJsonBody.Metric.Name[0:4],
-				FullCoinName: equationJsonBody.Metric.Name,
+				CoinName:     pools.CreateCoinnameUsingDescription(equationJsonBody.Metric.Description),
+				FullCoinName: equationJsonBody.Metric.Description,
 				Description:  equationJsonBody.Metric.Description,
 			},
 			EquationSubPortion: equationSubPortions,
@@ -262,7 +268,6 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt:          equationJsonBody.UpdatedAt,
 			Active:             equationJsonBody.Active,
 		}
-
 		// Check if the coin name's character equalto 4
 		if len(equationJsonObj.MetricCoin.CoinName) > 4 {
 			logrus.Error("Coin name character limit should be 4")
@@ -270,7 +275,6 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("Metric Coin name character limit should be 4")
 			return
 		}
-
 		object := dao.Connection{}
 		data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
 			return data
@@ -282,7 +286,6 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(err.Error())
 			return
 		}
-
 		// reformate the equation json
 		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
 		if err != nil {
@@ -292,7 +295,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		logrus.Info("CoinMap ", coinMap)
-		// 	// build the pool creation json
+		// build the pool creation json
 		poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
 		if err != nil {
 			logrus.Error(poolCreationJSON, err)
@@ -348,7 +351,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Error1 while decoding the body")
 		return
 	}
-
 	err1 := validations.ValidateCreatePool(equationJsonBody)
 	if err1 != nil {
 		logrus.Error(err1)
@@ -357,24 +359,37 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		var equationSubPortions []model.EquationSubPortion
-
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
-
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+				// if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
-					fieldAndCoin := model.FieldAndCoin{
-						ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
-						CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
-						GeneratedName: "",
-						FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
-						Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
-						VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
-						Value:         "",
-					}
-					fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
-				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].CoinName,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         "",
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingDescription(equationJsonBody.Subsets[i].SubSet[j].Description),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Description,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         "",
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					}
+				} else if equationJsonBody.Subsets[i].SubSet[j].Type == "CONSTANT" {
+					// if subset elemet's type eqal to "CONSTANT" take first 4 charter from coin name
+					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" && equationJsonBody.Subsets[i].SubSet[j].Description != "" {
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
 							CoinName:      equationJsonBody.Subsets[i].SubSet[j].CoinName[0:4],
@@ -385,7 +400,19 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
 						}
 						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
+					} else if equationJsonBody.Subsets[i].SubSet[j].CoinName == "" && equationJsonBody.Subsets[i].SubSet[j].Description != "" {
+						fieldAndCoin := model.FieldAndCoin{
+							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
+							CoinName:      pools.CreateCoinnameUsingDescription(equationJsonBody.Subsets[i].SubSet[j].Description),
+							GeneratedName: "",
+							FullCoinName:  equationJsonBody.Subsets[i].SubSet[j].Description,
+							Description:   equationJsonBody.Subsets[i].SubSet[j].Description,
+							VariableType:  equationJsonBody.Subsets[i].SubSet[j].Type,
+							Value:         equationJsonBody.Subsets[i].SubSet[j].Value,
+						}
+						fieldAndCoins = append(fieldAndCoins, fieldAndCoin)
 					} else {
+						// if subset elemet's type eqal to "CONSTANT" and did not send the coin name uild the coin name by using the CreateCoinnameUsingValue
 						fieldAndCoin := model.FieldAndCoin{
 							ID:            equationJsonBody.Subsets[i].SubSet[j].ID,
 							CoinName:      pools.CreateCoinnameUsingValue(equationJsonBody.Subsets[i].SubSet[j].Value),
@@ -416,7 +443,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			}
 			equationSubPortions = append(equationSubPortions, equationSubPortion)
 		}
-
 		var activity []model.Activity
 		activity = append(activity, model.Activity{
 			ID:              equationJsonBody.Activity.ID,
@@ -424,13 +450,11 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			ProductName:     equationJsonBody.ProductName,
 			TracifiedItemId: equationJsonBody.ProductID,
 		})
-
 		var products []model.Product
 		products = append(products, model.Product{
 			ProductName: equationJsonBody.ProductName,
 			ProductID:   equationJsonBody.ProductID,
 		})
-
 		equationJsonObj := model.CreatePool{
 			EquationID:           equationJsonBody.ID,
 			Products:             products,
@@ -468,7 +492,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("GetLiquidityPool did not empty, Pool already created")
 			return
 		}
-
 		// reformate the equation json
 		equationJson, coinMap, err := pools.RemoveDivisionAndOperator(equationJsonObj)
 		if err != nil {
@@ -478,7 +501,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		logrus.Info("CoinMap ", coinMap)
-		// 	// build the pool creation json
+		// build the pool creation json
 		poolCreationJSON, err := pools.BuildPoolCreationJSON(equationJson)
 		if err != nil {
 			logrus.Error(poolCreationJSON, err)
@@ -487,7 +510,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
 		equationDetails := model.CreatePool{
 			EquationID:           equationJsonObj.EquationID,
 			Products:             equationJson.Products,
@@ -502,7 +524,6 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt:            equationJson.UpdatedAt,
 			Active:               equationJson.Active,
 		}
-
 		queue := model.SendToQueue{
 			Type:              "POOL",
 			EqationJson:       equationDetails,
@@ -516,9 +537,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			log.Error(err)
 		}
-
 		fmt.Println("SENT", string(out))
-
 		log.Println("Pool added to the Queue   (Artifact)")
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)

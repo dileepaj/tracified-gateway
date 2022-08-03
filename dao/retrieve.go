@@ -1977,7 +1977,10 @@ func (cd *Connection) GetCoinName(coinName string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("CoinName")
-		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName}).Decode(&coin)
+		// Sort by `price` field descending
+		findOptions := options.FindOne()
+		findOptions.SetSort(bson.D{{"timestamp", -1}})
+		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName},findOptions).Decode(&coin)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
