@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -123,12 +125,56 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
-	} else {
-		logrus.Info("CoinConverted ", response.Hash)
-		pathPayment.ReceivingCoin.Amount = convertion.Destination.Amount
-		pathPayment.Hash = response.Hash
-		return pathPayment, nil
 	}
+
+	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
+	coinIssuerSign, err := keypair.ParseFull(coinIsuserSK)
+	if err != nil {
+		logrus.Error(err)
+		return model.BuildPathPayment{}, err
+	}
+	poolFees := CalculatePoolfees(convertion.Destination.Amount, len(convertion.IntermediateCoin)+1)
+	if poolFees != "0.0000000" {
+		paymentTx, err := txnbuild.NewTransaction(
+			txnbuild.TransactionParams{
+				SourceAccount:        &issuerAccount,
+				IncrementSequenceNum: true,
+				Operations: []txnbuild.Operation{&txnbuild.Payment{
+					Destination: pathPayment.BatchAccountPK, Asset: destAsset,
+					Amount: poolFees,
+				}},
+				BaseFee:       txnbuild.MinBaseFee,
+				Memo:          nil,
+				Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+			},
+		)
+
+		paymentTxn, err := paymentTx.Sign(commons.GetStellarNetwork(), coinIssuerSign)
+		if err != nil {
+			logrus.Error(err)
+			return model.BuildPathPayment{}, err
+		}
+
+		response2, err := client.SubmitTransaction(paymentTxn)
+		if err != nil {
+			logrus.Error(err)
+			return model.BuildPathPayment{}, err
+		}
+		pathPayment.PoolTradeFeesHash = response2.Hash
+		logrus.Info("CoinConverted  ", response.Hash, "  pools fees for trades 0.03% :  ", response2.Hash)
+	} else {
+		logrus.Error("CoinConverted  ", response.Hash, "  pools fees for trades 0.03% :       0.000000")
+	}
+	logrus.Info("CoinConverted  ", response.Hash)
+	pathPayment.ReceivingCoin.Amount = convertion.Destination.Amount
+	pathPayment.PoolTradeFees = poolFees
+	pathPayment.CoinConversionHash = response.Hash
+
+	return pathPayment, nil
 }
 
 // GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin and get the coin convesion path (using stella call)
@@ -203,14 +249,14 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	var data interface{}
 	if batchConvertCoinObj.Type == "BATCH" {
 		data, _ = object.GetBatchSpecificAccount(batchConvertCoinObj.Type, batchConvertCoinObj.Event.Details.BatchID,
-			batchConvertCoinObj.MetricFormulaId,batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
-			batchConvertCoinObj.Event.Details.StageID,batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
+			batchConvertCoinObj.MetricFormulaId, batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
+			batchConvertCoinObj.Event.Details.StageID, batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	} else {
-		data, _ = object.GetBatchSpecificAccount(batchConvertCoinObj.Type, batchConvertCoinObj.Event.Details.ArtifactID, 
-			batchConvertCoinObj.MetricFormulaId,batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
-			batchConvertCoinObj.Event.Details.StageID,batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
+		data, _ = object.GetBatchSpecificAccount(batchConvertCoinObj.Type, batchConvertCoinObj.Event.Details.ArtifactID,
+			batchConvertCoinObj.MetricFormulaId, batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
+			batchConvertCoinObj.Event.Details.StageID, batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	}
@@ -237,7 +283,7 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 
 	} else {
 		batchAccount = (data.(model.CoinAccount))
-		batchAccount.Metric=batchConvertCoinObj.Metric
+		batchAccount.Metric = batchConvertCoinObj.Metric
 		decryptedPK := (data.(model.CoinAccount)).CoinAccountPK
 		decryptedSK := (data.(model.CoinAccount)).CoinAccountSK
 
@@ -280,8 +326,12 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	}
 	batchAccount.CoinAccountPK = batchAccountPK
 	batchAccount.CoinAccountSK = []byte{}
+	actualEquationAnswer := CalculateActualEquationAnswer(coinConversions)
 	// build response with all coin details
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
+		RealAnswer:     actualEquationAnswer,
+		ActualAnswer:   batchConvertCoinObj.Value,
+		ErrorRate:      CalculateErrorRate(batchConvertCoinObj.Value, actualEquationAnswer),
 		CoinConertions: coinConversions,
 		FirstEvent:     batchAccount,
 		AccountPK:      batchAccountPK,
@@ -300,4 +350,45 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 		}
 		return string(out), nil
 	}
+}
+
+// pools charge 0.30% from each pool trading
+// amount= coin amount after convertion(path payment) using pools ==> use the api call to take this ammount
+// calculatePoolfees= (amount ÷ 0.997 ^numberOfPools) - amount
+// !This is not exactly the same to pool fees
+func CalculatePoolfees(amount string, pathLength int) string {
+	fees := 0.0000
+	if s, err := strconv.ParseFloat(amount, 32); err == nil {
+		fees = (s / (math.Pow(0.997, float64(pathLength)))) - s
+	}
+	if math.Signbit(fees) {
+		return fmt.Sprintf("%.7f", 0.0000000)
+	}
+	return fmt.Sprintf("%.7f", fees)
+}
+
+// CalculateActualEquationAnswer return pool converted coin amount + sent pool fees by us using DB records
+func CalculateActualEquationAnswer(pathpayments []model.BuildPathPayment) float64 {
+	actualfees := 0.000
+	for _, pathpayment := range pathpayments {
+		amount, err := strconv.ParseFloat(pathpayment.ReceivingCoin.Amount, 64)
+		if err != nil {
+			logrus.Error("CalculateActualEquationAnswer  amount ", err)
+		}
+		poolFees, err := strconv.ParseFloat(pathpayment.PoolTradeFees, 64)
+		if err != nil {
+			logrus.Error("CalculateActualEquationAnswer  poolFees ", err)
+		}
+		actualfees = actualfees + amount + poolFees
+	}
+	return actualfees
+}
+
+// CalculateErrorRate between ideal and actual equation answer
+func CalculateErrorRate(ideal, actual float64) float64 {
+	errorRate := 0.00000000
+	if actual != 0 {
+		errorRate = (math.Abs(ideal-actual)/ideal)*100
+	}
+	return errorRate
 }
