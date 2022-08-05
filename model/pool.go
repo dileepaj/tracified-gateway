@@ -21,7 +21,9 @@ type BuildPathPayment struct {
 	BatchAccountSK     string
 	CoinIssuerAccontPK string
 	PoolId             string
-	Hash               string
+	CoinConversionHash string
+	PoolTradeFees      string
+	PoolTradeFeesHash  string
 }
 
 type BuildPathPaymentResponse struct {
@@ -43,6 +45,9 @@ type BuildPathPaymentJSonResponse struct {
 }
 
 type BuildPathPaymentJSon struct {
+	RealAnswer     float64
+	ActualAnswer   float64
+	ErrorRate      float64
 	CoinConertions []BuildPathPayment
 	FirstEvent     CoinAccount
 	AccountPK      string
@@ -344,7 +349,7 @@ type CoinName struct {
 	Description       string
 	Count             string
 	MetricID          string
-	Timestamp		  primitive.DateTime
+	Timestamp         primitive.DateTime
 }
 
 type Pool struct {
@@ -436,7 +441,7 @@ type Event struct {
 
 type CoinConvertBody struct {
 	ID               string
-	Value            float64 `json:"Value" bson:"real" validate:"required"`
+	Value            float64
 	Metric           Metric
 	Inputs           []Input
 	Event            Event
