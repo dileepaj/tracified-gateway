@@ -8,11 +8,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
-	"github.com/sirupsen/logrus"
 )
 
 func Encrypt(key string) []byte {
-	logrus.Info("AWS_REGION  ",GoDotEnvVariable("AWS_REGION"))
 	// Load the Shared AWS Configuration (~/.aws/config)
 	svc := kms.New(session.New(&aws.Config{
 		Region:      aws.String(GoDotEnvVariable("AWS_REGION")),
