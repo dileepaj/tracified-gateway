@@ -429,36 +429,6 @@ var routes = Routes{
 		businessFacades.TxnForArtifact,
 	},
 	Route{
-		"Create pools for batch",
-		"POST",
-		"/socialimapact/batch/pool",
-		businessFacades.CreatePoolForBatch,
-	},
-	Route{
-		"Create pools artifatc",
-		"POST",
-		"/socialimapact/artifact/pool",
-		businessFacades.CreatePoolForArtifact,
-	},
-	Route{
-		"Convert batch coins via pool",
-		"POST",
-		"/socialimapact/batch/coinconvert",
-		businessFacades.BatchConvertCoin,
-	},
-	Route{
-		"Convert batch coins via pool",
-		"POST",
-		"/socialimapact/artifact/coinconvert",
-		businessFacades.ArtifactConvertCoin,
-	},
-	Route{
-		"Calculate equation result for artifatc specific Account",
-		"POST",
-		"/socialimapact/accont",
-		businessFacades.CalculateEquationForBatch,
-	},
-	Route{
 		"MintNFTStellarAndAddToDB",
 		"POST",
 		"/nft/mintStellar",
@@ -523,17 +493,5 @@ var routes = Routes{
 		"GET",
 		"/nft/fundAccount",
 		businessFacades.FundAccount, //Calls the UpdateBuyingStatus in the nftHandler
-	},
-	Route{
-		"Get coin convert details",
-		"GET",
-		"/socialimapact/pathPaymentDetails",
-		businessFacades.GetPathPaymentDetails, //Get the path payment details
-	},
-	Route{
-		"Update Equation stages and product details",
-		"PUT",
-		"/socialimapact",
-		businessFacades.UpdateEquation, //Update pool's activities and products details
 	},
 }
