@@ -64,23 +64,6 @@ Steps to contribute:
 - Run using Docker
 
 ``` 
-    // with rabbitmq
-    steps
-    create  docker network  tillitgatwaynetwork
-    give hostname and network to tabbitmq container
-    run rabbitmq
-    build gateway 
-    run gateway
-
-    docker network create tillitgatewaynetwork
-
-    docker run -itd --rm --hostname rabbit-1 --name rabbitmq-1 --network tillitgatewaynetwork -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
-
-    docker build . -t [gateway tag name]
-
-    docker run -itd --rm --net tillitgatewaynetwork  -e env=local -p 8000:8000 [gateway image id] 
-
-    // old
     docker run -e env=local -p 8000:8000 <image>
 ```
 
