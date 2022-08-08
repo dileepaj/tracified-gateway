@@ -42,7 +42,7 @@ func CreateIssuerAccount() (string, string, error) {
 	CreateAccount := []txnbuild.Operation{
 		&txnbuild.CreateAccount{
 			Destination:   nftIssuerPK,
-			Amount:        "0",
+			Amount:        "2",
 			SourceAccount: issuerPK,
 		},
 	}

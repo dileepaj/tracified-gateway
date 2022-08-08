@@ -23,7 +23,7 @@ type TotalTransaction struct {
 }
 type TransactionCollectionBody struct {
 	Identifier           string
-	RealIdentifier 		 string
+	RealIdentifier       string
 	TdpId                string
 	SequenceNo           int64
 	ProfileID            string
@@ -97,26 +97,26 @@ type TransactionIds struct {
 }
 
 type PrevTxnResponse struct {
-	Status         string
-	Blockchain     string
-	Txnhash        string
-	TxnType        string
-	SequenceNo     int64
-	Url            string
-	LabUrl         string
-	From           string
-	To             string
-	SourceAccount  string
-	Identifier     string
-	TdpId          string
-	Timestamp      string
-	Ledger         string
-	FeePaid        string
-	AvailableProof []string
-	DataHash       string
-	ProductName    string
-	Itemcount      string
-	AssetCode      string
+	Status          string
+	Blockchain      string
+	Txnhash         string
+	TxnType         string
+	SequenceNo      int64
+	Url             string
+	LabUrl          string
+	From            string
+	To              string
+	SourceAccount   string
+	Identifier      string
+	TdpId           string
+	Timestamp       string
+	Ledger          string
+	FeePaid         string
+	AvailableProof  []string
+	DataHash        string
+	ProductName     string
+	Itemcount       string
+	AssetCode       string
 	FromIdentifier1 string
 	FromIdentifier2 string
 	ToIdentifier    string
@@ -520,4 +520,8 @@ type StellarMintTXN struct {
 
 type PublicKey struct {
 	PublicKey string `json:"PublicKey"`
+}
+
+type XDRRuri struct {
+	XDR string
 }

@@ -1832,7 +1832,7 @@ func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId, tenantId, 
 	return p
 }
 
-func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise {
+func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string, blockchain string) *promise.Promise {
 	result := model.NFTWithTransactionSolana{}
 	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1841,7 +1841,7 @@ func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise 
 		}
 		defer session.EndSession(context.TODO())
 		dbclient := session.Client().Database(dbName).Collection("NFTSolana")
-		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"nftissuingblockchain", blockchain}}).Decode(&result)
 		if err1 != nil {
 			reject(err)
 		} else {
@@ -1851,7 +1851,7 @@ func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string) *promise.Promise 
 	return promise
 }
 
-func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string) *promise.Promise {
+func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string, blockchain string) *promise.Promise {
 	result := model.NFTWithTransaction{}
 	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -1860,7 +1860,7 @@ func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		dbclient := session.Client().Database(dbName).Collection("NFTStellar")
-		err1 := dbclient.FindOne(context.TODO(), bson.M{"imagebase64": ImageBase64}).Decode(&result)
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"nftissuingblockchain", blockchain}}).Decode(&result)
 		if err1 != nil {
 			reject(err)
 		} else {
