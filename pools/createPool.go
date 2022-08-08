@@ -38,9 +38,9 @@ func CreatePoolsUsingJson(pools []model.BuildPool) ([]model.BuildPool, error, bo
 			} else {
 				logrus.Error(err)
 			}
-		}else {
-			pools[i].PoolDepositeHash=data.(model.BuildPool).PoolDepositeHash
-			pools[i].PoolId=data.(model.BuildPool).PoolId
+		} else {
+			pools[i].PoolDepositeHash = data.(model.BuildPool).PoolDepositeHash
+			pools[i].PoolId = data.(model.BuildPool).PoolId
 			err1 := object.InsertCreatedPoool(pools[i])
 			createdPools = append(createdPools, pools[i])
 			isCreated = true
@@ -103,7 +103,7 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 		buildPool.PoolDepositeHash = depostHash2
 		buildPool.PoolId = poolIdString
 		logrus.Info(depostHash2, err)
-		if buildPool.PoolDepositeHash!=""{
+		if buildPool.PoolDepositeHash != "" {
 			err1 := object.InsertCreatedPoool(buildPool)
 			if err1 != nil {
 				logrus.Error("Pool did not add to DB ", err1)
@@ -173,8 +173,7 @@ func CreatePool(buildPool model.BuildPool) (model.BuildPool, error, bool) {
 }
 
 func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap, poolCreationJSON []model.BuildPool) (string, error) {
-	logrus.Info("PoolCreationJSON ", poolCreationJSON)
-
+	// logrus.Info("PoolCreationJSON ", poolCreationJSON)
 	object := dao.Connection{}
 	data, _ := object.GetLiquidityPool(equationJsonObj.EquationID, equationJsonObj.TenantID, equationJsonObj.FormulaType).Then(func(data interface{}) interface{} {
 		return data
@@ -186,15 +185,13 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 	// create the pools
 	cratedPools, err, isPoolCreated := CreatePoolsUsingJson(poolCreationJSON)
 	if err != nil {
-		logrus.Error(cratedPools, err)
+		logrus.Error("CreatePoolsUsingJson ", cratedPools, err)
 		return "", err
 	}
-	logrus.Info("Data", equationJsonObj.Activity, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
-	// todo add other data
+	// logrus.Info("Data", equationJsonObj.Activity, equationJsonObj.EquatinStringFormate, equationJsonObj.SimpleifedEquation)
 	response := model.BuildPoolResponse{
 		EquationId:           equationJsonObj.EquationID,
-		ProductId:            equationJsonObj.ProductID,
-		ProductName:          equationJsonObj.ProductName,
+		Products:             equationJsonObj.Products,
 		TenantId:             equationJsonObj.TenantID,
 		Activity:             equationJsonObj.Activity,
 		MetricCoin:           equationJsonObj.MetricCoin,
@@ -206,7 +203,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 		EquationSubPortion:   equationJsonObj.EquationSubPortion,
 		CreatedAt:            equationJsonObj.CreatedAt,
 		UpdatedAt:            equationJsonObj.UpdatedAt,
-		Active:               false,
+		Active:               equationJsonObj.Active,
 	}
 	// check if the pool is created
 	if isPoolCreated {
@@ -221,7 +218,7 @@ func PoolCreateHandle(equationJsonObj model.CreatePool, coinMap []model.CoinMap,
 			logrus.Println("Pool added to the DB")
 			out, err := json.Marshal(response)
 			if err != nil {
-				logrus.Info("Pool added to the DB JSON Marshal Error")
+				logrus.Error("Pool added to the DB JSON Marshal Error")
 			}
 			return string(out), nil
 		}

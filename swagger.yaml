@@ -1,0 +1,3208 @@
+openapi: 3.0.1
+info:
+  title: Tracified Gateway
+  description: This is the API documentation for Tracified Gateway.
+  version: 2.0.0
+servers:
+  - url: https://qa.gateway.tracified.com
+  - url: http://localhost:8000
+tags:
+  - name: proofs
+    description: Returns the proofs
+  - name: nft
+    description: NFT related endpoints
+  - name: coc collections
+    description: Retrieve and insert COC to collections
+  - name: transactions
+  - name: test
+  - name: deprecated
+    description: Deprecated endpoints
+  - name: ecom
+    description: ecom endpoints
+  - name: organizations
+    description: Get, Insert & Update Organizations
+  - name: socialimpact
+    description: Social impact create pool and coin convertions
+  - name: testimonials
+    description: Retrieve, insert, update testimonials
+  - name: proof presentation
+
+paths:
+  /health:
+    get:
+      description: Get server health
+      responses:
+        200:
+          description: Server is up and running
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+
+  /enable-cors:
+    get:
+      description: Enable CORS
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error when enabling cors
+
+  /proof/poe/{txn}:
+    get:
+      tags:
+        - proofs
+      description: Returns the proof of POE
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the proof of POE
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POE"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /proof/poc/{txn}:
+    get:
+      tags:
+        - proofs
+      description: Returns the proof of POC
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the proof of POC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POC"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /proof/fullpoc/{txn}:
+    get:
+      tags:
+        - proofs
+      description: Calls the Deprecated FULLPOC for Gateway Version 1
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the proof of POC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCSuccess"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /proof/pog/{txn}:
+    get:
+      tags:
+        - proofs
+      description: Returns the proof of POG
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the proof of POG
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POG"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /proof/pococ/{txn}:
+    get:
+      tags:
+        - proofs
+      description: Returns the proof of POCOC
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the proof of POCOC
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCOC"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /getcocbyreceiver/{receiver}:
+    get:
+      tags:
+        - coc collections
+      description: Get COC collection by receiver
+      parameters:
+        - name: receiver
+          in: path
+          description: Receiver public key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the COC collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/COCCollection"
+        400:
+          description: Public key not found in Gateway DataStore
+
+  /getcocbyreceiver/{sender}:
+    get:
+      tags:
+        - coc collections
+      description: Get COC collection by sender
+      parameters:
+        - name: sender
+          in: path
+          description: Sender public key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Returns the COC collection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/COCCollection"
+        400:
+          description: Public key not found in Gateway DataStore
+
+  /insertcoccollection:
+    post:
+      tags:
+        - coc collections
+      description: Insert COC to collection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsertCOCCollection"
+      responses:
+        200:
+          description: Insert successful
+        400:
+          description: Error while decoding the body
+
+    put:
+      tags:
+        - coc collections
+      description: Update COC collection
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsertCOCCollection"
+      responses:
+        200:
+          description: Update successful
+        400:
+          description: Error while decoding the body
+
+  /transaction/dataPackets:
+    post:
+      tags:
+        - transactions
+      description: Submit XDR
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Insert successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/split:
+    post:
+      tags:
+        - transactions
+      description: Submit Split
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Split successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/genesis:
+    post:
+      tags:
+        - transactions
+      description: Submit Genesis
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Submission successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/transformation:
+    post:
+      tags:
+        - transactions
+      description: Submit Transformation
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Submission successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/merge:
+    post:
+      tags:
+        - transactions
+      description: Submit Merge
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Merge successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/transfer:
+    post:
+      tags:
+        - transactions
+      description: Submit Transfer
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionCollection"
+      responses:
+        200:
+          description: Transfer successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/certificateInsert:
+    post:
+      tags:
+        - transactions
+      description: Submit Certificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateCollection"
+      responses:
+        200:
+          description: Submission successful
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/certificateRenew:
+    post:
+      tags:
+        - transactions
+      description: Renew Certificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateCollection"
+      responses:
+        200:
+          description: Certificate renewal success
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/certificateRevoke:
+    post:
+      tags:
+        - transactions
+      description: Revoke Certificate
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CertificateCollection"
+      responses:
+        200:
+          description: Certificate revoke success
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/lastTxn/{identifier}:
+    get:
+      tags:
+        - transactions
+      description: Get the last TXN for the identifier in the params
+      parameters:
+        - name: identifier
+          in: path
+          description: Identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: LastTXN retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LastTxn"
+        400:
+          description: Identifier not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /transaction/coc/subAccountStatus:
+    post:
+      tags:
+        - transactions
+      description: Checks all the available COCs in the gateway datastore and retrieves them by the sender's publickey and returns the status and sequence number.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubAccountStatusRequest"
+      responses:
+        200:
+          description: COC retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubAccountStatusResponse"
+        400:
+          description: Error while decoding the body
+
+  /transaction/subAccountStatus:
+    post:
+      tags:
+        - transactions
+      description: Get sub account status
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubAccountStatusRequest"
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubAccountStatusResponse"
+        400:
+          description: Error while decoding the body
+
+  /transaction/identifier/{identifier}:
+    get:
+      tags:
+        - transactions
+      description: Get transaction for identifier
+      parameters:
+        - name: identifier
+          in: path
+          description: Identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TxnForId"
+        400:
+          description: Identifier Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /transaction/identifier/artifact/{artifactid}:
+    get:
+      tags:
+        - transactions
+      description: Get transaction for artifact
+      parameters:
+        - name: artifactid
+          in: path
+          description: Artifact ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TxnForId"
+        400:
+          description: Error retrieving data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        204:
+          description: Can not find the entries for artifactid
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        502:
+          description: Connection to the Traceability DataStore was interupted
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /pocbctree/{txn}:
+    get:
+      tags:
+        - test
+      description: Retrieve POC tree
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCSuccess"
+        400:
+          description: Bad request
+
+  /getLogsForToday/:
+    get:
+      tags:
+        - test
+      description: Retrieve logs for the day
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LogBody"
+        400:
+          description: Log file is not found
+
+  /gatewayTree/{txn}:
+    get:
+      tags:
+        - test
+      description: POC gateway retriever for TDP
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCSuccess"
+        400:
+          description: Identifier for the TDP ID Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /gatewayTreeWithIdentifier/{identifier}:
+    get:
+      tags:
+        - test
+      description: POC gateway retriever for identifier
+      parameters:
+        - name: identifier
+          in: path
+          description: Identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCSuccess"
+        400:
+          description: Identifier Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /xdrToTxn:
+    post:
+      tags:
+        - test
+      description: Get TXN hash for the XDR provided
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TranXDR"
+      responses:
+        200:
+          description: TXN hash for the XDR retrieved successfully
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /lastCoc/{identifier}:
+    get:
+      tags:
+        - test
+      description: Get the TXN ID of the last COC TXN
+      parameters:
+        - name: identifier
+          in: path
+          description: Identifier
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/COCCollection"
+        400:
+          description: Identifier for Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /tdpForTxn/{txn}:
+    get:
+      tags:
+        - test
+      description: Get TDP for transaction
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction Hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TDP"
+        400:
+          description: TXN ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /txnForTdp/{tdp}:
+    get:
+      tags:
+        - test
+      description: Get transaction for TDP
+      parameters:
+        - name: tdp
+          in: path
+          description: TDP ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionCollection"
+        400:
+          description: TDP ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /TransactionId/{id}:
+    get:
+      tags:
+        - ecom
+      description: Get transaction ID
+      parameters:
+        - name: id
+          in: path
+          description: TDP ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionId"
+        400:
+          description: TDP ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /GetTransactionsForTDP/{id}:
+    get:
+      tags:
+        - ecom
+      description: Get transactions for TDP
+      parameters:
+        - name: id
+          in: path
+          description: TDP ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionIds"
+        400:
+          description: TDP ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /GetTransactionsForTDPs:
+    post:
+      tags:
+        - ecom
+      description: Get transactions for TDP
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GetTransactionId"
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionIds"
+        400:
+          description: TDP ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /GetTransactionsForPK/{id}:
+    get:
+      tags:
+        - ecom
+      description: Get transactions for Public Key
+      parameters:
+        - name: id
+          in: path
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TransactionIds"
+        400:
+          description: TDP ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /GetTransactionId/{id}:
+    get:
+      tags:
+        - ecom
+      description: Get transaction ID
+      parameters:
+        - name: id
+          in: path
+          description: TXN ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrevTxnResponse"
+        400:
+          description: TXN ID not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /GetTransactions:
+    get:
+      tags:
+        - ecom
+      description: Query transactions by key
+      parameters:
+        - in: query
+          name: perPage
+          description: Items per page
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          description: Page number
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: txn
+          description: TXN ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrevTxnResponse"
+        400:
+          description: Issue with request query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Unable to connect gateway datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        204:
+          description: Identifier is not found in gateway datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /GetCOCByTxn/{txn}:
+    get:
+      tags:
+        - ecom
+      description: Get the Txn ID of the last COC txn
+      parameters:
+        - name: txn
+          in: path
+          description: TXN ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/COCCollection"
+        400:
+          description: TXN not found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /RetrievePreviousTranasctions:
+    get:
+      tags:
+        - ecom
+      description: Get previous transactions
+      parameters:
+        - in: query
+          name: perPage
+          description: Items per page
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          description: Page number
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: NoPage
+          description: No. of pages
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/PrevTxnResponse"
+        400:
+          description: Issue with request query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        404:
+          description: Unable to connect gateway datastore/ Transaction could not be retrieved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        204:
+          description: Identifier is not found in gateway datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /RetrievePreviousTranasctionsCount:
+    get:
+      tags:
+        - ecom
+      description: Get total record count in transaction collection
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TotalTransactions"
+        204:
+          description: Unable to reach Database
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /Insert/ArtifactTransactions:
+    post:
+      tags:
+        - transactions
+      description: Insert artifact transaction
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ArtifactTransaction"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+        400:
+          description: No header/ content-type/ Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /organization:
+    post:
+      tags:
+        - organizations
+      description: Insert a new organization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialOrganization"
+      responses:
+        200:
+          description: Organization inserted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestimonialOrganizationResponse"
+        400:
+          description: Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+    put:
+      tags:
+        - organizations
+      description: Update organization
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialOrganization"
+      responses:
+        200:
+          description: Organization updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestimonialOrganizationResponse"
+        400:
+          description: Error while decoding the body
+
+  /approved/organization:
+    get:
+      tags:
+        - organizations
+      description: Get all approved organizations
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: No Approved organizations were found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /approved/organizationPaginated:
+    get:
+      tags:
+        - organizations
+      description: Query approved organizations
+      parameters:
+        - in: query
+          name: perPage
+          description: Items per page
+          required: true
+          schema:
+            type: integer
+        - in: query
+          name: page
+          description: Page number
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: Retrieval success
+        400:
+          description: Issue with request query params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        204:
+          description: No Approved organizations were found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /notapproved/organization:
+    get:
+      tags:
+        - organizations
+      description: Get all pending and rejected organizations
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: No Pending or Rejected organizations were found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /organization/{pk}:
+    get:
+      tags:
+        - organizations
+      description: Get organization by public key
+      parameters:
+        - name: pk
+          in: path
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: PublicKey Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /testimonial:
+    post:
+      tags:
+        - testimonials
+      description: Insert a new testimonial
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Testimonial"
+      responses:
+        201:
+          description: Testimonial inserted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TestimonialResponse"
+        400:
+          description: Error while decoding the body
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+    put:
+      tags:
+        - testimonials
+      description: Update testimonial
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TestimonialOrganization"
+      responses:
+        200:
+          description: Testimonial updated successfully
+        400:
+          description: Error while decoding the body
+        204:
+          description: Error while fetch data from db or RejectTxn Not exist in DB
+        502:
+          description: Failed to submit the Blockchain transaction
+
+  /testimonial/sender/{pk}:
+    get:
+      tags:
+        - testimonials
+      description: Get testimonial by sender's public key
+      parameters:
+        - name: pk
+          in: path
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: Sender PublicKey Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /testimonial/reciever/{pk}:
+    get:
+      tags:
+        - testimonials
+      description: Get testimonial by receiver's public key
+      parameters:
+        - name: pk
+          in: path
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: Reciever PublicKey Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /socialimapact/batch/pool:
+    post:
+      tags:
+        - socialimpact
+      description: Creating liquidity pools for the equation - batch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoolCreate"
+      responses:
+        200:
+          description: Pool added to the Queue
+        400:
+          description: Error while Decoding the body
+
+  /socialimapact/batch/coinconvert:
+    post:
+      tags:
+        - socialimpact
+      description: Trade the coin - batch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoinConvert"
+      responses:
+        200:
+          description: Path payment added to queue
+        400:
+          description: Error while Decoding the body
+
+  /socialimapact/artifact/pool:
+    post:
+      tags:
+        - socialimpact
+      description: Creating liquidity pools for the equation - artifact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PoolCreate"
+      responses:
+        200:
+          description: Pool added to the Queue
+        400:
+          description: Error while Decoding the body
+
+  /socialimapact/artifact/coinconvert:
+    post:
+      tags:
+        - socialimpact
+      description: Trade the coin - artifact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoinConvert"
+      responses:
+        200:
+          description: Path payment added to queue
+        400:
+          description: Error while Decoding the body
+
+  /socialimapact/accont:
+    post:
+      tags:
+        - socialimpact
+      description: Calculates the final coin value for both batch and artifact
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CoinCalculation"
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CoinCalculationResponse"
+        400:
+          description: Error while Decoding the body
+
+  /socialimpact/pathPaymentDetails:
+    get:
+      tags:
+        - socialimpact
+      description: Get path payment details
+      parameters:
+        - in: query
+          name: tenantid
+          description: Tenant ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: equationid
+          description: Equation ID
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: formulatype
+          description: Formula Type
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: productname
+          description: Product Name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: ""
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    Coinconertions:
+                      type: array
+                      items:
+                        $ref: "#/components/schemas/Coinconertions"
+
+  /blockchain/{txn}:
+    get:
+      description: Get blockchain data with transaction hash
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+
+  /pocv4/{txn}:
+    get:
+      description: Get blockchain tree with transaction hash
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+
+  /getproofprotocol/{proofname}:
+    get:
+      tags:
+        - proof presentation
+      description: Get proof presentation protocol by proof name
+      parameters:
+        - name: proofname
+          in: path
+          description: Proof name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+        400:
+          description: Proof protocol cannot be found in Gateway datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /proofprotocol:
+    post:
+      tags:
+        - proof presentation
+      description: Insert proof presentation protocol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProofProtocol"
+      responses:
+        200:
+          description: Protocol inserted to the Datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+        400:
+          description: Error while decoding the body/ Error when inserting the protocol
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+    put:
+      tags:
+        - proof presentation
+      description: Update proof presentation protocol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProofProtocol"
+      responses:
+        200:
+          description: Protocol updated to the successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+        400:
+          description: Error while decoding the body/ Error when updating the protocol/ Error when fetching the protocol from Datastore or protocol does not exists in the Datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /deleteproofprotocol/{proofname}:
+    delete:
+      tags:
+        - proof presentation
+      description: Delete proof presentation protocol by proof name
+      parameters:
+        - name: proofname
+          in: path
+          description: Proof name
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Deleted successfully
+        400:
+          description: Error when deleting the protocol
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /nft/mintStellar:
+    post:
+      tags:
+        - nft
+      description: Mint NFT on stellar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MintRequest"
+      responses:
+        200:
+          description: Successfully minted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NFTResponse"
+        400:
+          description: Can not save NFT in DB/ Can not issue NFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/mintSolana:
+    post:
+      tags:
+        - nft
+      description: Mint NFT on solana
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MintRequest"
+      responses:
+        200:
+          description: Successfully minted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NFTResponse"
+        400:
+          description: Can not save NFT in DB/ Can not issue NFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/mintcontract:
+    post:
+      tags:
+        - nft
+      description: Insert proof presentation protocol
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NFTContracts"
+      responses:
+        200:
+          description: Successfully minted.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NFTResponse"
+        400:
+          description: Can not issue NFT
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/mintSolana/getMinter/{ImageBase64}:
+    get:
+      tags:
+        - nft
+      description: Get minter by Base64 image
+      parameters:
+        - name: ImageBase64
+          in: path
+          description: Base64 image
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Minter"
+        400:
+          description: URL Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/mintStellar/gettxn/{ImageBase64}:
+    get:
+      tags:
+        - nft
+      description: Get stellar txn by Base64 image
+      parameters:
+        - name: ImageBase64
+          in: path
+          description: Base64 image
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StellarMintTXN"
+        400:
+          description: URL Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/retriveNFTByStatusAndPK:
+    get:
+      tags:
+        - nft
+      description: Retrieve NFT status by public key
+      parameters:
+        - in: query
+          name: sellingstatus
+          description: Selling Status
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: distributorPK
+          description: Distributor Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MarketPlaceNFT"
+        400:
+          description: Unable to connect gateway datastore/ Selling NFTs are not found in gateway datastore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/createNFTIssuerAccount:
+    get:
+      tags:
+        - nft
+      description: Create new NFT issuer account
+      responses:
+        200:
+          description: Created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NFTIssuerAccount"
+        500:
+          description: Internal server error
+
+  /nft/updateStellarMarketplaceSell:
+    put:
+      tags:
+        - nft
+      description: Update NFT selling status
+      parameters:
+        - in: query
+          name: Price
+          description: NFT price
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: Status
+          description: NFT selling status
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: Amount
+          description: No. of NFTs
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: NFTTxnHash
+          description: NFT TXN hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+        400:
+          description: Error when updating the selling status/ Missing params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /nft/updateStellarMarketplaceBuy:
+    put:
+      tags:
+        - nft
+      description: Buy Marketplace NFT
+      parameters:
+        - in: query
+          name: sellingStatus
+          description: Selling status
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: currentPK
+          description: Current PK
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: previousPK
+          description: Previous PK
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: nfthash
+          description: NFT hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Buying status updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+        400:
+          description: Error when updating the buying status/ Missing params
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /lastnft/{InitialDistributorPK}:
+    get:
+      tags:
+        - nft
+      description: Get lasy NFT by public key
+      parameters:
+        - name: InitialDistributorPK
+          in: path
+          description: Intial distributor public key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MarketPlaceNFT"
+        400:
+          description: Initial Distributor PK Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /nft/fundAccount:
+    get:
+      tags:
+        - nft
+      description: Fund account
+      parameters:
+        - in: query
+          name: publickey
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PublicKey"
+        400:
+          description: Error when funding account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /transaction/type/{TType}:
+    post:
+      tags:
+        - deprecated
+      description: Used to insert genesis, merge, split etc.
+      parameters:
+        - name: TType
+          in: path
+          description: Transaction type
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: Transaction successful
+        400:
+          description: Error decoding body
+
+  /create/Trustline:
+    post:
+      tags:
+        - deprecated
+      description: Create trustline
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrustlineStruct"
+      responses:
+        200:
+          description: TrustLine created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoeSuccess"
+        400:
+          description: Error while Decoding the body
+
+  /send/asset:
+    post:
+      tags:
+        - deprecated
+      description: Send asset
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendAsset"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SendAssetRes"
+        400:
+          description: Error while Decoding the body
+
+  /lock/registrarAcc:
+    post:
+      tags:
+        - deprecated
+      description: Lock registrar account
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RegistrarAccount"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoeSuccess"
+        400:
+          description: Error while Decoding the body
+
+  /Appoint/Registrar:
+    post:
+      tags:
+        - deprecated
+      description: Appoint registrar
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AppointRegistrar"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegSuccess"
+        400:
+          description: Error while Decoding the body
+
+  /transform/V2:
+    post:
+      tags:
+        - deprecated
+      description: Transform V2
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AssetTransfer"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RegSuccess"
+        400:
+          description: Error while Decoding the body
+
+  /COC/Transaction:
+    post:
+      tags:
+        - deprecated
+      description: COC
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeOfCustody"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/COCRes"
+        400:
+          description: Error while Decoding the body
+
+  /COCLink/Transaction:
+    post:
+      tags:
+        - deprecated
+      description: COC Link
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ChangeOfCustodyLink"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PoeSuccess"
+        400:
+          description: Error while Decoding the body
+
+components:
+  schemas:
+    Health:
+      type: object
+      properties:
+        Note:
+          type: string
+        Time:
+          type: string
+        Version:
+          type: string
+
+    Error:
+      type: object
+      properties:
+        Code:
+          type: integer
+        Message:
+          type: string
+
+    POE:
+      type: object
+      properties:
+        Status:
+          type: string
+        Txnhash:
+          type: string
+        TxnType:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Url:
+          type: string
+        LabUrl:
+          type: string
+        SourceAccount:
+          type: string
+        Identifier:
+          type: string
+        BlockchainName:
+          type: string
+        Timestamp:
+          type: string
+        Ledger:
+          type: string
+        FeePaid:
+          type: string
+        DBHash:
+          type: string
+        BcHash:
+          type: string
+
+    POC:
+      type: object
+      properties:
+        Status:
+          type: string
+        Txnhash:
+          type: string
+        TxnType:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Identifier:
+          type: string
+        DataHash:
+          type: string
+        BlockchainName:
+          type: string
+        Timestamp:
+          type: string
+        Ledger:
+          type: string
+        FeePaid:
+          type: string
+        Url:
+          type: string
+        SourceAccount:
+          type: string
+        AvailableProofs:
+          type: array
+          items:
+            type: string
+        COCStatus:
+          type: string
+        Quantity:
+          type: string
+        AssetCode:
+          type: string
+        From:
+          type: string
+        To:
+          type: string
+        FromSigned:
+          type: string
+        ToSigned:
+          type: string
+
+    POG:
+      type: object
+      properties:
+        Status:
+          type: string
+        Txnhash:
+          type: string
+        TxnType:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Url:
+          type: string
+        LabUrl:
+          type: string
+        SourceAccount:
+          type: string
+        Identifier:
+          type: string
+        BlockchainName:
+          type: string
+        Timestamp:
+          type: string
+        Ledger:
+          type: string
+        FeePaid:
+          type: string
+        ProductName:
+          type: string
+        ProductId:
+          type: string
+
+    POCOC:
+      type: object
+      properties:
+        Status:
+          type: string
+        Txnhash:
+          type: string
+        TxnType:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Url:
+          type: string
+        LabUrl:
+          type: string
+        Identifier:
+          type: string
+        Quantity:
+          type: string
+        AssetCode:
+          type: string
+        From:
+          type: string
+        To:
+          type: string
+        FromSigned:
+          type: string
+        ToSigned:
+          type: string
+        BlockchainName:
+          type: string
+        COCStatus:
+          type: string
+        Timestamp:
+          type: string
+        Ledger:
+          type: string
+        FeePaid:
+          type: string
+
+    COCCollection:
+      type: object
+      properties:
+        TxnHash:
+          type: string
+        Sender:
+          type: string
+        SubAccount:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Receiver:
+          type: string
+        AcceptXdr:
+          type: string
+        RejectXdr:
+          type: string
+        AcceptTxn:
+          type: string
+        RejectTxn:
+          type: string
+        Identifier:
+          type: string
+        Status:
+          type: string
+
+    InsertCOCCollection:
+      type: object
+      properties:
+        TxnHash:
+          type: string
+        Sender:
+          type: string
+        SubAccount:
+          type: string
+        Receiver:
+          type: string
+        AcceptXdr:
+          type: string
+        RejectXdr:
+          type: string
+        AcceptTxn:
+          type: string
+        RejectTxn:
+          type: string
+        Identifier:
+          type: string
+        Status:
+          type: string
+
+    TransactionCollection:
+      type: object
+      properties:
+        Identifier:
+          type: string
+        TDPID:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        ProfileID:
+          type: string
+        TxnHash:
+          type: string
+        PreviousTxnHash:
+          type: string
+        FromIdentifier1:
+          type: string
+        FromIdentifier2:
+          type: string
+        ToIdentifier:
+          type: string
+        ItemCode:
+          type: string
+        ItemAmount:
+          type: string
+        PublicKey:
+          type: string
+        TxnType:
+          type: string
+        XDR:
+          type: string
+        MergeID:
+          type: string
+        Orphan:
+          type: boolean
+        PreviousStage:
+          type: string
+        CurrentStage:
+          type: string
+        AppAccount:
+          type: string
+        DataHash:
+          type: string
+        ProductName:
+          type: string
+        ProductID:
+          type: string
+        PreviousSplitProfile:
+          type: string
+        CurrentTxnHash:
+          type: string
+        PreviousTxnHash2:
+          type: string
+
+    CertificateCollection:
+      type: object
+      properties:
+        TxnType:
+          type: string
+        PreviousCertificate:
+          type: string
+        CertificateType:
+          type: string
+        Data:
+          type: string
+        ValidityPeriod:
+          type: string
+        Asset:
+          type: string
+        PublicKey:
+          type: string
+        XDR:
+          type: string
+        CertificateID:
+          type: string
+        Status:
+          type: string
+
+    LastTxn:
+      type: object
+      properties:
+        LastTxn:
+          type: string
+
+    SubAccountStatusRequest:
+      type: object
+      properties:
+        User:
+          type: string
+        SubAccounts:
+          type: array
+          items:
+            type: string
+        Receivers:
+          type: array
+          items:
+            type: string
+
+    SubAccountStatusResponse:
+      type: object
+      properties:
+        SubAccount:
+          type: string
+        Receiver:
+          type: string
+        SequenceNo:
+          type: string
+        Available:
+          type: boolean
+        Expiration:
+          type: boolean
+        Operation:
+          type: string
+
+    SubmitXDRSuccess:
+      type: object
+      properties:
+        Status:
+          type: string
+
+    POCSuccess:
+      type: object
+      properties:
+        Message:
+          type: string
+        Chain:
+          type: array
+          items:
+            $ref: "#/components/schemas/Current"
+
+    Current:
+      type: object
+      properties:
+        TType:
+          type: string
+        TXNID:
+          type: string
+        DataHash:
+          type: string
+        MergedID:
+          type: string
+        Identifier:
+          type: string
+        PreviousProfileID:
+          type: string
+        ProfileID:
+          type: string
+        Assets:
+          type: array
+          items:
+            type: string
+        Time:
+          type: string
+        MergedChain:
+          type: array
+          items:
+            $ref: "#/components/schemas/Current"
+
+    LogBody:
+      type: object
+      properties:
+        Data:
+          type: string
+
+    TranXDR:
+      type: object
+      properties:
+        XDR:
+          type: string
+
+    TDP:
+      type: object
+      properties:
+        TdpId:
+          type: string
+
+    TransactionId:
+      type: object
+      properties:
+        Txnhash:
+          type: string
+        Url:
+          type: string
+
+    TransactionIds:
+      type: array
+      items:
+        type: object
+        properties:
+          Status:
+            type: string
+          Txnhash:
+            type: string
+          Url:
+            type: string
+          Identifier:
+            type: string
+          TdpId:
+            type: string
+
+    GetTransactionId:
+      type: object
+      properties:
+        TdpID:
+          type: array
+          items:
+            type: string
+
+    PrevTxnResponse:
+      type: object
+      properties:
+        Status:
+          type: string
+        Txnhash:
+          type: string
+        TxnType:
+          type: string
+        SequenceNo:
+          type: integer
+          format: int64
+        Identifier:
+          type: string
+        DataHash:
+          type: string
+        BlockchainName:
+          type: string
+        Timestamp:
+          type: string
+        Ledger:
+          type: string
+        FeePaid:
+          type: string
+        Url:
+          type: string
+        SourceAccount:
+          type: string
+        AvailableProofs:
+          type: array
+          items:
+            type: string
+        COCStatus:
+          type: string
+        Quantity:
+          type: string
+        AssetCode:
+          type: string
+        From:
+          type: string
+        To:
+          type: string
+        FromSigned:
+          type: string
+        ToSigned:
+          type: string
+
+    TotalTransactions:
+      type: object
+      properties:
+        TotalTransactionCount:
+          type: integer
+          format: int64
+
+    ArtifactTransaction:
+      type: object
+      properties:
+        TenantId:
+          type: string
+        ArtifactId:
+          type: string
+        ArtifactDataId:
+          type: string
+        CellId:
+          type: string
+        PublicKey:
+          type: string
+        XDR:
+          type: string
+        Txnhash:
+          type: string
+
+    TestimonialOrganization:
+      type: object
+      properties:
+        Name:
+          type: string
+        Description:
+          type: string
+        Logo:
+          type: string
+        Email:
+          type: string
+        Phone:
+          type: string
+        PhoneSecondary:
+          type: string
+        AcceptTxn:
+          type: string
+        AcceptXDR:
+          type: string
+        RejectTxn:
+          type: string
+        RejectXDR:
+          type: string
+        TxnHash:
+          type: string
+        Author:
+          type: string
+        SubAccount:
+          type: string
+        SequenceNo:
+          type: string
+        Status:
+          type: string
+        ApprovedBy:
+          type: string
+        ApprovedOn:
+          type: string
+
+    TestimonialOrganizationResponse:
+      type: object
+      properties:
+        AcceptTxn:
+          type: string
+        AcceptXDR:
+          type: string
+        RejectTxn:
+          type: string
+        RejectXDR:
+          type: string
+        TxnHash:
+          type: string
+        SequenceNo:
+          type: string
+        Status:
+          type: string
+
+    Testimonial:
+      type: object
+      properties:
+        Sender:
+          type: string
+        Reciver:
+          type: string
+        AcceptTxn:
+          type: string
+        AcceptXDR:
+          type: string
+        RejectTxn:
+          type: string
+        RejectXDR:
+          type: string
+        TxnHash:
+          type: string
+        Subaccount:
+          type: string
+        SequenceNo:
+          type: string
+        Status:
+          type: string
+        Testimonial:
+          type: object
+
+    TestimonialResponse:
+      type: object
+      properties:
+        TxnHash:
+          type: string
+        SequenceNo:
+          type: string
+        Status:
+          type: string
+        Testimonial:
+          type: object
+
+    PoolCreate:
+      type: object
+      properties:
+        equationId:
+          type: string
+        ProductName:
+          type: string
+        ProductID:
+          type: string
+        tenantId:
+          type: string
+        activityId:
+          type: string
+        FormulaType:
+          type: string
+        equatinStringFormate:
+          type: string
+        simpleifedEquation:
+          type: string
+        metricCoin:
+          type: object
+          properties:
+            id:
+              type: string
+            coinName:
+              type: string
+            description:
+              type: string
+        equationSubPortion:
+          type: array
+          items:
+            type: object
+            properties:
+              subPortion:
+                type: string
+              fieldAndCoin:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    coinName:
+                      type: string
+                    fieldName:
+                      type: string
+                    description:
+                      type: string
+                    userInputType:
+                      type: string
+                    variableType:
+                      type: string
+                    value:
+                      type: string
+
+    CoinConvert:
+      type: object
+      properties:
+        equationId:
+          type: string
+        ProductName:
+          type: string
+        ProductID:
+          type: string
+        TenantId:
+          type: string
+        FormulaType:
+          type: string
+        FormulaTypeID:
+          type: string
+        FormulaTypeName:
+          type: string
+        stageId:
+          type: string
+        metricCoin:
+          type: object
+          properties:
+            coinName:
+              type: string
+            fieldName:
+              type: string
+        userInputs:
+          type: array
+          items:
+            type: object
+            properties:
+              coinName:
+                type: string
+              fieldName:
+                type: string
+              value:
+                type: string
+
+    CoinCalculation:
+      type: object
+      properties:
+        equationId:
+          type: string
+        ProductName:
+          type: string
+        TenantId:
+          type: string
+        FormulaType:
+          type: string
+        FormulaTypeID:
+          type: string
+        FormulaTypeName:
+          type: string
+        stageId:
+          type: string
+
+    CoinCalculationResponse:
+      type: object
+      properties:
+        TenantID:
+          type: string
+        ProductName:
+          type: string
+        FormulaType:
+          type: string
+        FormulaTypeName:
+          type: string
+        StageId:
+          type: string
+        EquationID:
+          type: string
+        MetricCoin:
+          type: object
+          properties:
+            CoinName:
+              type: string
+            GeneratedName:
+              type: string
+            FieldName:
+              type: string
+            Description:
+              type: string
+        Account:
+          type: string
+        EquationResult:
+          type: string
+
+    Steps:
+      type: object
+      properties:
+        StepNo:
+          type: integer
+          format: int32
+        SegmentNo:
+          type: string
+        Discription:
+          type: string
+        Action:
+          type: object
+          properties:
+            ActionType:
+              type: string
+            ActionParameters:
+              type: object
+              properties:
+                InputVariables:
+                  type: array
+                  items:
+                    type: string
+                OutputVariables:
+                  type: array
+                  items:
+                    type: string
+                Services:
+                  type: object
+                  properties:
+                    ServiceName:
+                      type: string
+                    ServiceURL:
+                      type: string
+                    DocumentationLink:
+                      type: string
+
+    ProofProtocol:
+      type: object
+      properties:
+        ProofName:
+          type: string
+        ProofDescriptiveName:
+          type: string
+        NumberOfSteps:
+          type: string
+        Steps:
+          type: array
+          items:
+            $ref: "#/components/schemas/Steps"
+
+    TxnForId:
+      type: array
+      items:
+        type: object
+        properties:
+          Status:
+            type: string
+          Txnhash:
+            type: string
+          TxnType:
+            type: string
+          Identifier:
+            type: string
+          FromIdentifier1:
+            type: string
+          FromIdentifier2:
+            type: string
+          ToIdentifier:
+            type: string
+          AvailableProof:
+            type: array
+            items:
+              type: string
+          ProductName:
+            type: string
+          ProductID:
+            type: string
+
+    NFTResponse:
+      type: object
+      properties:
+        NFTTxnHash:
+          type: string
+        TDPTxnHash:
+          type: string
+        NFTName:
+          type: string
+        NFTIssuerPublicKey:
+          type: string
+
+    MintRequest:
+      type: object
+      properties:
+        DistributorPublickKey:
+          type: string
+        IssuerPublicKey:
+          type: string
+        Asset_code:
+          type: string
+        NFTURL:
+          type: string
+        Description:
+          type: string
+        Collection:
+          type: string
+        NFTBlockChain:
+          type: string
+        Tags:
+          type: string
+        Categories:
+          type: string
+        Copies:
+          type: string
+        NFTLinks:
+          type: string
+        ArtistName:
+          type: string
+        ArtistLink:
+          type: string
+        Successfull:
+          type: boolean
+        TrustLineCreatedAt:
+          type: string
+
+    NFTContracts:
+      type: object
+      properties:
+        NFTContract:
+          type: string
+        MarketplaceContract:
+          type: string
+        MintNFTTxn:
+          type: string
+        OwnerPK:
+          type: string
+        Asset_code:
+          type: string
+        NFTURL:
+          type: string
+        Description:
+          type: string
+        Collection:
+          type: string
+        NFTBlockChain:
+          type: string
+        Tags:
+          type: string
+        Categories:
+          type: string
+        Copies:
+          type: string
+        NFTLinks:
+          type: string
+        ArtistName:
+          type: boolean
+        ArtistLink:
+          type: string
+        Identifier:
+          type: string
+
+    Minter:
+      type: object
+      properties:
+        NFTIssuerPK:
+          type: string
+        NFTTxnHash:
+          type: string
+        NFTIdentifier:
+          type: string
+
+    StellarMintTXN:
+      type: object
+      properties:
+        NFTTxnHash:
+          type: string
+
+    MarketPlaceNFT:
+      type: object
+      properties:
+        Identifier:
+          type: string
+        Categories:
+          type: string
+        Collection:
+          type: string
+        ImageBase64:
+          type: string
+        NftTransactionExistingBlockchain:
+          type: string
+        NftIssuingBlockchain:
+          type: string
+        NFTTXNhash:
+          type: string
+        Timestamp:
+          type: string
+        NftURL:
+          type: string
+        NftContentName:
+          type: string
+        NftContent:
+          type: string
+        NFTArtistName:
+          type: string
+        NFTArtistURL:
+          type: string
+        TrustLineCreatedAt:
+          type: string
+        Description:
+          type: string
+        Copies:
+          type: string
+        OriginPK:
+          type: string
+        SellingStatus:
+          type: string
+        Amount:
+          type: string
+        Price:
+          type: string
+        InitialDistributorPK:
+          type: string
+        InitialIssuerPK:
+          type: string
+        MainAccountPK:
+          type: string
+        PreviousOwnerNFTPK:
+          type: string
+        CurrentOwnerNFTPK:
+          type: string
+
+    NFTIssuerAccount:
+      type: object
+      properties:
+        NFTIssuerPK:
+          type: string
+
+    PublicKey:
+      type: object
+      properties:
+        PublicKey:
+          type: string
+
+    Coinconertions:
+      type: array
+      items:
+        type: object
+        properties:
+          Sendingcoin:
+            type: object
+            properties:
+              Id:
+                type: string
+              Fieldname:
+                type: string
+              Coinname:
+                type: string
+              GeneratedName:
+                type: string
+              Amount:
+                type: string
+          ReceivingCoin:
+            type: object
+            properties:
+              Id:
+                type: string
+              Fieldname:
+                type: string
+              Coinname:
+                type: string
+              GeneratedName:
+                type: string
+              Amount:
+                type: string
+          BatchAccountPK:
+            type: string
+          BatchAccountSK:
+            type: string
+          CoinIssuerAccountPK:
+            type: string
+          PoolID:
+            type: string
+          Hash:
+            type: string
+
+    TrustlineStruct:
+      type: object
+      properties:
+        Code:
+          type: string
+        Limit:
+          type: string
+        Issuerkey:
+          type: string
+        Signerkey:
+          type: string
+
+    PoeSuccess:
+      type: object
+      properties:
+        Message:
+          type: string
+        TxnHash:
+          type: string
+
+    SendAsset:
+      type: object
+      properties:
+        Code:
+          type: string
+        Amount:
+          type: string
+        Issuerkey:
+          type: string
+        Reciverkey:
+          type: string
+        Signer:
+          type: string
+        PreviousTXNID:
+          type: string
+        ProfileID:
+          type: string
+        Type:
+          type: string
+
+    SendAssetRes:
+      type: object
+      properties:
+        Txn:
+          type: string
+        To:
+          type: string
+        From:
+          type: string
+        Code:
+          type: string
+        Amount:
+          type: string
+        PreviousTXNID:
+          type: string
+        PreviousProfileID:
+          type: string
+        Message:
+          type: string
+
+    RegistrarAccount:
+      type: object
+      properties:
+        SignerKeys:
+          type: array
+          items:
+            type: object
+            properties:
+              Publicky:
+                type: string
+              Weight:
+                type: string
+        SignerKey:
+          type: string
+        Low:
+          type: string
+        Medium:
+          type: string
+        High:
+          type: string
+
+    AppointRegistrar:
+      type: object
+      properties:
+        Registrar:
+          type: string
+        AccountKey:
+          type: string
+        Weight:
+          type: string
+        Low:
+          type: string
+        Medium:
+          type: string
+        High:
+          type: string
+
+    RegSuccess:
+      type: object
+      properties:
+        Message:
+          type: string
+        Xdr:
+          type: string
+
+    AssetTransfer:
+      type: object
+      properties:
+        Asset:
+          type: array
+          items:
+            type: object
+            properties:
+              Code:
+                type: string
+              Limit:
+                type: string
+        Issuer:
+          type: string
+        Sender:
+          type: string
+        Reciver:
+          type: string
+        Type:
+          type: string
+        PreviousTXNID:
+          type: string
+        PreviousProfileID:
+          type: string
+        Identifier:
+          type: string
+
+    ChangeOfCustody:
+      type: object
+      properties:
+        Code:
+          type: string
+        Amount:
+          type: string
+        IssuerKey:
+          type: string
+        Reciverkey:
+          type: string
+        Sender:
+          type: string
+        PreviousTXNID:
+          type: string
+        PreviousProfileID:
+          type: string
+        Identifier:
+          type: string
+        Type:
+          type: string
+
+    ChangeOfCustodyLink:
+      type: object
+      properties:
+        COCTxn:
+          type: string
+        SignerKey:
+          type: string
+        Type:
+          type: string
+        PreviousTXNID:
+          type: string
+        PreviousProfileID:
+          type: string
+        Identifier:
+          type: string
+
+    COCRes:
+      type: object
+      properties:
+        TxnXDR:
+          type: string
+        To:
+          type: string
+        From:
+          type: string
+        Code:
+          type: string
+        Amount:
+          type: string
+        PreviousTXNID:
+          type: string
+        PreviousProfileID:
+          type: string
+        Message:
+          type: string

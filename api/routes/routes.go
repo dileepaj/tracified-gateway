@@ -541,5 +541,10 @@ var routes = Routes{
 		"GET",
 		"/nft/sponsortrust",
 		businessFacades.SponsorBuyerTrust, //Calls the UpdateBuyingStatus in the nftHandler
+},
+		"Update Equation stages and product details",
+		"PUT",
+		"/socialimapact",
+		businessFacades.UpdateEquation, //Update pool's activities and products details
 	},
 }

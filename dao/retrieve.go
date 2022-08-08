@@ -1750,7 +1750,9 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equatonId, productName, tenantId string) *promise.Promise {
+func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId, equatonId,
+	productId, tenantId, stageID, activityID string,
+) *promise.Promise {
 	resultBatchAccountObj := model.CoinAccount{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1762,10 +1764,17 @@ func (cd *Connection) GetBatchSpecificAccount(formulType, formulaTypeName, equat
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("CoinAccount")
-		if formulType == "BATCH" {
-			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "productname": productName, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
+		if formulaType == "BATCH" {
+			err = c.FindOne(context.TODO(), bson.M{
+				"event.details.batchid": batchOrArtifcatId, "metricformulaid": equatonId,
+				"event.details.tracifieditemid": productId, "tenantid": tenantId,
+				"type": formulaType, "event.details.stageid": stageID, "metricactivivtyid": activityID,
+			}).Decode(&resultBatchAccountObj)
 		} else {
-			err = c.FindOne(context.TODO(), bson.M{"formulatypename": formulaTypeName, "equationid": equatonId, "tenantid": tenantId, "formulatype": formulType}).Decode(&resultBatchAccountObj)
+			err = c.FindOne(context.TODO(), bson.M{
+				"event.details.artifactid": batchOrArtifcatId, "metricformulaid": equatonId,
+				"tenantid": tenantId, "type": formulaType, "event.details.stageid": stageID,
+			}).Decode(&resultBatchAccountObj)
 		}
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
@@ -1800,9 +1809,32 @@ func (cd *Connection) GetLiquidityPool(equatonId string, tenantId string, formul
 	return p
 }
 
+func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId, tenantId, formulatype, activityId, stageID string) *promise.Promise {
+	pool := model.BuildPoolResponse{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("PoolDetails")
+		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype, "activity.id": activityId, "activity.stageid": stageID}).Decode(&pool)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(pool)
+		}
+	})
+	return p
+}
+
 func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string, blockchain string) *promise.Promise {
 	result := model.NFTWithTransactionSolana{}
-	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
@@ -1821,7 +1853,7 @@ func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string, blockchain string
 
 func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string, blockchain string) *promise.Promise {
 	result := model.NFTWithTransaction{}
-	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
@@ -1837,9 +1869,10 @@ func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string, blockchain string)
 	})
 	return promise
 }
+
 func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, distributorPK string) *promise.Promise {
 	result := model.MarketPlaceNFTTrasactionWithCount{}
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
@@ -1913,7 +1946,7 @@ func (cd *Connection) GetLiquidityPoolForArtifact(equatonId string, tenantId str
 
 func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
 	result := model.MarketPlaceNFT{}
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			log.Error("Error while connecting to db " + err.Error())
@@ -1944,7 +1977,10 @@ func (cd *Connection) GetCoinName(coinName string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("CoinName")
-		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName}).Decode(&coin)
+		// Sort by `price` field descending
+		findOptions := options.FindOne()
+		findOptions.SetSort(bson.D{{"timestamp", -1}})
+		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName},findOptions).Decode(&coin)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)
@@ -2036,10 +2072,9 @@ func (cd *Connection) GetCreatedPool(coin1, coin2 string) *promise.Promise {
 
 func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK string) *promise.Promise {
 	result := []model.MarketPlaceNFT{}
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			reject(err)
 		}
@@ -2058,16 +2093,14 @@ func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK stri
 				resolve(result[len(result)-1])
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 	result := []model.NFTKeys{}
-	var promise = promise.New(func(resolve func(interface{}), reject func(error)) {
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
 			reject(err)
@@ -2089,7 +2122,7 @@ func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 	return promise
 }
 
-//get path payment details from the CoinConversion collection
+// get path payment details from the CoinConversion collection
 func (cd *Connection) GetCoinConversionDetails(formulType, equatonId, productName, tenantId string) *promise.Promise {
 	result := []model.CoinConversionDetails{}
 
@@ -2130,7 +2163,6 @@ func (cd *Connection) GetCoinConversionDetails(formulType, equatonId, productNam
 				}
 			}
 		}
-
 	})
 	return p
 }

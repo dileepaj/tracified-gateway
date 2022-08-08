@@ -5,7 +5,7 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-func ValidateBatchCoinConvert(e model.BatchCoinConvert) error {
+func ValidateBatchCoinConvert(e model.CoinConvertBody) error {
 	validate := validator.New()
 	err := validate.Struct(e)
 	if err != nil {
