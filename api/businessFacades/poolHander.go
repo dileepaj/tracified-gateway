@@ -564,13 +564,13 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	if calculateEquationObj.Type == "BATCH" {
 		data, _ = object.GetSpecificAccountByActivityAndFormula(calculateEquationObj.Type, calculateEquationObj.BatchID,
 			calculateEquationObj.MetricFormulaId, calculateEquationObj.TracifiedItemId,
-			calculateEquationObj.TenantID, calculateEquationObj.StageID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
+			calculateEquationObj.TenantID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	} else if calculateEquationObj.Type == "ARTIFACT" {
 		data, _ = object.GetSpecificAccountByActivityAndFormula(calculateEquationObj.Type, calculateEquationObj.BatchID,
 			calculateEquationObj.MetricFormulaId, calculateEquationObj.TracifiedItemId,
-			calculateEquationObj.TenantID, calculateEquationObj.StageID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
+			calculateEquationObj.TenantID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	} else {

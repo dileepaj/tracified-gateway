@@ -309,7 +309,6 @@ type CalculateEquation struct {
 	Type             string `json:"Type" bson:"type" validate:"required"`
 	BatchID          string `json:"BatchID" bson:"batchid"`
 	ArtifactID       string `json:"artifactID" bson:"artifactid"`
-	StageID          string `json:"StageID" bson:"stageid" validate:"required"`
 	TracifiedItemId  string `json:"TracifiedItemId" bson:"tracifieditemid"`
 }
 type EquationResultForBatch struct {

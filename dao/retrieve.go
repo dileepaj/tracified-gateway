@@ -1787,7 +1787,7 @@ func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId,
 }
 
 func (cd *Connection) GetSpecificAccountByActivityAndFormula(formulaType, batchOrArtifcatId, formulaId,
-	productId, tenantId, stageId, activityId string,
+	productId, tenantId, activityId string,
 ) *promise.Promise {
 	// bpsk
 	resultBatchAccountObj := model.BuildPathPaymentJSon{}
@@ -1805,7 +1805,7 @@ func (cd *Connection) GetSpecificAccountByActivityAndFormula(formulaType, batchO
 			err = c.FindOne(context.TODO(), bson.M{
 				"event.event.details.batchid":         batchOrArtifcatId,
 				"event.event.details.tracifieditemid": productId, "event.tenantid": tenantId,
-				"event.type": formulaType, "event.metricformulaid": formulaId, "event.event.details.stageid": stageId,
+				"event.type": formulaType, "event.metricformulaid": formulaId,
 				"event.metricactivityid": activityId,
 			}).Decode(&resultBatchAccountObj)
 		} else {
