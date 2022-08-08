@@ -531,9 +531,15 @@ var routes = Routes{
 		businessFacades.GetPathPaymentDetails, //Get the path payment details
 	},
 	Route{
-		"SponsorBuyer",
+		"SponsorAccount",
 		"GET",
 		"/nft/sponsor",
-		businessFacades.SponsorBuyer, //Calls the UpdateBuyingStatus in the nftHandler
+		businessFacades.SponsorBuyerAccount, //Calls the UpdateBuyingStatus in the nftHandler
+	},
+	Route{
+		"SponsorTrust",
+		"GET",
+		"/nft/sponsortrust",
+		businessFacades.SponsorBuyerTrust, //Calls the UpdateBuyingStatus in the nftHandler
 	},
 }

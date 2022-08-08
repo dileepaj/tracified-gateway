@@ -10,22 +10,8 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string, error) {
+func SponsorTrust(buyerPK string, nftname string, issuer string) (string, error) {
 	client := horizonclient.DefaultTestNetClient
-	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
-		SponsoredID:   buyerPK,
-		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
-	}
-
-	createAccount := txnbuild.CreateAccount{
-		Destination:   buyerPK,
-		Amount:        "0",
-		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
-	}
-
-	endSponsorship := txnbuild.EndSponsoringFutureReserves{
-		SourceAccount: buyerPK,
-	}
 
 	beginSponsorship1 := txnbuild.BeginSponsoringFutureReserves{
 		SponsoredID:   buyerPK,
@@ -57,7 +43,7 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &endSponsorship, &beginSponsorship1, &changeTrustOp, &endSponsorship1},
+			Operations:           []txnbuild.Operation{&beginSponsorship1, &changeTrustOp, &endSponsorship1},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
