@@ -45,11 +45,14 @@ type BuildPathPaymentJSonResponse struct {
 }
 
 type BuildPathPaymentJSon struct {
+	Metric         Metric
+	Inputs         []Input
 	RealAnswer     float64
 	ActualAnswer   float64
 	ErrorRate      float64
 	CoinConertions []BuildPathPayment
-	FirstEvent     CoinAccount
+	CoinAccount    CoinAccount
+	Event          CoinConvertBody
 	AccountPK      string
 	CreatedAt      string
 }
@@ -178,17 +181,19 @@ type ArtifactCoinConvert struct {
 	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
-type CoinAccount struct {
-	Metric            Metric
-	Inputs            []Input
-	Event             Event
-	Type              string
+type Formula struct {
+	StageID           string
+	TracifiedItemId   string
 	MetricFormulaId   string
 	MetricActivivtyId string
-	TenantID          string
-	CreatedAt         string
-	CoinAccountPK     string
-	CoinAccountSK     []byte
+}
+type CoinAccount struct {
+	Event         Event
+	Type          string
+	TenantID      string
+	CreatedAt     string
+	CoinAccountPK string
+	CoinAccountSK []byte
 }
 
 type MetricFormulas struct {
@@ -438,7 +443,6 @@ type Event struct {
 	Model   string
 	Details Details
 }
-
 type CoinConvertBody struct {
 	ID               string
 	Value            float64

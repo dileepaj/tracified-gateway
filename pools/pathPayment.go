@@ -21,11 +21,13 @@ import (
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
 func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
-	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" || pathPayment.ReceivingCoin.GeneratedName == "" || pathPayment.CoinIssuerAccontPK == "" {
+	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" ||
+		pathPayment.ReceivingCoin.GeneratedName == "" || pathPayment.CoinIssuerAccontPK == "" {
 		log.Error("CoinConvert() method's parameters have a empty values")
 		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
 	}
-	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.GeneratedName, pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK)
+	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.GeneratedName,
+		pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK)
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
@@ -180,7 +182,8 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 // GetConvertedCoinAmount,  get distination recived coin ammount after converting the coin and get the coin convesion path (using stella call)
 func GetConvertedCoinAmount(from string, fromAmount string, to string, assetIssuer string) (model.DestinationCoin, error) {
 	var destinationAssert model.DestinationCoin
-	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum12&source_asset_code=" + from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
+	url := commons.GetHorizonClient().HorizonURL + "paths/strict-send?source_asset_type=credit_alphanum12&source_asset_code=" +
+		from + "&source_asset_issuer=" + assetIssuer + "&source_amount=" + fromAmount + "&destination_assets=" + to + "%3A" + assetIssuer
 	result, err := http.Get(url)
 	if err != nil {
 		log.Error("Unable to reach Stellar network", url)
@@ -242,35 +245,34 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	var batchAccountSK string
 	var coinConversions []model.BuildPathPayment
 
-	var batchAccount model.CoinAccount
+	batchAccount := model.CoinAccount{}
 
 	// check if there is an account in the DB for the batchID and get the account
 	object := dao.Connection{}
 	var data interface{}
 	if batchConvertCoinObj.Type == "BATCH" {
 		data, _ = object.GetBatchSpecificAccount(batchConvertCoinObj.Type, batchConvertCoinObj.Event.Details.BatchID,
-			batchConvertCoinObj.MetricFormulaId, batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
-			batchConvertCoinObj.Event.Details.StageID, batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
+			batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
+		).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	} else {
 		data, _ = object.GetBatchSpecificAccount(batchConvertCoinObj.Type, batchConvertCoinObj.Event.Details.ArtifactID,
-			batchConvertCoinObj.MetricFormulaId, batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
-			batchConvertCoinObj.Event.Details.StageID, batchConvertCoinObj.MetricActivityId).Then(func(data interface{}) interface{} {
+			batchConvertCoinObj.Event.Details.TracifiedItemId, batchConvertCoinObj.TenantID,
+		).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	}
 	if data == nil {
 		batchAccount = model.CoinAccount{
-			Metric:            batchConvertCoinObj.Metric,
-			Inputs:            batchConvertCoinObj.Inputs,
-			Event:             batchConvertCoinObj.Event,
-			Type:              batchConvertCoinObj.Type,
-			MetricFormulaId:   batchConvertCoinObj.MetricFormulaId,
-			MetricActivivtyId: batchConvertCoinObj.MetricActivityId,
-			TenantID:          batchConvertCoinObj.TenantID,
-			CreatedAt:         batchConvertCoinObj.CreatedAt,
+			Event: batchConvertCoinObj.Event,
+			Type:  batchConvertCoinObj.Type,
+			TenantID:      batchConvertCoinObj.TenantID,
+			CreatedAt:     batchConvertCoinObj.CreatedAt,
+			CoinAccountPK: "",
+			CoinAccountSK: []byte{},
 		}
+		batchAccount.Event.Details.StageID="ANY"
 		// if not create the sponsering account
 		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
 		batchAccountPK = batchPK
@@ -283,30 +285,23 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 
 	} else {
 		batchAccount = (data.(model.CoinAccount))
-		batchAccount.Metric = batchConvertCoinObj.Metric
+		// batchAccount.Metric = batchConvertCoinObj.Metric
 		decryptedPK := (data.(model.CoinAccount)).CoinAccountPK
 		decryptedSK := (data.(model.CoinAccount)).CoinAccountSK
-
-		// decrypt account details
-		// decryptedPK := commons.Decrypt([]byte(encryptedPK))
-		// decryptedSK := commons.Decrypt([]byte(encryptedSK))
-
 		// if there is an account go to path payments directly
 		batchAccountPK = decryptedPK
 		batchAccountSK = commons.Decrypt([]byte(decryptedSK))
-
 		logrus.Info("account PK  ", batchAccountPK)
 		// logrus.Info("account SK  ", batchAccountPK)
-
 		if batchAccountPK == "" || batchAccountSK == "" {
 			logrus.Error("Can not Create Batch Account")
 			return "", errors.New("Can not Create Batch Account")
 		}
-
 	}
 
 	// CoinConvertionJson return CoinConvertionJson that used to do a coin convert via pools
-	pathpayments, err := CoinConvertionJson(batchAccount, batchAccountPK, batchAccountSK)
+	pathpayments, err := CoinConvertionJson(batchAccountPK, batchAccountSK, batchConvertCoinObj.MetricFormulaId,
+		batchConvertCoinObj.MetricActivityId, batchConvertCoinObj)
 	if err != nil {
 		logrus.Error("Can not create Path Payment Json ", err)
 		return "", err
@@ -332,8 +327,11 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 		RealAnswer:     actualEquationAnswer,
 		ActualAnswer:   batchConvertCoinObj.Value,
 		ErrorRate:      CalculateErrorRate(batchConvertCoinObj.Value, actualEquationAnswer),
+		Metric:         batchConvertCoinObj.Metric,
+		Inputs:         batchConvertCoinObj.Inputs,
 		CoinConertions: coinConversions,
-		FirstEvent:     batchAccount,
+		CoinAccount:    batchAccount,
+		Event:          batchConvertCoinObj,
 		AccountPK:      batchAccountPK,
 		CreatedAt:      batchConvertCoinObj.CreatedAt,
 	}
@@ -388,7 +386,7 @@ func CalculateActualEquationAnswer(pathpayments []model.BuildPathPayment) float6
 func CalculateErrorRate(ideal, actual float64) float64 {
 	errorRate := 0.00000000
 	if actual != 0 {
-		errorRate = (math.Abs(ideal-actual)/ideal)*100
+		errorRate = (math.Abs(ideal-actual) / ideal) * 100
 	}
 	return errorRate
 }

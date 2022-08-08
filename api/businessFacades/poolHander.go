@@ -562,13 +562,13 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	var data interface{}
 	if calculateEquationObj.Type == "BATCH" {
-		data, _ = object.GetBatchSpecificAccount(calculateEquationObj.Type, calculateEquationObj.BatchID,
+		data, _ = object.GetSpecificAccountByActivityAndFormula(calculateEquationObj.Type, calculateEquationObj.BatchID,
 			calculateEquationObj.MetricFormulaId, calculateEquationObj.TracifiedItemId,
 			calculateEquationObj.TenantID, calculateEquationObj.StageID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 	} else if calculateEquationObj.Type == "ARTIFACT" {
-		data, _ = object.GetBatchSpecificAccount(calculateEquationObj.Type, calculateEquationObj.BatchID,
+		data, _ = object.GetSpecificAccountByActivityAndFormula(calculateEquationObj.Type, calculateEquationObj.BatchID,
 			calculateEquationObj.MetricFormulaId, calculateEquationObj.TracifiedItemId,
 			calculateEquationObj.TenantID, calculateEquationObj.StageID, calculateEquationObj.MetricActivityId).Then(func(data interface{}) interface{} {
 			return data
@@ -587,7 +587,7 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-	dbData := data.(model.CoinAccount)
+	dbData := data.(model.BuildPathPaymentJSon)
 	coinBalance, err := pools.CalculateCoin(dbData)
 	if err != nil {
 		logrus.Info("Can not find the assert in account")
@@ -597,16 +597,16 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	equationResponse = model.EquationResultForBatch{
-		MetricFormulaId:  dbData.MetricFormulaId,
-		TenantID:         dbData.TenantID,
-		MetricActivityId: dbData.MetricActivivtyId,
-		Type:             dbData.Type,
-		BatchID:          dbData.Event.Details.BatchID,
-		ArtifactID:       dbData.Event.Details.ArtifactID,
-		StageID:          dbData.Event.Details.StageID,
-		TracifiedItemId:  dbData.Event.Details.TracifiedItemId,
+		MetricFormulaId: dbData.Event.MetricFormulaId,
+		TenantID:         dbData.CoinAccount.TenantID,
+		MetricActivityId: dbData.Event.MetricActivityId,
+		Type:             dbData.CoinAccount.Type,
+		BatchID:          dbData.Event.Event.Details.BatchID,
+		ArtifactID:       dbData.Event.Event.Details.ArtifactID,
+		StageID:          dbData.Event.Event.Details.StageID,
+		TracifiedItemId:  dbData.Event.Event.Details.TracifiedItemId,
 		Metric:           dbData.Metric,
-		Account:          dbData.CoinAccountPK,
+		Account:          dbData.AccountPK,
 		EquationResult:   coinBalance,
 	}
 
