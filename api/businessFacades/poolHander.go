@@ -460,7 +460,7 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 			Products:             products,
 			TenantID:             equationJsonBody.TenantID,
 			Activity:             activity,
-			FormulaType:          "BATCH",
+			FormulaType:          "ARTIFACT",
 			EquatinStringFormate: equationJsonBody.FormulaAsString,
 			SimpleifedEquation:   equationJsonBody.FormulaAsString,
 			MetricCoin: model.MetricCoin{

@@ -40,7 +40,7 @@ func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, err
 	batchAccount.CoinAccountSK = encSK
 
 	object := dao.Connection{}
-	errResult := object.InsertBatchAccount(batchAccount)
+	errResult := object.InsertAccount(batchAccount)
 	if errResult != nil {
 		logrus.Info("Error when inserting batch acccount to DB " + errResult.Error())
 		return "", "", errResult
