@@ -28,13 +28,13 @@ func CreateSponseredAccount(batchAccount model.CoinAccount) (string, string, err
 		return "", "", err
 	}
 
-	logrus.Info("Batch Account PK ",pair.Address())
+	logrus.Info("Batch Account PK ", pair.Address())
 	// encrypt key pair and add to DB
 	encSK := commons.Encrypt(pair.Seed())
 	// logrus.Info("keys ----------------------+++++++-------------- ",encPK,"   ",encSK)
 
 	logrus.Info("Encrypted PK ", pair.Address())
-	//logrus.Info("Encrypted SK ", encSK)
+	// logrus.Info("Encrypted SK ", encSK)
 
 	batchAccount.CoinAccountPK = pair.Address()
 	batchAccount.CoinAccountSK = encSK

@@ -226,7 +226,7 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 
 // CoinConvertionJson ==>this method  rerstructed the coinConvertion request body recived by backend
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
-func CoinConvertionJson(batchAccountPK, batchAccountSK, formulaId, activityId string,coinConvertObject model.CoinConvertBody) ([]model.BuildPathPayment, error) {
+func CoinConvertionJson(batchAccountPK, batchAccountSK, formulaId, activityId string, coinConvertObject model.CoinConvertBody) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
 	data, _ := object.GetLiquidityPoolByProductAndActivity(formulaId,
 		coinConvertObject.TenantID, coinConvertObject.Type, activityId, coinConvertObject.Event.Details.StageID).Then(func(data interface{}) interface{} {

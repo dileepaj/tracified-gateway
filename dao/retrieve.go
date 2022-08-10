@@ -1803,9 +1803,8 @@ func (cd *Connection) GetSpecificAccountByActivityAndFormula(formulaType, batchO
 		c := session.Client().Database(dbName).Collection("CoinConversion")
 		if formulaType == "BATCH" {
 			err = c.FindOne(context.TODO(), bson.M{
-				"event.event.details.batchid":         batchOrArtifcatId,
-				"event.event.details.tracifieditemid": productId, "event.tenantid": tenantId,
-				"event.type": formulaType, "event.metricformulaid": formulaId,
+				"event.event.details.batchid": batchOrArtifcatId, "event.event.details.tracifieditemid": productId,
+				"event.tenantid": tenantId, "event.type": formulaType, "event.metricformulaid": formulaId,
 				"event.metricactivityid": activityId,
 			}).Decode(&resultBatchAccountObj)
 		} else {

@@ -597,7 +597,7 @@ func CalculateEquationForBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	equationResponse = model.EquationResultForBatch{
-		MetricFormulaId: dbData.Event.MetricFormulaId,
+		MetricFormulaId:  dbData.Event.MetricFormulaId,
 		TenantID:         dbData.CoinAccount.TenantID,
 		MetricActivityId: dbData.Event.MetricActivityId,
 		Type:             dbData.CoinAccount.Type,
