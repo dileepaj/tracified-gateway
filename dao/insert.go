@@ -238,8 +238,8 @@ func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHis
 	return err
 }
 
-func (cd *Connection) InsertBatchAccount(batchAccount model.CoinAccount) error {
-	logrus.Info("--------------------------- InsertBatchAccount ------------------------")
+func (cd *Connection) InsertAccount(batchAccount model.CoinAccount) error {
+	logrus.Info("--------------------------- InsertAccount ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())

@@ -479,13 +479,13 @@ var routes = Routes{
 	Route{
 		"GetMinter",
 		"GET",
-		"/nft/mintSolana/getMinter/{ImageBase64}",
+		"/nft/mintSolana/getMinter/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana
 	},
 	Route{
 		"RetrieveStellarTxn",
 		"GET",
-		"/nft/mintStellar/gettxn/{ImageBase64}",
+		"/nft/mintStellar/gettxn/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveStellarTxn, //get txn for minting stellar
 	},
 	Route{
@@ -531,6 +531,18 @@ var routes = Routes{
 		businessFacades.GetPathPaymentDetails, //Get the path payment details
 	},
 	Route{
+		"SponsorAccount",
+		"GET",
+		"/nft/sponsor",
+		businessFacades.SponsorBuyerAccount, //Calls the UpdateBuyingStatus in the nftHandler
+	},
+	Route{
+		"SponsorTrust",
+		"GET",
+		"/nft/sponsortrust",
+		businessFacades.SponsorBuyerTrust, //Calls the UpdateBuyingStatus in the nftHandler
+	},
+	{
 		"Update Equation stages and product details",
 		"PUT",
 		"/socialimapact",

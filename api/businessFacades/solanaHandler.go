@@ -120,7 +120,7 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetNFTMinterPKSolana(vars["ImageBase64"])
+	p := object.GetNFTMinterPKSolana(vars["ImageBase64"], vars["blockchain"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.NFTWithTransactionSolana)
