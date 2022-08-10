@@ -3,6 +3,7 @@ package pools
 import (
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"math"
 	"net/http"
@@ -29,7 +30,7 @@ var poolCoin []txnbuild.Asset
 
 var client = commons.GetHorizonClient()
 
-// IssueCoin ==> issue coin to given specific account
+// IssueCoin ==> Unlock
 func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, error) {
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
 	if err != nil {
@@ -47,12 +48,84 @@ func IssueCoin(coinName string, coinReceiverPK string, amount string) (string, e
 		return "", err
 	}
 
+	issueCoin := []txnbuild.Operation{
+		&txnbuild.SetTrustLineFlags{
+			Trustor:  coinReceiverPK,
+			Asset:    coin,
+			SetFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
+		&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: amount},
+	}
+
 	// Second, the issuing account actually sends a payment using the asset
 	tx, err := txnbuild.NewTransaction(
 		txnbuild.TransactionParams{
 			SourceAccount:        &issuerAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: amount}},
+			Operations:           issueCoin,
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 nil,
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		},
+	)
+
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), issuer)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	resp, err := client.SubmitTransaction(signedTx)
+	if err != nil {
+		logrus.Error(err)
+		return "", errors.New("IssueCoin  " + err.Error())
+	}
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	} else {
+		logrus.Info("IssueCoin ", resp.Hash)
+		return resp.Hash, nil
+	}
+}
+
+// IssueCoinAndLock ==> Unlock,Issue and issue coin to given specific account coin and lock
+func IssueCoinAndLock(coinName string, coinReceiverPK string, amount string) (string, error) {
+	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	issuer, err := keypair.ParseFull(coinIsuserSK)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIsuserPK}.ToAsset()
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+
+	issueCoin := []txnbuild.Operation{
+		&txnbuild.SetTrustLineFlags{
+			Trustor:  coinReceiverPK,
+			Asset:    coin,
+			SetFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
+		&txnbuild.Payment{Destination: coinReceiverPK, Asset: coin, Amount: amount},
+		&txnbuild.SetTrustLineFlags{
+			Trustor:    coinReceiverPK,
+			Asset:      coin,
+			ClearFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
+	}
+
+	// Second, the issuing account actually sends a payment using the asset
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &issuerAccount,
+			IncrementSequenceNum: true,
+			Operations:           issueCoin,
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
@@ -92,17 +165,17 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 		// Load the corresponding account for both A and C.
 		coinReceiverAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinReceiverPK})
 		if err != nil {
-			logrus.Error("CreateCoin Account load ",err)
+			logrus.Error("CreateCoin Account load ", err)
 			return "", err
 		}
 		coinReceiver, err := keypair.ParseFull(coinReciverSK)
 		if err != nil {
-			logrus.Error("CreateCoin seed load ",err)
+			logrus.Error("CreateCoin seed load ", err)
 			return "", err
 		}
 		coin, err := txnbuild.CreditAsset{Code: coinName, Issuer: coinIsuserPK}.ToChangeTrustAsset()
 		if err != nil {
-			logrus.Error("CreateCoin create assetn name ",err)
+			logrus.Error("CreateCoin create assetn name ", err)
 			return "", err
 		}
 		// First, the receiving (distribution) account must trust the asset from the issuer.
@@ -118,12 +191,12 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 		)
 		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiver)
 		if err != nil {
-			logrus.Error("Sumitting sign CreateCoin ",err)
+			logrus.Error("Sumitting sign CreateCoin ", err)
 			return "", err
 		}
 		resp, err := client.SubmitTransaction(signedTx)
 		if err != nil {
-			logrus.Error("Sumitting create CreateCoin to BC ",err)
+			logrus.Error("Sumitting create CreateCoin to BC ", err)
 			return "", err
 		}
 		if err != nil {
@@ -131,8 +204,8 @@ func CreateCoin(coinName string, coinReceiverPK string, coinReciverSK string) (s
 			return "", err
 		} else {
 			// add trustline to DB
-			InsertTrustline(coinName, coinReceiverPK)
-			logrus.Info("CreateCoin ", resp.Hash)
+			InsertTrustline(coinName, coinReceiverPK, resp.Hash)
+			logrus.Info("CreateCoin  ", coinName, "   ", resp.Hash)
 			return resp.Hash, nil
 		}
 	} else {
@@ -169,7 +242,7 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 			return "", err
 		}
 
-		sponseringChangeTrust:= []txnbuild.Operation{
+		sponseringChangeTrust := []txnbuild.Operation{
 			&txnbuild.BeginSponsoringFutureReserves{
 				SponsoredID:   coinReceiverPK,
 				SourceAccount: sponsorPK,
@@ -200,7 +273,7 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 			logrus.Error(err)
 			return "", err
 		}
-		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiverSign,sponserSign)
+		signedTx, err := tx.Sign(commons.GetStellarNetwork(), coinReceiverSign, sponserSign)
 		if err != nil {
 			logrus.Error(err)
 			return "", err
@@ -215,7 +288,7 @@ func CreateCoinSponsering(coinName string, coinReceiverPK string, coinReciverSK 
 			return "", err
 		} else {
 			// add trustline to DB
-			InsertTrustline(coinName, coinReceiverPK)
+			InsertTrustline(coinName, coinReceiverPK, resp.Hash)
 			logrus.Info("CreateCoin ", resp.Hash)
 			return resp.Hash, nil
 		}
@@ -391,7 +464,7 @@ func check(err error) {
 	}
 }
 
-//roundFloat return the round float number
+// roundFloat return the round float number
 func roundFloat(val float64, precision uint) float64 {
 	ratio := math.Pow(10, float64(precision))
 	return math.Round(val*ratio) / ratio
@@ -429,11 +502,12 @@ func assetIssued(coinName string) bool {
 }
 
 // Insert trustline to DB
-func InsertTrustline(coinName string, coinReceiverPK string) {
+func InsertTrustline(coinName, coinReceiverPK, hash string) {
 	trustlineHistory := model.TrustlineHistory{
 		CoinIssuer:   coinIsuserPK,
 		CoinReceiver: coinReceiverPK,
 		Asset:        coinName,
+		Hash:         hash,
 	}
 
 	object := dao.Connection{}

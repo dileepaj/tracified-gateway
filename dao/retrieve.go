@@ -1750,8 +1750,8 @@ func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinRecei
 	return p
 }
 
-func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId, equatonId,
-	productId, tenantId, stageID, activityID string,
+func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId,
+	productId, tenantId string,
 ) *promise.Promise {
 	resultBatchAccountObj := model.CoinAccount{}
 
@@ -1766,14 +1766,51 @@ func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId, eq
 		c := session.Client().Database(dbName).Collection("CoinAccount")
 		if formulaType == "BATCH" {
 			err = c.FindOne(context.TODO(), bson.M{
-				"event.details.batchid": batchOrArtifcatId, "metricformulaid": equatonId,
+				"event.details.batchid":         batchOrArtifcatId,
 				"event.details.tracifieditemid": productId, "tenantid": tenantId,
-				"type": formulaType, "event.details.stageid": stageID, "metricactivivtyid": activityID,
+				"type": formulaType,
 			}).Decode(&resultBatchAccountObj)
 		} else {
 			err = c.FindOne(context.TODO(), bson.M{
-				"event.details.artifactid": batchOrArtifcatId, "metricformulaid": equatonId,
-				"tenantid": tenantId, "type": formulaType, "event.details.stageid": stageID,
+				"event.details.artifactid": batchOrArtifcatId,
+				"tenantid":                 tenantId, "type": formulaType,
+			}).Decode(&resultBatchAccountObj)
+		}
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(resultBatchAccountObj)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetSpecificAccountByActivityAndFormula(formulaType, batchOrArtifcatId, formulaId,
+	productId, tenantId, activityId string,
+) *promise.Promise {
+	// bpsk
+	resultBatchAccountObj := model.BuildPathPaymentJSon{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("CoinConversion")
+		if formulaType == "BATCH" {
+			err = c.FindOne(context.TODO(), bson.M{
+				"event.event.details.batchid": batchOrArtifcatId, "event.event.details.tracifieditemid": productId,
+				"event.tenantid": tenantId, "event.type": formulaType, "event.metricformulaid": formulaId,
+				"event.metricactivityid": activityId,
+			}).Decode(&resultBatchAccountObj)
+		} else {
+			err = c.FindOne(context.TODO(), bson.M{
+				"event.event.details.artifactid": batchOrArtifcatId,
+				"event.tenantid":                 tenantId, "event.type": formulaType,
 			}).Decode(&resultBatchAccountObj)
 		}
 		if err != nil {
@@ -1980,7 +2017,7 @@ func (cd *Connection) GetCoinName(coinName string) *promise.Promise {
 		// Sort by `price` field descending
 		findOptions := options.FindOne()
 		findOptions.SetSort(bson.D{{"timestamp", -1}})
-		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName},findOptions).Decode(&coin)
+		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName}, findOptions).Decode(&coin)
 		if err != nil {
 			log.Info("Fetching data from DB " + err.Error())
 			reject(err)

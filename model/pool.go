@@ -6,12 +6,13 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 //! fullCoinName = user inserted coin name
 //! generatedName = gateway generated coin name
 type Coin struct {
-	ID            string
-	FullCoinName  string
-	CoinName      string
-	GeneratedName string
-	Description   string
-	Amount        string
+	ID              string
+	FullCoinName    string
+	CoinName        string
+	GeneratedName   string
+	Description     string
+	Amount          string
+	RescaledAmmount string
 }
 
 type BuildPathPayment struct {
@@ -45,11 +46,14 @@ type BuildPathPaymentJSonResponse struct {
 }
 
 type BuildPathPaymentJSon struct {
+	Metric         Metric
+	Inputs         []Input
 	RealAnswer     float64
 	ActualAnswer   float64
 	ErrorRate      float64
 	CoinConertions []BuildPathPayment
-	FirstEvent     CoinAccount
+	CoinAccount    CoinAccount
+	Event          CoinConvertBody
 	AccountPK      string
 	CreatedAt      string
 }
@@ -106,6 +110,7 @@ type TrustlineHistory struct {
 	CoinIssuer   string
 	CoinReceiver string
 	Asset        string
+	Hash         string
 }
 
 type MetrixCoin struct {
@@ -178,17 +183,19 @@ type ArtifactCoinConvert struct {
 	UserInputs      []UserInput `json:"userInputs" bson:"userInputs"`
 }
 
-type CoinAccount struct {
-	Metric            Metric
-	Inputs            []Input
-	Event             Event
-	Type              string
+type Formula struct {
+	StageID           string
+	TracifiedItemId   string
 	MetricFormulaId   string
 	MetricActivivtyId string
-	TenantID          string
-	CreatedAt         string
-	CoinAccountPK     string
-	CoinAccountSK     []byte
+}
+type CoinAccount struct {
+	Event         Event
+	Type          string
+	TenantID      string
+	CreatedAt     string
+	CoinAccountPK string
+	CoinAccountSK []byte
 }
 
 type MetricFormulas struct {
@@ -304,7 +311,6 @@ type CalculateEquation struct {
 	Type             string `json:"Type" bson:"type" validate:"required"`
 	BatchID          string `json:"BatchID" bson:"batchid"`
 	ArtifactID       string `json:"artifactID" bson:"artifactid"`
-	StageID          string `json:"StageID" bson:"stageid" validate:"required"`
 	TracifiedItemId  string `json:"TracifiedItemId" bson:"tracifieditemid"`
 }
 type EquationResultForBatch struct {
@@ -438,7 +444,6 @@ type Event struct {
 	Model   string
 	Details Details
 }
-
 type CoinConvertBody struct {
 	ID               string
 	Value            float64

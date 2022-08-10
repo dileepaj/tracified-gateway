@@ -226,10 +226,10 @@ func rearrangedArray(poolJson []model.FieldAndCoin, find string) []model.FieldAn
 
 // CoinConvertionJson ==>this method  rerstructed the coinConvertion request body recived by backend
 // metric Coin is used as a received coin because all sub-portions of an equation finally should be the same units
-func CoinConvertionJson(coinConvertObject model.CoinAccount, batchAccountPK string, batchAccountSK string) ([]model.BuildPathPayment, error) {
+func CoinConvertionJson(batchAccountPK, batchAccountSK, formulaId, activityId string, coinConvertObject model.CoinConvertBody) ([]model.BuildPathPayment, error) {
 	object := dao.Connection{}
-	data, _ := object.GetLiquidityPoolByProductAndActivity(coinConvertObject.MetricFormulaId,
-		coinConvertObject.TenantID, coinConvertObject.Type, coinConvertObject.MetricActivivtyId, coinConvertObject.Event.Details.StageID).Then(func(data interface{}) interface{} {
+	data, _ := object.GetLiquidityPoolByProductAndActivity(formulaId,
+		coinConvertObject.TenantID, coinConvertObject.Type, activityId, coinConvertObject.Event.Details.StageID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if data == nil {
@@ -256,12 +256,13 @@ func CoinConvertionJson(coinConvertObject model.CoinAccount, batchAccountPK stri
 		for _, inputCoin := range coinConvertObject.Inputs {
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin: model.Coin{
-					ID:            inputCoin.ID,
-					FullCoinName:  inputCoin.CoinName,
-					CoinName:      strings.ToUpper(inputCoin.CoinName[0:4]),
-					GeneratedName: inputCoin.GeneratedName,
-					Description:   inputCoin.Description,
-					Amount:        fmt.Sprintf("%f", inputCoin.Input),
+					ID:              inputCoin.ID,
+					FullCoinName:    inputCoin.CoinName,
+					CoinName:        strings.ToUpper(inputCoin.CoinName[0:4]),
+					GeneratedName:   inputCoin.GeneratedName,
+					Description:     inputCoin.Description,
+					Amount:          fmt.Sprintf("%f", inputCoin.Input),
+					RescaledAmmount: fmt.Sprintf("%f", inputCoin.Input/100),
 				},
 				ReceivingCoin: model.Coin{
 					ID:            coinConvertObject.Metric.ID,
