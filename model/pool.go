@@ -6,12 +6,13 @@ import "go.mongodb.org/mongo-driver/bson/primitive"
 //! fullCoinName = user inserted coin name
 //! generatedName = gateway generated coin name
 type Coin struct {
-	ID            string
-	FullCoinName  string
-	CoinName      string
-	GeneratedName string
-	Description   string
-	Amount        string
+	ID              string
+	FullCoinName    string
+	CoinName        string
+	GeneratedName   string
+	Description     string
+	Amount          string
+	RescaledAmmount string
 }
 
 type BuildPathPayment struct {
@@ -109,6 +110,7 @@ type TrustlineHistory struct {
 	CoinIssuer   string
 	CoinReceiver string
 	Asset        string
+	Hash         string
 }
 
 type MetrixCoin struct {

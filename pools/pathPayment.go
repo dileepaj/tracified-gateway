@@ -27,7 +27,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		return model.BuildPathPayment{}, errors.New("metric coin or input coins can not be empty")
 	}
 	convertion, err := GetConvertedCoinAmount(pathPayment.SendingCoin.GeneratedName,
-		pathPayment.SendingCoin.Amount, pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK)
+		pathPayment.SendingCoin.RescaledAmmount, pathPayment.ReceivingCoin.GeneratedName, pathPayment.CoinIssuerAccontPK)
 	if err != nil {
 		logrus.Error(err)
 		return model.BuildPathPayment{}, err
@@ -77,13 +77,35 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		return model.BuildPathPayment{}, err
 	}
 
-	// intermediateAssertArray coin convertion path as a array(this path take from stellar endpoint)
-	var intermediateAssertArray []txnbuild.Asset
-	for _, pathCoin := range convertion.IntermediateCoin {
-		intermediateAsset := txnbuild.CreditAsset{pathCoin.CoinName, pathCoin.Issuer}
-		intermediateAssertArray = append(intermediateAssertArray, intermediateAsset)
+	unlockOperations:=[]txnbuild.Operation{
+		&txnbuild.SetTrustLineFlags{
+			Trustor:    pathPayment.BatchAccountPK,
+			Asset:      destAsset,
+			SetFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
 	}
 
+	hash,err3:=UnlockAsset(unlockOperations)
+	logrus.Info("UnlockAsset  ",pathPayment.SendingCoin.GeneratedName,"  ",hash)
+	if err != nil {
+		return model.BuildPathPayment{}, errors.New("UnlockAsset   "+pathPayment.SendingCoin.GeneratedName+"  "+ err3.Error())
+	}
+
+	// intermediateAssertArray coin convertion path as a array(this path take from stellar endpoint)
+	var intermediateAssertArray []txnbuild.Asset
+	var intermedilateAssetLock []txnbuild.Operation
+	for _, pathCoin := range convertion.IntermediateCoin {
+		intermediateAsset := txnbuild.CreditAsset{pathCoin.CoinName, pathCoin.Issuer}
+		
+		assetLock := &txnbuild.SetTrustLineFlags{
+			Trustor:    pathPayment.BatchAccountPK,
+			Asset:      intermediateAsset,
+			ClearFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		}
+		intermedilateAssetLock = append(intermedilateAssetLock, assetLock)
+		intermediateAssertArray = append(intermediateAssertArray, intermediateAsset)
+	}
+	fmt.Println("fmt.Println(pathPayment.SendingCoin.RescaledAmmount)   ",pathPayment.SendingCoin.RescaledAmmount)
 	sponsoringPathPayment := []txnbuild.Operation{
 		&txnbuild.BeginSponsoringFutureReserves{
 			SponsoredID:   pathPayment.BatchAccountPK,
@@ -92,7 +114,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 
 		&txnbuild.PathPaymentStrictSend{
 			SendAsset:     sendAsset,
-			SendAmount:    pathPayment.SendingCoin.Amount,
+			SendAmount:    pathPayment.SendingCoin.RescaledAmmount,
 			Destination:   pathPayment.BatchAccountPK,
 			DestAsset:     destAsset,
 			DestMin:       convertion.Destination.Amount,
@@ -126,7 +148,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 	response, err := client.SubmitTransaction(signedTx)
 	if err != nil {
 		logrus.Error(err)
-		return model.BuildPathPayment{}, err
+		return model.BuildPathPayment{},  errors.New("CoinConvert pathpayment   "+err.Error())
 	}
 
 	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
@@ -140,18 +162,35 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		return model.BuildPathPayment{}, err
 	}
 	poolFees := CalculatePoolfees(convertion.Destination.Amount, len(convertion.IntermediateCoin)+1)
+
+	paymentAndLockOperations := []txnbuild.Operation{
+		&txnbuild.Payment{
+			Destination: pathPayment.BatchAccountPK, Asset: destAsset,
+			Amount: poolFees,
+		},
+		&txnbuild.SetTrustLineFlags{
+			Trustor:    pathPayment.BatchAccountPK,
+			Asset:      destAsset,
+			ClearFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
+		&txnbuild.SetTrustLineFlags{
+			Trustor:    pathPayment.BatchAccountPK,
+			Asset:      sendAsset,
+			ClearFlags: []txnbuild.TrustLineFlag{txnbuild.TrustLineAuthorized},
+		},
+	}
+	// for _, element := range intermedilateAssetLock {
+	// 	paymentAndLockOperations = append(paymentAndLockOperations, element)
+	// }
 	if poolFees != "0.0000000" {
 		paymentTx, err := txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
 				SourceAccount:        &issuerAccount,
 				IncrementSequenceNum: true,
-				Operations: []txnbuild.Operation{&txnbuild.Payment{
-					Destination: pathPayment.BatchAccountPK, Asset: destAsset,
-					Amount: poolFees,
-				}},
-				BaseFee:       txnbuild.MinBaseFee,
-				Memo:          nil,
-				Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				Operations:           paymentAndLockOperations,
+				BaseFee:              txnbuild.MinBaseFee,
+				Memo:                 nil,
+				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 			},
 		)
 
@@ -164,7 +203,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		response2, err := client.SubmitTransaction(paymentTxn)
 		if err != nil {
 			logrus.Error(err)
-			return model.BuildPathPayment{}, err
+			return model.BuildPathPayment{}, errors.New("CoinConvert payment and lock   "+err.Error())
 		}
 		pathPayment.PoolTradeFeesHash = response2.Hash
 		logrus.Info("CoinConverted  ", response.Hash, "  pools fees for trades 0.03% :  ", response2.Hash)
@@ -265,14 +304,14 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	}
 	if data == nil {
 		batchAccount = model.CoinAccount{
-			Event: batchConvertCoinObj.Event,
-			Type:  batchConvertCoinObj.Type,
+			Event:         batchConvertCoinObj.Event,
+			Type:          batchConvertCoinObj.Type,
 			TenantID:      batchConvertCoinObj.TenantID,
 			CreatedAt:     batchConvertCoinObj.CreatedAt,
 			CoinAccountPK: "",
 			CoinAccountSK: []byte{},
 		}
-		batchAccount.Event.Details.StageID="ANY"
+		batchAccount.Event.Details.StageID = "ANY"
 		// if not create the sponsering account
 		batchPK, batchSK, err := CreateSponseredAccount(batchAccount)
 		batchAccountPK = batchPK
@@ -324,9 +363,9 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	actualEquationAnswer := CalculateActualEquationAnswer(coinConversions)
 	// build response with all coin details
 	buildCoinConvertionResponse := model.BuildPathPaymentJSon{
-		RealAnswer:     actualEquationAnswer,
+		RealAnswer:     actualEquationAnswer*100,
 		ActualAnswer:   batchConvertCoinObj.Value,
-		ErrorRate:      CalculateErrorRate(batchConvertCoinObj.Value, actualEquationAnswer),
+		ErrorRate:      CalculateErrorRate(batchConvertCoinObj.Value, actualEquationAnswer*100),
 		Metric:         batchConvertCoinObj.Metric,
 		Inputs:         batchConvertCoinObj.Inputs,
 		CoinConertions: coinConversions,
@@ -389,4 +428,40 @@ func CalculateErrorRate(ideal, actual float64) float64 {
 		errorRate = (math.Abs(ideal-actual) / ideal) * 100
 	}
 	return errorRate
+}
+
+func UnlockAsset(paymentAndLockOperations []txnbuild.Operation)(string,error){
+	issuerAccount, err := client.AccountDetail(sdk.AccountRequest{AccountID: coinIsuserPK})
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	coinIssuerSign, err := keypair.ParseFull(coinIsuserSK)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+	paymentTx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &issuerAccount,
+			IncrementSequenceNum: true,
+			Operations:           paymentAndLockOperations,
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 nil,
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		},
+	)
+
+	paymentTxn, err := paymentTx.Sign(commons.GetStellarNetwork(), coinIssuerSign)
+	if err != nil {
+		logrus.Error(err)
+		return "", err
+	}
+
+	response2, err := client.SubmitTransaction(paymentTxn)
+	if err != nil {
+		logrus.Error(err)
+		return "", errors.New("CoinConvert payment and lock   "+err.Error())
+	}
+	return response2.Hash,nil
 }

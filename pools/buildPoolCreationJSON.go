@@ -256,12 +256,13 @@ func CoinConvertionJson(batchAccountPK, batchAccountSK, formulaId, activityId st
 		for _, inputCoin := range coinConvertObject.Inputs {
 			buildPathPayment := model.BuildPathPayment{
 				SendingCoin: model.Coin{
-					ID:            inputCoin.ID,
-					FullCoinName:  inputCoin.CoinName,
-					CoinName:      strings.ToUpper(inputCoin.CoinName[0:4]),
-					GeneratedName: inputCoin.GeneratedName,
-					Description:   inputCoin.Description,
-					Amount:        fmt.Sprintf("%f", inputCoin.Input),
+					ID:              inputCoin.ID,
+					FullCoinName:    inputCoin.CoinName,
+					CoinName:        strings.ToUpper(inputCoin.CoinName[0:4]),
+					GeneratedName:   inputCoin.GeneratedName,
+					Description:     inputCoin.Description,
+					Amount:          fmt.Sprintf("%f", inputCoin.Input),
+					RescaledAmmount: fmt.Sprintf("%f", inputCoin.Input/100),
 				},
 				ReceivingCoin: model.Coin{
 					ID:            coinConvertObject.Metric.ID,
