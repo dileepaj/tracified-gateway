@@ -42,7 +42,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		logrus.Error(err1)
 		return model.BuildPathPayment{}, err1
 	}
-	_, err2 := IssueCoin(pathPayment.SendingCoin.GeneratedName, pathPayment.BatchAccountPK, pathPayment.SendingCoin.Amount)
+	_, err2 := IssueCoin(pathPayment.SendingCoin.GeneratedName, pathPayment.BatchAccountPK, pathPayment.SendingCoin.RescaledAmmount)
 	if err2 != nil {
 		logrus.Error(err2)
 		return model.BuildPathPayment{}, err2
@@ -88,7 +88,7 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 	hash, err3 := UnlockAsset(unlockOperations)
 	logrus.Info("UnlockAsset  ", pathPayment.SendingCoin.GeneratedName, "  ", hash)
 	if err != nil {
-		return model.BuildPathPayment{}, errors.New("UnlockAsset   " + pathPayment.SendingCoin.GeneratedName + "  " + err3.Error())
+		return model.BuildPathPayment{}, errors.New("UnlockAsset   " + pathPayment.ReceivingCoin.GeneratedName + "  " + err3.Error())
 	}
 
 	// intermediateAssertArray coin convertion path as a array(this path take from stellar endpoint)
