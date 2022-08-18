@@ -282,7 +282,7 @@ type CreatePoolBody struct {
 	Active          bool
 	CreatedAt       string `json:"CreatedAt" bson:"createdat" validate:"required"`
 	UpdatedAt       string `json:"UpdatedAt" bson:"updatedat" validate:"required"`
-	PivotFields     []PivotFields
+	PivotFields     []PivotField
 }
 
 type Activity struct {
@@ -459,7 +459,7 @@ type CoinConvertBody struct {
 	CreatedAt        string
 }
 
-type PivotFields struct {
+type PivotField struct {
 	Name               string
 	Condition          string
 	Value              string

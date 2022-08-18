@@ -156,7 +156,7 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
 
 				for _, element := range equationJsonBody.PivotFields {
-					if element.ArtifactTemplateId == "EQUAL" &&
+					if element.Condition == "EQUAL" &&
 						element.ArtifactTemplateId == equationJsonBody.Subsets[i].SubSet[j].ArtifactTemplateId {
 						equationJsonBody.Subsets[i].SubSet[j].Type = "CONSTANT"
 						equationJsonBody.Subsets[i].SubSet[j].Value = element.Value
