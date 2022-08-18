@@ -243,11 +243,12 @@ type Subsets struct {
 }
 
 type Subset struct {
-	ID          string
-	Type        string
-	Value       string
-	CoinName    string
-	Description string
+	ID                 string
+	Type               string
+	Value              string
+	CoinName           string
+	Description        string
+	ArtifactTemplateId string
 }
 
 type Product struct {
@@ -281,6 +282,7 @@ type CreatePoolBody struct {
 	Active          bool
 	CreatedAt       string `json:"CreatedAt" bson:"createdat" validate:"required"`
 	UpdatedAt       string `json:"UpdatedAt" bson:"updatedat" validate:"required"`
+	PivotFields     []PivotFields
 }
 
 type Activity struct {
@@ -455,4 +457,13 @@ type CoinConvertBody struct {
 	MetricActivityId string
 	TenantID         string
 	CreatedAt        string
+}
+
+type PivotFields struct {
+	Name               string
+	Condition          string
+	Value              string
+	Field              string
+	ArtifactDataId     string
+	ArtifactTemplateId string
 }
