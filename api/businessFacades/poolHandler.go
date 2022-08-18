@@ -154,6 +154,15 @@ func CreatePoolForBatch(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+
+				for _, element := range equationJsonBody.PivotFields {
+					if element.ArtifactTemplateId == "EQUAL" &&
+						element.ArtifactTemplateId == equationJsonBody.Subsets[i].SubSet[j].ArtifactTemplateId {
+						equationJsonBody.Subsets[i].SubSet[j].Type = "CONSTANT"
+						equationJsonBody.Subsets[i].SubSet[j].Value = element.Value
+					}
+				}
+
 				// if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
@@ -362,6 +371,15 @@ func CreatePoolForArtifact(w http.ResponseWriter, r *http.Request) {
 		for i := 0; i < len(equationJsonBody.Subsets); i++ {
 			var fieldAndCoins []model.FieldAndCoin
 			for j := 0; j < len(equationJsonBody.Subsets[i].SubSet); j++ {
+
+				for _, element := range equationJsonBody.PivotFields {
+					if element.ArtifactTemplateId == "EQUAL" &&
+						element.ArtifactTemplateId == equationJsonBody.Subsets[i].SubSet[j].ArtifactTemplateId {
+						equationJsonBody.Subsets[i].SubSet[j].Type = "CONSTANT"
+						equationJsonBody.Subsets[i].SubSet[j].Value = element.Value
+					}
+				}
+				
 				// if subset elemet's type eqal to "DATA" take first 4 charter from coin name
 				if equationJsonBody.Subsets[i].SubSet[j].Type == "DATA" {
 					if equationJsonBody.Subsets[i].SubSet[j].CoinName != "" {
