@@ -376,6 +376,7 @@ type NFTWithTransactionSolana struct {
 	NFTArtistURL                     string
 	Description                      string
 	Copies                           string
+	InitialDistributorPK             string
 }
 
 type MarketPlaceNFT struct {
@@ -457,6 +458,7 @@ type Minter struct {
 	NFTIssuerPK   string `json:"NFTIssuerPK"`
 	NFTTxnHash    string `json:"NFTTxnHash"`
 	NFTIdentifier string `json:"NFTIdentifier"`
+	CreatorUserID string `json:"CreatorUserID"`
 }
 
 type NFTWithTransaction struct {
@@ -507,7 +509,7 @@ type MarketPlaceNFTTrasactionWithCount struct {
 
 type NFTKeys struct {
 	PublicKey string
-	SecretKey string
+	SecretKey []byte
 }
 
 type NFTIssuerAccount struct {
