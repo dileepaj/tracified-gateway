@@ -343,14 +343,14 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 */
 func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var NFTIssuerPK, EncodedNFTIssuerSK, err = accounts.CreateIssuerAccount()
+	var NFTIssuerPK, EncodedNFTIssuerSK, encSK, err = accounts.CreateIssuerAccount()
 	if err != nil && NFTIssuerPK == "" && EncodedNFTIssuerSK == "" {
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(err)
 	} else {
 		var NFTKeys = model.NFTKeys{
 			PublicKey: NFTIssuerPK,
-			SecretKey: EncodedNFTIssuerSK,
+			SecretKey: encSK,
 		}
 		//adding the credentials to the DB
 		object := dao.Connection{}

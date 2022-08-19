@@ -32,7 +32,9 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(TrustLineResponseNFT)
 	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
-		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana([]byte(commons.GoDotEnvVariable("WALLETSECRET")), TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
+		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
+
+		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana(WALLETSECRET, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
 		if err == nil {
 
 			NFTcollectionObj = model.NFTWithTransactionSolana{
@@ -53,6 +55,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				Copies:                           TrustLineResponseNFT.Copies,
 				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
+				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
 			}
 
 			MarketplaceNFTcollectionObj = model.MarketPlaceNFT{
@@ -124,7 +127,7 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.NFTWithTransactionSolana)
-		res := model.Minter{NFTIssuerPK: result.MinterPK, NFTTxnHash: result.NFTTXNhash, NFTIdentifier: result.Identifier}
+		res := model.Minter{NFTIssuerPK: result.MinterPK, NFTTxnHash: result.NFTTXNhash, NFTIdentifier: result.Identifier, CreatorUserID: result.InitialDistributorPK}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(res)
 		return nil

@@ -18,9 +18,9 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-func MintSolana(fromWalletSecret []byte, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
+func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 
-	var fromWallet, _ = types.AccountFromBytes(fromWalletSecret)
+	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
 
 	c := client.NewClient(rpc.TestnetRPCEndpoint)
 
