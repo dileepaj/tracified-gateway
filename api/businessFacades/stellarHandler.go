@@ -341,7 +341,7 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 @desc - Create issuer accounts, add credentials to the DB and send the PK as the response
 @params - ResponseWriter,Request
 */
-func CreateNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
+func GetNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var NFTIssuerPK, EncodedNFTIssuerSK, encSK, err = accounts.CreateIssuerAccount()
 	if err != nil && NFTIssuerPK == "" && EncodedNFTIssuerSK == "" {
@@ -413,7 +413,7 @@ func RetrieveStellarTxn(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func FundAccount(w http.ResponseWriter, r *http.Request) {
+func FundAndGetAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
 
@@ -441,7 +441,7 @@ func FundAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SponsorBuyerAccount(w http.ResponseWriter, r *http.Request) {
+func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
 
@@ -487,7 +487,7 @@ func SponsorBuyerAccount(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func SponsorBuyerTrust(w http.ResponseWriter, r *http.Request) {
+func GetSponsorTrustXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
 

@@ -3,6 +3,7 @@ package solana
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
@@ -21,6 +22,7 @@ import (
 func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
+	log.Println("---------secret-------", (fromWallet))
 
 	c := client.NewClient(rpc.TestnetRPCEndpoint)
 
