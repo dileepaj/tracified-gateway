@@ -2596,93 +2596,163 @@ components:
     PoolCreate:
       type: object
       properties:
-        equationId:
+        Id:
           type: string
         ProductName:
           type: string
-        ProductID:
+        ProductId:
           type: string
-        tenantId:
-          type: string
-        activityId:
-          type: string
-        FormulaType:
-          type: string
-        equatinStringFormate:
-          type: string
-        simpleifedEquation:
-          type: string
-        metricCoin:
+        Metric:
+          type: object  
+          properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            generatedName:
+              type: string
+            fullCoinName:
+              type: string
+            coinName:
+              type: string
+        Activity:
           type: object
           properties:
             id:
               type: string
-            coinName:
+            name:
               type: string
-            description:
+            stageId:
               type: string
-        equationSubPortion:
+            tracifiedItemId:
+              type: string 
+            productName:
+              type: string   
+        FormulaAsString:
+          type: string    
+        Subsets:
           type: array
           items:
             type: object
             properties:
-              subPortion:
+              subsetAsString:
                 type: string
-              fieldAndCoin:
+              subset:
                 type: array
                 items:
                   type: object
                   properties:
-                    coinName:
+                    id:
                       type: string
-                    fieldName:
-                      type: string
-                    description:
-                      type: string
-                    userInputType:
-                      type: string
-                    variableType:
+                    type:
                       type: string
                     value:
                       type: string
+                    coinName:
+                      type: string
+                    description:
+                      type: string
+        TenantId:
+          type: string
+        Active:
+          type: boolean
+        CreatedAt:
+          type: string
+        UpdatedAt:
+          type: string
+
+
 
     CoinConvert:
       type: object
       properties:
-        equationId:
+        Id:
           type: string
-        ProductName:
-          type: string
-        ProductID:
-          type: string
-        TenantId:
-          type: string
-        FormulaType:
-          type: string
-        FormulaTypeID:
-          type: string
-        FormulaTypeName:
-          type: string
-        stageId:
-          type: string
-        metricCoin:
-          type: object
+        Value:
+          type: number
+          format: float
+        Metric:
+          type: object  
           properties:
+            id:
+              type: string
+            name:
+              type: string
+            description:
+              type: string
+            generatedName:
+              type: string
+            fullCoinName:
+              type: string
             coinName:
-              type: string
-            fieldName:
-              type: string
-        userInputs:
+              type: string  
+        Inputs:
           type: array
           items:
             type: object
             properties:
               coinName:
                 type: string
-              fieldName:
+              id:
                 type: string
-              value:
+              key:
+                type: string  
+              input:
+                type: number
+                format: float
+              generatedName:
                 type: string
+              description:
+                type: string   
+        Event:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+              id:
+                type: string
+              model:
+                type: string  
+              details:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    stageId:
+                      type: string
+                    batchId:
+                      type: string
+                    artifactId:
+                      type: string
+                    tracifiedItemId:
+                      type: string
+                    tracifiedItemName:
+                      type: string 
+                    identifier:
+                      type: array
+                      items:
+                          type: object
+                          properties:
+                                  identifier:
+                                    type: string
+                                  type:
+                                    type: string
+        Type:
+          type: string  
+        MetricFormulaId:
+          type: string 
+        MetricActivityId:
+          type: string  
+        TenantId:
+          type: string  
+        CreatedAt:
+          type: string                     
+
+
 
     CoinCalculation:
       type: object
