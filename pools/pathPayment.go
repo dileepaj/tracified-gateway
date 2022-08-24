@@ -497,7 +497,7 @@ func managDataID(account model.CoinAccount) txnbuild.Operation {
 		}
 	} else {
 		return &txnbuild.ManageData{
-			Name:  "ArtifactIDID",
+			Name:  "ArtifactID",
 			Value: []byte(account.Event.Details.ArtifactID),
 		}
 	}
