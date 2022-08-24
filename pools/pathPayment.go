@@ -20,7 +20,7 @@ import (
 )
 
 // CoinConvert convert the coin (do a path payment operation by sponsering)
-func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, error) {
+func CoinConvert(pathPayment model.BuildPathPayment, batchAccount model.CoinAccount, equationId string) (model.BuildPathPayment, error) {
 	if pathPayment.SendingCoin.GeneratedName == "" || pathPayment.SendingCoin.Amount == "" ||
 		pathPayment.ReceivingCoin.GeneratedName == "" || pathPayment.CoinIssuerAccontPK == "" {
 		log.Error("CoinConvert() method's parameters have a empty values")
@@ -110,7 +110,6 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 			SponsoredID:   pathPayment.BatchAccountPK,
 			SourceAccount: sponsorPK,
 		},
-
 		&txnbuild.PathPaymentStrictSend{
 			SendAsset:     sendAsset,
 			SendAmount:    pathPayment.SendingCoin.RescaledAmmount,
@@ -119,6 +118,22 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 			DestMin:       convertion.Destination.Amount,
 			Path:          intermediateAssertArray,
 			SourceAccount: pathPayment.BatchAccountPK,
+		},
+		&txnbuild.EndSponsoringFutureReserves{
+			SourceAccount: pathPayment.BatchAccountPK,
+		},
+		&txnbuild.BeginSponsoringFutureReserves{
+			SponsoredID:   pathPayment.BatchAccountPK,
+			SourceAccount: sponsorPK,
+		},
+		managDataID(batchAccount),
+		&txnbuild.ManageData{
+			Name:  "FromulaID",
+			Value: []byte(equationId),
+		},
+		&txnbuild.ManageData{
+			Name:  "ProductID",
+			Value: []byte(batchAccount.Event.Details.TracifiedItemId),
 		},
 		&txnbuild.EndSponsoringFutureReserves{
 			SourceAccount: pathPayment.BatchAccountPK,
@@ -166,6 +181,15 @@ func CoinConvert(pathPayment model.BuildPathPayment) (model.BuildPathPayment, er
 		&txnbuild.Payment{
 			Destination: pathPayment.BatchAccountPK, Asset: destAsset,
 			Amount: poolFees,
+		},
+		managDataID(batchAccount),
+		&txnbuild.ManageData{
+			Name:  "FromulaID",
+			Value: []byte(equationId),
+		},
+		&txnbuild.ManageData{
+			Name:  "ProductID",
+			Value: []byte(batchAccount.Event.Details.TracifiedItemId),
 		},
 		&txnbuild.SetTrustLineFlags{
 			Trustor:    pathPayment.BatchAccountPK,
@@ -346,7 +370,7 @@ func PathPaymentHandle(batchConvertCoinObj model.CoinConvertBody) (string, error
 	}
 
 	for _, pathPayment := range pathpayments {
-		coinConversion, err := CoinConvert(pathPayment)
+		coinConversion, err := CoinConvert(pathPayment, batchAccount, batchConvertCoinObj.MetricFormulaId)
 		if err != nil {
 			logrus.Error("Coin converion issue ", err)
 		} else {
@@ -462,4 +486,19 @@ func UnlockAsset(paymentAndLockOperations []txnbuild.Operation) (string, error) 
 		return "", errors.New("CoinConvert payment and lock   " + err.Error())
 	}
 	return response2.Hash, nil
+}
+
+// create managedata for tracking the batch or artifact
+func managDataID(account model.CoinAccount) txnbuild.Operation {
+	if account.Type == "BATCH" {
+		return &txnbuild.ManageData{
+			Name:  "BatchID",
+			Value: []byte(account.Event.Details.BatchID),
+		}
+	} else {
+		return &txnbuild.ManageData{
+			Name:  "ArtifactIDID",
+			Value: []byte(account.Event.Details.ArtifactID),
+		}
+	}
 }
