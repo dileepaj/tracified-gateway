@@ -15,7 +15,7 @@ import (
 @desc - Create new issuer account for each NFT, encrypt the secret key and send the PK and encrypted sk
 @params - None
 */
-func CreateIssuerAccount() (string, string, error) {
+func CreateIssuerAccount() (string, string, []byte, error) {
 	var NFTAccountKeyEncodedPassword string = commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
 	// generate new issuer keypair
 	pair, err := keypair.Random()
@@ -26,6 +26,9 @@ func CreateIssuerAccount() (string, string, error) {
 	// NFT issuer keys
 	nftIssuerPK := pair.Address()
 	nftIssuerSK := pair.Seed()
+
+	//send to aws
+	encSK := commons.Encrypt(nftIssuerSK)
 	// Account Creater keys(Tracified main account)
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
@@ -33,11 +36,11 @@ func CreateIssuerAccount() (string, string, error) {
 	issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "", "", nil, err
 	}
 	issuerSign, err := keypair.ParseFull(issuerSK)
 	if err != nil {
-		return "", "", err
+		return "", "", nil, err
 	}
 	CreateAccount := []txnbuild.Operation{
 		&txnbuild.CreateAccount{
@@ -62,7 +65,7 @@ func CreateIssuerAccount() (string, string, error) {
 	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
 	if err != nil {
 		logrus.Error(err)
-		return "", "", err
+		return "", "", nil, err
 	}
 	// submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
@@ -76,5 +79,5 @@ func CreateIssuerAccount() (string, string, error) {
 		panic(err)
 	}
 	log.Println("Transaction Hash for new Account creation: ", respn.Hash)
-	return nftIssuerPK, encryptedSK, err
+	return nftIssuerPK, encryptedSK, encSK, err
 }

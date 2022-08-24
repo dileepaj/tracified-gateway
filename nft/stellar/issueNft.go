@@ -6,7 +6,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -30,7 +29,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 	} else {
 		nftKeys := data.([]model.NFTKeys)
 		//decrypt the secret key
-		decrpytNftissuerSecretKey, err := accounts.Decrypt(nftKeys[0].SecretKey, commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
+		decrpytNftissuerSecretKey := commons.Decrypt(nftKeys[0].SecretKey)
 		if data == nil {
 			logrus.Error("PublicKey is not found in gateway datastore")
 			panic(data)
