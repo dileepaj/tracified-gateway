@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -879,22 +880,34 @@ func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
 	p := object.GetRealIdentifierByMapValue(vars["identifier"])
 	p.Then(func(data interface{}) interface{} {
 		dbResult := data.([]model.TransactionCollectionBody)
-			for _, TxnBody := range dbResult {
-		fmt.Println(TxnBody)
+		for _, TxnBody := range dbResult {
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnBody.TxnHash)
+			if err != nil {
+				logrus.Error("Unable to reach Stellar network in result1")
+			}
+			if result1.StatusCode != 200 {
+				logrus.Error("Transaction could not be retrieved from Stellar Network in result1")
+			}
+			data, _ := ioutil.ReadAll(result1.Body)
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+			createdAt := fmt.Sprintf("%s", raw["created_at"])
+
 			temp := model.TransactionHashWithIdentifier{
-				Status: TxnBody.Status,
-				Txnhash: TxnBody.TxnHash,
-				Identifier:     TxnBody.Identifier,
+				Status:          TxnBody.Status,
+				Txnhash:         TxnBody.TxnHash,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				Identifier:      TxnBody.Identifier,
 				FromIdentifier1: TxnBody.FromIdentifier1,
 				FromIdentifier2: TxnBody.FromIdentifier2,
-				ToIdentifier: TxnBody.ToIdentifier,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				ProductID:  TxnBody.ProductID,
-				ProductName:    TxnBody.ProductName,
-				}
+				ToIdentifier:    TxnBody.ToIdentifier,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				ProductName:     TxnBody.ProductName,
+				ProductID:       TxnBody.ProductID,
+				Timestamp:       createdAt,
+			}
 			result = append(result, temp)
-				}
+		}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
@@ -905,7 +918,6 @@ func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
 		return error
 	}).Await()
 }
-
 func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var result []model.TransactionHashWithIdentifier

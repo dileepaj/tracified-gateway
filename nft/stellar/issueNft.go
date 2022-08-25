@@ -6,7 +6,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -30,40 +29,36 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 	} else {
 		nftKeys := data.([]model.NFTKeys)
 		//decrypt the secret key
-		decrpytNftissuerSecretKey, err := accounts.Decrypt(nftKeys[0].SecretKey, commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword"))
+		decrpytNftissuerSecretKey := commons.Decrypt(nftKeys[0].SecretKey)
 		if data == nil {
 			logrus.Error("PublicKey is not found in gateway datastore")
 			panic(data)
 		}
 		var nftConten = []byte(svg)
-	
-		request := horizonclient.AccountRequest{AccountID: distributerPK}
+
+		request := horizonclient.AccountRequest{AccountID: CurrentIssuerPK}
 		issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
 		if err != nil {
-			return "","", err
+			return "", "", err
 		}
 		issuerSign, err := keypair.ParseFull(decrpytNftissuerSecretKey)
 		if err != nil {
-			return "","", err
+			return "", "", err
 		}
-		var currentPk string=CurrentIssuerPK
-		var homeDomain string=commons.GoDotEnvVariable("HOMEDOMAIN")
+
+		var homeDomain string = commons.GoDotEnvVariable("HOMEDOMAIN")
 
 		payments := []txnbuild.Operation{
-			&txnbuild.Payment{Destination: distributerPK, Asset:txnbuild.CreditAsset{	Code   :assetcode,
-				Issuer : CurrentIssuerPK}, Amount: "1"},
-				&txnbuild.ManageData{
-					Name:          assetcode,
-					Value:         nftConten,
-				},
-				&txnbuild.SetOptions{
-					InflationDestination: &currentPk,
-					SetFlags:             []txnbuild.AccountFlag{},
-					ClearFlags:           []txnbuild.AccountFlag{},
-					HomeDomain:           &homeDomain ,
-					Signer:               &txnbuild.Signer{},
-					SourceAccount:        "",
-				},
+			&txnbuild.Payment{Destination: distributerPK, Asset: txnbuild.CreditAsset{Code: assetcode,
+				Issuer: CurrentIssuerPK}, Amount: "1"},
+			&txnbuild.ManageData{
+				Name:  assetcode,
+				Value: nftConten,
+			},
+			&txnbuild.SetOptions{
+				MasterWeight: txnbuild.NewThreshold(0),
+				HomeDomain:   &homeDomain,
+			},
 		}
 		tx, err := txnbuild.NewTransaction(
 			txnbuild.TransactionParams{
@@ -79,9 +74,10 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			log.Fatal(err)
 			return "", "", err
 		}
+
 		signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
 		if err != nil {
-			return "","", err
+			return "", "", err
 		}
 		// submit transaction
 		respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
