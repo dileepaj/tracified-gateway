@@ -341,6 +341,7 @@ type TransactionHashWithIdentifier struct {
 	AvailableProof  []string
 	ProductName     string
 	ProductID       string
+	Timestamp       string
 }
 
 type NFTSolana struct {

@@ -7,7 +7,6 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -218,121 +217,6 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 
 	if err != nil {
 		log.Println("Error while inserting to TempOrphan " + err.Error())
-	}
-	return err
-}
-
-func (cd *Connection) InsertTrustlineHistory(trustlineHistory model.TrustlineHistory) error {
-	logrus.Info("--------------------------- InsertTrustlineHistory ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("TrustlineHistory")
-	_, err = c.InsertOne(context.TODO(), trustlineHistory)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-func (cd *Connection) InsertAccount(batchAccount model.CoinAccount) error {
-	logrus.Info("--------------------------- InsertAccount ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("CoinAccount")
-	_, err = c.InsertOne(context.TODO(), batchAccount)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-// insert created pool details to the DB
-func (cd *Connection) InsertLiquidityPool(pool model.BuildPoolResponse) error {
-	logrus.Info("--------------------------- InsertLiquidityPool ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("PoolDetails")
-	_, err = c.InsertOne(context.TODO(), pool)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-// insert coin convert details to the DB
-func (cd *Connection) InsertCoinConversionDetails(buildCoinConvertionObj model.BuildPathPaymentJSon) error {
-	logrus.Info("--------------------------- InsertCoinConversionDetails ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("CoinConversion")
-	_, err = c.InsertOne(context.TODO(), buildCoinConvertionObj)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-// insert coinName
-func (cd *Connection) InsertCoinName(coinName model.CoinName) error {
-	logrus.Info("--------------------------- InsertCoinName ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("CoinName")
-	_, err = c.InsertOne(context.TODO(), coinName)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-// insert Poool to DB
-func (cd *Connection) InsertPoool(pool model.Pool) error {
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("Pool")
-	_, err = c.InsertOne(context.TODO(), pool)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
-	}
-	return err
-}
-
-func (cd *Connection) InsertCreatedPoool(pool model.BuildPool) error {
-	logrus.Info("--------------------------- InsertCreatedPoool ------------------------")
-	session, err := cd.connect()
-	if err != nil {
-		logrus.Info("Error when connecting to DB " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
-
-	c := session.Client().Database(dbName).Collection("CreatedPool")
-	_, err = c.InsertOne(context.TODO(), pool)
-	if err != nil {
-		logrus.Info("Error when inserting data to DB " + err.Error())
 	}
 	return err
 }

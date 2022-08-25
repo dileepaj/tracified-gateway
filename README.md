@@ -63,8 +63,7 @@ Steps to contribute:
 
 - Run using Docker
 
-```
-    // old
+``` 
     docker run -e env=local -p 8000:8000 <image>
 ```
 

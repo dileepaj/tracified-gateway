@@ -9,9 +9,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
-	"github.com/go-openapi/runtime/middleware"
 )
 
 func getPort() string {
@@ -55,7 +55,6 @@ func main() {
 	sh := middleware.SwaggerUI(opts, nil)
 	router.Handle("/docs", sh)
 	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
-
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }
