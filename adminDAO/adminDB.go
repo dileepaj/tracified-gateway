@@ -23,7 +23,7 @@ func GetAdminMongoSession() (mongo.Session, error) {
 	//log.Println("-------------------------Get admin mongo session---------------")
 	if adminMgoSession == nil {
 		var err error
-		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb+srv://admin-user:TAqa123@ap-cluster-0.wrst2.mongodb.net/tracified-admin-backend-qa?retryWrites=true&w=majority"))
+		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(adminMgoConnectionUrl))
 		if err != nil {
 			return nil, err
 		}
