@@ -462,67 +462,67 @@ var routes = Routes{
 		"MintNFTStellarAndAddToDB",
 		"POST",
 		"/nft/mintStellar",
-		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler
+		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
 	},
 	Route{
 		"MintNFTSolanaAndAddToDB",
 		"POST",
 		"/nft/mintSolana",
-		businessFacades.MintNFTSolana, //Calls the MintNFTSolana in the nftHandler
+		businessFacades.MintNFTSolana, //Calls the MintNFTSolana in the nftHandler to mint in Solana
 	},
 	Route{
 		"MintNFTContractAndAddToDB",
 		"POST",
 		"/nft/mintcontract",
-		businessFacades.MintNFTContract, //Calls the MintNFTSolana in the nftHandler
+		businessFacades.MintNFTContract, //Calls the MintNFTContract in the nftHandler to save contract based minted data
 	},
 	Route{
-		"GetMinter",
+		"GetMinterForSolana",
 		"GET",
-		"/nft/mintSolana/getMinter/{ImageBase64}/{blockchain}",
-		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana
+		"/nft/minter/{ImageBase64}/{blockchain}",
+		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana after minting
 	},
 	Route{
 		"RetrieveStellarTxn",
 		"GET",
-		"/nft/mintStellar/gettxn/{ImageBase64}/{blockchain}",
-		businessFacades.RetrieveStellarTxn, //get txn for minting stellar
+		"/nft/gettxn/{ImageBase64}/{blockchain}",
+		businessFacades.RetrieveStellarTxn, //get txn based on the stellar minted nft
 	},
 	Route{
 		"RetriveNFTByStatusAndPK",
 		"GET",
-		"/nft/retriveNFTByStatusAndPK",
-		businessFacades.RetriveNFTByStatusAndPK, //Calls the RetriveNFTByStatusAndPK in the nftHandler
+		"/nft/getnft",
+		businessFacades.RetriveNFTByStatusAndPK, //Calls the RetriveNFTByStatusAndPK in the StellarHandler
 	},
 	Route{
-		"CreateNFTIssuerAccount",
+		"GetNFTIssuerAccount",
 		"GET",
-		"/nft/createNFTIssuerAccount",
-		businessFacades.CreateNFTIssuerAccount, //Calls the CreateNFTIssuerAccount in the nftHandler
+		"/nft/issueaccount",
+		businessFacades.GetNFTIssuerAccount, //Calls the CreateNFTIssuerAccount in the StellarHandler
 	},
 	Route{
 		"UpdateSellingStatus",
 		"PUT",
-		"/nft/updateStellarMarketplaceSell",
-		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the nftHandler
+		"/nft/updatesell",
+		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the StellarHandler
 	},
 	Route{
 		"UpdateBuyingStatus",
 		"PUT",
-		"/nft/updateStellarMarketplaceBuy",
-		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the nftHandler
+		"/nft/updatebuy",
+		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the StellarHandler
 	},
 	Route{
 		"GetLastNFTByIdentifier",
 		"GET",
 		"/lastnft/{InitialDistributorPK}",
-		businessFacades.GetLastNFTbyIdentifier, //Calls the GetLastNFTByIdentifier in the nftHandler
+		businessFacades.GetLastNFTbyIdentifier, //Calls the GetLastNFTByIdentifier in the StellarHandler
 	},
 	Route{
-		"FundAccount",
+		"FundAndGetAccount",
 		"GET",
 		"/nft/fundAccount",
-		businessFacades.FundAccount, //Calls the UpdateBuyingStatus in the nftHandler
+		businessFacades.FundAndGetAccount, //Calls the FundAccount in the StellarHandler
 	},
 	Route{
 		"Get coin convert details",
@@ -531,16 +531,16 @@ var routes = Routes{
 		businessFacades.GetPathPaymentDetails, //Get the path payment details
 	},
 	Route{
-		"SponsorAccount",
+		"GetSponsorAccountXDR",
 		"GET",
 		"/nft/sponsor",
-		businessFacades.SponsorBuyerAccount, //Calls the UpdateBuyingStatus in the nftHandler
+		businessFacades.GetSponsorAccountXDR, //Calls the GetSponsorAccountXDR in the StellarHandler
 	},
 	Route{
-		"SponsorTrust",
+		"GetSponsorTrustXDR",
 		"GET",
 		"/nft/sponsortrust",
-		businessFacades.SponsorBuyerTrust, //Calls the UpdateBuyingStatus in the nftHandler
+		businessFacades.GetSponsorTrustXDR, //Calls the GetSponsorTrustXDR in the StellarHandler
 	},
 	{
 		"Update Equation stages and product details",
