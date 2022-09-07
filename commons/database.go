@@ -21,7 +21,7 @@ var mongoConnectionUrl string
 func GetMongoSession() (mongo.Session, error) {
 	if mgoSession == nil {
 		var err error
-		mongoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI("mongodb+srv://gatewayqauser:qagatewaypass@cluster0.lhkwc.mongodb.net/tracified-gateway-qa?retryWrites=true&w=majority"))
+		mongoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionUrl))
 		if err != nil {
 			return nil, err
 		}

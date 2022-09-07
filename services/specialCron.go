@@ -54,9 +54,6 @@ func CheckTempOrphan() {
 					return data
 				}).Await()
 				if errorAsync != nil {
-					//log.Error("Error while GetSpecialForPkAndSeq " + errorAsync.Error())
-					// return error
-					// log.Println("No transactions in the scheduler")
 					stop = true // to break loop
 				} else if data == nil {
 					stop = true
