@@ -548,4 +548,10 @@ var routes = Routes{
 		"/socialimapact",
 		businessFacades.UpdateEquation, //Update pool's activities and products details
 	},
+	{
+		"Storing the social impact equation on blockchain",
+		"POST",
+		"/socialimapact/buildformula",
+		businessFacades.BuildSocialImpactFormula,
+	},
 }
