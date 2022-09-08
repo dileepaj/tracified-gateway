@@ -1,7 +1,7 @@
 package model
 
 type BuildFormula struct {
-	FormulaId       string
+	FormulaID       string
 	FormulaType     string
 	FieldCount      string
 	Query           string
@@ -16,7 +16,7 @@ type BuildFormula struct {
 	UpdatedAt       string
 }
 type FormulaItem struct {
-	Id           string
+	ID           string
 	Name         string
 	Description  string
 	value        float32
@@ -31,3 +31,14 @@ type Expert struct {
 	ExpertPK string
 }
 
+type FormulaIDMap struct {
+	FormulaID string
+	MapID     int64
+	ByteID    []byte
+	BitString string
+}
+
+type Counters struct {
+	ID            string
+	SequenceValue int64
+}

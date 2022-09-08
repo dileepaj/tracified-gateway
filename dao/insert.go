@@ -426,3 +426,18 @@ func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
 	}
 	return err
 }
+
+func (cd *Connection) InsertFormulaIDMap(formulaIDMap model.FormulaIDMap) error {
+	logrus.Info("--------------------------- InsertFormulaIDMap ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("FormulaIDMap")
+	_, err = c.InsertOne(context.TODO(), formulaIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}

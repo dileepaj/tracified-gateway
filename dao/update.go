@@ -791,11 +791,32 @@ func (cd *Connection) UpdateLiquidityPool(selector model.BuildPoolResponse) erro
 		return err
 	}
 	opts := options.Update().SetUpsert(false)
-	_, err = c.UpdateOne(context.TODO(), bson.M{"equationid": selector.EquationId,"tenantid": selector.TenantId, "formulatype": selector.FormulaType},
-	 bson.D{{Key: "$set", Value: updateNew}},opts)
+	_, err = c.UpdateOne(context.TODO(), bson.M{"equationid": selector.EquationId, "tenantid": selector.TenantId, "formulatype": selector.FormulaType},
+		bson.D{{Key: "$set", Value: updateNew}}, opts)
 	if err != nil {
 		log.Println("Error while updating NFT Stellar " + err.Error())
 	}
 	return err
 }
 
+//auto count sequence incrementer
+func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
+	var result model.Counters
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return model.Counters{}, err
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("Counters")
+	err = c.FindOneAndUpdate(
+		context.TODO(),
+		bson.M{"id": Id}, // <- Find block
+		bson.D{{"$inc", bson.D{{"sequencevalue", 1}}}},
+		options.FindOneAndUpdate().SetReturnDocument(options.After),options.FindOneAndUpdate().SetUpsert(true), // <- Set option to return document after update (important)
+	).Decode(&result)
+	if err != nil {
+		fmt.Println("Error while updating proof protocols " + err.Error())
+	}
+	return result, err
+}
