@@ -1,12 +1,9 @@
 package businessFacades
 
 import (
-	"encoding/base64"
-	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strconv"
 
@@ -39,11 +36,11 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	}
 
 	object := dao.Connection{}
-	formulaMap,err5:=object.GetFormulaMapID(formulaJSON.FormulaID).Then(func(data interface{}) interface{} {
+	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.FormulaID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err5 != nil {
-		logrus.Info("Unable to connect gateway datastore ",err5)
+		logrus.Info("Unable to connect gateway datastore ", err5)
 		w.WriteHeader(http.StatusNotFound)
 	}
 	if formulaMap != nil {
@@ -53,44 +50,71 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	
 
-
-	data,err:=object.GetNextSequenceValue("FORMULAID")
+	data, err := object.GetNextSequenceValue("FORMULAID")
 	if err != nil {
-		fmt.Println("GetNextSequenceValu was failed" + err.Error())
+		logrus.Error("GetNextSequenceValu was failed" + err.Error())
 	}
 
-	fmt.Println("Sequen numb ++++++++++++++++ ",data)
-
-
-	n := strconv.FormatInt(data.SequenceValue, 2)
-	// fmt.Println(n)
-	str := fmt.Sprintf("%032s", n)
-	fmt.Println("srt    ",str)
-	bitValue := bitString(str)
-	byteValue := bitValue.AsByteSlice()
-	fmt.Println(byteValue)
-	fmt.Println(binary.Size(bitValue.AsByteSlice()))
-	for _, nq := range byteValue {
-		// fmt.Printf("% 09b", nq) // prints 00000000 11111101
-		fmt.Println("vvv ----------------      ", nq)
-	}
-	fmt.Println("vvvvvvvvvv----------: ", string(byteValue[:]))
-
-
-	formulaIDMap:=model.FormulaIDMap{
-		FormulaID: formulaJSON.FormulaID,
-		MapID:     data.SequenceValue,
-		ByteID:    byteValue,
-		BitString: str,
+	stageId, err := strconv.Atoi(formulaJSON.Activity.StageId)
+	if err != nil {
+		logrus.Error("stageId converting issue" + err.Error())
 	}
 
-	err6:=object.InsertFormulaIDMap(formulaIDMap)
-	if err6 != nil {
-		
+	// build memo
+	strSequenceValue := fmt.Sprintf("%08d", data.SequenceValue)
+	strStageID := fmt.Sprintf("%04d", stageId)
+	// formuala array's variable + matric variable
+	strVariableCount := fmt.Sprintf("%02d", len(formulaJSON.Formula)+1)
+	strFetureUsed := fmt.Sprintf("%014d", 0)
+	memo := strSequenceValue + strStageID + strVariableCount + strFetureUsed
+
+	if len(memo) != 28 {
+		logrus.Error("Memo length error ", memo)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "Memo length error  " + memo}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 
+	expertMapID := 0
+	expertMapdata, err := object.GetExpertMapID(formulaJSON.Expert.ExpertID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		logrus.Info("Unable to connect gateway datastore ", err5)
+		w.WriteHeader(http.StatusNotFound)
+	}
+	if expertMapdata == nil {
+		data, err := object.GetNextSequenceValue("EXPERTID")
+		if err != nil {
+			logrus.Error("GetNextSequenceValu was failed" + err.Error())
+		}
+		expertIDMap := model.ExpertIDMap{
+			ExpertID:  formulaJSON.Expert.ExpertID,
+			ExpertPK:  formulaJSON.Expert.ExpertPK,
+			MapID:     data.SequenceValue,
+			FormulaID: formulaJSON.FormulaID,
+		}
+		err1 := object.InsertExpertIDMap(expertIDMap)
+		if err1 != nil {
+			logrus.Error("Insert ExpertIDMap was failed" + err1.Error())
+		}
+		expertMapID = int(data.SequenceValue)
+	} else {
+		expertMap := expertMapdata.(model.ExpertIDMap)
+		expertMapID = int(expertMap.MapID)
+	}
+
+	// build expert manageData
+	strExpertSequenceValue := fmt.Sprintf("%08d", expertMapID)
+	fetaureUsedExpertKey := fmt.Sprintf("%056d", 0)
+
+	expertManageDataKey := strExpertSequenceValue + fetaureUsedExpertKey
+	// only put the publick key
+	expertManageDataValue := formulaJSON.Expert.ExpertPK
+
+	// load account
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	tracifiedAccount, err := keypair.ParseFull(secretKey)
@@ -98,22 +122,26 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	pubaccount, err := client.AccountDetail(pubaccountRequest)
 
-
-	PreviousTXNBuilder := txnbuild.ManageData{
-		Name:  "new",
-		Value: byteValue,
+	// build manage date with expert information
+	experInforBuilder := txnbuild.ManageData{
+		Name:  expertManageDataKey,
+		Value: []byte(expertManageDataValue),
 	}
 
-	if err != nil {
-		logrus.Println(err)
+	if len(expertManageDataKey) > 64 || len(expertManageDataValue) > 64 {
+		logrus.Error("expert mange data length issue ", memo)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "Expert mange data length issue  " + " Value  " + expertManageDataValue + " key  " + expertManageDataKey}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	// BUILD THE GATEWAY XDR
 	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 		SourceAccount:        &pubaccount,
 		IncrementSequenceNum: true,
-		Operations:           []txnbuild.Operation{&PreviousTXNBuilder},
+		Operations:           []txnbuild.Operation{&experInforBuilder},
 		BaseFee:              txnbuild.MinBaseFee,
-		Memo:                 nil,
+		Memo:                 txnbuild.MemoText(memo),
 		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 	})
 	if err != nil {
@@ -122,63 +150,81 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 	GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 	if err != nil {
-		logrus.Println("Error while getting GatewayTXE by secretKey " + err.Error())
+		logrus.Error("Error while signing the XDR by secretKey  ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "Error while signing the XDR by secretKey    " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 	resp, err := client.SubmitTransaction(GatewayTXE)
-
-	fmt.Println("has----  ", resp.Hash)
-
-	url := "https://horizon-testnet.stellar.org/transactions/" + resp.Hash + "/operations"
-	result, err := http.Get(url)
 	if err != nil {
-		logrus.Error("Unable to reach Stellar network", url)
+		logrus.Error("XDR submitting issue  ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "XDR submitting issue  " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
-	if result.StatusCode != 200 {
-		logrus.Error(result)
-	}
-	defer result.Body.Close()
-	assertInfo, err := ioutil.ReadAll(result.Body)
-	if err != nil {
-		logrus.Error(err)
+	logrus.Info("----------- Txn Hash -------- ", resp.Hash)
+
+	formulaIDMap := model.FormulaIDMap{
+		FormulaID: formulaJSON.FormulaID,
+		MapID:     data.SequenceValue,
 	}
 
-	var raw map[string]interface{}
-	var raw1 map[string]interface{}
+	err1 := object.InsertFormulaIDMap(formulaIDMap)
+	if err1 != nil {
+		logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
+	}
 
-	json.Unmarshal(assertInfo, &raw)
+	//! acessing the manage data in blockchain and convert byte to bit string
+	// url := "https://horizon-testnet.stellar.org/transactions/" + resp.Hash + "/operations"
+	// result, err := http.Get(url)
+	// if err != nil {
+	// 	logrus.Error("Unable to reach Stellar network", url)
+	// }
+	// if result.StatusCode != 200 {
+	// 	logrus.Error(result)
+	// }
+	// defer result.Body.Close()
+	// assertInfo, err := ioutil.ReadAll(result.Body)
+	// if err != nil {
+	// 	logrus.Error(err)
+	// }
 
-	out, err := json.Marshal(raw["_embedded"])
-	if err != nil {
-		logrus.Error("Unable to marshal embedded")
-	}
-	err = json.Unmarshal(out, &raw1)
-	if err != nil {
-		logrus.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
-	}
-	out1, _ := json.Marshal(raw1["records"])
-	json.Unmarshal(out1, &raw1)
+	// var raw map[string]interface{}
+	// var raw1 map[string]interface{}
 
-	keysBody := out1
-	keys := make([]PublicKeyPOCOC, 0)
-	err = json.Unmarshal(keysBody, &keys)
-	if err != nil {
-		logrus.Error("Unable to unmarshal keys data")
-	}
-	fmt.Println("--raw1----- ", keys)
-	for i := range keys {
-		fmt.Println(keys[i])
-		acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[i].Value)
-		if err != nil {
-			logrus.Error("Unable to base64 decoding")
-		}
-		acceptTxn := string(acceptTxn_byteData)
-		fmt.Println("acceptTxn----------: " + acceptTxn)
-		for _, nq := range acceptTxn_byteData {
-			// fmt.Printf("% 09b", nq) // prints 00000000 11111101
-			fmt.Println("vvv retrive----------------      ", nq)
-		}
-	}
+	// json.Unmarshal(assertInfo, &raw)
+
+	// out, err := json.Marshal(raw["_embedded"])
+	// if err != nil {
+	// 	logrus.Error("Unable to marshal embedded")
+	// }
+	// err = json.Unmarshal(out, &raw1)
+	// if err != nil {
+	// 	logrus.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+	// }
+	// out1, _ := json.Marshal(raw1["records"])
+	// json.Unmarshal(out1, &raw1)
+
+	// keysBody := out1
+	// keys := make([]PublicKeyPOCOC, 0)
+	// err = json.Unmarshal(keysBody, &keys)
+	// if err != nil {
+	// 	logrus.Error("Unable to unmarshal keys data")
+	// }
+	// for i := range keys {
+	// 	//fmt.Println(keys[i])
+	// 	acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[i].Value)
+	// 	if err != nil {
+	// 		logrus.Error("Unable to base64 decoding")
+	// 	}
+	// 	for _, nq := range acceptTxn_byteData {
+	// 		// fmt.Printf("% 09b", nq) // prints 00000000 11111101
+	// 		fmt.Println(nq)
+	// 	}
+	// }
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

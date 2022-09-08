@@ -34,8 +34,13 @@ type Expert struct {
 type FormulaIDMap struct {
 	FormulaID string
 	MapID     int64
-	ByteID    []byte
-	BitString string
+}
+
+type ExpertIDMap struct {
+	ExpertID  string
+	ExpertPK  string
+	MapID     int64
+	FormulaID string
 }
 
 type Counters struct {
