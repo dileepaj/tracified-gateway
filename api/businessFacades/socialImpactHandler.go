@@ -11,6 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -114,6 +115,12 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// only put the publick key
 	expertManageDataValue := formulaJSON.Expert.ExpertPK
 
+	//formula identity operation
+	formulaIdentityBuilder, errInFormulaIdentity := stellarprotocols.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
+	if errInFormulaIdentity != nil {
+		logrus.Error("Building formula identity manage data failed : Error : " + errInFormulaIdentity.Error())
+	}
+
 	// load account
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
@@ -135,46 +142,55 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	// BUILD THE GATEWAY XDR
-	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-		SourceAccount:        &pubaccount,
-		IncrementSequenceNum: true,
-		Operations:           []txnbuild.Operation{&experInforBuilder},
-		BaseFee:              txnbuild.MinBaseFee,
-		Memo:                 txnbuild.MemoText(memo),
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-	})
-	if err != nil {
-		logrus.Println("Error while buliding XDR " + err.Error())
-	}
-	// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-	GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
-	if err != nil {
-		logrus.Error("Error while signing the XDR by secretKey  ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		response := model.Error{Code: http.StatusInternalServerError, Message: "Error while signing the XDR by secretKey    " + err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-	// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
-	resp, err := client.SubmitTransaction(GatewayTXE)
-	if err != nil {
-		logrus.Error("XDR submitting issue  ", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		response := model.Error{Code: http.StatusInternalServerError, Message: "XDR submitting issue  " + err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-	logrus.Info("----------- Txn Hash -------- ", resp.Hash)
+	//check if any builder has failed
+	//TODO: should add other manage data operations error handling here as well
+	if errInFormulaIdentity == nil {
+		// BUILD THE GATEWAY XDR
+		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+			SourceAccount:        &pubaccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &experInforBuilder},
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 txnbuild.MemoText(memo),
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		})
+		if err != nil {
+			logrus.Println("Error while buliding XDR " + err.Error())
+		}
+		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
+		if err != nil {
+			logrus.Error("Error while signing the XDR by secretKey  ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "Error while signing the XDR by secretKey    " + err.Error()}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+		resp, err := client.SubmitTransaction(GatewayTXE)
+		if err != nil {
+			logrus.Error("XDR submitting issue  ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "XDR submitting issue  " + err.Error()}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		logrus.Info("----------- Txn Hash -------- ", resp.Hash)
 
-	formulaIDMap := model.FormulaIDMap{
-		FormulaID: formulaJSON.FormulaID,
-		MapID:     data.SequenceValue,
-	}
+		formulaIDMap := model.FormulaIDMap{
+			FormulaID: formulaJSON.FormulaID,
+			MapID:     data.SequenceValue,
+		}
 
-	err1 := object.InsertFormulaIDMap(formulaIDMap)
-	if err1 != nil {
-		logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
+		err1 := object.InsertFormulaIDMap(formulaIDMap)
+		if err1 != nil {
+			logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(formulaJSON)
+		return
 	}
 
 	//! acessing the manage data in blockchain and convert byte to bit string
@@ -225,11 +241,6 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// 		fmt.Println(nq)
 	// 	}
 	// }
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(formulaJSON)
-	return
 }
 
 func mapEquationIDInToNumber() {

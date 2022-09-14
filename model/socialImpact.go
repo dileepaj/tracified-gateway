@@ -3,6 +3,7 @@ package model
 type BuildFormula struct {
 	FormulaID       string
 	FormulaType     string
+	Name            string
 	FieldCount      string
 	Query           string
 	FormulaAsString string
