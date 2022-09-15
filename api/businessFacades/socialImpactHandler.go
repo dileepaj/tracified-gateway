@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -107,18 +108,38 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		expertMapID = int(expertMap.MapID)
 	}
 
-	// build expert manageData
-	strExpertSequenceValue := fmt.Sprintf("%08d", expertMapID)
-	fetaureUsedExpertKey := fmt.Sprintf("%056d", 0)
+	// // build expert manageData
+	// strExpertSequenceValue := fmt.Sprintf("%08d", expertMapID)
+	// fetaureUsedExpertKey := fmt.Sprintf("%056d", 0)
 
-	expertManageDataKey := strExpertSequenceValue + fetaureUsedExpertKey
-	// only put the publick key
-	expertManageDataValue := formulaJSON.Expert.ExpertPK
+	// expertManageDataKey := strExpertSequenceValue + fetaureUsedExpertKey
+	// // only put the publick key
+	// expertManageDataValue := formulaJSON.Expert.ExpertPK
 
 	//formula identity operation
 	formulaIdentityBuilder, errInFormulaIdentity := stellarprotocols.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
 	if errInFormulaIdentity != nil {
 		logrus.Error("Building formula identity manage data failed : Error : " + errInFormulaIdentity.Error())
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "An error occured when building formula identity",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+
+	//author details opreation
+	authorDetailsBuilder, errInAuthorBuilder := stellarprotocols.BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
+	if errInAuthorBuilder != nil {
+		logrus.Error("Building author details manage data failed : Error : " + errInAuthorBuilder.Error())
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "An error occured when building author identity",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
 	}
 
 	// load account
@@ -130,26 +151,26 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	pubaccount, err := client.AccountDetail(pubaccountRequest)
 
 	// build manage date with expert information
-	experInforBuilder := txnbuild.ManageData{
-		Name:  expertManageDataKey,
-		Value: []byte(expertManageDataValue),
-	}
+	// experInforBuilder := txnbuild.ManageData{
+	// 	Name:  expertManageDataKey,
+	// 	Value: []byte(expertManageDataValue),
+	// }
 
-	if len(expertManageDataKey) > 64 || len(expertManageDataValue) > 64 {
-		logrus.Error("expert mange data length issue ", memo)
-		w.WriteHeader(http.StatusInternalServerError)
-		response := model.Error{Code: http.StatusInternalServerError, Message: "Expert mange data length issue  " + " Value  " + expertManageDataValue + " key  " + expertManageDataKey}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
+	// if len(expertManageDataKey) > 64 || len(expertManageDataValue) > 64 {
+	// 	logrus.Error("expert mange data length issue ", memo)
+	// 	w.WriteHeader(http.StatusInternalServerError)
+	// 	response := model.Error{Code: http.StatusInternalServerError, Message: "Expert mange data length issue  " + " Value  " + expertManageDataValue + " key  " + expertManageDataKey}
+	// 	json.NewEncoder(w).Encode(response)
+	// 	return
+	// }
 	//check if any builder has failed
 	//TODO: should add other manage data operations error handling here as well
-	if errInFormulaIdentity == nil {
+	if errInFormulaIdentity == nil && errInAuthorBuilder == nil {
 		// BUILD THE GATEWAY XDR
 		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 			SourceAccount:        &pubaccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &experInforBuilder},
+			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 txnbuild.MemoText(memo),
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
