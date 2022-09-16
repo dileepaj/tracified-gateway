@@ -456,3 +456,17 @@ func (cd *Connection) InsertExpertIDMap(expertIDMap model.ExpertIDMap) error {
 	}
 	return err
 }
+
+func (cd *Connection) InsertToValueIDMap(valueIDMap model.ValueIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ValueIDMap")
+	_, err = c.InsertOne(context.TODO(), valueIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}

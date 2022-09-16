@@ -48,3 +48,10 @@ type Counters struct {
 	ID            string
 	SequenceValue int64
 }
+
+type ValueIDMap struct {
+	ValueId   string
+	ValueType string
+	ValueName string
+	MapID     int64
+}
