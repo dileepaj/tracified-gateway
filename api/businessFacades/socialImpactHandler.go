@@ -1,11 +1,8 @@
 package businessFacades
 
 import (
-	"encoding/hex"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -58,18 +55,17 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		logrus.Error("GetNextSequenceValu was failed" + err.Error())
 	}
 
-	stageId, err := strconv.Atoi(formulaJSON.Activity.StageId)
-	if err != nil {
-		logrus.Error("stageId converting issue" + err.Error())
-	}
-
 	// build memo
-	strSequenceValue := fmt.Sprintf("%08d", data.SequenceValue)
-	strStageID := fmt.Sprintf("%04d", stageId)
-	// formuala array's variable + matric variable
-	strVariableCount := fmt.Sprintf("%02d", len(formulaJSON.Formula)+1)
-	strFetureUsed := fmt.Sprintf("%014d", 0)
-	memo := strSequenceValue + strStageID + strVariableCount + strFetureUsed
+	// types = 0 - strating manifest
+	// types = 1 - managedata overflow sign
+	memo, err := stellarprotocols.BuildMemo(0, formulaJSON.FieldCount, data.SequenceValue)
+	if err != nil {
+		logrus.Error("Memo ", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "Memo hex converting issue  " + memo}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
 	if len(memo) != 28 {
 		logrus.Error("Memo length error ", memo)
@@ -108,15 +104,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		expertMapID = int(expertMap.MapID)
 	}
 
-	// // build expert manageData
-	// strExpertSequenceValue := fmt.Sprintf("%08d", expertMapID)
-	// fetaureUsedExpertKey := fmt.Sprintf("%056d", 0)
-
-	// expertManageDataKey := strExpertSequenceValue + fetaureUsedExpertKey
-	// // only put the publick key
-	// expertManageDataValue := formulaJSON.Expert.ExpertPK
-
-	//formula identity operation
+	// formula identity operation
 	formulaIdentityBuilder, errInFormulaIdentity := stellarprotocols.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
 	if errInFormulaIdentity != nil {
 		logrus.Error("Building formula identity manage data failed : Error : " + errInFormulaIdentity.Error())
@@ -129,7 +117,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//author details opreation
+	// author details opreation
 	authorDetailsBuilder, errInAuthorBuilder := stellarprotocols.BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
 	if errInAuthorBuilder != nil {
 		logrus.Error("Building author details manage data failed : Error : " + errInAuthorBuilder.Error())
@@ -163,8 +151,9 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// 	json.NewEncoder(w).Encode(response)
 	// 	return
 	// }
-	//check if any builder has failed
-	//TODO: should add other manage data operations error handling here as well
+
+	// check if any builder has failed
+	// TODO: should add other manage data operations error handling here as well
 	if errInFormulaIdentity == nil && errInAuthorBuilder == nil {
 		// BUILD THE GATEWAY XDR
 		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
@@ -262,42 +251,4 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// 		fmt.Println(nq)
 	// 	}
 	// }
-}
-
-func mapEquationIDInToNumber() {
-}
-
-func stringToBin(s string) (binString string) {
-	for _, c := range s {
-		binString = fmt.Sprintf("%s%b", binString, c)
-	}
-	return
-}
-
-func (b bitString) AsByteSlice() []byte {
-	var out []byte
-	var str string
-
-	for i := len(b); i > 0; i -= 8 {
-		if i-8 < 0 {
-			str = string(b[0:i])
-		} else {
-			str = string(b[i-8 : i])
-		}
-		v, err := strconv.ParseUint(str, 2, 8)
-		if err != nil {
-			panic(err)
-		}
-		out = append([]byte{byte(v)}, out...)
-	}
-	return out
-}
-
-func (b bitString) AsHexSlice() []string {
-	var out []string
-	byteSlice := b.AsByteSlice()
-	for _, b := range byteSlice {
-		out = append(out, "0x"+hex.EncodeToString([]byte{b}))
-	}
-	return out
 }

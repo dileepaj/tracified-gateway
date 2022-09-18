@@ -4,7 +4,7 @@ type BuildFormula struct {
 	FormulaID       string
 	FormulaType     string
 	Name            string
-	FieldCount      string
+	FieldCount      int32
 	Query           string
 	FormulaAsString string
 	TenantId        string
