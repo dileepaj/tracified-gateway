@@ -27,6 +27,17 @@ type FormulaItem struct {
 	Unit         string
 }
 
+type FormulaItemRequest struct {
+	ID                string
+	Name              string
+	Description       string
+	Key               string
+	Type              string
+	MeasurementUnit   string
+	MetricReferenceId string
+	metricReference   MetricReference
+}
+
 type Expert struct {
 	ExpertID string
 	ExpertPK string
@@ -54,4 +65,24 @@ type ValueIDMap struct {
 	ValueType string
 	ValueName string
 	MapID     int64
+}
+
+type FormulaBuildingRequest struct {
+	ID              string
+	Name            string
+	Metric          FormulaItem
+	Formula         []FormulaItemRequest
+	FormulaAsString string
+	FormulaAsQuery  string
+	Activity        Activity
+	Expert          Expert
+	Active          bool
+	CreatedAt       string
+	UpdatedAt       string
+}
+
+type MetricReference struct {
+	Name            string
+	MeasurementUnit string
+	Url             string
 }
