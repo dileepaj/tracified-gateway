@@ -17,28 +17,47 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 	variableNameString := ""
 	descriptionString := ""
 
+	fmt.Println("------------------Called -------------------------------------")
 	//this is a variable therefore the value type is 1
 	//convert value type character -> byte -> bits
 
-	//check if the variable name for this formula is in the variale mapping
-	//if not add with incrementing id
-	//if so get that id to be added to the manage data
+	//DB validations for the variable id
 	object := dao.Connection{}
-	data, err := object.GetNextSequenceValue("VALUEID")
-	if err != nil {
-		logrus.Error("GetNextSequenceValu was failed" + err.Error())
+	valueMap, errValueMap := object.GetValueMapID(valueId).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errValueMap != nil {
+		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
+	//check if the variable name for this formula is in the variale mapping
+	if valueMap != nil {
+		logrus.Info(variableName + " is already recorded in the DB Map")
 
-	valueIdMap := model.ValueIDMap{
-		ValueId:   valueId,
-		ValueType: "Variable",
-		ValueName: variableName,
-		MapID:     data.SequenceValue,
-	}
+		//TODO:add thE value map part as the value id to the manage data key part string
 
-	err1 := object.InsertToValueIDMap(valueIdMap)
-	if err1 != nil {
-		logrus.Error("Insert ExpertIDMap was failed" + err1.Error())
+	} else {
+		//if not add with incrementing id
+		logrus.Info(variableName + " is not recorded in the DB Map")
+		data, err := object.GetNextSequenceValue("VALUEID")
+		if err != nil {
+			logrus.Error("GetNextSequenceValue was failed" + err.Error())
+			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of value map was failed")
+		}
+
+		valueIdMap := model.ValueIDMap{
+			ValueId:   valueId,
+			ValueType: "Variable",
+			ValueName: variableName,
+			MapID:     data.SequenceValue,
+		}
+
+		err1 := object.InsertToValueIDMap(valueIdMap)
+		if err1 != nil {
+			logrus.Error("Insert Value map ID was failed" + err1.Error())
+		}
+
+		//TODO: add the data as the new value id to the manage data key part string
 	}
 
 	//check variable name is 20 character
@@ -79,11 +98,15 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 		}
 	}
 
-	keyString := valueTypeString + variableNameString + descriptionString
+	keyString := valueTypeString + variableNameString
+	valueString := descriptionString
+
+	logrus.Info("Building variable with key string of   : ", keyString)
+	logrus.Info("Building variable with value string of : ", valueString)
 
 	variableDefinitionBuilder := txnbuild.ManageData{
 		Name:  keyString,
-		Value: []byte(""),
+		Value: []byte(valueString),
 	}
 
 	return variableDefinitionBuilder, nil
