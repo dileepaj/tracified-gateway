@@ -51,32 +51,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 
 	formulaJSON.Formula = formulaArray
 
-	variableBuilder, err := stellarprotocols.BuildVariableDefinitionManageData(formulaJSON.Formula[0])
-	if err != nil {
-		logrus.Error("Variable  ", err.Error())
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	sematicConstant, err := stellarprotocols.BuildSemanticConstantManageData(formulaJSON.Formula[4])
-	if err != nil {
-		logrus.Error("sementic Constant   ", err.Error())
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
-
-	referredConstant, err := stellarprotocols.BuildReferredConstantManageData(formulaJSON.Formula[2])
-	if err != nil {
-		logrus.Error("referred Constant   ", err.Error())
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
-		json.NewEncoder(w).Encode(response)
-		return
-	}
+	var manageDataOpArray []txnbuild.Operation
 
 	object := dao.Connection{}
 	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.ID).Then(func(data interface{}) interface{} {
@@ -160,6 +135,8 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+	//append to the manage data array
+	manageDataOpArray = append(manageDataOpArray, &formulaIdentityBuilder)
 
 	// author details opreation
 	authorDetailsBuilder, errInAuthorBuilder := stellarprotocols.BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
@@ -173,8 +150,51 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+	//append to the manage data array
+	manageDataOpArray = append(manageDataOpArray, &authorDetailsBuilder)
 
-	//formulaJSON array for manage data
+	//loop through the formulaArray to see build the field definitions
+	for i := 0; i < len(formulaArray); i++ {
+		if formulaArray[i].Type == "VARIABLE" {
+			//excute the variable builder
+			variableBuilder, err := stellarprotocols.BuildVariableDefinitionManageData(formulaArray[i])
+			if err != nil {
+				logrus.Error("Variable  ", err.Error())
+				w.WriteHeader(http.StatusNoContent)
+				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+			//append to the manage data array
+			manageDataOpArray = append(manageDataOpArray, &variableBuilder)
+		} else if formulaArray[i].Type == "REFERREDCONSTANT" {
+			//execute the referred constant builder
+			referredConstant, err := stellarprotocols.BuildReferredConstantManageData(formulaArray[i])
+			if err != nil {
+				logrus.Error("referred Constant   ", err.Error())
+				w.WriteHeader(http.StatusNoContent)
+				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+
+			//append to the manage data array
+			manageDataOpArray = append(manageDataOpArray, &referredConstant)
+		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
+			//execute the semantic constant builder
+			sematicConstant, err := stellarprotocols.BuildSemanticConstantManageData(formulaArray[i])
+			if err != nil {
+				logrus.Error("sementic Constant   ", err.Error())
+				w.WriteHeader(http.StatusNoContent)
+				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+
+			//append to the manage data array
+			manageDataOpArray = append(manageDataOpArray, &sematicConstant)
+		}
+	}
 
 	// load account
 	publicKey := constants.PublicKey
@@ -205,7 +225,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 			SourceAccount:        &pubaccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder, &variableBuilder, &sematicConstant, &referredConstant},
+			Operations:           manageDataOpArray,
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 txnbuild.MemoText(memo),
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
