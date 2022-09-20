@@ -13,7 +13,7 @@ import (
 
 func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 2
-	valueId := ""
+	var valueId int64
 	unit := 4
 	sementicConstantDataType := 2
 	semanticConstantDescription := ""
@@ -28,19 +28,19 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
-		logrus.Info(valueId + " is already recorded in the DB Map")
+		logrus.Info("Value ID is already recorded in the DB Map")
 		valueMapData := valueMap.(model.ValueIDMap)
-		valueId = fmt.Sprintf("%08d", valueMapData.MapID)
+		valueId = valueMapData.MapID
 	} else {
 		// if not add with incrementing id
-		logrus.Info(valueId + " is not recorded in the DB Map")
+		logrus.Info("Value ID is not recorded in the DB Map")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
 			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of value map was failed")
 		}
 		valueIdMap := model.ValueIDMap{
-			ValueId:   valueId,
+			ValueId:   element.ID,
 			ValueType: "semanticCONSTANT",
 			MapID:     data.SequenceValue,
 		}
@@ -48,7 +48,7 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 		if err1 != nil {
 			logrus.Error("Insert Value map ID was failed" + err1.Error())
 		}
-		valueId = fmt.Sprintf("%08d", data.SequenceValue)
+		valueId = data.SequenceValue
 	}
 	// check variable name is 20 character
 	if len(element.Description) > 40 || element.Description == "" {
@@ -82,6 +82,10 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
+	strValueId, err := IDToBinary(valueId)
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+	}
 	srtValueType, err := StringToBinary(int64(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
@@ -92,7 +96,7 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 	}
 	fmt.Println(strUnit+"    cnv             ", ConvertingBinaryToByteString(strUnit))
 	fmt.Println(len(ConvertingBinaryToByteString(srtValueType)))
-	fmt.Println(len(valueId))
+	fmt.Println(len(ConvertingBinaryToByteString(strValueId)))
 	fmt.Println(len(ConvertingBinaryToByteString(srtDataType)))
 	fmt.Println(len(semanticConstantValue))
 	fmt.Println(len(semanticConstantDescription))
@@ -101,7 +105,7 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 
 	// semantic constant's manage data key and value
 	nameString := semanticConstantValue
-	valueString := ConvertingBinaryToByteString(srtValueType) + valueId + ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
+	valueString := ConvertingBinaryToByteString(srtValueType) + ConvertingBinaryToByteString(strValueId) + ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
 
 	fmt.Println("Semantic constant Name:   ", nameString)
 	fmt.Println("Semantic constant value:   ", valueString)

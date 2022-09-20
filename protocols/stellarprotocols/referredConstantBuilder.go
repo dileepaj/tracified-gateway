@@ -13,10 +13,11 @@ import (
 
 func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 3
-	valueId := ""
-	unit := 2
+	var valueId int64
+	var unit int64
 	referredConstantDataType := 2
 	referredConstantDescription := ""
+
 	referredConstantValue := fmt.Sprintf("%g", element.Value)
 	// DB validations for the variable id
 	object := dao.Connection{}
@@ -28,19 +29,19 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
-		logrus.Info(valueId + " is already recorded in the DB Map")
+		logrus.Info("Value ID is already recorded in the DB Map")
 		valueMapData := valueMap.(model.ValueIDMap)
-		valueId = fmt.Sprintf("%08d", valueMapData.MapID)
+		valueId = valueMapData.MapID
 	} else {
 		// if not add with incrementing id
-		logrus.Info(valueId + " is not recorded in the DB Map")
+		logrus.Info("Value ID is already recorded in the DB Map")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
 			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of value map was failed")
 		}
 		valueIdMap := model.ValueIDMap{
-			ValueId:   valueId,
+			ValueId:   element.ID,
 			ValueType: "REFERREDCONSTANT",
 			MapID:     data.SequenceValue,
 		}
@@ -48,7 +49,7 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 		if err1 != nil {
 			logrus.Error("Insert Value map ID was failed" + err1.Error())
 		}
-		valueId = fmt.Sprintf("%08d", data.SequenceValue)
+		valueId = data.SequenceValue
 	}
 	// check variable name is 20 character
 	if len(element.Description) > 30 || element.Description == "" {
@@ -77,10 +78,6 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 		}
 	}
 	strFetureUsed := fmt.Sprintf("%014d", 0)
-	strUnit, err := UnitToBinary(int64(unit))
-	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
-	}
 	srtValueType, err := StringToBinary(int64(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
@@ -89,9 +86,59 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
+
+	//unit building
+	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errInUnitIdMap != nil {
+		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
+	}
+	if unitMap != nil {
+		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map")
+
+		//add map id as the unit in the key string
+		unitMapData := unitMap.(model.UnitIDMap)
+		unit = unitMapData.MapID
+
+	} else {
+		//if not add the incrementing id
+		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map")
+
+		//get the current sequence for the units
+		data, err := object.GetNextSequenceValue("UNITID")
+		if err != nil {
+			logrus.Error("GetNextSequenceValue was failed" + err.Error())
+			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of unit map was failed")
+		}
+
+		unitIdMap := model.UnitIDMap{
+			Unit:  element.MeasurementUnit,
+			MapID: data.SequenceValue,
+		}
+
+		err1 := object.InsertToUnitIDMap(unitIdMap)
+		if err1 != nil {
+			logrus.Error("Insert unit map ID was failed" + err1.Error())
+			return txnbuild.ManageData{}, errors.New("Insert unit map ID was failed")
+		}
+		unit = data.SequenceValue
+	}
+
+	strUnit, err := UnitToBinary(unit)
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+	}
+
+	strValueID, err := IDToBinary(valueId)
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+	}
+
 	fmt.Println(strUnit+"    cnv             ", ConvertingBinaryToByteString(strUnit))
 	fmt.Println(len(ConvertingBinaryToByteString(srtValueType)))
-	fmt.Println(len(valueId))
+	fmt.Println(len(ConvertingBinaryToByteString(strValueID)))
 	fmt.Println(len(ConvertingBinaryToByteString(srtDataType)))
 	fmt.Println(len(referredConstantValue))
 	fmt.Println(len(referredConstantDescription))
@@ -100,7 +147,7 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
-	valueString := ConvertingBinaryToByteString(srtValueType) + valueId + ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + ConvertingBinaryToByteString(strUnit) + strFetureUsed
+	valueString := ConvertingBinaryToByteString(srtValueType) + ConvertingBinaryToByteString(strValueID) + ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + ConvertingBinaryToByteString(strUnit) + strFetureUsed
 
 	fmt.Println("referred constant Name:   ", nameString)
 	fmt.Println("referred constant value:   ", valueString)
@@ -112,11 +159,11 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 	}
 
 	if len(valueString) != 64 {
-		logrus.Error("Length ", len(nameString))
+		logrus.Error("Length ", len(valueString))
 		return txnbuild.ManageData{}, errors.New("Referred contant  value length not equal to 64")
 	}
-	if len(nameString) > 64 ||len(nameString)==0{
-		logrus.Error("Length ", len(valueString))
+	if len(nameString) > 64 || len(nameString) == 0 {
+		logrus.Error("Length ", len(nameString))
 		return txnbuild.ManageData{}, errors.New("Referred contant name length should be less than or equal to 64")
 	}
 	return semanticConstManageData, nil

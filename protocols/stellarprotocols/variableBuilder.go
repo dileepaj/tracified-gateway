@@ -3,7 +3,6 @@ package stellarprotocols
 import (
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -16,7 +15,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 
 	VALUETYPE := 1
 	DATATYPE := 2
-	valueIdString := ""
+	var valueId int64
 	dataTypeString := ""
 	valueTypeString := ""
 	variableNameString := ""
@@ -41,7 +40,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 	}).Await()
 	if errValueMap != nil {
 		logrus.Info("Unable to connect gateway datastore ", errValueMap)
-		return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
+		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	//check if the variable name for this formula is in the variale mapping
 	if valueMap != nil {
@@ -49,8 +48,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 
 		//add the value map part as the value id to the manage data key part string
 		valueMapData := valueMap.(model.ValueIDMap)
-		tempValueID := int64(valueMapData.MapID)
-		valueIdString = strconv.FormatInt(tempValueID, 10)
+		valueId = valueMapData.MapID
 
 	} else {
 		//if not add with incrementing id
@@ -75,15 +73,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 		}
 
 		//add the data as the new value id to the manage data key part string
-		tempValueID := int64(data.SequenceValue)
-		valueIdString = strconv.FormatInt(tempValueID, 10)
-	}
-
-	//check weather the valueIdString has 8 characters if not append 0s to the left side
-	if len(valueIdString) < 8 {
-		remain := 8 - len(valueIdString)
-		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		valueIdString = setRemainder + valueIdString
+		valueId = data.SequenceValue
 	}
 
 	//check variable name is 20 character
@@ -164,6 +154,11 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 		unitString = ConvertingBinaryToByteString(strUnit)
 	}
 
+	strValueID, err := IDToBinary(valueId)
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+	}
+
 	//precision
 	tempPrecision, errInPrecisionConvert := StringToBinary(int64(element.Precision))
 	if errInPrecisionConvert != nil {
@@ -191,7 +186,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 		descriptionString = descriptionString + setReaminder
 	}
 
-	keyString := valueTypeString + valueIdString + variableNameString + dataTypeString + unitString + precisionString
+	keyString := valueTypeString + ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
 	valueString := descriptionString
 
 	logrus.Info("Building variable with key string of   : ", keyString)

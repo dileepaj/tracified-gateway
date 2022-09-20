@@ -51,9 +51,18 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 
 	formulaJSON.Formula = formulaArray
 
+	variableBuilder, err := stellarprotocols.BuildVariableDefinitionManageData(formulaJSON.Formula[0])
+	if err != nil {
+		logrus.Error("Variable  ", err.Error())
+		w.WriteHeader(http.StatusNoContent)
+		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
 	sematicConstant, err := stellarprotocols.BuildSemanticConstantManageData(formulaJSON.Formula[4])
 	if err != nil {
-		logrus.Error("sementic Constant   ",err.Error())
+		logrus.Error("sementic Constant   ", err.Error())
 		w.WriteHeader(http.StatusNoContent)
 		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
@@ -62,7 +71,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 
 	referredConstant, err := stellarprotocols.BuildReferredConstantManageData(formulaJSON.Formula[2])
 	if err != nil {
-		logrus.Error("referred Constant   ",err.Error())
+		logrus.Error("referred Constant   ", err.Error())
 		w.WriteHeader(http.StatusNoContent)
 		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
 		json.NewEncoder(w).Encode(response)
@@ -165,6 +174,8 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	//formulaJSON array for manage data
+
 	// load account
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
@@ -194,7 +205,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 			SourceAccount:        &pubaccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder,&sematicConstant,&referredConstant},
+			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder, &variableBuilder, &sematicConstant, &referredConstant},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 txnbuild.MemoText(memo),
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
