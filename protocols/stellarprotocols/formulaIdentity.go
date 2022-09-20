@@ -21,14 +21,18 @@ func BuildFormulaIdentity(expertId int, formulaName string, formulaDecription st
 		logrus.Error("Formula name 15 character limit exceeded")
 		return txnbuild.ManageData{}, errors.New("Formula name 15 character limit exceeded")
 	} else {
-		if len(formulaName) < 15 {
-			//add 0s to the rest of the name
-			remain := 15 - len(formulaName)
-			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-			formName = formulaName + setReaminder
-		} else if len(formulaName) == 15 {
+		if len(formulaName) == 15 {
 			formName = formulaName
+		} else if len(formulaName) < 15 {
+			formName = formulaName + "/"
 		}
+	}
+
+	//checking the formula name length if not 15 append 0s to the end
+	if len(formName) < 15 {
+		remain := 15 - len(formName)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		formName = formName + setReaminder
 	}
 
 	//convert the formula id to string
@@ -39,30 +43,37 @@ func BuildFormulaIdentity(expertId int, formulaName string, formulaDecription st
 		logrus.Error("Expert ID 8 character limit exceeded")
 		return txnbuild.ManageData{}, errors.New("Expert ID 8 character limit exceeded")
 	} else {
-		if len(expIdString) < 8 {
-			//add 0s to the start
-			remain := 8 - len(expIdString)
-			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-			authorID = setReaminder + expIdString
-		} else if len(expIdString) == 8 {
+		if len(expIdString) == 8 {
 			authorID = expIdString
+		} else if len(expIdString) < 8 {
+			authorID = expIdString + "/"
 		}
+	}
+
+	//checking if the expert ID is having 8 characters
+	if len(authorID) < 8 {
+		remain := 8 - len(authorID)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		authorID = authorID + setReaminder
 	}
 
 	//check if the formula description have 64 characters
 	if len(formulaDecription) > 64 {
 		logrus.Error("Formula description 64 character limit exceeded")
 		return txnbuild.ManageData{}, errors.New("Formula description 64 character limit exceeded")
-
 	} else {
-		if len(formulaDecription) < 64 {
-			//add 0s to the rest of the name
-			remain := 64 - len(formulaDecription)
-			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-			formDescription = formulaDecription + setReaminder
-		} else if len(formulaDecription) == 64 {
+		if len(formulaDecription) == 64 {
 			formDescription = formulaDecription
+		} else if len(formulaDecription) < 64 {
+			formDescription = formulaDecription + "/"
 		}
+	}
+
+	//checking if the formula description has the 64 bytes
+	if len(formDescription) < 64 {
+		remain := 64 - len(formDescription)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		formDescription = formDescription + setReaminder
 	}
 
 	keyString := formName + authorID

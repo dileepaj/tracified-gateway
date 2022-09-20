@@ -2272,3 +2272,26 @@ func (cd *Connection) GetValueMapID(valueID string) *promise.Promise {
 	})
 	return p
 }
+
+func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
+	result := model.UnitIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("UnitIdMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"unit": unit}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting UnitIdMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}

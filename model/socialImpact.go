@@ -55,3 +55,8 @@ type ValueIDMap struct {
 	ValueName string
 	MapID     int64
 }
+
+type UnitIDMap struct {
+	Unit  string
+	MapID int64
+}
