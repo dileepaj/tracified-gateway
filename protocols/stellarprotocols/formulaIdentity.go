@@ -88,6 +88,13 @@ func BuildFormulaIdentity(expertId int, formulaName string, formulaDecription st
 		Value: []byte(valueString),
 	}
 
+	//check the lengths of the key and value
+	if len(keyString) > 64 || len(valueString) > 64 {
+		logrus.Error("Key string length : ", len(keyString))
+		logrus.Error("Value string length : ", len(valueString))
+		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the formula identity building")
+	}
+
 	return formulaIdentityBuilder, nil
 
 }

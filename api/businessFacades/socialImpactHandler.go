@@ -25,8 +25,6 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var formulaJSON model.FormulaBuildingRequest
 
-	stellarprotocols.BuildVariableDefinitionManageData("12", "Testing", "Variable", "unit1", "5", "Hello there")
-
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
 		logrus.Error(err)
@@ -37,7 +35,6 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formulaArray := formulaJSON.Formula
-
 	fieldCount := 0
 	for i, element := range formulaJSON.Formula {
 		if element.Type == "DATA" {
@@ -53,6 +50,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formulaJSON.Formula = formulaArray
+
 	sematicConstant, err := stellarprotocols.BuildSemanticConstantManageData(formulaJSON.Formula[4])
 	if err != nil {
 		logrus.Error("sementic Constant   ",err.Error())
@@ -70,8 +68,6 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
-	//fmt.Println("aa ", a)
 
 	object := dao.Connection{}
 	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.ID).Then(func(data interface{}) interface{} {

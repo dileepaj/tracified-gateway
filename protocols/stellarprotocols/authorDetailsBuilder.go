@@ -41,5 +41,12 @@ func BuildAuthorManageData(expertKey string) (txnbuild.ManageData, error) {
 		Value: []byte(authorValue),
 	}
 
+	//check the lengths of the key and value
+	if len(authorKey) > 64 || len(authorValue) > 64 {
+		logrus.Error("Key string length : ", len(authorKey))
+		logrus.Error("Value string length : ", len(authorValue))
+		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the author details building")
+	}
+
 	return authorBuilder, nil
 }

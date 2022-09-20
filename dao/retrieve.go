@@ -2284,7 +2284,7 @@ func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("UnitIdMap")
+		c := session.Client().Database(dbName).Collection("UnitIDMap")
 		err1 := c.FindOne(context.TODO(), bson.M{"unit": unit}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting UnitIdMap from db " + err1.Error())
