@@ -25,6 +25,8 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var formulaJSON model.FormulaBuildingRequest
 
+	stellarprotocols.BuildVariableDefinitionManageData("12", "Testing", "Variable", "unit1", "5", "Hello there")
+
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
 		logrus.Error(err)

@@ -68,6 +68,11 @@ type ValueIDMap struct {
 	MapID     int64
 }
 
+type UnitIDMap struct {
+	Unit  string
+	MapID int64
+}
+
 type FormulaBuildingRequest struct {
 	ID              string
 	Name            string
