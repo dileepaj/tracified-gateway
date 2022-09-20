@@ -12,7 +12,6 @@ import (
 )
 
 func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
-	fmt.Println("element      ", element)
 	valueType := 3
 	valueId := ""
 	unit := 2
@@ -60,14 +59,13 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 			// add 0s to the rest of the name
 			remain := 30 - len(element.Description)
 			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
-			referredConstantDescription = element.Description + `\` + setReaminder
+			referredConstantDescription = element.Description + `/` + setReaminder
 		} else {
 			referredConstantDescription = element.Description
 		}
 	}
 	// check value is 20 character
 	if len(referredConstantValue) > 8 {
-		fmt.Println(referredConstantValue)
 		logrus.Error("Value is greater than 8 character limit")
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit")
 	} else {
@@ -99,25 +97,27 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 	fmt.Println(len(referredConstantDescription))
 	fmt.Println(len(ConvertingBinaryToByteString(strUnit)))
 	fmt.Println(len(strFetureUsed))
+
 	// referred constant's manage data key and value
-	keyString := ConvertingBinaryToByteString(srtValueType) + valueId + ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + ConvertingBinaryToByteString(strUnit) + strFetureUsed
-	valueString := element.MetricReference.Url
-	logrus.Println("Semantic constant key:   ", keyString)
-	logrus.Println("Semantic constant value:   ", valueString)
+	nameString := element.MetricReference.Url
+	valueString := ConvertingBinaryToByteString(srtValueType) + valueId + ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + ConvertingBinaryToByteString(strUnit) + strFetureUsed
+
+	fmt.Println("referred constant Name:   ", nameString)
+	fmt.Println("referred constant value:   ", valueString)
 
 	// Building the manage data operation
 	semanticConstManageData := txnbuild.ManageData{
-		Name:  valueString,
-		Value: []byte(keyString),
+		Name:  nameString,
+		Value: []byte(valueString),
 	}
 
-	if len(keyString) != 64 {
-		logrus.Error("Length ", len(keyString))
-		return txnbuild.ManageData{}, errors.New("Referred contant  key length not equal to 64")
+	if len(valueString) != 64 {
+		logrus.Error("Length ", len(nameString))
+		return txnbuild.ManageData{}, errors.New("Referred contant  value length not equal to 64")
 	}
-	if len(valueString) > 64 {
+	if len(nameString) > 64 ||len(nameString)==0{
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("Referred contant value length should be less than or equal to 64")
+		return txnbuild.ManageData{}, errors.New("Referred contant name length should be less than or equal to 64")
 	}
 	return semanticConstManageData, nil
 }

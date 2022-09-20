@@ -37,21 +37,41 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formulaArray := formulaJSON.Formula
-	fieldCount:=0;
-	for i,element := range formulaJSON.Formula{
-		if element.Type =="DATA"{
-			formulaArray[i].Type="VARIABLE"
-		}else if element.Type =="CONSTANT" && element.MetricReferenceId!=""{
-			formulaArray[i].Type="REFERREDCONSTANT"
-		}else if element.Type =="CONSTANT" && element.MetricReferenceId==""{
-			formulaArray[i].Type="SEMANTICCONSTANT"
+
+	fieldCount := 0
+	for i, element := range formulaJSON.Formula {
+		if element.Type == "DATA" {
+			formulaArray[i].Type = "VARIABLE"
+		} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
+			formulaArray[i].Type = "REFERREDCONSTANT"
+		} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
+			formulaArray[i].Type = "SEMANTICCONSTANT"
 		}
-		if element.Type!="OPERATOR"{
+		if element.Type != "OPERATOR" {
 			fieldCount++
 		}
 	}
 
-	formulaJSON.Formula=formulaArray
+	formulaJSON.Formula = formulaArray
+	sematicConstant, err := stellarprotocols.BuildSemanticConstantManageData(formulaJSON.Formula[4])
+	if err != nil {
+		logrus.Error("sementic Constant   ",err.Error())
+		w.WriteHeader(http.StatusNoContent)
+		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	referredConstant, err := stellarprotocols.BuildReferredConstantManageData(formulaJSON.Formula[2])
+	if err != nil {
+		logrus.Error("referred Constant   ",err.Error())
+		w.WriteHeader(http.StatusNoContent)
+		response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	//fmt.Println("aa ", a)
 
 	object := dao.Connection{}
 	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.ID).Then(func(data interface{}) interface{} {
@@ -178,7 +198,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 			SourceAccount:        &pubaccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder},
+			Operations:           []txnbuild.Operation{&formulaIdentityBuilder, &authorDetailsBuilder,&sematicConstant,&referredConstant},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 txnbuild.MemoText(memo),
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
