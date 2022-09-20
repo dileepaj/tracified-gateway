@@ -29,13 +29,14 @@ type FormulaItem struct {
 
 type FormulaItemRequest struct {
 	ID                string
+	Value             float64
 	Name              string
 	Description       string
 	Key               string
 	Type              string
 	MeasurementUnit   string
 	MetricReferenceId string
-	metricReference   MetricReference
+	MetricReference   MetricReference
 }
 
 type Expert struct {
