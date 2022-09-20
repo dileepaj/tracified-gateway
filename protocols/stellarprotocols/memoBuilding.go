@@ -2,6 +2,7 @@ package stellarprotocols
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 )
 
@@ -14,7 +15,10 @@ func BuildMemo(types, variableCount int32, sequeceValue int64) (string, error) {
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	strSequenceValue := fmt.Sprintf("%08d", sequeceValue)
+	srtValueID, err := IDToBinary(int64(sequeceValue))
+	if err != nil {
+		return "", errors.New("BuildMemo issue (faormula ID convert to type) " + err.Error())
+	}
 	strVariableCount := fmt.Sprintf("%04d", variableCount)
 	strFetureUsed := fmt.Sprintf("%06d", 0)
 	decodedManifest, err := hex.DecodeString(manifest)
@@ -22,6 +26,6 @@ func BuildMemo(types, variableCount int32, sequeceValue int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	memo := strManifest + strSequenceValue + strVariableCount + strFetureUsed
+	memo := strManifest + ConvertingBinaryToByteString(srtValueID) + strVariableCount + strFetureUsed
 	return memo, nil
 }

@@ -2,8 +2,10 @@ package stellarprotocols
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
+	"strings"
 )
 
 type bitString string
@@ -43,8 +45,66 @@ func (b bitString) AsHexSlice() []string {
 	return out
 }
 
-func ConvertingStrtoByteString(str string) string {
+func ConvertingBinaryToByteString(str string) string {
 	bitValue := bitString(str)
 	byteValue := bitValue.AsByteSlice()
-	return string(byteValue[:])
+	return string(byteValue)
+}
+
+func GetDataType(value string) string {
+	if value == "int" {
+		return "1"
+	} else if value == "float64" {
+		return "2"
+	} else if value == "bool" {
+		return "3"
+	} else if value == "string" {
+		return "4"
+	}
+	return "0"
+}
+
+func UnitToBinary(value int64) (string, error) {
+	binary := strconv.FormatInt(value, 2)
+
+	if len(binary) < 16 {
+		// add 0s to the rest of the name
+		remain := 16 - len(binary)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		return setReaminder + binary, nil
+	} else if len(binary) == 16 {
+		return binary, nil
+	} else {
+		return binary, errors.New("Unit length shouldbe equal to 16")
+	}
+}
+
+func StringToBinary(value int64) (string, error) {
+	binary := strconv.FormatInt(value, 2)
+
+	if len(binary) < 8 {
+		// add 0s to the rest of the name
+		remain := 8 - len(binary)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		return setReaminder + binary, nil
+	} else if len(binary) == 8 {
+		return binary, nil
+	} else {
+		return binary, errors.New("Unit length shouldbe equal to 8")
+	}
+}
+
+func IDToBinary(value int64) (string, error) {
+	binary := strconv.FormatInt(value, 2)
+
+	if len(binary) < 64 {
+		// add 0s to the rest of the name
+		remain := 64 - len(binary)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		return setReaminder + binary, nil
+	} else if len(binary) == 64 {
+		return binary, nil
+	} else {
+		return binary, errors.New("Unit length shouldbe equal to 64")
+	}
 }

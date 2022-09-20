@@ -23,7 +23,9 @@ type bitString string
 // base on the executionTemplete objcet store the formula in stellar blckchin
 func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var formulaJSON model.BuildFormula
+	var formulaJSON model.FormulaBuildingRequest
+
+	stellarprotocols.BuildVariableDefinitionManageData("12", "Testing", "Variable", "unit1", "5", "Hello there")
 
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
@@ -34,8 +36,25 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	formulaArray := formulaJSON.Formula
+	fieldCount:=0;
+	for i,element := range formulaJSON.Formula{
+		if element.Type =="DATA"{
+			formulaArray[i].Type="VARIABLE"
+		}else if element.Type =="CONSTANT" && element.MetricReferenceId!=""{
+			formulaArray[i].Type="REFERREDCONSTANT"
+		}else if element.Type =="CONSTANT" && element.MetricReferenceId==""{
+			formulaArray[i].Type="SEMANTICCONSTANT"
+		}
+		if element.Type!="OPERATOR"{
+			fieldCount++
+		}
+	}
+
+	formulaJSON.Formula=formulaArray
+
 	object := dao.Connection{}
-	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.FormulaID).Then(func(data interface{}) interface{} {
+	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err5 != nil {
@@ -58,7 +77,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	// build memo
 	// types = 0 - strating manifest
 	// types = 1 - managedata overflow sign
-	memo, err := stellarprotocols.BuildMemo(0, formulaJSON.FieldCount, data.SequenceValue)
+	memo, err := stellarprotocols.BuildMemo(0, 4, data.SequenceValue)
 	if err != nil {
 		logrus.Error("Memo ", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -92,7 +111,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 			ExpertID:  formulaJSON.Expert.ExpertID,
 			ExpertPK:  formulaJSON.Expert.ExpertPK,
 			MapID:     data.SequenceValue,
-			FormulaID: formulaJSON.FormulaID,
+			FormulaID: formulaJSON.ID,
 		}
 		err1 := object.InsertExpertIDMap(expertIDMap)
 		if err1 != nil {
@@ -188,7 +207,7 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		logrus.Info("----------- Txn Hash -------- ", resp.Hash)
 
 		formulaIDMap := model.FormulaIDMap{
-			FormulaID: formulaJSON.FormulaID,
+			FormulaID: formulaJSON.ID,
 			MapID:     data.SequenceValue,
 		}
 
