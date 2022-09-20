@@ -12,29 +12,31 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func BuildVariableDefinitionManageData(valueId string, variableName string, dataType string, unit string, precision string, description string) (txnbuild.ManageData, error) {
+func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 
-	VALUETYPE := "1"
+	VALUETYPE := 1
+	DATATYPE := 2
 	valueIdString := ""
+	dataTypeString := ""
 	valueTypeString := ""
 	variableNameString := ""
 	unitString := ""
+	precisionString := ""
 
 	descriptionString := ""
 
-	fmt.Println("------------------Called -------------------------------------")
-
 	//define the value type
 	//this is a variable therefore the value type is 1
-	valueTypeInBits := stringToBin(VALUETYPE)
-	x := bitString(valueTypeInBits)
-	valueInBytes := x.AsByteSlice()
-	valueType := string(valueInBytes)
-	valueTypeString = valueType
+	tempValueType, errInValueTypeConvert := StringToBinary(int64(VALUETYPE))
+	if errInValueTypeConvert != nil {
+		logrus.Info("Error when converting value type ", errInValueTypeConvert)
+		return txnbuild.ManageData{}, errors.New("Error when converting value type")
+	}
+	valueTypeString = ConvertingBinaryToByteString(tempValueType)
 
 	//DB validations for the variable id
 	object := dao.Connection{}
-	valueMap, errValueMap := object.GetValueMapID(valueId).Then(func(data interface{}) interface{} {
+	valueMap, errValueMap := object.GetValueMapID(element.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMap != nil {
@@ -43,7 +45,7 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 	}
 	//check if the variable name for this formula is in the variale mapping
 	if valueMap != nil {
-		logrus.Info(variableName + " is already recorded in the DB Map")
+		logrus.Info(element.Name + " is already recorded in the DB Map")
 
 		//add the value map part as the value id to the manage data key part string
 		valueMapData := valueMap.(model.ValueIDMap)
@@ -52,7 +54,7 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 
 	} else {
 		//if not add with incrementing id
-		logrus.Info(variableName + " is not recorded in the DB Map")
+		logrus.Info(element.Name + " is not recorded in the DB Map")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
@@ -60,9 +62,9 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 		}
 
 		valueIdMap := model.ValueIDMap{
-			ValueId:   valueId,
+			ValueId:   element.ID,
 			ValueType: "VARIABLE",
-			ValueName: variableName,
+			ValueName: element.Name,
 			MapID:     data.SequenceValue,
 		}
 
@@ -85,14 +87,14 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 	}
 
 	//check variable name is 20 character
-	if len(variableName) > 20 {
+	if len(element.Name) > 20 {
 		logrus.Error("Variable name is greater than 20 character limit")
 		return txnbuild.ManageData{}, errors.New("Variable name is greater than 20 character limit")
 	} else {
-		if len(variableName) == 20 {
-			variableNameString = variableName
-		} else if len(variableName) < 20 {
-			variableNameString = variableName + "/"
+		if len(element.Name) == 20 {
+			variableNameString = element.Name
+		} else if len(element.Name) < 20 {
+			variableNameString = element.Name + "/"
 		}
 	}
 
@@ -103,11 +105,17 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 		variableNameString = variableNameString + setReaminder
 	}
 
-	//TODO: depending on the data type decide the integer to be assigned
+	//depending on the data type decide the integer to be assigned
+	tempDataType, errInDataTypeConvert := StringToBinary(int64(DATATYPE))
+	if errInDataTypeConvert != nil {
+		logrus.Info("Error when converting data type ", errInDataTypeConvert)
+		return txnbuild.ManageData{}, errors.New("Error when converting data type")
+	}
+	dataTypeString = ConvertingBinaryToByteString(tempDataType)
 
-	//TODO: depending on the unit type decide the integer to be asigned
+	//depending on the unit type decide the integer to be asigned
 	//convert unit type character -> byte -> bits
-	unitMap, errInUnitIdMap := object.GetUnitMapID(unit).Then(func(data interface{}) interface{} {
+	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
@@ -116,13 +124,20 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 	}
 	//check if the unit is in the unit map
 	if unitMap != nil {
-		logrus.Info(unit + " is already recorded in the DB Map")
+		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map")
 
-		//TODO: add map id as the unit in the key string
+		//add map id as the unit in the key string
+		unitMapData := unitMap.(model.UnitIDMap)
+		strUnit, err := UnitToBinary(unitMapData.MapID)
+		if err != nil {
+			return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+		}
+
+		unitString = ConvertingBinaryToByteString(strUnit)
 
 	} else {
 		//if not add the incrementing id
-		logrus.Info(unit + " is not recorded in the DB Map")
+		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map")
 
 		//get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
@@ -132,7 +147,7 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 		}
 
 		unitIdMap := model.UnitIDMap{
-			Unit:  unit,
+			Unit:  element.MeasurementUnit,
 			MapID: data.SequenceValue,
 		}
 
@@ -141,22 +156,31 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 			logrus.Error("Insert unit map ID was failed" + err1.Error())
 			return txnbuild.ManageData{}, errors.New("Insert unit map ID was failed")
 		}
+		strUnit, err := UnitToBinary(data.SequenceValue)
+		if err != nil {
+			return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+		}
 
-		//TODO: add the unit id to the key string
+		unitString = ConvertingBinaryToByteString(strUnit)
 	}
 
-	//TODO:
 	//precision
+	tempPrecision, errInPrecisionConvert := StringToBinary(int64(element.Precision))
+	if errInPrecisionConvert != nil {
+		logrus.Info("Error when converting precision ", errInPrecisionConvert)
+		return txnbuild.ManageData{}, errors.New("Error when converting precision")
+	}
+	precisionString = ConvertingBinaryToByteString(tempPrecision)
 
 	//check if the description is 40 characters
-	if len(description) > 40 {
+	if len(element.Description) > 40 {
 		logrus.Error("Description is greater than 40 character limit")
 		return txnbuild.ManageData{}, errors.New("Description is greater than 40 character limit")
 	} else {
-		if len(description) == 40 {
-			descriptionString = description
-		} else if len(description) < 40 {
-			descriptionString = description + "/"
+		if len(element.Description) == 40 {
+			descriptionString = element.Description
+		} else if len(element.Description) < 40 {
+			descriptionString = element.Description + "/"
 		}
 	}
 
@@ -167,15 +191,22 @@ func BuildVariableDefinitionManageData(valueId string, variableName string, data
 		descriptionString = descriptionString + setReaminder
 	}
 
-	keyString := valueTypeString + valueIdString + variableNameString + unitString
+	keyString := valueTypeString + valueIdString + variableNameString + dataTypeString + unitString + precisionString
 	valueString := descriptionString
 
 	logrus.Info("Building variable with key string of   : ", keyString)
 	logrus.Info("Building variable with value string of : ", valueString)
 
 	variableDefinitionBuilder := txnbuild.ManageData{
-		Name:  keyString,
-		Value: []byte(valueString),
+		Name:  valueString,
+		Value: []byte(keyString),
+	}
+
+	//check the lengths of the key and value
+	if len(keyString) > 64 || len(valueString) > 64 {
+		logrus.Error("Key string length : ", len(keyString))
+		logrus.Error("Value string length : ", len(valueString))
+		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the variable building")
 	}
 
 	return variableDefinitionBuilder, nil

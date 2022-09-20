@@ -25,8 +25,6 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var formulaJSON model.FormulaBuildingRequest
 
-	stellarprotocols.BuildVariableDefinitionManageData("12", "Testing", "Variable", "unit1", "5", "Hello there")
-
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
 		logrus.Error(err)
@@ -37,21 +35,21 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 	}
 
 	formulaArray := formulaJSON.Formula
-	fieldCount:=0;
-	for i,element := range formulaJSON.Formula{
-		if element.Type =="DATA"{
-			formulaArray[i].Type="VARIABLE"
-		}else if element.Type =="CONSTANT" && element.MetricReferenceId!=""{
-			formulaArray[i].Type="REFERREDCONSTANT"
-		}else if element.Type =="CONSTANT" && element.MetricReferenceId==""{
-			formulaArray[i].Type="SEMANTICCONSTANT"
+	fieldCount := 0
+	for i, element := range formulaJSON.Formula {
+		if element.Type == "DATA" {
+			formulaArray[i].Type = "VARIABLE"
+		} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
+			formulaArray[i].Type = "REFERREDCONSTANT"
+		} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
+			formulaArray[i].Type = "SEMANTICCONSTANT"
 		}
-		if element.Type!="OPERATOR"{
+		if element.Type != "OPERATOR" {
 			fieldCount++
 		}
 	}
 
-	formulaJSON.Formula=formulaArray
+	formulaJSON.Formula = formulaArray
 
 	object := dao.Connection{}
 	formulaMap, err5 := object.GetFormulaMapID(formulaJSON.ID).Then(func(data interface{}) interface{} {

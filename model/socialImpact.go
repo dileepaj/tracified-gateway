@@ -36,6 +36,7 @@ type FormulaItemRequest struct {
 	Type              string
 	MeasurementUnit   string
 	MetricReferenceId string
+	Precision         int64
 	MetricReference   MetricReference
 }
 
