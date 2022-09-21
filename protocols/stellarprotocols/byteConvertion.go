@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+
+	"github.com/sirupsen/logrus"
 )
 
 type bitString string
@@ -106,5 +108,17 @@ func IDToBinary(value int64) (string, error) {
 		return binary, nil
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 64")
+	}
+}
+
+func ByteStingToInteger(byteValue string) (int64, error) {
+	strVal := []byte(byteValue)
+	encodedString := hex.EncodeToString(strVal)
+	intValue, err := strconv.ParseInt(encodedString, 16, 64)
+	if err != nil {
+		logrus.Printf("Conversion failed: %s\n", err)
+		return 0, errors.New("Conversion failed: %s\n" + err.Error())
+	} else {
+		return intValue, nil
 	}
 }
