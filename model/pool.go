@@ -286,11 +286,11 @@ type CreatePoolBody struct {
 }
 
 type Activity struct {
-	ID              string
-	Name            string
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
 	ProductName     string
-	TracifiedItemId string
-	StageId         string
+	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
+	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
 }
 
 // type CreatePoolForArtifact struct {

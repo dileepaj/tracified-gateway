@@ -428,7 +428,6 @@ func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
 }
 
 func (cd *Connection) InsertFormulaIDMap(formulaIDMap model.FormulaIDMap) error {
-	logrus.Info("--------------------------- InsertFormulaIDMap ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -443,7 +442,6 @@ func (cd *Connection) InsertFormulaIDMap(formulaIDMap model.FormulaIDMap) error 
 }
 
 func (cd *Connection) InsertExpertIDMap(expertIDMap model.ExpertIDMap) error {
-	logrus.Info("--------------------------- ExpertIDMap ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())

@@ -28,12 +28,12 @@ type FormulaItem struct {
 }
 
 type FormulaItemRequest struct {
-	ID                string
+	ID                string `json:"ID" bson:"id" validate:"required"`
 	Value             float64
 	Name              string
 	Description       string
 	Key               string
-	Type              string
+	Type              string `json:"Type" bson:"type" validate:"required"`
 	MeasurementUnit   string
 	MetricReferenceId string
 	Precision         int64
@@ -41,8 +41,8 @@ type FormulaItemRequest struct {
 }
 
 type Expert struct {
-	ExpertID string
-	ExpertPK string
+	ExpertID string `json:"ExpertID" bson:"expertID" validate:"required"`
+	ExpertPK string `json:"ExpertPK" bson:"expertPK" validate:"required"`
 }
 
 type FormulaIDMap struct {
@@ -75,21 +75,26 @@ type UnitIDMap struct {
 }
 
 type FormulaBuildingRequest struct {
-	ID              string
-	Name            string
-	Metric          FormulaItem
-	Formula         []FormulaItemRequest
-	FormulaAsString string
-	FormulaAsQuery  string
-	Activity        Activity
-	Expert          Expert
-	Active          bool
-	CreatedAt       string
-	UpdatedAt       string
+	ID              string               `json:"ID" bson:"id" validate:"required"`
+	Name            string               `json:"Name" bson:"name" validate:"required"`
+	Metric          MetricItem           `json:"Metric" bson:"metric" validate:"required"`
+	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
+	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
+	Activity        Activity             `json:"Activity" bson:"activity" validate:"required"`
+	Expert          Expert               `json:"Expert" bson:"expert" validate:"required"`
+	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 }
 
 type MetricReference struct {
 	Name            string
 	MeasurementUnit string
 	Url             string
+}
+
+type MetricItem struct {
+	ID          string `json:"ID" bson:"id" validate:"required"`
+	Name        string `json:"Name" bson:"name" validate:"required"`
+	Description string `json:"Description" bson:"description" validate:"required"`
 }
