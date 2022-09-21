@@ -1,21 +1,29 @@
-package stellarprotocols
+package expertformula
 
 import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 )
+
+type AbstracMomoBuilder struct{
+	Types int32
+	VariableCount int32
+	MappedFormulaID int
+}
 
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
-func BuildMemo(types, variableCount int32, sequeceValue int64) (string, error) {
+func BuildMemo(types, variableCount int32, mappedFormulaID int64) (string, error) {
 	manifest := ""
 	if types == 0 {
 		manifest = "0000000000AAAAAAAAAA"
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	srtValueID, err := IDToBinary(int64(sequeceValue))
+	srtValueID, err := stellarprotocols.IDToBinary(int64(mappedFormulaID))
 	if err != nil {
 		return "", errors.New("BuildMemo issue (faormula ID convert to type) " + err.Error())
 	}
@@ -26,6 +34,6 @@ func BuildMemo(types, variableCount int32, sequeceValue int64) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	memo := strManifest + ConvertingBinaryToByteString(srtValueID) + strVariableCount + strFetureUsed
+	memo := strManifest +  stellarprotocols.ConvertingBinaryToByteString(srtValueID) + strVariableCount + strFetureUsed
 	return memo, nil
 }

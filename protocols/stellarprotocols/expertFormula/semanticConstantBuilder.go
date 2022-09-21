@@ -1,4 +1,4 @@
-package stellarprotocols
+package expertformula
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -14,7 +15,6 @@ import (
 func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 2
 	var valueId int64
-	unit := 4
 	sementicConstantDataType := 2
 	semanticConstantDescription := ""
 	semanticConstantValue := fmt.Sprintf("%g", element.Value)
@@ -78,34 +78,22 @@ func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild
 		}
 	}
 	strFetureUsed := fmt.Sprintf("%014d", 0)
-	strUnit, err := UnitToBinary(int64(unit))
+	strValueId, err :=  stellarprotocols.IDToBinary(valueId)
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
-	strValueId, err := IDToBinary(valueId)
+	srtValueType, err :=  stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
-	srtValueType, err := StringToBinary(int64(valueType))
+	srtDataType, err := stellarprotocols.StringToBinary(int64(sementicConstantDataType))
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
-	srtDataType, err := StringToBinary(int64(sementicConstantDataType))
-	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
-	}
-	fmt.Println(strUnit+"    cnv             ", ConvertingBinaryToByteString(strUnit))
-	fmt.Println(len(ConvertingBinaryToByteString(srtValueType)))
-	fmt.Println(len(ConvertingBinaryToByteString(strValueId)))
-	fmt.Println(len(ConvertingBinaryToByteString(srtDataType)))
-	fmt.Println(len(semanticConstantValue))
-	fmt.Println(len(semanticConstantDescription))
-	fmt.Println(len(ConvertingBinaryToByteString(strUnit)))
-	fmt.Println(len(strFetureUsed))
 
 	// semantic constant's manage data key and value
 	nameString := semanticConstantValue
-	valueString := ConvertingBinaryToByteString(srtValueType) + ConvertingBinaryToByteString(strValueId) + ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
+	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.ConvertingBinaryToByteString(strValueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
 
 	fmt.Println("Semantic constant Name:   ", nameString)
 	fmt.Println("Semantic constant value:   ", valueString)

@@ -552,6 +552,6 @@ var routes = Routes{
 		"Storing the social impact equation on blockchain",
 		"POST",
 		"/socialimapact/buildformula",
-		businessFacades.BuildSocialImpactFormula,
+		businessFacades.BuildSocialImpactExpertFormula,
 	},
 }
