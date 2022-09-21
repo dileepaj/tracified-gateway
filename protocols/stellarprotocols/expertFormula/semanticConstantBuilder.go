@@ -12,6 +12,10 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+des- build the sematic constant manage data's name and value according to the protocol
+return the txnbuild.ManageData object
+*/
 func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 2
 	var valueId int64

@@ -13,7 +13,10 @@ type AbstracMomoBuilder struct{
 	VariableCount int32
 	MappedFormulaID int
 }
-
+/*
+des- build the memo according to the protocol
+return the txnbuild.ManageData object
+*/
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
 func BuildMemo(types, variableCount int32, mappedFormulaID int64) (string, error) {
