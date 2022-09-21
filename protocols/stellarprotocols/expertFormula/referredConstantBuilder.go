@@ -15,6 +15,15 @@ import (
 /*
 des- build the refreed constant manage data's name and value according to the protocol
 return the txnbuild.ManageData object
+variable definition and byte used
+	valueType - 1 byte defieded by protocol -3 referred constant
+	valueId  - 8 byte defieded by protocol
+	unit  - 2 byte defieded by protocol  we maintan a map for each unit defineded by expert
+	referredConstantDataType - 1 byte defieded by protocol -2 for flaot
+	referredConstantDescription - 30 byte defieded by protocol
+Manage data
+	name 64 byte character - 64 byte refrence Short URL
+	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
 */
 func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 3
