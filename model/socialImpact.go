@@ -75,6 +75,7 @@ type UnitIDMap struct {
 }
 
 type FormulaBuildingRequest struct {
+	Blockchain      string               `json:"Blockchain" bson:"blockchain" validate:"required"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Metric          MetricItem           `json:"Metric" bson:"metric" validate:"required"`

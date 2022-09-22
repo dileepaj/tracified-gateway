@@ -1,4 +1,4 @@
-package stellarprotocols
+package expertformula
 
 import (
 	"errors"
@@ -7,10 +7,24 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+des- build the refreed constant manage data's name and value according to the protocol
+return the txnbuild.ManageData object
+variable definition and byte used
+	valueType - 1 byte defieded by protocol -3 referred constant
+	valueId  - 8 byte defieded by protocol
+	unit  - 2 byte defieded by protocol  we maintan a map for each unit defineded by expert
+	referredConstantDataType - 1 byte defieded by protocol -2 for flaot
+	referredConstantDescription - 30 byte defieded by protocol
+Manage data
+	name 64 byte character - 64 byte refrence Short URL
+	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
+*/
 func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 3
 	var valueId int64
@@ -51,13 +65,13 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 		}
 		valueId = data.SequenceValue
 	}
-	// check variable name is 20 character
+	// check variable name is 30 character
 	if len(element.Description) > 30 || element.Description == "" {
 		logrus.Error("Description is greater than 30 character limit or Empty")
 		return txnbuild.ManageData{}, errors.New("Description is greater than 30 character limit")
 	} else {
 		if len(element.Description) < 30 {
-			// add 0s to the rest of the name
+			// add 0s to the rest of the DESCRIPTION
 			remain := 30 - len(element.Description)
 			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
 			referredConstantDescription = element.Description + `/` + setReaminder
@@ -65,10 +79,10 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 			referredConstantDescription = element.Description
 		}
 	}
-	// check value is 20 character
+	// checked referred ConstantValue value is 8 character
 	if len(referredConstantValue) > 8 {
 		logrus.Error("Value is greater than 8 character limit")
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit")
+		return txnbuild.ManageData{}, errors.New("Value is greater than 8 character limit")
 	} else {
 		if len(referredConstantValue) < 8 {
 			// add 0s to the rest of the name
@@ -77,36 +91,38 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 			referredConstantValue = setReaminder + referredConstantValue
 		}
 	}
+	// define a 14 zeros string
 	strFetureUsed := fmt.Sprintf("%014d", 0)
-	srtValueType, err := StringToBinary(int64(valueType))
+	// convert value type Int to binary string
+	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errors.New("srtValueType " + err.Error())
 	}
-	srtDataType, err := StringToBinary(int64(referredConstantDataType))
+	// convert data type Int to binary string
+	srtDataType, err := stellarprotocols.StringToBinary(int64(referredConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errors.New("srtValueType " + err.Error())
 	}
-
-	//unit building
+	// unit building// convert value type Int to binary string
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
 		logrus.Info("Unable to connect gateway datastore ", errValueMap)
-		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
+		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	if unitMap != nil {
 		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map")
 
-		//add map id as the unit in the key string
+		// add map id as the unit in the key string
 		unitMapData := unitMap.(model.UnitIDMap)
 		unit = unitMapData.MapID
 
 	} else {
-		//if not add the incrementing id
+		// if not add the incrementing id
 		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map")
 
-		//get the current sequence for the units
+		// get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
@@ -125,29 +141,19 @@ func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild
 		}
 		unit = data.SequenceValue
 	}
-
-	strUnit, err := UnitToBinary(unit)
+	// convert unit Int to binary string
+	strUnit, err := stellarprotocols.UnitToBinary(unit)
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
 	}
-
-	strValueID, err := IDToBinary(valueId)
+	// convert valueId Int to binary string
+	strValueID, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
 	}
-
-	fmt.Println(strUnit+"    cnv             ", ConvertingBinaryToByteString(strUnit))
-	fmt.Println(len(ConvertingBinaryToByteString(srtValueType)))
-	fmt.Println(len(ConvertingBinaryToByteString(strValueID)))
-	fmt.Println(len(ConvertingBinaryToByteString(srtDataType)))
-	fmt.Println(len(referredConstantValue))
-	fmt.Println(len(referredConstantDescription))
-	fmt.Println(len(ConvertingBinaryToByteString(strUnit)))
-	fmt.Println(len(strFetureUsed))
-
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
-	valueString := ConvertingBinaryToByteString(srtValueType) + ConvertingBinaryToByteString(strValueID) + ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + ConvertingBinaryToByteString(strUnit) + strFetureUsed
+	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.ConvertingBinaryToByteString(strValueID) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + stellarprotocols.ConvertingBinaryToByteString(strUnit) + strFetureUsed
 
 	fmt.Println("referred constant Name:   ", nameString)
 	fmt.Println("referred constant value:   ", valueString)

@@ -1,4 +1,4 @@
-package stellarprotocols
+package expertformula
 
 import (
 	"errors"
@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -26,12 +27,12 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 
 	//define the value type
 	//this is a variable therefore the value type is 1
-	tempValueType, errInValueTypeConvert := StringToBinary(int64(VALUETYPE))
+	tempValueType, errInValueTypeConvert := stellarprotocols.StringToBinary(int64(VALUETYPE))
 	if errInValueTypeConvert != nil {
 		logrus.Info("Error when converting value type ", errInValueTypeConvert)
 		return txnbuild.ManageData{}, errors.New("Error when converting value type")
 	}
-	valueTypeString = ConvertingBinaryToByteString(tempValueType)
+	valueTypeString = stellarprotocols.ConvertingBinaryToByteString(tempValueType)
 
 	//DB validations for the variable id
 	object := dao.Connection{}
@@ -96,12 +97,12 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 	}
 
 	//depending on the data type decide the integer to be assigned
-	tempDataType, errInDataTypeConvert := StringToBinary(int64(DATATYPE))
+	tempDataType, errInDataTypeConvert := stellarprotocols.StringToBinary(int64(DATATYPE))
 	if errInDataTypeConvert != nil {
 		logrus.Info("Error when converting data type ", errInDataTypeConvert)
 		return txnbuild.ManageData{}, errors.New("Error when converting data type")
 	}
-	dataTypeString = ConvertingBinaryToByteString(tempDataType)
+	dataTypeString = stellarprotocols.ConvertingBinaryToByteString(tempDataType)
 
 	//depending on the unit type decide the integer to be asigned
 	//convert unit type character -> byte -> bits
@@ -118,12 +119,12 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 
 		//add map id as the unit in the key string
 		unitMapData := unitMap.(model.UnitIDMap)
-		strUnit, err := UnitToBinary(unitMapData.MapID)
+		strUnit, err := stellarprotocols.UnitToBinary(unitMapData.MapID)
 		if err != nil {
 			return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
 		}
 
-		unitString = ConvertingBinaryToByteString(strUnit)
+		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
 
 	} else {
 		//if not add the incrementing id
@@ -146,26 +147,26 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 			logrus.Error("Insert unit map ID was failed" + err1.Error())
 			return txnbuild.ManageData{}, errors.New("Insert unit map ID was failed")
 		}
-		strUnit, err := UnitToBinary(data.SequenceValue)
+		strUnit, err := stellarprotocols.UnitToBinary(data.SequenceValue)
 		if err != nil {
 			return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
 		}
 
-		unitString = ConvertingBinaryToByteString(strUnit)
+		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
 	}
 
-	strValueID, err := IDToBinary(valueId)
+	strValueID, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
 	}
 
 	//precision
-	tempPrecision, errInPrecisionConvert := StringToBinary(int64(element.Precision))
+	tempPrecision, errInPrecisionConvert := stellarprotocols.StringToBinary(int64(element.Precision))
 	if errInPrecisionConvert != nil {
 		logrus.Info("Error when converting precision ", errInPrecisionConvert)
 		return txnbuild.ManageData{}, errors.New("Error when converting precision")
 	}
-	precisionString = ConvertingBinaryToByteString(tempPrecision)
+	precisionString = stellarprotocols.ConvertingBinaryToByteString(tempPrecision)
 
 	//check if the description is 40 characters
 	if len(element.Description) > 40 {
@@ -186,7 +187,7 @@ func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbui
 		descriptionString = descriptionString + setReaminder
 	}
 
-	keyString := valueTypeString + ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
+	keyString := valueTypeString + stellarprotocols.ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
 	valueString := descriptionString
 
 	logrus.Info("Building variable with key string of   : ", keyString)
