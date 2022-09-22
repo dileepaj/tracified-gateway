@@ -278,3 +278,19 @@ func BuildSocialImpactFormula(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 }
+
+//BindMetric method : binds the metric with mutiple formulas
+func BindMetric(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var metricBindJSON model.MetricBindingRequest
+
+	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
+	if err != nil {
+		logrus.Error(err)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Error while decoding the body")
+		return
+	}
+
+}

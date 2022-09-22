@@ -98,3 +98,68 @@ type MetricItem struct {
 	Name        string `json:"Name" bson:"name" validate:"required"`
 	Description string `json:"Description" bson:"description" validate:"required"`
 }
+
+type MetricBindingRequest struct {
+	TenantID     string                    `json:"TenantID" bson:"tenantID" validate:"required"`
+	TenantPK     string                    `json:"TenantPK" bson:"tenantPK" validate:"required"`
+	Activity     ActivityForMetricBinding  `json:"Activity" bson:"activity" validate:"required"`
+	Metric       MetricForMetricBinding    `json:"Metric" bson:"metric" validate:"required"`
+	NoOfFormulas int                       `json:"NoOfFormulas" bson:"noOfFormulas" validate:"required"`
+	Formula      []FormulaForMetricBinding `json:"Formula" bson:"formula" validate:"required"`
+	CreatedAt    string                    `json:"CreatedAt" bson:"createdAt" validate:"required"`
+}
+
+type ActivityForMetricBinding struct {
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
+	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
+	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
+}
+
+type MetricForMetricBinding struct {
+	ID   string `json:"ID" bson:"id" validate:"required"`
+	Name string `json:"Name" bson:"name" validate:"required"`
+}
+
+type FormulaForMetricBinding struct {
+	FormulaID     string              `json:"FormulaID" bson:"formulaId" validate:"required"`
+	NoOfVariables int                 `json:"NoOfVariables" bson:"noOfVariables" validate:"required"`
+	ExpertId      string              `json:"ExpertId" bson:"expertId" validate:"required"`
+	Variable      []VariableStructure `json:"Variable" bson:"variable" validate:"required"`
+}
+
+type VariableStructure struct {
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Value           float64
+	Name            string `json:"Name" bson:"name" validate:"required"`
+	Description     string `json:"Description" bson:"description" validate:"required"`
+	Key             string `json:"Key" bson:"key" validate:"required"`
+	Type            string `json:"Type" bson:"type" validate:"required"`
+	MeasurementUnit string `json:"MeasurementUnit" bson:"measurementUnit" validate:"required"`
+	Precision       int64  `json:"Precision" bson:"precision" validate:"required"`
+	BindingType     int
+	BindData        BindData
+}
+
+type BindData struct {
+	Stage  Stage
+	Master Master
+}
+
+type Stage struct {
+	WorkflowId    string
+	StageId       string
+	StageName     string
+	FieldId       string
+	FieldName     string
+	FieldDataType string
+}
+
+type Master struct {
+	MetaDataName    string
+	PrimaryKeyName  string
+	KeyValue        string
+	KeyDataType     string
+	ValueColumnName string
+	ValueDataType   string
+}

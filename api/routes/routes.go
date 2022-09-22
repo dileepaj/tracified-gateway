@@ -554,4 +554,10 @@ var routes = Routes{
 		"/socialimapact/buildformula",
 		businessFacades.BuildSocialImpactFormula,
 	},
+	{
+		"Binding metrics with traceability data and Master data",
+		"POST",
+		"/socialimapact/metricbinding",
+		businessFacades.BindMetric,
+	},
 }
