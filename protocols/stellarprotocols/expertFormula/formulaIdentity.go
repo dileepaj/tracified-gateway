@@ -10,6 +10,10 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+BuildFormulaIdentity
+des-Build the formula idenitiy manage data
+*/
 func BuildFormulaIdentity(expertId int, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
 
 	formName := ""

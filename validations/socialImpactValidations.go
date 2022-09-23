@@ -75,6 +75,7 @@ func ValidateMetricBindingRequest(element model.MetricBindingRequest) error {
 }
 
 func ValidateFormulaForMetricBuilding(element model.FormulaForMetricBinding) error {
+	//check if the required fields are empty
 	validate := validator.New()
 	err := validate.Struct(element)
 	if err != nil {
@@ -96,10 +97,21 @@ func ValidateVariablesForMetricBuilding(element model.VariableStructure) error {
 	if err != nil {
 		return err
 	}
-	// errInValidateBindDataType := ValidateBindDataType(element.BindData.Master, element.BindData.Stage, element.BindingType)
-	// if errInValidateBindDataType != nil {
-	// 	return errInValidateBindDataType
-	// }
+	//check binding time and validate master data and stage data
+	if element.BindingType == 0 {
+		//validation of master data
+		if element.BindData.Master.KeyDataType == "" || element.BindData.Master.KeyValue == "" || element.BindData.Master.MetaDataName == "" || element.BindData.Master.PrimaryKeyName == "" || element.BindData.Master.ValueColumnName == "" || element.BindData.Master.ValueDataType == "" {
+			return errors.New("Body of the master data is incorrect")
+		}
+	} else if element.BindingType == 1 {
+		//validation of stage data
+		if element.BindData.Stage.StageId == "" || element.BindData.Stage.WorkflowId == "" || element.BindData.Stage.StageName == "" || element.BindData.Stage.FieldName == "" || element.BindData.Stage.FieldDataType == "" || element.BindData.Stage.FieldId == "" {
+			return errors.New("Body of the stage data is incorrect")
+		}
+	} else {
+		return errors.New("Bind data type is invalid")
+	}
+
 	return nil
 }
 

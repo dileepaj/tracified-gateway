@@ -9,6 +9,10 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+BuildAuthorManageData
+des-Build the author definition manage data
+*/
 func BuildAuthorManageData(expertKey string) (txnbuild.ManageData, error) {
 
 	authorKey := ""

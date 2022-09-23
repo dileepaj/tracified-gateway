@@ -36,7 +36,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	if errInJsonValidation != nil {
 		logrus.Error("Request body failed the validation check : ", errInJsonValidation)
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Request body is invalid " + err.Error())
+		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidation.Error())
 		return
 	} else {
 		formulaArray := formulaJSON.Formula
@@ -78,4 +78,13 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	errInJsonValidationInMetricBind := validations.ValidateMetricBindingRequest(metricBindJSON)
+	if errInJsonValidationInMetricBind != nil {
+		logrus.Error("Request body failed the validation check : ", errInJsonValidationInMetricBind)
+		w.WriteHeader(http.StatusBadRequest)
+		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidationInMetricBind.Error())
+		return
+	} else {
+		//build the abstract and call the relevent blockchain
+	}
 }

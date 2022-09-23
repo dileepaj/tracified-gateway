@@ -101,6 +101,7 @@ type MetricItem struct {
 }
 
 type MetricBindingRequest struct {
+	Blockchain   string                    `json:"Blockchain" bson:"blockchain" validate:"required"`
 	TenantID     string                    `json:"TenantID" bson:"tenantID" validate:"required"`
 	TenantPK     string                    `json:"TenantPK" bson:"tenantPK" validate:"required"`
 	Activity     ActivityForMetricBinding  `json:"Activity" bson:"activity" validate:"required"`
@@ -123,12 +124,13 @@ type MetricForMetricBinding struct {
 }
 
 type FormulaForMetricBinding struct {
-	FormulaID     string              `json:"FormulaID" bson:"formulaId" validate:"required"`
-	NoOfVariables int                 `json:"NoOfVariables" bson:"noOfVariables" validate:"required"`
-	ExpertId      string              `json:"ExpertId" bson:"expertId" validate:"required"`
-	Variable      []VariableStructure `json:"Variable" bson:"variable" validate:"required"`
+	FormulaId     string
+	NoOfVariables int
+	ExpertId      string
+	Variable      []VariableStructure
 }
 
+//Value(float) and the Binding type(int) cannot be 0 in this library
 type VariableStructure struct {
 	ID              string `json:"ID" bson:"id" validate:"required"`
 	Value           float64

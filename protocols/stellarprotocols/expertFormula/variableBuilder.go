@@ -12,6 +12,10 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+BuildVariableDefinitionManageData
+des-Build the variable definition manage data
+*/
 func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 
 	VALUETYPE := 1
