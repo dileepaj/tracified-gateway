@@ -489,6 +489,20 @@ func (cd *Connection) InsertToUnitIDMap(unitMap model.UnitIDMap) error {
 	return err
 }
 
+func (cd *Connection) InsertToAPIThrottler(throttellerReq model.ThrottlerRecord) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+	_, err = c.InsertOne(context.TODO(), throttellerReq)
+	if err != nil {
+		logrus.Info("Error when inserting new API request to DB " + err.Error())
+	}
+	return err
+}
+
 // Insert ExpertFormula Details to DB
 func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) error {
 	session, err := cd.connect()

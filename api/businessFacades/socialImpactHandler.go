@@ -2,11 +2,15 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/dileepaj/tracified-gateway/authentication"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
+	"github.com/relvacode/iso8601"
 	"github.com/sirupsen/logrus"
 )
 
@@ -85,6 +89,25 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidationInMetricBind.Error())
 		return
 	} else {
-		//build the abstract and call the relevent blockchain
+		// currentTime := time.Now()
+		// layout := "2006-01-02T15:04:05Z"
+		timein := time.Now().Local().Add(time.Hour*time.Duration(0) +
+			time.Minute*time.Duration(5) +
+			time.Second*time.Duration(0))
+		convertedFromTime, _ := iso8601.ParseString(time.Now().String())
+		convertedToTime, _ := iso8601.ParseString(timein.String())
+		fmt.Println("Time from ", convertedFromTime, " time to ", convertedToTime)
+		// //build the abstract and call the relevent blockchain
+		// authentication.API_Throttler("TestEntityType2", "TestEntity2", 5, 1)
+		apiReq := model.API_ThrottlerRequest{
+			RequestEntityType: "Test",
+			RequestEntity:     "PK",
+			FormulaID:         "234",
+			AllowedAmount:     4,
+			FromTime:          convertedFromTime,
+			ToTime:            convertedToTime,
+		}
+
+		authentication.API_Throttler(apiReq)
 	}
 }

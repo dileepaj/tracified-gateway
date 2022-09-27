@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -813,10 +814,28 @@ func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 		context.TODO(),
 		bson.M{"id": Id}, // <- Find block
 		bson.D{{"$inc", bson.D{{"sequencevalue", 1}}}},
-		options.FindOneAndUpdate().SetReturnDocument(options.After),options.FindOneAndUpdate().SetUpsert(true), // <- Set option to return document after update (important)
+		options.FindOneAndUpdate().SetReturnDocument(options.After), options.FindOneAndUpdate().SetUpsert(true), // <- Set option to return document after update (important)
 	).Decode(&result)
 	if err != nil {
 		fmt.Println("Error while updating proof protocols " + err.Error())
 	}
 	return result, err
+}
+
+func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex int) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+	// id, _ := primitive.ObjectIDFromHex(ID)
+	filter := bson.D{{"_id", ID}}
+	update := bson.D{{"$set", bson.D{{"currentcount", newIndex}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating the throttler counter in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
 }

@@ -1,5 +1,9 @@
 package model
 
+import (
+	"time"
+)
+
 type BuildFormula struct {
 	FormulaID       string
 	FormulaType     string
@@ -163,6 +167,26 @@ type Master struct {
 	KeyDataType     string
 	ValueColumnName string
 	ValueDataType   string
+}
+
+type ThrottlerRecord struct {
+	RequestEntityType string
+	RequestEntity     string
+	Timestamp         time.Time
+	FormulaID         string
+}
+
+type API_ThrottlerRequest struct {
+	RequestEntityType string
+	RequestEntity     string
+	FormulaID         string
+	AllowedAmount     int
+	FromTime          time.Time
+	ToTime            time.Time
+}
+
+type RequestCount struct {
+	TotalRequestCount int64
 }
 
 // structs for storing expert formula in the DB -> FormulaIdentity, AuthorIdentity, ValueDefinition, ExpertFormulaManageData, ExpertFormulaTransaction, FormulaStore
