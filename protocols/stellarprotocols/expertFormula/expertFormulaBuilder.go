@@ -3,6 +3,7 @@ package expertformula
 import (
 	"encoding/json"
 	"net/http"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -18,6 +19,7 @@ import (
 /*
 StellarExpertFormulBuilder
 des- This method build stellar trasactiond for expert formula
+
 	 steps
 		* map the formulaId and retrive the mapped id
 		* build memo for the trasacions
@@ -27,7 +29,6 @@ des- This method build stellar trasactiond for expert formula
 		* loop through the formulaArray to see build the field definitions and build relevenat manage data oprations
 		* load stellar account,build and sing the XDR
 		* put XDR to stellar blockchain
-
 */
 func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	// formula array sent by the backend
@@ -222,6 +223,25 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		if err1 != nil {
 			logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
 		}
+
+		// save expert formula in the database
+		// Todo: Transactions, overflowAmount, status should be changed to actual values
+		expertFormulaBuilder := model.FormulaStore{
+			FormulaID:              formulaJSON.ID,
+			ExpertPK:               formulaJSON.Expert.ExpertPK,
+			FormulaJsonRequestBody: formulaJSON,
+			Transactions:           []model.FormulaTransaction{},
+			OverflowAmount:         0,
+			Status:                 "Success",
+			CreatedAt:              time.Now().String(),
+		}
+
+		object := dao.Connection{}
+		errResult := object.InsertExpertFormula(expertFormulaBuilder)
+		if errResult != nil {
+			logrus.Error("Error while inserting the expert formula into DB : ", errResult)
+		}
+
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(formulaJSON)

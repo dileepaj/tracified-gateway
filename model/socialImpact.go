@@ -78,11 +78,9 @@ type FormulaBuildingRequest struct {
 	Blockchain      string               `json:"Blockchain" bson:"blockchain" validate:"required"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
-	Metric          MetricItem           `json:"Metric" bson:"metric" validate:"required"`
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
 	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	Activity        Activity             `json:"Activity" bson:"activity" validate:"required"`
 	Expert          Expert               `json:"Expert" bson:"expert" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
@@ -130,7 +128,7 @@ type FormulaForMetricBinding struct {
 	Variable      []VariableStructure
 }
 
-//Value(float) and the Binding type(int) cannot be 0 in this library
+// Value(float) and the Binding type(int) cannot be 0 in this library
 type VariableStructure struct {
 	ID              string `json:"ID" bson:"id" validate:"required"`
 	Value           float64
@@ -165,4 +163,59 @@ type Master struct {
 	KeyDataType     string
 	ValueColumnName string
 	ValueDataType   string
+}
+
+// structs for storing expert formula in the DB -> FormulaIdentity, AuthorIdentity, ValueDefinition, ExpertFormulaManageData, ExpertFormulaTransaction, FormulaStore
+type FormulaIdentity struct {
+	FormulaMapID    string
+	ManageDataKey   string
+	ManageDataValue string
+}
+
+type AuthorIdentity struct {
+	AuthorMapID     string
+	ManageDataKey   string
+	ManageDataValue string
+}
+
+type ValueDefinition struct {
+	ValueType         string
+	ValueMapID        string
+	UnitMapID         string
+	Precision         int64
+	Value             float64
+	MetricReferenceID string
+	ManageDataKey     string
+	ManageDataValue   string
+}
+
+type Template struct {
+	manageDataKey   string
+	manageDataValue string
+}
+
+type FormulaManageData struct {
+	FormulaIdentity   FormulaIdentity
+	AuthorIdentity    AuthorIdentity
+	ValueDefinitions  []ValueDefinition
+	ExecutionTemplate []Template
+}
+
+type FormulaTransaction struct {
+	TransactionHash   string
+	TransactionStatus string
+	Memo              string
+	VariableCount     int
+	ManageData        FormulaManageData
+	TransactionTime   string
+}
+
+type FormulaStore struct {
+	FormulaID              string
+	ExpertPK               string
+	FormulaJsonRequestBody FormulaBuildingRequest
+	Transactions           []FormulaTransaction
+	OverflowAmount         int
+	Status                 string
+	CreatedAt              string
 }
