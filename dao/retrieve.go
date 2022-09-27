@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -2291,6 +2292,26 @@ func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRequestAmount(reqEntityType string, reqEntity string, fromTime time.Time, toTime time.Time) *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"requestentitytype": reqEntityType, "requestentity": reqEntity, "timestamp": bson.M{"$gt": fromTime, "$lt": toTime}})
+		if err1 != nil {
+			log.Error("Error while retrieving request count from DB " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(count)
 		}
 	})
 	return p
