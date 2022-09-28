@@ -8,9 +8,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/authentication"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
-	"github.com/relvacode/iso8601"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,6 +41,30 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidation.Error())
 		return
 	} else {
+		t := time.Now()
+		time.Local = time.UTC
+		convertedFromTime := time.Date(t.Year(), t.Month(), t.Day(), 0o0, 0o0, 0o0, 0o0, t.UTC().Location())
+		// convertedToTime, _ := iso8601.ParseString(timein.String())
+		fmt.Println("Time from ", convertedFromTime, " time to ", convertedFromTime.AddDate(0, 0, +1))
+		// //build the abstract and call the relevent blockchain
+		// authentication.API_Throttler("TestEntityType2", "TestEntity2", 5, 1)
+		apiReq := model.API_ThrottlerRequest{
+			RequestEntityType: "Test",
+			RequestEntity:     "PK",
+			FormulaID:         "234",
+			AllowedAmount:     3,
+			FromTime:          convertedFromTime,
+			ToTime:            convertedFromTime.AddDate(0, 0, +1),
+		}
+
+		err, errCode, _ := authentication.API_Throttler(apiReq)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(errCode)
+			json.NewEncoder(w).Encode(err.Error())
+			return
+		}
+
 		formulaArray := formulaJSON.Formula
 		fieldCount := 0
 		for i, element := range formulaJSON.Formula {
@@ -59,16 +81,16 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 		formulaJSON.Formula = formulaArray
 		// build the abstract struct and call the SocialImpactExpertFormula
-		socialImpactBuilder := protocols.AbstractSocialImpact{
-			Blockchain:  formulaJSON.Blockchain,
-			FormulaJSON: formulaJSON,
-			FieldCount:  fieldCount,
-		}
-		socialImpactBuilder.SocialImpactExpertFormula(w, r)
+		// socialImpactBuilder := protocols.AbstractSocialImpact{
+		// 	Blockchain:  formulaJSON.Blockchain,
+		// 	FormulaJSON: formulaJSON,
+		// 	FieldCount:  fieldCount,
+		// }
+		// socialImpactBuilder.SocialImpactExpertFormula(w, r)
 	}
 }
 
-//BindMetric method : binds the metric with mutiple formulas
+// BindMetric method : binds the metric with mutiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var metricBindJSON model.MetricBindingRequest
@@ -89,25 +111,5 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidationInMetricBind.Error())
 		return
 	} else {
-		// currentTime := time.Now()
-		// layout := "2006-01-02T15:04:05Z"
-		timein := time.Now().Local().Add(time.Hour*time.Duration(0) +
-			time.Minute*time.Duration(5) +
-			time.Second*time.Duration(0))
-		convertedFromTime, _ := iso8601.ParseString(time.Now().String())
-		convertedToTime, _ := iso8601.ParseString(timein.String())
-		fmt.Println("Time from ", convertedFromTime, " time to ", convertedToTime)
-		// //build the abstract and call the relevent blockchain
-		// authentication.API_Throttler("TestEntityType2", "TestEntity2", 5, 1)
-		apiReq := model.API_ThrottlerRequest{
-			RequestEntityType: "Test",
-			RequestEntity:     "PK",
-			FormulaID:         "234",
-			AllowedAmount:     4,
-			FromTime:          convertedFromTime,
-			ToTime:            convertedToTime,
-		}
-
-		authentication.API_Throttler(apiReq)
 	}
 }
