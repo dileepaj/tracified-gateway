@@ -26,7 +26,7 @@ Manage data
 	name 64 byte character - 	semanticConstantValue - 64 byte defieded by protocol
 	value 64 byte managedata - valueType + valueId + description + referredConstantDataType + fetureused
 */
-func BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 2
 	var valueId int64
 	sementicConstantDataType := 2

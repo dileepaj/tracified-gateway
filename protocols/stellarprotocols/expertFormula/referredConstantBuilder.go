@@ -25,7 +25,7 @@ Manage data
 	name 64 byte character - 64 byte refrence Short URL
 	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
 */
-func BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
 	valueType := 3
 	var valueId int64
 	var unit int64

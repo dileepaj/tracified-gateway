@@ -2,12 +2,11 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/authentication"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
 	"github.com/sirupsen/logrus"
 )
@@ -41,23 +40,15 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidation.Error())
 		return
 	} else {
-		t := time.Now()
-		time.Local = time.UTC
-		convertedFromTime := time.Date(t.Year(), t.Month(), t.Day(), 0o0, 0o0, 0o0, 0o0, t.UTC().Location())
-		// convertedToTime, _ := iso8601.ParseString(timein.String())
-		fmt.Println("Time from ", convertedFromTime, " time to ", convertedFromTime.AddDate(0, 0, +1))
-		// //build the abstract and call the relevent blockchain
-		// authentication.API_Throttler("TestEntityType2", "TestEntity2", 5, 1)
-		apiReq := model.API_ThrottlerRequest{
-			RequestEntityType: "Test",
-			RequestEntity:     "PK",
-			FormulaID:         "234",
-			AllowedAmount:     3,
-			FromTime:          convertedFromTime,
-			ToTime:            convertedFromTime.AddDate(0, 0, +1),
+
+		authLayer := authentication.AuthLayer{
+			FormulaId: formulaJSON.ID,
+			ExpertPK:  formulaJSON.Expert.ExpertPK,
+			CiperText: "sss",
+			Plaintext: formulaJSON.Formula,
 		}
 
-		err, errCode, _ := authentication.API_Throttler(apiReq)
+		err,errCode:=authLayer.ValidateExpertRequest()
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(errCode)
@@ -81,12 +72,12 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 		formulaJSON.Formula = formulaArray
 		// build the abstract struct and call the SocialImpactExpertFormula
-		// socialImpactBuilder := protocols.AbstractSocialImpact{
-		// 	Blockchain:  formulaJSON.Blockchain,
-		// 	FormulaJSON: formulaJSON,
-		// 	FieldCount:  fieldCount,
-		// }
-		// socialImpactBuilder.SocialImpactExpertFormula(w, r)
+		socialImpactBuilder := protocols.AbstractSocialImpact{
+			Blockchain:  formulaJSON.Blockchain,
+			FormulaJSON: formulaJSON,
+			FieldCount:  fieldCount,
+		}
+		socialImpactBuilder.SocialImpactExpertFormula(w, r)
 	}
 }
 

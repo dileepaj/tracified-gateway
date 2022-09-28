@@ -11,7 +11,7 @@ import (
 )
 
 // get the request entity, request entity type, limit
-func API_Throttler(element model.API_ThrottlerRequest) (error,int, int) {
+func APIThrottler(element model.API_ThrottlerRequest) (error,int, int) {
 	object := dao.Connection{}
 	var totalReqCount model.RequestCount
 	// get exisiting records for the requested entity type and entity
