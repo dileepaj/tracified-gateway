@@ -2,6 +2,7 @@ package expertformula
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -39,6 +40,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	// value definition array
 	var ValueDefinitionManageDataArray []model.ValueDefinition
 	var status string
+	var startTransactionTime time.Time
+	var endTransactionTime time.Time
 
 	object := dao.Connection{}
 	// checked whether given formulaID already in the database or not
@@ -237,15 +240,21 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			Operations: manageDataOpArray,
 			Memo:       memo,
 		}
+		startTransactionTime = time.Now()
 		err, errCode, hash := stellarProtocol.SubmitToStellerBlockchain()
+		endTransactionTime = time.Now()
 		if err != nil {
+			status = "Failed"
 			logrus.Error("Error when transaction Submitting to blockchain  ", err)
 			w.WriteHeader(errCode)
 			response := model.Error{Code: errCode, Message: "Error when transaction Submitting to blockchain  " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
+		status = "Success"
 		logrus.Info("Transaction Hash for the formula building : ", hash)
+
+		timeForTransaction := endTransactionTime.Sub(startTransactionTime)
 
 		formulaIDMap := model.FormulaIDMap{
 			FormulaID: formulaJSON.ID,
@@ -264,6 +273,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			ValueDefinitions: ValueDefinitionManageDataArray,
 		}
 
+		transactionCost := float64(int64(len(manageDataOpArray))) * 0.00001
 		// build transaction
 		// memo put to DB as a []byte to overcome invalid UTF-8 basonformate
 		transactionObj := model.FormulaTransaction{
@@ -271,7 +281,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			TransactionStatus: status,
 			Memo:              []byte(memo),
 			ManageData:        manageDataObj,
-			TransactionTime:   string(""),
+			TransactionTime:   timeForTransaction.String(),
+			Cost:              fmt.Sprintf("%f", transactionCost),
 		}
 
 		// append this transaction to the transaction array

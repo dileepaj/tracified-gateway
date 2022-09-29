@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/model"
@@ -57,6 +58,26 @@ func (authObject AuthLayer) isSignatureValid() (error, int) {
 	publicKey := privateKey.PublicKey
 	secretMessage := "This is super secret message!"
 	signature := CreateSignature(secretMessage, *privateKey)
+
+	// Export the keys to pem string
+	privateKeyPemString, _ := ExportRsaPrivateKeyAsPemStr(privateKey)
+	publicKeyPemString, _ := ExportRsaPublicKeyAsPemStr(&privateKey.PublicKey)
+
+	// Import the keys from pem string
+	priv_parsed, _ := ParseRsaPrivateKeyFromPemStr(privateKeyPemString)
+	pub_parsed, _ := ParseRsaPublicKeyFromPemStr(publicKeyPemString)
+
+	// Export the newly imported keys
+	priv_parsed_pem, _ := ExportRsaPrivateKeyAsPemStr(priv_parsed)
+	pub_parsed_pem, _ := ExportRsaPublicKeyAsPemStr(pub_parsed)
+
+	startRemovedPK := strings.ReplaceAll(pub_parsed_pem, "-----BEGIN RSA PUBLIC KEY-----\n", "")
+	startRemovedSK := strings.ReplaceAll(priv_parsed_pem, "-----BEGIN RSA PRIVATE KEY-----\n", "")
+	endRemovedPK := strings.ReplaceAll(startRemovedPK, "-----END RSA PRIVATE KEY-----\n", "")
+	endRemovedSK := strings.ReplaceAll(startRemovedSK, "-----END RSA PUBLIC KEY-----\n", "")
+
+	logrus.Info("Private key ", endRemovedSK)
+	logrus.Info("Public key ", endRemovedPK)
 
 	isSignatureValied := VerifySignature(secretMessage, signature, publicKey)
 	logrus.Info("isSignatureValied ", isSignatureValied)

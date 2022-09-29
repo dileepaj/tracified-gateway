@@ -233,6 +233,7 @@ type FormulaTransaction struct {
 	Memo              []byte
 	ManageData        FormulaManageData
 	TransactionTime   string
+	Cost              string
 }
 
 type FormulaStore struct {
