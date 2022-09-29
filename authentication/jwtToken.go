@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/sirupsen/logrus"
 )
 
 type PermissionStatus struct {
@@ -30,10 +31,10 @@ func HasPermission(reqToken string, accessClaim string) PermissionStatus {
 		})
 		if err != nil {
 			if err.Error() == jwt.ErrSignatureInvalid.Error() {
-				ErrorLogger.Println(err.Error())
+				logrus.Println(err.Error())
 				return ps
 			}
-			ErrorLogger.Println(err.Error())
+			logrus.Println(err.Error())
 			return ps
 		}
 
@@ -47,7 +48,7 @@ func HasPermission(reqToken string, accessClaim string) PermissionStatus {
 			if key == "permissions" {
 				v, ok := val.(map[string]interface{})["0"]
 				if !ok {
-					ErrorLogger.Println("Permissions not found")
+					logrus.Println("Permissions not found")
 				}
 				if v != nil {
 					switch reflect.TypeOf(v).Kind() {
@@ -60,13 +61,13 @@ func HasPermission(reqToken string, accessClaim string) PermissionStatus {
 						}
 					}
 				} else {
-					ErrorLogger.Println("Permissions not found")
+					logrus.Println("Permissions not found")
 					ps.Status = false
 				}
 			}
 		}
 	} else {
-		ErrorLogger.Println("Bearer token not found")
+		logrus.Println("Bearer token not found")
 		return ps
 	}
 	return ps
