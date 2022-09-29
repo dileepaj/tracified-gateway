@@ -14,7 +14,7 @@ import (
 BuildFormulaIdentity
 des-Build the formula idenitiy manage data
 */
-func BuildFormulaIdentity(expertId int, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId int, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
 
 	formName := ""
 	authorID := ""

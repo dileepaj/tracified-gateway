@@ -5,14 +5,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
-	"github.com/stellar/go/clients/horizonclient"
-	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -31,6 +28,7 @@ des- This method build stellar trasactiond for expert formula
 		* put XDR to stellar blockchain
 */
 func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
+	w.Header().Set("Content-Type", "application/json")
 	// formula array sent by the backend
 	formulaArray := formulaJSON.Formula
 	// manageDataOpArray all manage data append to to this array
@@ -50,6 +48,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	if err5 != nil {
 		logrus.Info("Unable to connect gateway datastore ", err5)
 		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode("Unable to connect gateway datastore ")
+		return
 	}
 	// if formulA already in Database, not allowed to  build expert formula to that ID
 	if formulaMap != nil {
@@ -64,10 +64,13 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	if err != nil {
 		logrus.Error("GetNextSequenceValu was failed" + err.Error())
 	}
+
+	expertFormula := ExpertFormula{}
 	// build memo
+
 	// types = 0 - strating manifest
 	// types = 1 - managedata overflow sign
-	memo, err := BuildMemo(0, int32(fieldCount), dataFormulaID.SequenceValue)
+	memo, err := expertFormula.BuildMemo(0, int32(fieldCount), dataFormulaID.SequenceValue)
 	if err != nil {
 		logrus.Error("Memo ", err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -114,15 +117,11 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		expertMapID = int(expertMap.MapID)
 	}
 	// formula identity operation
-	formulaIdentityBuilder, errInFormulaIdentity := BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
+	formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
 	if errInFormulaIdentity != nil {
 		logrus.Error("Building formula identity manage data failed : Error : " + errInFormulaIdentity.Error())
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "An error occured when building formula identity",
-		}
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode("An error occured when building formula identity")
 		return
 	}
 	//build formula object to be inserted
@@ -132,21 +131,14 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		ManageDataKey:   formulaIdentityBuilder.Name,
 		ManageDataValue: formulaIdentityBuilder.Value,
 	}
-
-	logrus.Info("------Formula identity----", formulaManageDataObj.ManageDataKey, "-----------", formulaManageDataObj.ManageDataValue)
-
 	// append to the manage data array
 	manageDataOpArray = append(manageDataOpArray, &formulaIdentityBuilder)
 	// author details opreation
-	authorDetailsBuilder, errInAuthorBuilder := BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
+	authorDetailsBuilder, errInAuthorBuilder := expertFormula.BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
 	if errInAuthorBuilder != nil {
 		logrus.Error("Building author details manage data failed : Error : " + errInAuthorBuilder.Error())
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "An error occured when building author identity",
-		}
-		json.NewEncoder(w).Encode(result)
+		json.NewEncoder(w).Encode("An error occured when building author identity")
 		return
 	}
 
@@ -157,16 +149,13 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		ManageDataKey:   authorDetailsBuilder.Name,
 		ManageDataValue: authorDetailsBuilder.Value,
 	}
-
-	logrus.Info("------author identity----", authorObj.ManageDataKey, "-----------", authorObj.ManageDataValue)
-
 	// append to the manage data array
 	manageDataOpArray = append(manageDataOpArray, &authorDetailsBuilder)
 	// loop through the formulaArray to see build the field definitions
 	for i := 0; i < len(formulaArray); i++ {
 		if formulaArray[i].Type == "VARIABLE" {
 			// excute the variable builder
-			variableBuilder, respObj, err := BuildVariableDefinitionManageData(formulaArray[i])
+			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaArray[i])
 			if err != nil {
 				logrus.Error("Variable  ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -184,9 +173,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     variableBuilder.Name,
 				ManageDataValue:   variableBuilder.Value,
 			}
-
-			logrus.Info("------variable identity----", variableDefMGOObj.ManageDataKey, "-----------", variableDefMGOObj.ManageDataValue)
-
 			//append to value definition array to be inserted in to the DB
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, variableDefMGOObj)
 
@@ -194,7 +180,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &variableBuilder)
 		} else if formulaArray[i].Type == "REFERREDCONSTANT" {
 			// execute the referred constant builder
-			referredConstant, respObj, err := BuildReferredConstantManageData(formulaArray[i])
+
+			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaArray[i])
+
 			if err != nil {
 				logrus.Error("referred Constant   ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -213,8 +201,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     referredConstant.Name,
 				ManageDataValue:   referredConstant.Value,
 			}
-			logrus.Info("------ref const identity----", referredConstObj.ManageDataKey, "-----------", referredConstObj.ManageDataValue)
-
 			//append to the value definition array
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, referredConstObj)
 
@@ -222,7 +208,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &referredConstant)
 		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
 			// execute the semantic constant builder
-			sematicConstant, respObj, err := BuildSemanticConstantManageData(formulaArray[i])
+			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaArray[i])
 			if err != nil {
 				logrus.Error("sementic Constant   ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -241,8 +227,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     sematicConstant.Name,
 				ManageDataValue:   sematicConstant.Value,
 			}
-			logrus.Info("------sem const identity----", semanticConstObj.ManageDataKey, "-----------", semanticConstObj.ManageDataValue)
-
 			//append to the value definition array
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, semanticConstObj)
 
@@ -250,49 +234,22 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &sematicConstant)
 		}
 	}
-	// load account
-	publicKey := constants.PublicKey
-	secretKey := constants.SecretKey
-	tracifiedAccount, err := keypair.ParseFull(secretKey)
-	client := commons.GetHorizonClient()
-	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-	pubaccount, err := client.AccountDetail(pubaccountRequest)
 	if errInFormulaIdentity == nil && errInAuthorBuilder == nil {
-		// BUILD THE GATEWAY XDR
-		tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
-			SourceAccount:        &pubaccount,
-			IncrementSequenceNum: true,
-			Operations:           manageDataOpArray,
-			BaseFee:              txnbuild.MinBaseFee,
-			Memo:                 txnbuild.MemoText(memo),
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
-		})
-		if err != nil {
-			logrus.Println("Error while buliding XDR " + err.Error())
+		stellarProtocol := stellarprotocols.StellarTrasaction{
+			PublicKey:  constants.PublicKey,
+			SecretKey:  constants.SecretKey,
+			Operations: manageDataOpArray,
+			Memo:       memo,
 		}
-		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
+		err, errCode, hash := stellarProtocol.SubmitToStellerBlockchain()
 		if err != nil {
-			logrus.Error("Error while signing the XDR by secretKey  ", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			response := model.Error{Code: http.StatusInternalServerError, Message: "Error while signing the XDR by secretKey    " + err.Error()}
+			logrus.Error("Error when transaction Submitting to blockchain  ", err)
+			w.WriteHeader(errCode)
+			response := model.Error{Code: errCode, Message: "Error when transaction Submitting to blockchain  " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
-		transactionSubmittedTime := time.Now()
-		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
-		resp, err := client.SubmitTransaction(GatewayTXE)
-		if err != nil {
-			status = "Failed"
-			logrus.Error("XDR submitting issue  ", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			response := model.Error{Code: http.StatusInternalServerError, Message: "XDR submitting issue  " + err.Error()}
-			json.NewEncoder(w).Encode(response)
-			return
-		}
-		timeForTransaction := (time.Now().Sub(transactionSubmittedTime)).String()
-		status = "Success"
-		logrus.Info("Transaction Hash for the formula building : ", resp.Hash)
+		logrus.Info("Transaction Hash for the formula building : ", hash)
 
 		formulaIDMap := model.FormulaIDMap{
 			FormulaID: formulaJSON.ID,
@@ -313,11 +270,11 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 		//build transaction
 		transactionObj := model.FormulaTransaction{
-			TransactionHash:   string(resp.Hash),
+			TransactionHash:   string(hash),
 			TransactionStatus: status,
 			Memo:              string(memo),
 			ManageData:        manageDataObj,
-			TransactionTime:   string(timeForTransaction),
+			TransactionTime:   string(""),
 		}
 
 		//append this transaction to the transaction array
@@ -342,8 +299,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		if errResult != nil {
 			logrus.Error("Error while inserting the expert formula into DB : ", errResult)
 		}
-
-		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(formulaJSON)
 		return

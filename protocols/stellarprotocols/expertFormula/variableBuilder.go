@@ -16,8 +16,7 @@ import (
 BuildVariableDefinitionManageData
 des-Build the variable definition manage data
 */
-func BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
-
+func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	VALUETYPE := 1
 	DATATYPE := 2
 	EMPTY := 0
