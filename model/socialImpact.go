@@ -191,26 +191,28 @@ type RequestCount struct {
 
 // structs for storing expert formula in the DB -> FormulaIdentity, AuthorIdentity, ValueDefinition, ExpertFormulaManageData, ExpertFormulaTransaction, FormulaStore
 type FormulaIdentity struct {
-	FormulaMapID    string
+	ManageDataName  string
+	FormulaMapID    int64
 	ManageDataKey   string
-	ManageDataValue string
+	ManageDataValue []byte
 }
 
 type AuthorIdentity struct {
-	AuthorMapID     string
+	ManageDataName  string
+	AuthorMapID     int64
 	ManageDataKey   string
-	ManageDataValue string
+	ManageDataValue []byte
 }
 
 type ValueDefinition struct {
 	ValueType         string
-	ValueMapID        string
-	UnitMapID         string
+	ValueMapID        int64
+	UnitMapID         int64
 	Precision         int64
 	Value             float64
 	MetricReferenceID string
 	ManageDataKey     string
-	ManageDataValue   string
+	ManageDataValue   []byte
 }
 
 type Template struct {
@@ -229,17 +231,23 @@ type FormulaTransaction struct {
 	TransactionHash   string
 	TransactionStatus string
 	Memo              string
-	VariableCount     int
 	ManageData        FormulaManageData
 	TransactionTime   string
 }
 
 type FormulaStore struct {
+	Blockchain             string
 	FormulaID              string
 	ExpertPK               string
+	VariableCount          int
 	FormulaJsonRequestBody FormulaBuildingRequest
 	Transactions           []FormulaTransaction
 	OverflowAmount         int
 	Status                 string
 	CreatedAt              string
+}
+
+type ValueDefOutParmas struct {
+	ValueMapID int64
+	UnitMapID  int64
 }

@@ -25,12 +25,17 @@ Manage data
 	name 64 byte character - 64 byte refrence Short URL
 	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
 */
-func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula) BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 3
 	var valueId int64
 	var unit int64
 	referredConstantDataType := 2
 	referredConstantDescription := ""
+	EMPTY := 0
+	errorRespObj := model.ValueDefOutParmas{
+		ValueMapID: int64(EMPTY),
+		UnitMapID:  int64(EMPTY),
+	}
 
 	referredConstantValue := fmt.Sprintf("%g", element.Value)
 	// DB validations for the variable id
@@ -52,7 +57,7 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of value map was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of value map was failed")
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -68,7 +73,7 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 	// check variable name is 30 character
 	if len(element.Description) > 30 || element.Description == "" {
 		logrus.Error("Description is greater than 30 character limit or Empty")
-		return txnbuild.ManageData{}, errors.New("Description is greater than 30 character limit")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 30 character limit")
 	} else {
 		if len(element.Description) < 30 {
 			// add 0s to the rest of the DESCRIPTION
@@ -82,7 +87,7 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 	// checked referred ConstantValue value is 8 character
 	if len(referredConstantValue) > 8 {
 		logrus.Error("Value is greater than 8 character limit")
-		return txnbuild.ManageData{}, errors.New("Value is greater than 8 character limit")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 8 character limit")
 	} else {
 		if len(referredConstantValue) < 8 {
 			// add 0s to the rest of the name
@@ -96,12 +101,12 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 	// convert value type Int to binary string
 	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("srtValueType " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("srtValueType " + err.Error())
 	}
 	// convert data type Int to binary string
 	srtDataType, err := stellarprotocols.StringToBinary(int64(referredConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("srtValueType " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("srtValueType " + err.Error())
 	}
 	// unit building// convert value type Int to binary string
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
@@ -126,7 +131,7 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of unit map was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of unit map was failed")
 		}
 
 		unitIdMap := model.UnitIDMap{
@@ -137,19 +142,19 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
 			logrus.Error("Insert unit map ID was failed" + err1.Error())
-			return txnbuild.ManageData{}, errors.New("Insert unit map ID was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Insert unit map ID was failed")
 		}
 		unit = data.SequenceValue
 	}
 	// convert unit Int to binary string
 	strUnit, err := stellarprotocols.UnitToBinary(unit)
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
 	}
 	// convert valueId Int to binary string
 	strValueID, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Error coverting unit to binary")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
 	}
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
@@ -166,11 +171,17 @@ func (expertFormula ExpertFormula)BuildReferredConstantManageData(element model.
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("Referred contant  value length not equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred contant  value length not equal to 64")
 	}
 	if len(nameString) > 64 || len(nameString) == 0 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errors.New("Referred contant name length should be less than or equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred contant name length should be less than or equal to 64")
 	}
-	return semanticConstManageData, nil
+
+	respObj := model.ValueDefOutParmas{
+		ValueMapID: valueId,
+		UnitMapID:  unit,
+	}
+
+	return semanticConstManageData, respObj, nil
 }

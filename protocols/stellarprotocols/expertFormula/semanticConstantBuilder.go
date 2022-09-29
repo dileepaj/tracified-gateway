@@ -26,11 +26,17 @@ Manage data
 	name 64 byte character - 	semanticConstantValue - 64 byte defieded by protocol
 	value 64 byte managedata - valueType + valueId + description + referredConstantDataType + fetureused
 */
-func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula) BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 2
 	var valueId int64
 	sementicConstantDataType := 2
 	semanticConstantDescription := ""
+	EMPTY := 0
+	errorRespObj := model.ValueDefOutParmas{
+		ValueMapID: int64(EMPTY),
+		UnitMapID:  int64(EMPTY),
+	}
+
 	semanticConstantValue := fmt.Sprintf("%g", element.Value)
 	// DB validations for the variable id
 	object := dao.Connection{}
@@ -51,7 +57,7 @@ func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errors.New("GetNextSequenceValue of value map was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of value map was failed")
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -67,7 +73,7 @@ func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.
 	// check variable name is 20 character
 	if len(element.Description) > 40 || element.Description == "" {
 		logrus.Error("Description is greater than 40 character limit or Empty")
-		return txnbuild.ManageData{}, errors.New("Description is greater than 40 character limit")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 40 character limit")
 	} else {
 		if len(element.Description) < 40 {
 			// add 0s to the rest of the name
@@ -82,7 +88,7 @@ func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.
 	if len(semanticConstantValue) > 64 {
 		fmt.Println(semanticConstantValue)
 		logrus.Error("Value is greater than 8 character limit")
-		return txnbuild.ManageData{}, errors.New("Value is greater than 64 character limit")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 64 character limit")
 	} else {
 		if len(semanticConstantValue) < 64 {
 			// add 0s to the rest of the name
@@ -94,15 +100,15 @@ func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.
 	strFetureUsed := fmt.Sprintf("%014d", 0)
 	strValueId, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
 	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
 	srtDataType, err := stellarprotocols.StringToBinary(int64(sementicConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
 	}
 
 	// semantic constant's manage data key and value
@@ -120,11 +126,15 @@ func (expertFormula ExpertFormula)BuildSemanticConstantManageData(element model.
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errors.New("semantic contant  name length not equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic contant  name length not equal to 64")
 	}
 	if len(nameString) > 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("semantic contant value length should be less than or equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic contant value length should be less than or equal to 64")
 	}
-	return semanticConstManageData, nil
+	respObj := model.ValueDefOutParmas{
+		ValueMapID: valueId,
+		UnitMapID:  int64(EMPTY),
+	}
+	return semanticConstManageData, respObj, nil
 }
