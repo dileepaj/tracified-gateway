@@ -33,10 +33,10 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	formulaArray := formulaJSON.Formula
 	// manageDataOpArray all manage data append to to this array
 	var manageDataOpArray []txnbuild.Operation
-	//transaction array
+	// transaction array
 	var transactionArray []model.FormulaTransaction
 	var authorMapId int64
-	//value definition array
+	// value definition array
 	var ValueDefinitionManageDataArray []model.ValueDefinition
 	var status string
 
@@ -46,10 +46,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		return data
 	}).Await()
 	if err5 != nil {
-		logrus.Info("Unable to connect gateway datastore ", err5)
-		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode("Unable to connect gateway datastore ")
-		return
+		logrus.Info(err5)
 	}
 	// if formulA already in Database, not allowed to  build expert formula to that ID
 	if formulaMap != nil {
@@ -124,7 +121,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		json.NewEncoder(w).Encode("An error occured when building formula identity")
 		return
 	}
-	//build formula object to be inserted
+	// build formula object to be inserted
 	formulaManageDataObj := model.FormulaIdentity{
 		ManageDataName:  "FORMULA IDENTITY",
 		FormulaMapID:    dataFormulaID.SequenceValue,
@@ -142,7 +139,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		return
 	}
 
-	//build author identity manage data object
+	// build author identity manage data object
 	authorObj := model.AuthorIdentity{
 		ManageDataName:  "AUTHOR IDENTITY",
 		AuthorMapID:     authorMapId,
@@ -173,7 +170,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     variableBuilder.Name,
 				ManageDataValue:   variableBuilder.Value,
 			}
-			//append to value definition array to be inserted in to the DB
+			// append to value definition array to be inserted in to the DB
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, variableDefMGOObj)
 
 			// append to the manage data array
@@ -182,7 +179,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			// execute the referred constant builder
 
 			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaArray[i])
-
 			if err != nil {
 				logrus.Error("referred Constant   ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -190,7 +186,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				json.NewEncoder(w).Encode(response)
 				return
 			}
-			//Reffered constant object
+			// Reffered constant object
 			referredConstObj := model.ValueDefinition{
 				ValueType:         "REFERREDCONSTANT",
 				ValueMapID:        respObj.ValueMapID,
@@ -201,7 +197,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     referredConstant.Name,
 				ManageDataValue:   referredConstant.Value,
 			}
-			//append to the value definition array
+			// append to the value definition array
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, referredConstObj)
 
 			// append to the manage data array
@@ -216,7 +212,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				json.NewEncoder(w).Encode(response)
 				return
 			}
-			//semantic constant object
+			// semantic constant object
 			semanticConstObj := model.ValueDefinition{
 				ValueType:         "SEMANTICCONSTANT",
 				ValueMapID:        respObj.ValueMapID,
@@ -227,7 +223,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				ManageDataKey:     sematicConstant.Name,
 				ManageDataValue:   sematicConstant.Value,
 			}
-			//append to the value definition array
+			// append to the value definition array
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, semanticConstObj)
 
 			// append to the manage data array
@@ -261,23 +257,24 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
 		}
 
-		//build ManageData Array
+		// build ManageData Array
 		manageDataObj := model.FormulaManageData{
 			FormulaIdentity:  formulaManageDataObj,
 			AuthorIdentity:   authorObj,
 			ValueDefinitions: ValueDefinitionManageDataArray,
 		}
 
-		//build transaction
+		// build transaction
+		// memo put to DB as a []byte to overcome invalid UTF-8 basonformate
 		transactionObj := model.FormulaTransaction{
 			TransactionHash:   string(hash),
 			TransactionStatus: status,
-			Memo:              string(memo),
+			Memo:              []byte(memo),
 			ManageData:        manageDataObj,
 			TransactionTime:   string(""),
 		}
 
-		//append this transaction to the transaction array
+		// append this transaction to the transaction array
 		transactionArray = append(transactionArray, transactionObj)
 
 		// save expert formula in the database
@@ -298,9 +295,10 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		errResult := object.InsertExpertFormula(expertFormulaBuilder)
 		if errResult != nil {
 			logrus.Error("Error while inserting the expert formula into DB : ", errResult)
+		} else {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(formulaJSON)
+			return
 		}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(formulaJSON)
-		return
 	}
 }

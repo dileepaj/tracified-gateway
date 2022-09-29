@@ -230,7 +230,7 @@ type FormulaManageData struct {
 type FormulaTransaction struct {
 	TransactionHash   string
 	TransactionStatus string
-	Memo              string
+	Memo              []byte
 	ManageData        FormulaManageData
 	TransactionTime   string
 }

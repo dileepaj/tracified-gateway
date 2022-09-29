@@ -199,15 +199,15 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(element mod
 		descriptionString = descriptionString + setReaminder
 	}
 
-	keyString := valueTypeString + stellarprotocols.ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
-	valueString := descriptionString
+	valueString := valueTypeString + stellarprotocols.ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
+	keyString := descriptionString
 
-	logrus.Info("Building variable with key string of   : ", keyString)
+	logrus.Info("Building variable with Name string of   : ", keyString)
 	logrus.Info("Building variable with value string of : ", valueString)
 
 	variableDefinitionBuilder := txnbuild.ManageData{
-		Name:  valueString,
-		Value: []byte(keyString),
+		Name:  keyString,
+		Value: []byte(valueString),
 	}
 
 	//check the lengths of the key and value
