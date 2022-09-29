@@ -2316,3 +2316,27 @@ func (cd *Connection) GetRequestAmount(reqEntityType string, reqEntity string, f
 	})
 	return p
 }
+
+// for checking the public keys against trust nwtwork
+func (cd *Connection) GetTrustNetworkKeyMap(publicKey string) *promise.Promise {
+	result := model.Expert{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		err1 := c.FindOne(context.TODO(), bson.M{"publicKey": publicKey}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting trust network key map from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
