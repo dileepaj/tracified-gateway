@@ -16,7 +16,7 @@ import (
 BuildVariableDefinitionManageData
 des-Build the variable definition manage data
 */
-func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
+func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	VALUETYPE := 1
 	DATATYPE := 2
 	EMPTY := 0
@@ -73,6 +73,8 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(element mod
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
 			ValueType: "VARIABLE",
+			Key:       element.Key,
+			FormulaID: formulaID,
 			ValueName: element.Name,
 			MapID:     data.SequenceValue,
 		}

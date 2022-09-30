@@ -26,7 +26,7 @@ Manage data
 	name 64 byte character - 	semanticConstantValue - 64 byte defieded by protocol
 	value 64 byte managedata - valueType + valueId + description + referredConstantDataType + fetureused
 */
-func (expertFormula ExpertFormula) BuildSemanticConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
+func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 2
 	var valueId int64
 	sementicConstantDataType := 2
@@ -62,6 +62,8 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(element model
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
 			ValueType: "semanticCONSTANT",
+			Key:       element.Key,
+			FormulaID: formulaID,
 			MapID:     data.SequenceValue,
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)

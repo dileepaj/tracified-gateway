@@ -25,7 +25,7 @@ Manage data
 	name 64 byte character - 64 byte refrence Short URL
 	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
 */
-func (expertFormula ExpertFormula) BuildReferredConstantManageData(element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
+func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 3
 	var valueId int64
 	var unit int64
@@ -62,6 +62,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(element model
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
 			ValueType: "REFERREDCONSTANT",
+			Key:       element.Key,
+			FormulaID: formulaID,
 			MapID:     data.SequenceValue,
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)

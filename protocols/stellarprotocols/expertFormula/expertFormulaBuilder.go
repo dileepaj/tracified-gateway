@@ -155,7 +155,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	for i := 0; i < len(formulaArray); i++ {
 		if formulaArray[i].Type == "VARIABLE" {
 			// excute the variable builder
-			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaArray[i])
+			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
 				logrus.Error("Variable  ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -181,7 +181,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		} else if formulaArray[i].Type == "REFERREDCONSTANT" {
 			// execute the referred constant builder
 
-			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaArray[i])
+			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
 				logrus.Error("referred Constant   ", err.Error())
 				w.WriteHeader(http.StatusNoContent)
@@ -207,7 +207,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &referredConstant)
 		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
 			// execute the semantic constant builder
-			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaArray[i])
+			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
 				logrus.Error("sementic Constant   ", err.Error())
 				w.WriteHeader(http.StatusNoContent)

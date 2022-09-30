@@ -70,6 +70,8 @@ type ValueIDMap struct {
 	ValueId   string
 	ValueType string
 	ValueName string
+	Key       string
+	FormulaID string
 	MapID     int64
 }
 
