@@ -254,3 +254,11 @@ type ValueDefOutParmas struct {
 	ValueMapID int64
 	UnitMapID  int64
 }
+
+type GeneralValueDefBuildRequest struct {
+	VariableUUID string
+	VariableName string
+	BindingType  int
+	FormulaID    string
+	Key          string
+}

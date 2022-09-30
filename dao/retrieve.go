@@ -2340,3 +2340,26 @@ func (cd *Connection) GetTrustNetworkKeyMap(publicKey string) *promise.Promise {
 	})
 	return p
 }
+
+func (cd *Connection) GetVariableDetails(formulaID string, key string, variableName string) *promise.Promise {
+	var valueDef model.ValueIDMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "key": key, "valuename": variableName}).Decode(&valueDef)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(valueDef)
+		}
+	})
+	return p
+}
