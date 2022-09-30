@@ -8,8 +8,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/stellar/go/txnbuild"
+	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/txnbuild"
 )
 
 //Used to define the general metadat of a single variable
