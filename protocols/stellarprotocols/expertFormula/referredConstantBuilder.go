@@ -44,7 +44,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		return data
 	}).Await()
 	if errValueMap != nil {
-		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore ", errValueMap)
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
@@ -56,8 +56,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		logrus.Info("Value ID is already recorded in the DB Map")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of value map was failed")
+			logrus.Error("Get Next Sequence Value for value id was failed" + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Get Next Sequence Value for value id was failed" + err.Error())
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -68,7 +68,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
-			logrus.Error("Insert Value map ID was failed" + err1.Error())
+			logrus.Error("Inserting Value map ID was failed" + err1.Error())
 		}
 		valueId = data.SequenceValue
 	}
@@ -103,19 +103,19 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	// convert value type Int to binary string
 	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("srtValueType " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to binary  " + err.Error())
 	}
 	// convert data type Int to binary string
 	srtDataType, err := stellarprotocols.StringToBinary(int64(referredConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("srtValueType " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary  " + err.Error())
 	}
 	// unit building// convert value type Int to binary string
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
-		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore ", errValueMap)
 		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	if unitMap != nil {
@@ -132,8 +132,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		// get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of unit map was failed")
+			logrus.Error("Get next sequence value ID was failed " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Get next sequence value ID was failed " + err.Error())
 		}
 
 		unitIdMap := model.UnitIDMap{
@@ -143,20 +143,20 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
-			logrus.Error("Insert unit map ID was failed" + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("Insert unit map ID was failed")
+			logrus.Error("Inserting unit map ID was failed" + err1.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Inserting unit map ID was failed " + err1.Error())
 		}
 		unit = data.SequenceValue
 	}
 	// convert unit Int to binary string
 	strUnit, err := stellarprotocols.UnitToBinary(unit)
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary " + err.Error())
 	}
 	// convert valueId Int to binary string
 	strValueID, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting ID to binary " + err.Error())
 	}
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
@@ -173,11 +173,11 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred contant  value length not equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred constant value length not equal to 64")
 	}
 	if len(nameString) > 64 || len(nameString) == 0 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred contant name length should be less than or equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred constant name length should be less than or equal to 64")
 	}
 
 	respObj := model.ValueDefOutParmas{

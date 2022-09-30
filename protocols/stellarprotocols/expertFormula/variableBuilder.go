@@ -50,7 +50,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		return data
 	}).Await()
 	if errValueMap != nil {
-		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore ", errValueMap)
 		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	//check if the variable name for this formula is in the variale mapping
@@ -66,8 +66,8 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		logrus.Info(element.Name + " is not recorded in the DB Map")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of value map was failed")
+			logrus.Error("Retrieving value id from map was failed " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Retrieving value id from map was failed")
 		}
 
 		valueIdMap := model.ValueIDMap{
@@ -81,8 +81,8 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
-			logrus.Error("Insert Value map ID was failed" + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("Insert Value map ID was failed")
+			logrus.Error("Inserting to Value map ID was failed" + err1.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Inserting to Value map ID was failed")
 		}
 
 		//add the data as the new value id to the manage data key part string
@@ -112,7 +112,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	tempDataType, errInDataTypeConvert := stellarprotocols.StringToBinary(int64(DATATYPE))
 	if errInDataTypeConvert != nil {
 		logrus.Info("Error when converting data type ", errInDataTypeConvert)
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type" + errInDataTypeConvert.Error())
 	}
 	dataTypeString = stellarprotocols.ConvertingBinaryToByteString(tempDataType)
 
@@ -122,7 +122,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
-		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore ", errValueMap)
 		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	//check if the unit is in the unit map
@@ -134,7 +134,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		unitId = unitMapData.MapID
 		strUnit, err := stellarprotocols.UnitToBinary(unitMapData.MapID)
 		if err != nil {
-			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary format " + err.Error())
 		}
 
 		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
@@ -147,7 +147,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of unit map was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of unit map was failed " + err.Error())
 		}
 
 		unitIdMap := model.UnitIDMap{
@@ -159,11 +159,11 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
 			logrus.Error("Insert unit map ID was failed" + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("Insert unit map ID was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Inserting to unit map ID was failed" + err1.Error())
 		}
 		strUnit, err := stellarprotocols.UnitToBinary(data.SequenceValue)
 		if err != nil {
-			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary" + err.Error())
 		}
 
 		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
@@ -171,14 +171,14 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 
 	strValueID, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting ID to binary " + err.Error())
 	}
 
 	//precision
 	tempPrecision, errInPrecisionConvert := stellarprotocols.StringToBinary(int64(element.Precision))
 	if errInPrecisionConvert != nil {
 		logrus.Info("Error when converting precision ", errInPrecisionConvert)
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting precision")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting precision " + errInPrecisionConvert.Error())
 	}
 	precisionString = stellarprotocols.ConvertingBinaryToByteString(tempPrecision)
 

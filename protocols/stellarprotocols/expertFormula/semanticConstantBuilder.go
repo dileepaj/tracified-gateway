@@ -44,7 +44,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		return data
 	}).Await()
 	if errValueMap != nil {
-		logrus.Info("Unable to connect gateway datastore ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore ", errValueMap)
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
@@ -57,7 +57,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("GetNextSequenceValue was failed" + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("GetNextSequenceValue of value map was failed")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("Get next sequence value of value map was failed")
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -68,7 +68,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
-			logrus.Error("Insert Value map ID was failed" + err1.Error())
+			logrus.Error("Inserting Value map ID was failed" + err1.Error())
 		}
 		valueId = data.SequenceValue
 	}
@@ -102,15 +102,15 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	strFetureUsed := fmt.Sprintf("%014d", 0)
 	strValueId, err := stellarprotocols.IDToBinary(valueId)
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value ID to binary " + err.Error())
 	}
 	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to biinary " + err.Error())
 	}
 	srtDataType, err := stellarprotocols.StringToBinary(int64(sementicConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary " + err.Error())
 	}
 
 	// semantic constant's manage data key and value
@@ -128,11 +128,11 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic contant  name length not equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant name length not equal to 64")
 	}
 	if len(nameString) > 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic contant value length should be less than or equal to 64")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant value length should be less than or equal to 64")
 	}
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,

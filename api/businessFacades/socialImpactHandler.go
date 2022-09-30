@@ -29,7 +29,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		logrus.Error(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body")
+		json.NewEncoder(w).Encode("Error while decoding the body " + err.Error())
 		return
 	}
 

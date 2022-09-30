@@ -54,8 +54,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	// if formulA already in Database, not allowed to  build expert formula to that ID
 	if formulaMap != nil {
 		logrus.Error("Formula Id is in gateway datastore")
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: "Formula Id is in gateway datastore"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Code: http.StatusBadRequest, Message: "Formula Id is in gateway datastore"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -91,14 +91,21 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		return data
 	}).Await()
 	if err != nil {
-		logrus.Info("Unable to connect gateway datastore ", err5)
-		w.WriteHeader(http.StatusNotFound)
+		logrus.Info("Unable to connect to gateway datastore ", err5)
+		w.WriteHeader(http.StatusInternalServerError)
+		response := model.Error{Code: http.StatusInternalServerError, Message: "Unable to connect to gateway datastore " + err5.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	// if not,  retrived the current latest sequence number for expertID , map the expertID with incrementing interger
 	if expertMapdata == nil {
 		data, err := object.GetNextSequenceValue("EXPERTID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValu was failed" + err.Error())
+			logrus.Error("Mapping expert ID failed " + err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "Mapping expert ID failed " + err.Error()}
+			json.NewEncoder(w).Encode(response)
+			return
 		}
 		authorMapId = data.SequenceValue
 		expertIDMap := model.ExpertIDMap{
@@ -109,7 +116,11 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		}
 		err1 := object.InsertExpertIDMap(expertIDMap)
 		if err1 != nil {
-			logrus.Error("Insert ExpertIDMap was failed" + err1.Error())
+			logrus.Error("Insert to ExpertIDMap was failed" + err1.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "Insert to ExpertIDMap was failed " + err1.Error()}
+			json.NewEncoder(w).Encode(response)
+			return
 		}
 		expertMapID = int(data.SequenceValue)
 	} else {
@@ -120,8 +131,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
 	if errInFormulaIdentity != nil {
 		logrus.Error("Building formula identity manage data failed : Error : " + errInFormulaIdentity.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("An error occured when building formula identity")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("An error occured when building formula identity " + errInFormulaIdentity.Error())
 		return
 	}
 	// build formula object to be inserted
@@ -137,8 +148,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	authorDetailsBuilder, errInAuthorBuilder := expertFormula.BuildAuthorManageData(formulaJSON.Expert.ExpertPK)
 	if errInAuthorBuilder != nil {
 		logrus.Error("Building author details manage data failed : Error : " + errInAuthorBuilder.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("An error occured when building author identity")
+		w.WriteHeader(http.StatusInternalServerError)
+		json.NewEncoder(w).Encode("An error occured when building author identity " + errInAuthorBuilder.Error())
 		return
 	}
 
@@ -158,8 +169,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
 				logrus.Error("Variable  ", err.Error())
-				w.WriteHeader(http.StatusNoContent)
-				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				w.WriteHeader(http.StatusInternalServerError)
+				response := model.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 				json.NewEncoder(w).Encode(response)
 				return
 			}
@@ -183,9 +194,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
-				logrus.Error("referred Constant   ", err.Error())
-				w.WriteHeader(http.StatusNoContent)
-				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				logrus.Error("Referred Constant   ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				response := model.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 				json.NewEncoder(w).Encode(response)
 				return
 			}
@@ -209,9 +220,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			// execute the semantic constant builder
 			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.ID, formulaArray[i])
 			if err != nil {
-				logrus.Error("sementic Constant   ", err.Error())
-				w.WriteHeader(http.StatusNoContent)
-				response := model.Error{Code: http.StatusNoContent, Message: err.Error()}
+				logrus.Error("Sementic Constant   ", err.Error())
+				w.WriteHeader(http.StatusInternalServerError)
+				response := model.Error{Code: http.StatusInternalServerError, Message: err.Error()}
 				json.NewEncoder(w).Encode(response)
 				return
 			}
@@ -245,9 +256,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		endTransactionTime = time.Now()
 		if err != nil {
 			status = "Failed"
-			logrus.Error("Error when transaction Submitting to blockchain  ", err)
+			logrus.Error("Error when submitting transaction to blockchain  ", err)
 			w.WriteHeader(errCode)
-			response := model.Error{Code: errCode, Message: "Error when transaction Submitting to blockchain  " + err.Error()}
+			response := model.Error{Code: errCode, Message: "Error when submitting transaction to blockchain  " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -263,7 +274,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		// map the formulaID with incremting Integer put those object to blockchain
 		err1 := object.InsertFormulaIDMap(formulaIDMap)
 		if err1 != nil {
-			logrus.Error("Insert FormulaIDMap was failed" + err1.Error())
+			logrus.Error("Insert formula to the formula map was failed" + err1.Error())
 		}
 
 		// build ManageData Array
