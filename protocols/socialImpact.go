@@ -6,7 +6,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
-	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricDefinition"
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricbinding"
 	"github.com/sirupsen/logrus"
 )
 
@@ -39,7 +39,7 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 
 func (soacialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
 	if soacialImpact.Blockchain == "STELLAR" {
-		metricDefinition.StellarMetricBinding()
+		metricbinding.StellarMetricBinding()
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)
