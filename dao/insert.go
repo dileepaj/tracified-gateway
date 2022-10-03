@@ -517,3 +517,17 @@ func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) erro
 	}
 	return err
 }
+
+func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ResourceIDMap")
+	_, err = c.InsertOne(context.TODO(), resourceIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting resource id to DB " + err.Error())
+	}
+	return err
+}

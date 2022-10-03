@@ -29,7 +29,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		logrus.Error(err)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body")
+		json.NewEncoder(w).Encode("Error while decoding the body " + err.Error())
 		return
 	}
 
@@ -111,5 +111,34 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidationInMetricBind.Error())
 		return
 	} else {
+		// stageDataElement := model.GeneralValueDefBuildRequest{
+		// 	ResourceType: "Stage",
+		// 	ResourceName: "Soil Preparation",
+		// 	Key:          "SoilQuantiy",
+		// 	VariableUUID: "aaafaa0754b7eddd458180b1d36ff4c04941",
+		// 	VariableName: "water",
+		// 	BindingType:  "1",
+		// 	ResourceID:   "200",
+		// 	FormulaID:    "633686c4d643b18ff1910b1b",
+		// }
+
+		// txnBuildStage, _ := metricdefinition.ValueDefinitionBuilder(stageDataElement)
+		// logrus.Info("-----------------", txnBuildStage.Name)
+		// logrus.Info("=================", string(txnBuildStage.Value[:]))
+
+		// masterDataElement := model.GeneralValueDefBuildRequest{
+		// 	ResourceType: "Master",
+		// 	ResourceName: "Soil Preparation",
+		// 	Key:          "SoilQuantiy",
+		// 	VariableUUID: "aaafaa0754b7eddd458180b1d36ff4c04941",
+		// 	VariableName: "water",
+		// 	BindingType:  "0",
+		// 	ResourceID:   "300",
+		// 	FormulaID:    "633686c4d643b18ff1910b1b",
+		// }
+
+		// txnBuildMaster, _ := metricdefinition.ValueDefinitionBuilder(masterDataElement)
+		// logrus.Info("-----------------", txnBuildMaster.Name)
+		// logrus.Info("=================", string(txnBuildMaster.Value[:]))
 	}
 }

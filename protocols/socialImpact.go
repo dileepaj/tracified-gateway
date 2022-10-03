@@ -30,8 +30,8 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
 	} else {
 		logrus.Error("Blockchain type issue")
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: "Can notsupport " + soacialImpact.Blockchain + " yet"}
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Code: http.StatusBadRequest, Message: "Can not support " + soacialImpact.Blockchain + " yet"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
