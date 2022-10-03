@@ -256,9 +256,18 @@ type ValueDefOutParmas struct {
 }
 
 type GeneralValueDefBuildRequest struct {
+	ResourceType string
+	ResourceName string
+	Key          string
 	VariableUUID string
 	VariableName string
-	BindingType  int
+	BindingType  string
+	ResourceID   string
 	FormulaID    string
-	Key          string
+}
+
+type ResourceIdMap struct {
+	ResourceType string
+	ResourceID   string
+	MapID        int64
 }
