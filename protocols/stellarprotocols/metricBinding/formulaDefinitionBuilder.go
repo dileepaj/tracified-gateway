@@ -1,4 +1,4 @@
-package metricdefinition
+package metricbinding
 
 import (
 	"encoding/binary"

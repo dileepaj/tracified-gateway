@@ -1,4 +1,4 @@
-package metricDefinition
+package metricbinding
 
 import (
 	"errors"
@@ -37,7 +37,6 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 	var resourceID int64
 	valueTypeString := ""
 	variableNameString := ""
-	resourceIDString := ""
 	futureUseInValue := ""
 
 	//Validate resource name 25 byte limit
@@ -162,25 +161,12 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 
 		resourceID = data.SequenceValue
 	}
-
-	strResourceID, errWhenConvertingIDToBinary := stellarprotocols.IDToBinary(resourceID)
-	if errWhenConvertingIDToBinary != nil {
-		return txnbuild.ManageData{}, errors.New("Error coverting ID to binary " + errWhenConvertingIDToBinary.Error())
-	}
-
-	resourceIDString = stellarprotocols.ConvertingBinaryToByteString(strResourceID)
-
 	//future use in value
 	futureUseInValue = fmt.Sprintf("%s", strings.Repeat("0", 27))
 
-	//build key and value strings
-<<<<<<< HEAD
-	keyString := "VALUE METADATA/" + fmt.Sprintf("%s", strings.Repeat("0", (64-len("VALUE METADATA/"))))
-	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString + futureUse
-=======
+	//build key and value string
 	keyString := resourceNameString + keyNameString + futureUseInKey
-	valueString := stellarprotocols.ConvertingBinaryToByteString(strValueId) + variableNameString + valueTypeString + resourceIDString + futureUseInValue
->>>>>>> 00cc28865a53cfa3815e611e593a889c94eac405
+	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString +  stellarprotocols.UInt64ToByteString(resourceID) + futureUseInValue
 
 	//check the key value string length for 64 byte limit
 	if len(keyString) > 64 {

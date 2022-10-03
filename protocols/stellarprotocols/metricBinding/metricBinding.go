@@ -1,4 +1,4 @@
-package metricDefinition
+package metricbinding
 
 func StellarMetricBinding() {
 
