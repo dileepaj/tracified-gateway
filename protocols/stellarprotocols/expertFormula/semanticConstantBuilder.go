@@ -111,7 +111,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 
 	// semantic constant's manage data key and value
 	nameString := semanticConstantValue
-	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.UInt64ToByteString(valueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + semanticConstantDescription + strFetureUsed
 
 	logrus.Println("Semantic constant Name:   ", nameString)
 	logrus.Println("Semantic constant value:   ", valueString)

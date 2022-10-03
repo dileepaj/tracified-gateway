@@ -155,7 +155,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	}
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
-	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.UInt64ToByteString(valueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + stellarprotocols.ConvertingBinaryToByteString(strUnit) + strFetureUsed
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + referredConstantValue + referredConstantDescription + strUnit + strFetureUsed
 
 	fmt.Println("referred constant Name:   ", nameString)
 	fmt.Println("referred constant value:   ", valueString)

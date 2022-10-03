@@ -74,9 +74,9 @@ func UnitToBinary(value int64) (string, error) {
 		// add 0s to the rest of the name
 		remain := 16 - len(binary)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return setReaminder + binary, nil
+		return ConvertingBinaryToByteString(setReaminder + binary), nil
 	} else if len(binary) == 16 {
-		return binary, nil
+		return ConvertingBinaryToByteString(binary), nil
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 16")
 	}
@@ -89,26 +89,11 @@ func StringToBinary(value int64) (string, error) {
 		// add 0s to the rest of the name
 		remain := 8 - len(binary)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return setReaminder + binary, nil
+		return ConvertingBinaryToByteString(setReaminder + binary), nil
 	} else if len(binary) == 8 {
-		return binary, nil
+		return ConvertingBinaryToByteString(binary), nil
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 8")
-	}
-}
-
-func IDToBinary(value int64) (string, error) {
-	binary := strconv.FormatInt(value, 2)
-
-	if len(binary) < 64 {
-		// add 0s to the rest of the name
-		remain := 64 - len(binary)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return setReaminder + binary, nil
-	} else if len(binary) == 64 {
-		return binary, nil
-	} else {
-		return binary, errors.New("Unit length shouldbe equal to 64")
 	}
 }
 
@@ -119,9 +104,9 @@ func TenantIDToBinary(value int64) (string, error) {
 		// add 0s to the rest of the name
 		remain := 32 - len(binary)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return setReaminder + binary, nil
+		return ConvertingBinaryToByteString(setReaminder + binary), nil
 	} else if len(binary) == 32 {
-		return binary, nil
+		return ConvertingBinaryToByteString(binary), nil
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 32")
 	}

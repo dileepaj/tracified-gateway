@@ -19,6 +19,6 @@ func BuildMemo(mapMetricId int64, metricName string, tenantId, noOfFormula int32
 	if err != nil {
 		return "", errors.New("BuildMemo issue (faormula ID convert to type) " + err.Error())
 	}
-	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + metricName + stellarprotocols.ConvertingBinaryToByteString(strTenatID) + strNoOfFormula
+	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + metricName + strTenatID + strNoOfFormula
 	return memo, nil
 }

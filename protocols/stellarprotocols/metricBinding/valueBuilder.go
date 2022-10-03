@@ -120,7 +120,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 			return txnbuild.ManageData{}, errors.New("Error when converting value type " + errInValueTypeConvert.Error())
 		}
 
-		valueTypeString = stellarprotocols.ConvertingBinaryToByteString(tempValueType)
+		valueTypeString = tempValueType
 	} else {
 		logrus.Error("Invalid binding type, should be 1 or 0")
 		return txnbuild.ManageData{}, errors.New("Invalid binding type, should be 1 or 0")

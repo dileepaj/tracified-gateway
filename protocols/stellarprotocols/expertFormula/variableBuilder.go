@@ -42,7 +42,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		logrus.Info("Error when converting value type ", errInValueTypeConvert)
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type")
 	}
-	valueTypeString = stellarprotocols.ConvertingBinaryToByteString(tempValueType)
+	valueTypeString = tempValueType
 
 	//DB validations for the variable id
 	object := dao.Connection{}
@@ -114,7 +114,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		logrus.Info("Error when converting data type ", errInDataTypeConvert)
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type" + errInDataTypeConvert.Error())
 	}
-	dataTypeString = stellarprotocols.ConvertingBinaryToByteString(tempDataType)
+	dataTypeString = tempDataType
 
 	//depending on the unit type decide the integer to be asigned
 	//convert unit type character -> byte -> bits
@@ -137,7 +137,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary format " + err.Error())
 		}
 
-		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
+		unitString = strUnit
 
 	} else {
 		//if not add the incrementing id
@@ -166,7 +166,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 			return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary" + err.Error())
 		}
 
-		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
+		unitString = strUnit
 	}
 	//precision
 	tempPrecision, errInPrecisionConvert := stellarprotocols.StringToBinary(int64(element.Precision))
@@ -174,7 +174,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		logrus.Info("Error when converting precision ", errInPrecisionConvert)
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting precision " + errInPrecisionConvert.Error())
 	}
-	precisionString = stellarprotocols.ConvertingBinaryToByteString(tempPrecision)
+	precisionString =tempPrecision
 
 	//check if the description is 40 characters
 	if len(element.Description) > 40 {
