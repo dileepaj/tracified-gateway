@@ -169,11 +169,6 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		unitString = stellarprotocols.ConvertingBinaryToByteString(strUnit)
 	}
 
-	strValueID, err := stellarprotocols.IDToBinary(valueId)
-	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
-	}
-
 	//precision
 	tempPrecision, errInPrecisionConvert := stellarprotocols.StringToBinary(int64(element.Precision))
 	if errInPrecisionConvert != nil {
@@ -201,7 +196,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		descriptionString = descriptionString + setReaminder
 	}
 
-	valueString := valueTypeString + stellarprotocols.ConvertingBinaryToByteString(strValueID) + variableNameString + dataTypeString + unitString + precisionString
+	valueString := valueTypeString + stellarprotocols.UInt64ToByteString(valueId) + variableNameString + dataTypeString + unitString + precisionString
 	keyString := descriptionString
 
 	logrus.Info("Building variable with Name string of   : ", keyString)

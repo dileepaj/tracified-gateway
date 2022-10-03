@@ -2,7 +2,6 @@ package expertformula
 
 import (
 	"encoding/hex"
-	"errors"
 	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
@@ -22,10 +21,6 @@ func (expertFormula ExpertFormula)BuildMemo(types, variableCount int32, mappedFo
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	srtValueID, err := stellarprotocols.IDToBinary(int64(mappedFormulaID))
-	if err != nil {
-		return "", errors.New("BuildMemo issue (faormula ID convert to type) " + err.Error())
-	}
 	strVariableCount := fmt.Sprintf("%04d", variableCount)
 	strFetureUsed := fmt.Sprintf("%06d", 0)
 	decodedManifest, err := hex.DecodeString(manifest)
@@ -33,6 +28,6 @@ func (expertFormula ExpertFormula)BuildMemo(types, variableCount int32, mappedFo
 	if err != nil {
 		return "", err
 	}
-	memo := strManifest +  stellarprotocols.ConvertingBinaryToByteString(srtValueID) + strVariableCount + strFetureUsed
+	memo := strManifest +  stellarprotocols.UInt64ToByteString(mappedFormulaID) + strVariableCount + strFetureUsed
 	return memo, nil
 }

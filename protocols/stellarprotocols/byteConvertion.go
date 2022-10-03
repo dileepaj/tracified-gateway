@@ -1,6 +1,7 @@
 package stellarprotocols
 
 import (
+	"encoding/binary"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -111,6 +112,21 @@ func IDToBinary(value int64) (string, error) {
 	}
 }
 
+func TenantIDToBinary(value int64) (string, error) {
+	binary := strconv.FormatInt(value, 2)
+
+	if len(binary) < 32 {
+		// add 0s to the rest of the name
+		remain := 32 - len(binary)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		return setReaminder + binary, nil
+	} else if len(binary) == 32 {
+		return binary, nil
+	} else {
+		return binary, errors.New("Unit length shouldbe equal to 32")
+	}
+}
+
 func ByteStingToInteger(byteValue string) (int64, error) {
 	strVal := []byte(byteValue)
 	encodedString := hex.EncodeToString(strVal)
@@ -121,4 +137,11 @@ func ByteStingToInteger(byteValue string) (int64, error) {
 	} else {
 		return intValue, nil
 	}
+}
+
+// return convert usign int64 to byte string
+func UInt64ToByteString(i int64) string {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b, uint64(i))
+	return string(b)
 }

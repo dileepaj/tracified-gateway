@@ -100,10 +100,6 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		}
 	}
 	strFetureUsed := fmt.Sprintf("%014d", 0)
-	strValueId, err := stellarprotocols.IDToBinary(valueId)
-	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
-	}
 	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 20 character limit " + err.Error())
@@ -115,10 +111,10 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 
 	// semantic constant's manage data key and value
 	nameString := semanticConstantValue
-	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.ConvertingBinaryToByteString(strValueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
+	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.UInt64ToByteString(valueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + semanticConstantDescription + strFetureUsed
 
-	fmt.Println("Semantic constant Name:   ", nameString)
-	fmt.Println("Semantic constant value:   ", valueString)
+	logrus.Println("Semantic constant Name:   ", nameString)
+	logrus.Println("Semantic constant value:   ", valueString)
 
 	// Building the manage data operation
 	semanticConstManageData := txnbuild.ManageData{

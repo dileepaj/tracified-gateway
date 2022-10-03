@@ -153,14 +153,9 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
 	}
-	// convert valueId Int to binary string
-	strValueID, err := stellarprotocols.IDToBinary(valueId)
-	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary")
-	}
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
-	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.ConvertingBinaryToByteString(strValueID) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + stellarprotocols.ConvertingBinaryToByteString(strUnit) + strFetureUsed
+	valueString := stellarprotocols.ConvertingBinaryToByteString(srtValueType) + stellarprotocols.UInt64ToByteString(valueId) + stellarprotocols.ConvertingBinaryToByteString(srtDataType) + referredConstantValue + referredConstantDescription + stellarprotocols.ConvertingBinaryToByteString(strUnit) + strFetureUsed
 
 	fmt.Println("referred constant Name:   ", nameString)
 	fmt.Println("referred constant value:   ", valueString)

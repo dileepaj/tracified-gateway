@@ -1,0 +1,5 @@
+package metricDefinition
+
+func StellarMetricBinding() {
+
+}

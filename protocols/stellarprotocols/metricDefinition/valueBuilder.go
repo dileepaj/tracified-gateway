@@ -1,4 +1,4 @@
-package metricdefinition
+package metricDefinition
 
 import (
 	"errors"
@@ -8,8 +8,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/stellar/go/txnbuild"
+	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/txnbuild"
 )
 
 //Used to define the general metadat of a single variable
@@ -42,12 +42,7 @@ func generalValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (t
 		valueMapData := variableDefMap.(model.ValueIDMap)
 		valueID = valueMapData.MapID
 	}
-	//convert value id to binart
-	strValueId, errWhenConvertingValueIDToBinary := stellarprotocols.IDToBinary(valueID)
-	if errWhenConvertingValueIDToBinary != nil {
-		return txnbuild.ManageData{}, errors.New("Error when converting value ID to the binary format " + errWhenConvertingValueIDToBinary.Error())
-	}
-
+	
 	//check the variable name length for 20 bytes
 	if len(element.VariableName) > 20 {
 		logrus.Error("Variable name us greater than 20 character limit")
@@ -85,7 +80,7 @@ func generalValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (t
 
 	//build key and value strings
 	keyString := "VALUE METADATA/" + fmt.Sprintf("%s", strings.Repeat("0", (64-len("VALUE METADATA/"))))
-	valueString := stellarprotocols.ConvertingBinaryToByteString(strValueId) + variableNameString + valueTypeString + futureUse
+	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString + futureUse
 
 	//check the key value string length for 64 byte limit
 	if len(keyString) > 61 {
