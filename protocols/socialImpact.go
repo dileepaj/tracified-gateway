@@ -18,7 +18,8 @@ type AbstractSocialImpact struct {
 }
 
 type AbstractSocialImpactMetricBinding struct {
-	Blockchain string
+	Blockchain     string
+	MetricBindJSON model.MetricDataBindingRequest
 }
 
 /*
@@ -39,7 +40,7 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 
 func (soacialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
 	if soacialImpact.Blockchain == "STELLAR" {
-		metricbinding.StellarMetricBinding()
+		metricbinding.StellarMetricBinding(w, r, soacialImpact.MetricBindJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)
