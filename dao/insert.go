@@ -531,3 +531,5 @@ func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) e
 	}
 	return err
 }
+
+// func (cd *Connection) InsertMetricMapID(expertIDMap model.ExpertIDMap) error {

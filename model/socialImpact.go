@@ -334,3 +334,9 @@ type FullFormula struct {
 	ID    string `json:"ID" bson:"id" validate:"required"`
 	Key   string
 }
+
+type MetricMapDetails struct {
+	MetricID   string
+	MetricName string
+	MapID      int64
+}
