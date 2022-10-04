@@ -33,8 +33,8 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 	futureUseInKey := ""
 
 	//value string components
-	var valueID int64
-	var resourceID int64
+	var valueID uint64
+	var resourceID uint64
 	valueTypeString := ""
 	variableNameString := ""
 	futureUseInValue := ""
@@ -114,7 +114,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 	//check if the binding type is 0 or 1
 	if element.BindingType == "0" || element.BindingType == "1" {
 		convertedBindingType, _ := strconv.Atoi(element.BindingType)
-		tempValueType, errInValueTypeConvert := stellarprotocols.StringToBinary(int64(convertedBindingType))
+		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(convertedBindingType))
 		if errInValueTypeConvert != nil {
 			logrus.Error("Error when converting value type ", errInValueTypeConvert)
 			return txnbuild.ManageData{}, errors.New("Error when converting value type " + errInValueTypeConvert.Error())

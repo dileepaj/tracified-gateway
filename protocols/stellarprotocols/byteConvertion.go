@@ -67,23 +67,8 @@ func GetDataType(value string) string {
 	return "0"
 }
 
-func UnitToBinary(value int64) (string, error) {
-	binary := strconv.FormatInt(value, 2)
-
-	if len(binary) < 16 {
-		// add 0s to the rest of the name
-		remain := 16 - len(binary)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return ConvertingBinaryToByteString(setReaminder + binary), nil
-	} else if len(binary) == 16 {
-		return ConvertingBinaryToByteString(binary), nil
-	} else {
-		return binary, errors.New("Unit length shouldbe equal to 16")
-	}
-}
-
-func StringToBinary(value int64) (string, error) {
-	binary := strconv.FormatInt(value, 2)
+func Int8ToByteString(value uint8) (string, error) {
+	binary := strconv.FormatInt(int64(value), 2)
 
 	if len(binary) < 8 {
 		// add 0s to the rest of the name
@@ -94,21 +79,6 @@ func StringToBinary(value int64) (string, error) {
 		return ConvertingBinaryToByteString(binary), nil
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 8")
-	}
-}
-
-func TenantIDToBinary(value int64) (string, error) {
-	binary := strconv.FormatInt(value, 2)
-
-	if len(binary) < 32 {
-		// add 0s to the rest of the name
-		remain := 32 - len(binary)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return ConvertingBinaryToByteString(setReaminder + binary), nil
-	} else if len(binary) == 32 {
-		return ConvertingBinaryToByteString(binary), nil
-	} else {
-		return binary, errors.New("Unit length shouldbe equal to 32")
 	}
 }
 
@@ -125,8 +95,22 @@ func ByteStingToInteger(byteValue string) (int64, error) {
 }
 
 // return convert usign int64 to byte string
-func UInt64ToByteString(i int64) string {
+func UInt64ToByteString(i uint64) string {
 	b := make([]byte, 8)
 	binary.LittleEndian.PutUint64(b, uint64(i))
+	return string(b)
+}
+
+// return convert usign int16 to byte string
+func UInt16ToByteString(i uint16) string {
+	b := make([]byte, 2)
+	binary.LittleEndian.PutUint16(b, uint16(i))
+	return string(b)
+}
+
+// return convert usign int32 to byte string
+func UInt32ToByteString(i uint32) string {
+	b := make([]byte, 4)
+	binary.LittleEndian.PutUint32(b, uint32(i))
 	return string(b)
 }

@@ -27,14 +27,14 @@ Manage data
 */
 func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 3
-	var valueId int64
-	var unit int64
+	var valueId uint64
+	var unit uint16
 	referredConstantDataType := 2
 	referredConstantDescription := ""
 	EMPTY := 0
 	errorRespObj := model.ValueDefOutParmas{
-		ValueMapID: int64(EMPTY),
-		UnitMapID:  int64(EMPTY),
+		ValueMapID: uint64(EMPTY),
+		UnitMapID:  uint16(EMPTY),
 	}
 
 	referredConstantValue := fmt.Sprintf("%g", element.Value)
@@ -101,12 +101,12 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	// define a 14 zeros string
 	strFetureUsed := fmt.Sprintf("%014d", 0)
 	// convert value type Int to binary string
-	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
+	srtValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to binary  " + err.Error())
 	}
 	// convert data type Int to binary string
-	srtDataType, err := stellarprotocols.StringToBinary(int64(referredConstantDataType))
+	srtDataType, err := stellarprotocols.Int8ToByteString(uint8(referredConstantDataType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary  " + err.Error())
 	}
@@ -138,7 +138,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 
 		unitIdMap := model.UnitIDMap{
 			Unit:  element.MeasurementUnit,
-			MapID: data.SequenceValue,
+			MapID: uint16(data.SequenceValue),
 		}
 
 		err1 := object.InsertToUnitIDMap(unitIdMap)
@@ -146,16 +146,11 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 			logrus.Error("Inserting unit map ID was failed" + err1.Error())
 			return txnbuild.ManageData{}, errorRespObj, errors.New("Inserting unit map ID was failed " + err1.Error())
 		}
-		unit = data.SequenceValue
-	}
-	// convert unit Int to binary string
-	strUnit, err := stellarprotocols.UnitToBinary(unit)
-	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error coverting unit to binary " + err.Error())
+		unit = uint16(data.SequenceValue)
 	}
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
-	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + referredConstantValue + referredConstantDescription + strUnit + strFetureUsed
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + referredConstantValue + referredConstantDescription + stellarprotocols.UInt16ToByteString(uint16(unit))+ strFetureUsed
 
 	fmt.Println("referred constant Name:   ", nameString)
 	fmt.Println("referred constant value:   ", valueString)

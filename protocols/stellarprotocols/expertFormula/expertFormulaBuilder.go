@@ -36,7 +36,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	var manageDataOpArray []txnbuild.Operation
 	// transaction array
 	var transactionArray []model.FormulaTransaction
-	var authorMapId int64
+	var authorMapId uint64
 	// value definition array
 	var ValueDefinitionManageDataArray []model.ValueDefinition
 	var status string
@@ -70,7 +70,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 	// types = 0 - strating manifest
 	// types = 1 - managedata overflow sign
-	memo, err := expertFormula.BuildMemo(0, int32(fieldCount), dataFormulaID.SequenceValue)
+	memo, err := expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue)
 	if err != nil {
 		logrus.Error("Memo ", err)
 		w.WriteHeader(http.StatusInternalServerError)

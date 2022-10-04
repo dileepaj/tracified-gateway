@@ -14,7 +14,7 @@ return the txnbuild.ManageData object
 */
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
-func (expertFormula ExpertFormula)BuildMemo(types, variableCount int32, mappedFormulaID int64) (string, error) {
+func (expertFormula ExpertFormula)BuildMemo(types, variableCount uint32, mappedFormulaID uint64) (string, error) {
 	manifest := ""
 	if types == 0 {
 		manifest = "0000000000AAAAAAAAAA"

@@ -8,7 +8,7 @@ type BuildFormula struct {
 	FormulaID       string
 	FormulaType     string
 	Name            string
-	FieldCount      int32
+	FieldCount      uint32
 	Query           string
 	FormulaAsString string
 	TenantId        string
@@ -40,7 +40,7 @@ type FormulaItemRequest struct {
 	Type              string `json:"Type" bson:"type" validate:"required"`
 	MeasurementUnit   string
 	MetricReferenceId string
-	Precision         int64
+	Precision         uint16
 	MetricReference   MetricReference
 }
 
@@ -51,19 +51,19 @@ type Expert struct {
 
 type FormulaIDMap struct {
 	FormulaID string
-	MapID     int64
+	MapID     uint64
 }
 
 type ExpertIDMap struct {
 	ExpertID  string
 	ExpertPK  string
-	MapID     int64
+	MapID     uint64
 	FormulaID string
 }
 
 type Counters struct {
 	ID            string
-	SequenceValue int64
+	SequenceValue uint64
 }
 
 type ValueIDMap struct {
@@ -72,12 +72,12 @@ type ValueIDMap struct {
 	ValueName string
 	Key       string
 	FormulaID string
-	MapID     int64
+	MapID     uint64
 }
 
 type UnitIDMap struct {
 	Unit  string
-	MapID int64
+	MapID uint16
 }
 
 type FormulaBuildingRequest struct {
@@ -143,7 +143,7 @@ type VariableStructure struct {
 	Key             string `json:"Key" bson:"key" validate:"required"`
 	Type            string `json:"Type" bson:"type" validate:"required"`
 	MeasurementUnit string `json:"MeasurementUnit" bson:"measurementUnit" validate:"required"`
-	Precision       int64  `json:"Precision" bson:"precision" validate:"required"`
+	Precision       uint16  `json:"Precision" bson:"precision" validate:"required"`
 	BindingType     int
 	BindData        BindData
 }
@@ -194,23 +194,23 @@ type RequestCount struct {
 // structs for storing expert formula in the DB -> FormulaIdentity, AuthorIdentity, ValueDefinition, ExpertFormulaManageData, ExpertFormulaTransaction, FormulaStore
 type FormulaIdentity struct {
 	ManageDataName  string
-	FormulaMapID    int64
+	FormulaMapID    uint64
 	ManageDataKey   string
 	ManageDataValue []byte
 }
 
 type AuthorIdentity struct {
 	ManageDataName  string
-	AuthorMapID     int64
+	AuthorMapID     uint64
 	ManageDataKey   string
 	ManageDataValue []byte
 }
 
 type ValueDefinition struct {
 	ValueType         string
-	ValueMapID        int64
-	UnitMapID         int64
-	Precision         int64
+	ValueMapID        uint64
+	UnitMapID         uint16
+	Precision         uint16
 	Value             float64
 	MetricReferenceID string
 	ManageDataKey     string
@@ -251,8 +251,8 @@ type FormulaStore struct {
 }
 
 type ValueDefOutParmas struct {
-	ValueMapID int64
-	UnitMapID  int64
+	ValueMapID uint64
+	UnitMapID  uint16
 }
 
 type GeneralValueDefBuildRequest struct {
@@ -269,7 +269,7 @@ type GeneralValueDefBuildRequest struct {
 type ResourceIdMap struct {
 	ResourceType string
 	ResourceID   string
-	MapID        int64
+	MapID        uint64
 }
 
 type MetricDataBindingRequest struct {

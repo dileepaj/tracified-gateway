@@ -28,13 +28,13 @@ Manage data
 */
 func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 2
-	var valueId int64
+	var valueId uint64
 	sementicConstantDataType := 2
 	semanticConstantDescription := ""
 	EMPTY := 0
 	errorRespObj := model.ValueDefOutParmas{
-		ValueMapID: int64(EMPTY),
-		UnitMapID:  int64(EMPTY),
+		ValueMapID: uint64(EMPTY),
+		UnitMapID:  uint16(EMPTY),
 	}
 
 	semanticConstantValue := fmt.Sprintf("%g", element.Value)
@@ -100,11 +100,11 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		}
 	}
 	strFetureUsed := fmt.Sprintf("%014d", 0)
-	srtValueType, err := stellarprotocols.StringToBinary(int64(valueType))
+	srtValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to biinary " + err.Error())
 	}
-	srtDataType, err := stellarprotocols.StringToBinary(int64(sementicConstantDataType))
+	srtDataType, err := stellarprotocols.Int8ToByteString(uint8(sementicConstantDataType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary " + err.Error())
 	}
@@ -132,7 +132,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	}
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,
-		UnitMapID:  int64(EMPTY),
+		UnitMapID:  uint16(EMPTY),
 	}
 	return semanticConstManageData, respObj, nil
 }
