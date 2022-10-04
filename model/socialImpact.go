@@ -271,3 +271,66 @@ type ResourceIdMap struct {
 	ResourceID   string
 	MapID        int64
 }
+
+type MetricDataBindingRequest struct {
+	ID             string `json:"ID" bson:"id" validate:"required"`
+	Blockchain     string `json:"Blockchain" bson:"blockchain" validate:"required"`
+	ExpertPK       string `json:"ExpertPK" bson:"expertpk:"required"`
+	Name           string `json:"Name" bson:"name" validate:"required"`
+	Description    string `json:"Description" bson:"description" validate:"required"`
+	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef" validate:"required"`
+	BenchmarkValue string `json:"BenchmarkValue" bson:"benchmarkValue" validate:"required"`
+	BenchmarkUnit  string `json:"BenchmarkUnit" bson:"benchmarkUnit" validate:"required"`
+	Status         string `json:"Status" bson:"status" validate:"required"`
+	TenantId       string `json:"TenantId" bson:"tenantId" validate:"required"`
+	CreatedAt      string `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt      string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	Activity       []MetricDataBindArtifactRequest
+}
+
+type MetricDataBindArtifactRequest struct {
+	ID            string        `json:"ID" bson:"id" validate:"required"`
+	Name          string        `json:"Name" bson:"name" validate:"required"`
+	StageID       string        `json:"StageID" bson:"stageId" validate:"required"`
+	MetricID      string        `json:"MetricID" bson:"metricId" validate:"required"`
+	MetricFormula MetricFormula `json:"MetricFormula" bson:"metricFormula" validate:"required"`
+	Revision      int           `json:"Revision" bson:"revision" validate:"required"`
+	TenantID      string        `json:"TenantID" bson:"tenantId" validate:"required"`
+	CreatedAt     string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt     string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+}
+
+type MetricFormula struct {
+	ID                  string `json:"ID" bson:"id" validate:"required"`
+	Formula             []FormulaDetails
+	MetricExpertFormula []MetricExpertFormula
+	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
+	PivotFields         []PivotField
+	Active              bool `json:"Active" bson:"active" validate:"required"`
+}
+
+type FormulaDetails struct {
+	ID                 string `json:"ID" bson:"id" validate:"required"`
+	Key                string `json:"Key" bson:"key" validate:"required"`
+	Field              string
+	ArtifactTemplateID string
+	Description        string `json:"Description" bson:"description" validate:"required"`
+}
+
+type MetricExpertFormula struct {
+	ID              string `json:"ID" bson:"description" validate:"required"`
+	Name            string `json:"Name" bson:"description" validate:"required"`
+	Formula         []FullFormula
+	FormulaAsString string `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsQuery  string `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
+	CreatedAt       string `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt       string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+}
+
+type FullFormula struct {
+	Type  string `json:"Type" bson:"type" validate:"required"`
+	Value string
+	Name  string `json:"Name" bson:"name" validate:"required"`
+	ID    string `json:"ID" bson:"id" validate:"required"`
+	Key   string
+}

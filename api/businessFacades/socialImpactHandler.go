@@ -93,7 +93,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 // BindMetric method : binds the metric with mutiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var metricBindJSON model.MetricBindingRequest
+	var metricBindJSON model.MetricDataBindingRequest
 
 	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
 	if err != nil {
@@ -104,7 +104,7 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	errInJsonValidationInMetricBind := validations.ValidateMetricBindingRequest(metricBindJSON)
+	errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)
 	if errInJsonValidationInMetricBind != nil {
 		logrus.Error("Request body failed the validation check : ", errInJsonValidationInMetricBind)
 		w.WriteHeader(http.StatusBadRequest)

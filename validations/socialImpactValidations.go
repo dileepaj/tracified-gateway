@@ -150,3 +150,115 @@ func ValidateStageData(element model.Stage) error {
 	}
 	return nil
 }
+
+func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	for i := 0; i < len(element.Activity); i++ {
+		//validate the MetricDataBindArtifactRequest
+		errWhenValidatingMetricDataBindArtifactRequest := ValidateMetricDataBindArtifactRequest(element.Activity[i])
+		if errWhenValidatingMetricDataBindArtifactRequest != nil {
+			return errWhenValidatingMetricDataBindArtifactRequest
+		}
+	}
+
+	return nil
+}
+
+func ValidateMetricDataBindArtifactRequest(element model.MetricDataBindArtifactRequest) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	//validate metric formula
+	errWhenValidatingMetricFormula := ValidateMetricFormula(element.MetricFormula)
+	if errWhenValidatingMetricFormula != nil {
+		return errWhenValidatingMetricFormula
+	}
+
+	return nil
+}
+
+func ValidateMetricFormula(element model.MetricFormula) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate formula details
+	for i := 0; i < len(element.Formula); i++ {
+		errWhenValidateingFormulaDetails := ValidateFormulaDetails(element.Formula[i])
+		if errWhenValidateingFormulaDetails != nil {
+			return err
+		}
+	}
+
+	//validate MetricExpertFormula
+	for i := 0; i < len(element.MetricExpertFormula); i++ {
+		errWHenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula[i])
+		if errWHenValidatingMetricExpertFormula != nil {
+			return errWHenValidatingMetricExpertFormula
+		}
+	}
+
+	//validate pivot field
+	for i := 0; i < len(element.PivotFields); i++ {
+		errWhenValidatingPivotFields := ValidatePivotField(element.PivotFields[i])
+		if errWhenValidatingPivotFields != nil {
+			return errWhenValidatingPivotFields
+		}
+	}
+
+	return nil
+}
+
+func ValidateFormulaDetails(element model.FormulaDetails) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateMetricExpertFormula(element model.MetricExpertFormula) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate full formula
+	for i := 0; i < len(element.Formula); i++ {
+		errWhenValidatingFullFormula := ValidateFullFormula(element.Formula[i])
+		if errWhenValidatingFullFormula != nil {
+			return errWhenValidatingFullFormula
+		}
+	}
+
+	return nil
+}
+
+func ValidatePivotField(element model.PivotField) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateFullFormula(element model.FullFormula) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
