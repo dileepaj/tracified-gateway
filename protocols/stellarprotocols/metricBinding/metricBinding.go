@@ -7,7 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
-	
+
 	"github.com/sirupsen/logrus"
 )
 
