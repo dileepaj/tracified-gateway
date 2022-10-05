@@ -97,10 +97,10 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
 	if err != nil {
-		logrus.Error(err)
+		logrus.Error(err,err.Error())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body")
+		json.NewEncoder(w).Encode("Error while decoding the body "+err.Error())
 		return
 	}
 

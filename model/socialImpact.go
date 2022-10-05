@@ -275,7 +275,8 @@ type ResourceIdMap struct {
 type MetricDataBindingRequest struct {
 	ID             string `json:"ID" bson:"id" validate:"required"`
 	Blockchain     string `json:"Blockchain" bson:"blockchain" validate:"required"`
-	ExpertPK       string `json:"ExpertPK" bson:"expertpk:"required"`
+	UserID         string `json:"UserID" bson:"userid"`
+	UserPK         string `json:"UserPK" bson:"userpk"`
 	Name           string `json:"Name" bson:"name" validate:"required"`
 	Description    string `json:"Description" bson:"description" validate:"required"`
 	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef" validate:"required"`
@@ -336,6 +337,12 @@ type FullFormula struct {
 }
 
 type MetricMapDetails struct {
+	MetricID   string
+	MetricName string
+	MapID      uint64
+}
+
+type TenantID struct {
 	MetricID   string
 	MetricName string
 	MapID      uint64
