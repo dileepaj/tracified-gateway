@@ -1,7 +1,10 @@
 package metricBinding
 
 import (
+	"errors"
+
 	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 )
 
@@ -16,22 +19,29 @@ func InsertAndFindMetricID(metricID string, metricName string) (uint64, error) {
 		logrus.Error("Error when retrieving metric id from DB " + errInMetricMap.Error())
 	}
 	if metricMap == nil {
-		// logrus.Error("Metric ID is not recorded in the DB")
-		// data, errWhenGettingTheSequence := object.GetNextSequenceValue("METRICID")
-		// if errWhenGettingTheSequence != nil {
-		// 	logrus.Error("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
-		// 	return 0, errors.New("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
-		// }
+		logrus.Error("Metric ID " + metricID + " is not recorded in the DB")
+		data, errWhenGettingTheSequence := object.GetNextSequenceValue("METRICID")
+		if errWhenGettingTheSequence != nil {
+			logrus.Error("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
+			return 0, errors.New("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
+		}
+		insertMerticMap := model.MetricMapDetails{
+			MetricID:   metricID,
+			MetricName: metricName,
+			MapID:      data.SequenceValue,
+		}
 
-		//insert to metric map
-		// insertMerticMap := model.MetricMapDetails{
-		// 	MetricID:   metricID,
-		// 	MetricName: metricName,
-		// 	MapID:      data.SequenceValue,
-		// }
+		errWhenInsertingToResourceMap := object.InsertMetricMapID(insertMerticMap)
+		if errWhenInsertingToResourceMap != nil {
+			logrus.Error("Inserting to metric map ID was failed" + errWhenInsertingToResourceMap.Error())
+			return 0, errors.New("Inserting to metric map ID was failed")
+		}
 
-		//errWhenInsertingToResourceMap := object.InsertMetricMapID(insertMerticMap)
-
+		metricMapID = data.SequenceValue
+	} else {
+		logrus.Info("Metric ID " + metricID + " is recorded in the DB")
+		metricMapData := metricMap.(model.MetricMapDetails)
+		metricMapID = metricMapData.MapID
 	}
 
 	return metricMapID, nil
