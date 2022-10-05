@@ -76,7 +76,7 @@ func (authObject AuthLayer) isExceedRequestLimitPerWeek() (error, int) {
 		if errCode != 429 {
 			return err, errCode
 		}
-		NotifyToAdmin()
+		NotifyToAdmin(authObject.ExpertPK, authObject.ExpertPK)
 	}
 	return nil, 200
 }

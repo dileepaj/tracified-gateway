@@ -11,7 +11,7 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func BuildFormulaDefinition(formulaMapID, activityMapID uint64, stageID, variableCount uint32, stageName string) (txnbuild.ManageData, error) {
+func  (metric *MetricBinding)BuildFormulaDefinition(formulaMapID, activityMapID uint64, stageID, variableCount uint32, stageName string) (txnbuild.ManageData, error) {
 	rebuildStargeName := ""
 	// covert ulint to byte array anf then to string
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%040d", 0))

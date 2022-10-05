@@ -261,9 +261,9 @@ type GeneralValueDefBuildRequest struct {
 	Key          string
 	VariableUUID string
 	VariableName string
-	BindingType  string
+	BindingType  uint
 	ResourceID   string
-	FormulaID    string
+	FormulaID    uint64
 }
 
 type ResourceIdMap struct {
@@ -286,7 +286,7 @@ type MetricDataBindingRequest struct {
 	TenantId       string `json:"TenantId" bson:"tenantId" validate:"required"`
 	CreatedAt      string `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	Activity       []MetricDataBindArtifactRequest
+	Activities     []MetricDataBindArtifactRequest
 }
 
 type MetricDataBindArtifactRequest struct {
@@ -304,7 +304,7 @@ type MetricDataBindArtifactRequest struct {
 type MetricFormula struct {
 	ID                  string `json:"ID" bson:"id" validate:"required"`
 	Formula             []FormulaDetails
-	MetricExpertFormula []MetricExpertFormula
+	MetricExpertFormula MetricExpertFormula
 	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
 	PivotFields         []PivotField
 	Active              bool `json:"Active" bson:"active" validate:"required"`
@@ -330,8 +330,8 @@ type MetricExpertFormula struct {
 
 type FullFormula struct {
 	Type  string `json:"Type" bson:"type" validate:"required"`
-	Value string
-	Name  string `json:"Name" bson:"name" validate:"required"`
+	Value float64
+	Name  string `json:"Name" bson:"name"`
 	ID    string `json:"ID" bson:"id" validate:"required"`
 	Key   string
 }
@@ -342,7 +342,6 @@ type MetricMapDetails struct {
 	MapID      uint64
 }
 
-
 type TenantID struct {
 	MetricID   string
 	MetricName string
@@ -352,4 +351,12 @@ type TenantID struct {
 type TenentMapDetails struct {
 	TenentID string
 	MapID    uint64
+}
+
+type ActivityMapDetails struct {
+	ActivityID string
+	Name       string
+	MetricID   string
+	StageID    string
+	MapID      uint64
 }

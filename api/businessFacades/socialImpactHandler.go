@@ -53,7 +53,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		authLayer := authentication.AuthLayer{
 			FormulaId: formulaJSON.ID,
 			ExpertPK:  formulaJSON.Expert.ExpertPK,
-			CiperText: "sss",
+			CiperText: "",
 			Plaintext: formulaJSON.Formula,
 		}
 

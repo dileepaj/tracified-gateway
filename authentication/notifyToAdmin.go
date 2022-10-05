@@ -6,8 +6,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func NotifyToAdmin() {
-	message := `<center><h1 style='color: brown;'>Security Risk</h1></center><p>Dear Sir,Madam,</p><p>Exceed the weekly request limit.</p><hr><center><img src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/tracified-logo+(1).png" style="width:20em"></center>`
+func NotifyToAdmin(expertId, expertPk string) {
+	message := `<center><h1 style='color: brown;'>Security Risk</h1></center><p>Dear Admins,</p><p>Admins, 
+	This email is auto-generated to notify that the user with the following details exceeded the weekly limit of 20 requests for defining formulas.
+	ExpertID:` + expertId + `
+	Public Key:` + expertPk + `</p><hr><center><img src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/tracified-logo+(1).png" style="width:20em"></center>`
 
 	for _, email := range configs.NotificationEmails {
 		err := services.SendingEmail(message, "RISK", email)

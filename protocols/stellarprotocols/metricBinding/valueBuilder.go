@@ -4,7 +4,6 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -27,7 +26,7 @@ import (
 *	Stage or Reference ID - 8 bytes (unsigned long integer)
 *	future use - 27 bytes - Done
 */
-func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, error) {
+func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, error) {
 	// key string components
 	resourceNameString := ""
 	keyNameString := ""
@@ -111,9 +110,8 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 	}
 
 	// check if the binding type is 0 or 1
-	if element.BindingType == "0" || element.BindingType == "1" {
-		convertedBindingType, _ := strconv.Atoi(element.BindingType)
-		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(convertedBindingType))
+	if element.BindingType == 0 || element.BindingType == 1 {
+		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.BindingType))
 		if errInValueTypeConvert != nil {
 			logrus.Error("Error when converting value type ", errInValueTypeConvert)
 			return txnbuild.ManageData{}, errors.New("Error when converting value type " + errInValueTypeConvert.Error())
@@ -161,7 +159,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 		resourceID = data.SequenceValue
 	}
 	// future use in value
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%0540d", 0))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%054d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, errors.New("Feture used byte building issue in formula definition")
 	}
@@ -177,7 +175,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 	}
 
 	if len(valueString) > 64 {
-		logrus.Error("Value string exceeding the given 64 byte limit in variable manage data builder. Length : ", len(keyString))
+		logrus.Error("Value string exceeding the given 64 byte limit in variable manage data builder. Length : ", len(valueString))
 		return txnbuild.ManageData{}, errors.New("Value string exceeding the given 64 byte limit in variable manage data builder")
 	}
 
