@@ -1,33 +1,24 @@
 package metricBinding
 
 import (
-	"encoding/binary"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
 
-func BuildFormulaDefinition(formulaID uint64, variableCount uint32) (txnbuild.ManageData, error) {
-
+func BuildFormulaDefinition(formulaMapID, activityMapID uint64, stageID, variableCount uint32, stageName string) (txnbuild.ManageData, error) {
+	rebuildStargeName := ""
 	// covert ulint to byte array anf then to string
-	formulaIDByteArray := make([]byte, 8)
-	binary.LittleEndian.PutUint64(formulaIDByteArray, formulaID)
-	strFormulaID := string(formulaIDByteArray)
-
-	// convert unit to byte array and then to string
-	variableCountByteArray := make([]byte, 4)
-	binary.LittleEndian.PutUint32(variableCountByteArray, variableCount)
-	strVariableCount := string(variableCountByteArray)
-
-	strFutureUse := ""
-	if len(strFormulaID+strVariableCount) < 64 {
-		remain := 64 - len(strFormulaID+strVariableCount)
-		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		strFutureUse = setRemainder
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%040d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Feture used byte building issue in formula definition")
 	}
+	strFetureUsed := string(decodedStrFetureUsed)
 
 	// String for key
 	strForKey := "FORMULA METADATA"
@@ -36,8 +27,25 @@ func BuildFormulaDefinition(formulaID uint64, variableCount uint32) (txnbuild.Ma
 		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		strForKey = strForKey + setRemainder
 	}
+	if len(stageName) > 20 {
+		logrus.Error("Stage name is greater than 20 character limit")
+		return txnbuild.ManageData{}, errors.New("Strage name is greater than 20 character limit")
+	} else {
+		if len(stageName) == 20 {
+			rebuildStargeName = stageName
+		} else if len(stageName) < 20 {
+			rebuildStargeName = stageName + "/"
+		}
+	}
 
-	valueString := strFormulaID + strVariableCount + strFutureUse
+	if len(rebuildStargeName) < 20 {
+		remain := 20 - len(rebuildStargeName)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		rebuildStargeName = rebuildStargeName + setReaminder
+	}
+
+	valueString := stellarprotocols.UInt64ToByteString(formulaMapID) + stellarprotocols.UInt32ToByteString(variableCount) + stellarprotocols.UInt64ToByteString(activityMapID) + stellarprotocols.UInt32ToByteString(stageID) +
+		rebuildStargeName + strFetureUsed
 	keyString := strForKey
 
 	formulaDefinitionBuilder := txnbuild.ManageData{

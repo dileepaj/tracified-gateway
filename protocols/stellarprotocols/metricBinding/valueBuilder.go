@@ -1,6 +1,7 @@
 package metricBinding
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strconv"
@@ -27,19 +28,17 @@ import (
 *	future use - 27 bytes - Done
 */
 func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, error) {
-	//key string components
+	// key string components
 	resourceNameString := ""
 	keyNameString := ""
 	futureUseInKey := ""
-
-	//value string components
+	// value string components
 	var valueID uint64
 	var resourceID uint64
 	valueTypeString := ""
 	variableNameString := ""
-	futureUseInValue := ""
 
-	//Validate resource name 25 byte limit
+	// Validate resource name 25 byte limit
 	if len(element.ResourceName) > 25 {
 		logrus.Error("Resource name is greater than 25 character limit")
 		return txnbuild.ManageData{}, errors.New("Resource name is greater than 25 character limit")
@@ -56,7 +55,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 		resourceNameString = resourceNameString + setRemainder
 	}
 
-	//Validate key name 20 limit
+	// Validate key name 20 limit
 	if len(element.Key) > 20 {
 		logrus.Error("Key name is greater than 20 character limit")
 		return txnbuild.ManageData{}, errors.New("Key name is greater than 20 character limit")
@@ -73,27 +72,27 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 		keyNameString = keyNameString + setRemainder
 	}
 
-	//Build future use in key
+	// Build future use in key
 	futureUseInKey = fmt.Sprintf("%s", strings.Repeat("0", 19))
 
-	//get value id from the map for the type, key and formula ID
+	// get value id from the map for the type, key and formula ID
 	object := dao.Connection{}
 	variableDefMap, errWhenRetrievingVariableInfo := object.GetValueMapID(element.VariableUUID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenRetrievingVariableInfo != nil {
 		logrus.Error("Unable to connect gateway datastore ", errWhenRetrievingVariableInfo)
-		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore " + errWhenRetrievingVariableInfo.Error())
+		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore " + errWhenRetrievingVariableInfo.Error())
 	}
 	if variableDefMap == nil {
-		//requested varible does not exists in the DB
+		// requested varible does not exists in the DB
 		logrus.Error("Requested variable " + element.VariableName + " does not exists in the gateway DB")
 		return txnbuild.ManageData{}, errors.New("Requested variable " + element.VariableName + " does not exists in the gateway DB")
 	} else {
 		valueMapData := variableDefMap.(model.ValueIDMap)
 		valueID = valueMapData.MapID
 	}
-	//check the variable name length for 20 bytes
+	// check the variable name length for 20 bytes
 	if len(element.VariableName) > 20 {
 		logrus.Error("Variable name is greater than 20 character limit")
 		return txnbuild.ManageData{}, errors.New("Variable name is greater than 20 character limit")
@@ -104,14 +103,14 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 			variableNameString = element.VariableName + "/"
 		}
 	}
-	//check whether the new variable name string saturated the 20 byte limit, if not add 0s to rest
+	// check whether the new variable name string saturated the 20 byte limit, if not add 0s to rest
 	if len(variableNameString) < 20 {
 		remain := 20 - len(variableNameString)
 		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		variableNameString = variableNameString + setRemainder
 	}
 
-	//check if the binding type is 0 or 1
+	// check if the binding type is 0 or 1
 	if element.BindingType == "0" || element.BindingType == "1" {
 		convertedBindingType, _ := strconv.Atoi(element.BindingType)
 		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(convertedBindingType))
@@ -126,13 +125,13 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 		return txnbuild.ManageData{}, errors.New("Invalid binding type, should be 1 or 0")
 	}
 
-	//Stage/Ref id mapping and adding to string
+	// Stage/Ref id mapping and adding to string
 	resourceIdMap, errResourceMap := object.GetResourceMapID(element.ResourceID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errResourceMap != nil {
 		logrus.Info("Unable to connect to gateway datastore ", errResourceMap)
-		//return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
+		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	if resourceIdMap != nil {
 		logrus.Info(element.ResourceID + " is already recorded in the DB Map")
@@ -161,14 +160,17 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 
 		resourceID = data.SequenceValue
 	}
-	//future use in value
-	futureUseInValue = fmt.Sprintf("%s", strings.Repeat("0", 27))
-
-	//build key and value string
+	// future use in value
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%0540d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, errors.New("Feture used byte building issue in formula definition")
+	}
+	futureUseInValue := string(decodedStrFetureUsed)
+	// build key and value string
 	keyString := resourceNameString + keyNameString + futureUseInKey
 	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString + stellarprotocols.UInt64ToByteString(resourceID) + futureUseInValue
 
-	//check the key value string length for 64 byte limit
+	// check the key value string length for 64 byte limit
 	if len(keyString) > 64 {
 		logrus.Error("Key string exceeding the given 64 byte limit in variable manage data builder. Length : ", len(keyString))
 		return txnbuild.ManageData{}, errors.New("Key string exceeding the given 64 byte limit in variable manage data builder")
