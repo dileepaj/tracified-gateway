@@ -143,7 +143,7 @@ type VariableStructure struct {
 	Key             string `json:"Key" bson:"key" validate:"required"`
 	Type            string `json:"Type" bson:"type" validate:"required"`
 	MeasurementUnit string `json:"MeasurementUnit" bson:"measurementUnit" validate:"required"`
-	Precision       uint16  `json:"Precision" bson:"precision" validate:"required"`
+	Precision       uint16 `json:"Precision" bson:"precision" validate:"required"`
 	BindingType     int
 	BindData        BindData
 }
@@ -338,5 +338,5 @@ type FullFormula struct {
 type MetricMapDetails struct {
 	MetricID   string
 	MetricName string
-	MapID      int64
+	MapID      uint64
 }

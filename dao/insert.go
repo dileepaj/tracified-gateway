@@ -532,4 +532,16 @@ func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) e
 	return err
 }
 
-// func (cd *Connection) InsertMetricMapID(expertIDMap model.ExpertIDMap) error {
+func (cd *Connection) InsertMetricMapID(metricIDMap model.MetricMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("MetricIDMap")
+	_, err = c.InsertOne(context.TODO(), metricIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting metric id to DB " + err.Error())
+	}
+	return err
+}

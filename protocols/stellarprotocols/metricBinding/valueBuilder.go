@@ -166,7 +166,7 @@ func ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild
 
 	//build key and value string
 	keyString := resourceNameString + keyNameString + futureUseInKey
-	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString +  stellarprotocols.UInt64ToByteString(resourceID) + futureUseInValue
+	valueString := stellarprotocols.UInt64ToByteString(valueID) + variableNameString + valueTypeString + stellarprotocols.UInt64ToByteString(resourceID) + futureUseInValue
 
 	//check the key value string length for 64 byte limit
 	if len(keyString) > 64 {
