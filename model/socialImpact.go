@@ -340,3 +340,16 @@ type MetricMapDetails struct {
 	MetricName string
 	MapID      uint64
 }
+
+type TenentMapDetails struct {
+	TenentID string
+	MapID    uint64
+}
+
+type ActivityMapDetails struct {
+	ActivityID string
+	Name       string
+	MetricID   string
+	StageID    string
+	MapID      uint64
+}

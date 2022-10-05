@@ -545,3 +545,31 @@ func (cd *Connection) InsertMetricMapID(metricIDMap model.MetricMapDetails) erro
 	}
 	return err
 }
+
+func (cd *Connection) InsertTenentMapID(tenentIDMap model.TenentMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TenentIDMap")
+	_, err = c.InsertOne(context.TODO(), tenentIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting tenent id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ActivityIDMap")
+	_, err = c.InsertOne(context.TODO(), activityDetails)
+	if err != nil {
+		logrus.Info("Error when inserting activity id to DB " + err.Error())
+	}
+	return err
+}
