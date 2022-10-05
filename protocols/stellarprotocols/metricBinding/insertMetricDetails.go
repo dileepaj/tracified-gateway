@@ -1,4 +1,4 @@
-package metricbinding
+package metricBinding
 
 import (
 	"github.com/dileepaj/tracified-gateway/dao"

@@ -1,4 +1,4 @@
-package metricbinding
+package metricBinding
 
 import (
 	"errors"
