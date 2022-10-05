@@ -1,6 +1,7 @@
 package expertformula
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -32,7 +33,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
 	}
-	// define the value type 
+	// define the value type
 	// this is a variable therefore the value type is 1
 	tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(VALUETYPE))
 	if errInValueTypeConvert != nil {
@@ -165,7 +166,13 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		descriptionString = descriptionString + setReaminder
 	}
-	valueString := valueTypeString + stellarprotocols.UInt64ToByteString(valueId) + variableNameString + dataTypeString + unitString + precisionString
+	// define a 31 zeros string
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%062d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, errorRespObj, err
+	}
+	strFetureUsed := string(decodedStrFetureUsed)
+	valueString := valueTypeString + stellarprotocols.UInt64ToByteString(valueId) + variableNameString + dataTypeString + unitString + precisionString + strFetureUsed
 	keyString := descriptionString
 	logrus.Info("Building variable with Name string of   : ", keyString)
 	logrus.Info("Building variable with value string of : ", valueString)

@@ -8,26 +8,31 @@ import (
 )
 
 type ExpertFormula struct{}
+
 /*
 des- build the memo according to the protocol
 return the txnbuild.ManageData object
 */
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
-func (expertFormula ExpertFormula)BuildMemo(types, variableCount uint32, mappedFormulaID uint64) (string, error) {
+func (expertFormula ExpertFormula) BuildMemo(types, variableCount uint32, mappedFormulaID uint64) (string, error) {
 	manifest := ""
 	if types == 0 {
 		manifest = "0000000000AAAAAAAAAA"
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	strVariableCount := fmt.Sprintf("%04d", variableCount)
-	strFetureUsed := fmt.Sprintf("%06d", 0)
-	decodedManifest, err := hex.DecodeString(manifest)
-	strManifest := string(decodedManifest)
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%012d", 0))
 	if err != nil {
 		return "", err
 	}
-	memo := strManifest +  stellarprotocols.UInt64ToByteString(mappedFormulaID) + strVariableCount + strFetureUsed
+	strFetureUsed := string(decodedStrFetureUsed)
+	decodedManifest, err := hex.DecodeString(manifest)
+	if err != nil {
+		return "", err
+	}
+	strManifest := string(decodedManifest)
+
+	memo := strManifest + stellarprotocols.UInt64ToByteString(mappedFormulaID) + stellarprotocols.UInt32ToByteString(variableCount) + strFetureUsed
 	return memo, nil
 }

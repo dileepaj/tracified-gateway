@@ -1,6 +1,7 @@
 package expertformula
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -36,7 +37,6 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
 	}
-
 	referredConstantValue := fmt.Sprintf("%g", element.Value)
 	// DB validations for the variable id
 	object := dao.Connection{}
@@ -99,18 +99,22 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 	}
 	// define a 14 zeros string
-	strFetureUsed := fmt.Sprintf("%014d", 0)
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
+	if err != nil {
+		return txnbuild.ManageData{},errorRespObj, err
+	}
+	strFetureUsed := string(decodedStrFetureUsed)
 	// convert value type Int to binary string
 	srtValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to binary  " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to byte  " + err.Error())
 	}
-	// convert data type Int to binary string
+	// convert data type Int to byte string
 	srtDataType, err := stellarprotocols.Int8ToByteString(uint8(referredConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary  " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to byte  " + err.Error())
 	}
-	// unit building// convert value type Int to binary string
+	// unit building// convert value type Int to byte string
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -120,27 +124,21 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	}
 	if unitMap != nil {
 		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map")
-
 		// add map id as the unit in the key string
 		unitMapData := unitMap.(model.UnitIDMap)
 		unit = unitMapData.MapID
-
 	} else {
-		// if not add the incrementing id
 		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map")
-
 		// get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
 			logrus.Error("Get next sequence value ID was failed " + err.Error())
 			return txnbuild.ManageData{}, errorRespObj, errors.New("Get next sequence value ID was failed " + err.Error())
 		}
-
 		unitIdMap := model.UnitIDMap{
 			Unit:  element.MeasurementUnit,
 			MapID: uint16(data.SequenceValue),
 		}
-
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
 			logrus.Error("Inserting unit map ID was failed" + err1.Error())
@@ -151,16 +149,13 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	// referred constant's manage data key and value
 	nameString := element.MetricReference.Url
 	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + referredConstantValue + referredConstantDescription + stellarprotocols.UInt16ToByteString(uint16(unit))+ strFetureUsed
-
-	fmt.Println("referred constant Name:   ", nameString)
-	fmt.Println("referred constant value:   ", valueString)
-
+	logrus.Println("referred constant Name:   ", nameString)
+	logrus.Println("referred constant value:   ", valueString)
 	// Building the manage data operation
 	semanticConstManageData := txnbuild.ManageData{
 		Name:  nameString,
 		Value: []byte(valueString),
 	}
-
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred constant value length not equal to 64")
@@ -169,11 +164,9 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		logrus.Error("Length ", len(nameString))
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Referred constant name length should be less than or equal to 64")
 	}
-
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,
 		UnitMapID:  unit,
 	}
-
 	return semanticConstManageData, respObj, nil
 }

@@ -2,7 +2,6 @@ package metricbinding
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 )
@@ -11,10 +10,6 @@ func BuildMemo(mapMetricId uint64, metricName string, tenantId uint32, noOfFormu
 	if len(metricName) > 12 {
 		return "", errors.New("metricName should be less than 12 chacter")
 	}
-	strNoOfFormula := fmt.Sprintf("%04d", noOfFormula)
-	if len(strNoOfFormula) > 4 {
-		return "", errors.New("numer of formula count should be less than 4 chacter")
-	}
-	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + metricName + stellarprotocols.UInt32ToByteString(tenantId) + strNoOfFormula
+	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + metricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt32ToByteString(uint32(noOfFormula))
 	return memo, nil
 }

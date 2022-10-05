@@ -1,6 +1,7 @@
 package expertformula
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -36,7 +37,6 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
 	}
-
 	semanticConstantValue := fmt.Sprintf("%g", element.Value)
 	// DB validations for the variable id
 	object := dao.Connection{}
@@ -99,7 +99,12 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 			semanticConstantValue = setReaminder + semanticConstantValue
 		}
 	}
-	strFetureUsed := fmt.Sprintf("%014d", 0)
+	// define a 14 zeros string
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
+	if err != nil {
+		return txnbuild.ManageData{},errorRespObj, err
+	}
+	strFetureUsed := string(decodedStrFetureUsed)
 	srtValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting value type to biinary " + err.Error())
@@ -108,20 +113,16 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary " + err.Error())
 	}
-
 	// semantic constant's manage data key and value
 	nameString := semanticConstantValue
 	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + semanticConstantDescription + strFetureUsed
-
 	logrus.Println("Semantic constant Name:   ", nameString)
 	logrus.Println("Semantic constant value:   ", valueString)
-
 	// Building the manage data operation
 	semanticConstManageData := txnbuild.ManageData{
 		Name:  nameString,
 		Value: []byte(valueString),
 	}
-
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(nameString))
 		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant name length not equal to 64")
