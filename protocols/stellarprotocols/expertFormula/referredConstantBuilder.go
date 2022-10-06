@@ -37,7 +37,20 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
 	}
-	referredConstantValue := fmt.Sprintf("%g", element.Value)
+	reffedURL := ""
+	if element.MetricReference.Url == "" {
+		reffedURL = "URL Not Provided"
+	} else if len(element.MetricReference.Url) > 20 {
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Reffed constant url should be less than 64 character")
+	} else if len(element.MetricReference.Url) < 20 {
+		remain := 30 - len(element.MetricReference.Url)
+		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
+		reffedURL = element.MetricReference.Url + `/` + setReaminder
+	} else {
+		reffedURL = element.MetricReference.Url
+	}
+
+	referredConstantValue := fmt.Sprintf("%g", element.Value.(float64))
 	// DB validations for the variable id
 	object := dao.Connection{}
 	valueMap, errValueMap := object.GetValueMapID(element.ID).Then(func(data interface{}) interface{} {
@@ -101,7 +114,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	// define a 14 zeros string
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
 	if err != nil {
-		return txnbuild.ManageData{},errorRespObj, err
+		return txnbuild.ManageData{}, errorRespObj, err
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 	// convert value type Int to binary string
@@ -147,8 +160,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		unit = uint16(data.SequenceValue)
 	}
 	// referred constant's manage data key and value
-	nameString := element.MetricReference.Url
-	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + referredConstantValue + referredConstantDescription + stellarprotocols.UInt16ToByteString(uint16(unit))+ strFetureUsed
+	nameString := reffedURL
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + stellarprotocols.Float64ToByteString(element.Value.(float64)) + referredConstantDescription + stellarprotocols.UInt16ToByteString(uint16(unit)) + strFetureUsed
 	logrus.Println("referred constant Name:   ", nameString)
 	logrus.Println("referred constant value:   ", valueString)
 	// Building the manage data operation

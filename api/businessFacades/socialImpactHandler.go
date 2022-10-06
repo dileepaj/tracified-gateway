@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/authentication"
@@ -94,7 +95,6 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var metricBindJSON model.MetricDataBindingRequest
-
 	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
 	if err != nil {
 		logrus.Error(err,err.Error())
@@ -103,7 +103,6 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode("Error while decoding the body "+err.Error())
 		return
 	}
-
 	errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)
 	if errInJsonValidationInMetricBind != nil {
 		logrus.Error("Request body failed the validation check : ", errInJsonValidationInMetricBind)

@@ -2,7 +2,6 @@ package metricBinding
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -25,9 +24,9 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 
 	// building memo
 	// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32
-	metricMapID, err := InsertAndFindMetricID(metricBindJson.ID, metricBindJson.Name)
+	metricMapID, errCode, err := InsertAndFindMetricID(metricBindJson.ID, metricBindJson.Name)
 	if err != nil {
-		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
+		commons.JSONErrorReturn(w, r, err.Error(), errCode, "InsertAndFindMetricID ")
 		return
 	}
 	tenantMapId, err := InsertAndFindTenentID(metricBindJson.TenantId)
@@ -48,36 +47,33 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		return
 	}
 	manageDataOpArray = append(manageDataOpArray, &AuthorIdentity)
-	fmt.Println("FFFFF",metricBindJson.Activities)
 	for _, activity := range metricBindJson.Activities {
-		fmt.Println("FFFFF")
+		stageID, err := strconv.Atoi(activity.StageID)
+		if err != nil {
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Stage ID not a int string ")
+			return
+		}
+		// checked whether given formulaID already in the database or not
+		formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		formulaDetails := formulaMapID.(model.FormulaIDMap)
+		if err != nil {
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula in database ")
+			return
+		}
+		activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
+		if err != nil {
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
+			return
+		}
+		formulaDefinition, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint32(stageID), uint32(len(activity.MetricFormula.Formula)), activity.Name)
+		if err != nil {
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+			return
+		}
+		manageDataOpArray = append(manageDataOpArray, &formulaDefinition)
 		for _, formula := range activity.MetricFormula.Formula {
-			stageID, err := strconv.Atoi(activity.StageID)
-			if err != nil {
-				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Stage ID not a int string ")
-				return
-			}
-			// checked whether given formulaID already in the database or not
-			formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
-				return data
-			}).Await()
-			formulaDetails := formulaMapID.(model.FormulaIDMap)
-			if err != nil {
-				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula in database ")
-				return
-			}
-			activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
-			if err != nil {
-				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
-				return
-			}
-			formulaDefinition, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint32(stageID), uint32(len(activity.MetricFormula.Formula)), activity.Name)
-			if err != nil {
-				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-				return
-			}
-			manageDataOpArray = append(manageDataOpArray, &formulaDefinition)
-
 			if formula.ArtifactTemplateID == "" {
 				valueDetails, err := object.GetValueMapID(formula.ID).Then(func(data interface{}) interface{} {
 					return data
@@ -98,12 +94,12 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					return
 				}
 				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
-			}else{
+			} else {
 				valueDetails, err := object.GetValueMapID(formula.ID).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 				bindValue := model.GeneralValueDefBuildRequest{
-					ResourceType: "MASTR",
+					ResourceType: "MASTER",
 					ResourceName: formula.Field,
 					Key:          formula.Key,
 					VariableUUID: formula.ID,
@@ -119,19 +115,14 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				}
 				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
 			}
-			
-
 		}
 	}
-
-
 	stellarprotocol := stellarprotocols.StellarTrasaction{
 		PublicKey:  constants.PublicKey,
 		SecretKey:  constants.SecretKey,
 		Operations: manageDataOpArray,
 		Memo:       memo,
 	}
-
 	// submit transaction
 	err, errCode, hash := stellarprotocol.SubmitToStellerBlockchain()
 	if err != nil {
@@ -142,6 +133,5 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	logrus.Info("Transaction Hash ", hash)
 }

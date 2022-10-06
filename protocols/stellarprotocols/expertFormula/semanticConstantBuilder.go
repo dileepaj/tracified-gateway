@@ -37,7 +37,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
 	}
-	semanticConstantValue := fmt.Sprintf("%g", element.Value)
+	semanticConstantValue := fmt.Sprintf("%g", element.Value.(float64))
 	// DB validations for the variable id
 	object := dao.Connection{}
 	valueMap, errValueMap := object.GetValueMapID(element.ID).Then(func(data interface{}) interface{} {
@@ -88,7 +88,6 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	}
 	// check value is 20 character
 	if len(semanticConstantValue) > 64 {
-		fmt.Println(semanticConstantValue)
 		logrus.Error("Value is greater than 8 character limit")
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Value is greater than 64 character limit")
 	} else {

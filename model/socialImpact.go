@@ -33,7 +33,7 @@ type FormulaItem struct {
 
 type FormulaItemRequest struct {
 	ID                string `json:"ID" bson:"id" validate:"required"`
-	Value             float64
+	Value             any
 	Name              string
 	Description       string
 	Key               string
@@ -330,7 +330,7 @@ type MetricExpertFormula struct {
 
 type FullFormula struct {
 	Type  string `json:"Type" bson:"type" validate:"required"`
-	Value float64
+	Value any
 	Name  string `json:"Name" bson:"name"`
 	ID    string `json:"ID" bson:"id" validate:"required"`
 	Key   string

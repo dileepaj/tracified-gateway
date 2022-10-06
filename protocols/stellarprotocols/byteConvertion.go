@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -112,5 +113,11 @@ func UInt16ToByteString(i uint16) string {
 func UInt32ToByteString(i uint32) string {
 	b := make([]byte, 4)
 	binary.LittleEndian.PutUint32(b, uint32(i))
+	return string(b)
+}
+
+func Float64ToByteString(f float64) string {
+	b := make([]byte, 8)
+	binary.LittleEndian.PutUint64(b[:], math.Float64bits(f))
 	return string(b)
 }

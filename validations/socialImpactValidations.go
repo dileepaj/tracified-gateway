@@ -50,7 +50,7 @@ func ValidateFields(element model.FormulaItemRequest) error {
 		}
 	} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
 		//check the referred contant type validations
-		if element.Name == "" || element.Description == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" || element.MetricReference.Url == "" {
+		if element.Name == "" || element.Description == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" {
 			return errors.New("Incorrect referred constant type fields")
 		}
 	}
