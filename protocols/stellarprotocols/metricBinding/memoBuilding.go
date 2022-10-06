@@ -28,7 +28,7 @@ func (metric *MetricBinding) BuildMemo(mapMetricId uint64, metricName string, te
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		rebuildMetricName = rebuildMetricName + setReaminder
 	}
-	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + metricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt32ToByteString(uint32(noOfFormula))
+	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + rebuildMetricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt32ToByteString(uint32(noOfFormula))
 	if len(memo) > 28 {
 		return "", errors.New("Metric binding memo sholud be a 28 bytes")
 	}
