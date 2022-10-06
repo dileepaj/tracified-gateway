@@ -1,11 +1,12 @@
 package expertformula
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"strconv"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -14,9 +15,9 @@ import (
 BuildFormulaIdentity
 des-Build the formula idenitiy manage data
 */
-func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId int, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
 	formName := ""
-	authorID := ""
+	authorID := stellarprotocols.UInt64ToByteString(expertId)
 	formDescription := ""
 	//check if the formula name is 15 characters
 	if len(formulaName) > 15 {
@@ -34,19 +35,6 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId int, formulaName
 		remain := 15 - len(formName)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		formName = formName + setReaminder
-	}
-	//convert the formula id to string
-	expIdString := strconv.Itoa(expertId)
-	//check if the expert ID have 8 characters
-	if len(expIdString) > 8 {
-		logrus.Error("Expert ID 8 character limit exceeded")
-		return txnbuild.ManageData{}, errors.New("Expert ID 8 character limit exceeded")
-	} else {
-		if len(expIdString) == 8 {
-			authorID = expIdString
-		} else if len(expIdString) < 8 {
-			authorID = expIdString + "/"
-		}
 	}
 	//checking if the expert ID is having 8 characters
 	if len(authorID) < 8 {
@@ -71,8 +59,16 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId int, formulaName
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		formDescription = formDescription + setReaminder
 	}
-	keyString := formName + authorID
-	valueString := formDescription
+	// define a 41 zeros string for future use
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%082d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, err
+	}
+	strFutureUse := string(decodedStrFutureUse)
+
+	valueString := formName + authorID + strFutureUse 
+	keyString := formDescription
+	
 	logrus.Info("Formula identity key ", keyString)
 	logrus.Info("Formula identity value ", valueString)
 	//building the manage data operation

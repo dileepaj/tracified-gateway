@@ -39,6 +39,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	var status string
 	var startTransactionTime time.Time
 	var endTransactionTime time.Time
+	var expertMapID uint64
 
 	object := dao.Connection{}
 	// checked whether given formulaID already in the database or not
@@ -70,14 +71,12 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		commons.JSONErrorReturn(w, r, "Memo length error ", http.StatusInternalServerError, memo)
 		return
 	}
-	expertMapID := 0
 	// checked whether given ExpertID already in the database or not
 	expertMapdata, err := object.GetExpertMapID(formulaJSON.Expert.ExpertID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Unable to connect to gateway datastore ")
-		return
 	}
 	// if not,  retrived the current latest sequence number for expertID , map the expertID with incrementing interger
 	if expertMapdata == nil {
@@ -98,10 +97,10 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			commons.JSONErrorReturn(w, r, err1.Error(), http.StatusInternalServerError, "Insert to ExpertIDMap was failed")
 			return
 		}
-		expertMapID = int(data.SequenceValue)
+		expertMapID = data.SequenceValue
 	} else {
 		expertMap := expertMapdata.(model.ExpertIDMap)
-		expertMapID = int(expertMap.MapID)
+		expertMapID = expertMap.MapID
 	}
 	// formula identity operation
 	formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.Name, formulaJSON.Name)
