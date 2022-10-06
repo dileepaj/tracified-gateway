@@ -1,9 +1,10 @@
 module github.com/dileepaj/tracified-gateway
 
-go 1.17
+go 1.18
 
 require (
 	github.com/chebyrash/promise v0.0.0-20210114125841-d119a93f8638
+	github.com/go-openapi/runtime v0.24.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
@@ -14,23 +15,12 @@ require (
 )
 
 require (
-	github.com/aws/aws-sdk-go v1.42.44 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.16.7 // indirect
-	github.com/aws/aws-sdk-go-v2/config v1.15.14 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.12.9 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.12.8 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.1.14 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.4.8 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.3.15 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.9.8 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.11.12 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.16.9 // indirect
-	github.com/aws/smithy-go v1.12.0 // indirect
+	github.com/aws/aws-sdk-go v1.42.44
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/rabbitmq/amqp091-go v1.3.4 // indirect
+	github.com/rabbitmq/amqp091-go v1.3.4
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569 // indirect
 )
 
@@ -53,7 +43,6 @@ require (
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.6 // indirect
 	github.com/go-openapi/loads v0.21.1 // indirect
-	github.com/go-openapi/runtime v0.24.1 // indirect
 	github.com/go-openapi/spec v0.20.4 // indirect
 	github.com/go-openapi/strfmt v0.21.2 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
@@ -102,10 +91,8 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
-	github.com/imkira/go-interpol v1.1.0 // indirect
 	github.com/jarcoal/httpmock v1.0.8 // indirect
 	github.com/klauspost/compress v1.15.0 // indirect
-	github.com/lib/pq v1.10.3 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect
 	github.com/onsi/gomega v1.17.0 // indirect
@@ -117,7 +104,6 @@ require (
 	github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee // indirect
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
-	github.com/valyala/fasthttp v1.34.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.0.2 // indirect
 	github.com/xdg-go/stringprep v1.0.2 // indirect
@@ -131,7 +117,6 @@ require (
 	golang.org/x/sync v0.0.0-20201020160332-67f06af15bc9 // indirect
 	golang.org/x/sys v0.0.0-20220227234510-4e6760a101f9 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/gavv/httpexpect.v1 v1.1.3 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	moul.io/http2curl v1.0.0 // indirect
