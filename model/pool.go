@@ -286,11 +286,11 @@ type CreatePoolBody struct {
 }
 
 type Activity struct {
-	ID              string
-	Name            string
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
 	ProductName     string
-	TracifiedItemId string
-	StageId         string
+	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
+	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
 }
 
 // type CreatePoolForArtifact struct {
@@ -460,10 +460,10 @@ type CoinConvertBody struct {
 }
 
 type PivotField struct {
-	Name               string
-	Condition          string
-	Value              string
-	Field              string
-	ArtifactDataId     string
-	ArtifactTemplateId string
+	Name               string `json:"Name" bson:"name" validate:"required"`
+	Condition          string `json:"Condition" bson:"condition" validate:"required"`
+	Value              string `json:"Value" bson:"value" validate:"required"`
+	Field              string `json:"Field" bson:"field" validate:"required"`
+	ArtifactDataId     string `json:"ArtifactDataId" bson:"artifactdataid" validate:"required"`
+	ArtifactTemplateId string `json:"ArtifactTemplateId" bson:"artifacttemplateid" validate:"required"`
 }

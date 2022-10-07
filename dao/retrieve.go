@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -2199,6 +2200,275 @@ func (cd *Connection) GetCoinConversionDetails(formulType, equatonId, productNam
 					resolve(result)
 				}
 			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetFormulaMapID(formulaID string) *promise.Promise {
+	result := model.FormulaIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("FormulaIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetExpertMapID(expertID string) *promise.Promise {
+	result := model.ExpertIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ExpertIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"expertid": expertID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ExpertIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetValueMapID(valueID string) *promise.Promise {
+	result := model.ValueIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
+	result := model.UnitIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("UnitIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"unit": unit}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting UnitIdMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRequestAmount(reqEntityType string, reqEntity string, fromTime time.Time, toTime time.Time) *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"requestentitytype": reqEntityType, "requestentity": reqEntity, "timestamp": bson.M{"$gt": fromTime, "$lt": toTime}})
+		if err1 != nil {
+			log.Error("Error while retrieving request count from DB " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(count)
+		}
+	})
+	return p
+}
+
+// for checking the public keys against trust nwtwork
+func (cd *Connection) GetTrustNetworkKeyMap(publicKey string) *promise.Promise {
+	result := model.Expert{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		err1 := c.FindOne(context.TODO(), bson.M{"publicKey": publicKey}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting trust network key map from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetVariableDetails(formulaID string, key string, variableName string) *promise.Promise {
+	var valueDef model.ValueIDMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "key": key, "valuename": variableName}).Decode(&valueDef)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(valueDef)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetResourceMapID(resourceID string) *promise.Promise {
+	result := model.ResourceIdMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ResourceIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"resourceid": resourceID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ResourceIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetMetricMapID(metricID string) *promise.Promise {
+	result := model.MetricMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MetricIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"metricid": metricID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ResourceIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTenentMapID(tenentUUID string) *promise.Promise {
+	result := model.TenentMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TenentIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"tenentid": tenentUUID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting tenent id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetActivityMapID(activityId string) *promise.Promise {
+	result := model.ActivityMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ActivityIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"activityid": activityId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting activity id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetExpertFormulaCount(formulaID string) *promise.Promise {
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+		count,err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID,"status":"Success"})
+		if err1 != nil {
+			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(count)
 		}
 	})
 	return p
