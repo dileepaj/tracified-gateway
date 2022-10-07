@@ -1,6 +1,7 @@
 package metricBinding
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"strings"
@@ -11,7 +12,7 @@ import (
 
 type MetricBinding struct{}
 
-func (metric *MetricBinding) BuildMemo(mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32) (string, error) {
+func (metric *MetricBinding) BuildMemo(mapMetricId uint64, metricName string, tenantId uint32, noOfFormula uint16) (string, error) {
 	rebuildMetricName := ""
 	if len(metricName) > 12 {
 		logrus.Error("metric name is greater than 12 character limit")
@@ -28,7 +29,11 @@ func (metric *MetricBinding) BuildMemo(mapMetricId uint64, metricName string, te
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		rebuildMetricName = rebuildMetricName + setReaminder
 	}
-	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + rebuildMetricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt32ToByteString(uint32(noOfFormula))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%04d", 0))
+	if err != nil {
+		return "", errors.New("Feture used byte building issue in formula definition")
+	}
+	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + rebuildMetricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt16ToByteString(noOfFormula) + string(decodedStrFetureUsed)
 	if len(memo) > 28 {
 		return "", errors.New("Metric binding memo sholud be a 28 bytes")
 	}

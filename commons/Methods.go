@@ -6,6 +6,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/txnbuild"
 )
 
 // work as ternary operator for string
@@ -22,4 +23,18 @@ func JSONErrorReturn(w http.ResponseWriter, r *http.Request, err string, errorCo
 	response := model.Error{Code: errorCode, Message: message + " " + err}
 	json.NewEncoder(w).Encode(response)
 	return
+}
+
+func ChunkSlice(slice []txnbuild.Operation, chunkSize int) [][]txnbuild.Operation {
+	var chunks [][]txnbuild.Operation
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(slice) {
+			end = len(slice)
+		}
+		chunks = append(chunks, slice[i:end])
+	}
+	return chunks
 }

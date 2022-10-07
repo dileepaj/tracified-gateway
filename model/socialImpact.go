@@ -87,9 +87,15 @@ type FormulaBuildingRequest struct {
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
 	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	Expert          Expert               `json:"Expert" bson:"expert" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	User            User
+}
+
+type User struct {
+	ID        string `json:"ID" bson:"id" validate:"required"`
+	TenantID  string `json:"TenantID" bson:"tenantID" validate:"required"`
+	Publickey string `json:"PublicKey" bson:"publickey" validate:"required"`
 }
 
 type MetricReference struct {
@@ -193,6 +199,7 @@ type RequestCount struct {
 
 // structs for storing expert formula in the DB -> FormulaIdentity, AuthorIdentity, ValueDefinition, ExpertFormulaManageData, ExpertFormulaTransaction, FormulaStore
 type FormulaIdentity struct {
+	ManageDataOrder int
 	ManageDataName  string
 	FormulaMapID    uint64
 	ManageDataKey   string
@@ -200,13 +207,16 @@ type FormulaIdentity struct {
 }
 
 type AuthorIdentity struct {
+	ManageDataOrder int
 	ManageDataName  string
-	AuthorMapID     uint64
+	PublicKeyPart   string
+	Expert          ExpertIDMap
 	ManageDataKey   string
 	ManageDataValue []byte
 }
 
 type ValueDefinition struct {
+	ManageDataOrder   int
 	ValueType         string
 	ValueMapID        uint64
 	UnitMapID         uint16
@@ -224,15 +234,17 @@ type Template struct {
 
 type FormulaManageData struct {
 	FormulaIdentity   FormulaIdentity
-	AuthorIdentity    AuthorIdentity
+	AuthorIdentity    []AuthorIdentity
 	ValueDefinitions  []ValueDefinition
 	ExecutionTemplate []Template
 }
-
 type FormulaTransaction struct {
 	TransactionHash   string
 	TransactionStatus string
 	Memo              []byte
+	Manifest          string
+	FormulaMapID      uint64
+	NoOfVariables     int
 	ManageData        FormulaManageData
 	TransactionTime   string
 	Cost              string
@@ -241,6 +253,7 @@ type FormulaTransaction struct {
 type FormulaStore struct {
 	Blockchain             string
 	FormulaID              string
+	ExpertID               string
 	ExpertPK               string
 	VariableCount          int
 	FormulaJsonRequestBody FormulaBuildingRequest
@@ -279,26 +292,42 @@ type MetricDataBindingRequest struct {
 	UserPK         string `json:"UserPK" bson:"userpk"`
 	Name           string `json:"Name" bson:"name" validate:"required"`
 	Description    string `json:"Description" bson:"description" validate:"required"`
-	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef" validate:"required"`
-	BenchmarkValue string `json:"BenchmarkValue" bson:"benchmarkValue" validate:"required"`
-	BenchmarkUnit  string `json:"BenchmarkUnit" bson:"benchmarkUnit" validate:"required"`
-	Status         string `json:"Status" bson:"status" validate:"required"`
+	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef"`
+	BenchmarkValue string `json:"BenchmarkValue" bson:"benchmarkValue"`
+	BenchmarkUnit  string `json:"BenchmarkUnit" bson:"benchmarkUnit"`
+	Status         string `json:"Status" bson:"status"`
 	TenantId       string `json:"TenantId" bson:"tenantId" validate:"required"`
 	CreatedAt      string `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	Activities     []MetricDataBindArtifactRequest
+	User           User
+	Transactions   TransacionDetailsMetricBinding
+	ErrorMessage   string `json:"ErrorMessage" bson:"errorMessage"`
 }
 
+type TransacionDetailsMetricBinding struct {
+	Memo                        []byte
+	MetricID                    string
+	MtericMapId                 uint64
+	TenantMapId                 uint32
+	MetricName                  string
+	NoOfActivityFormula         int
+	PublisherIdentityManageData PublisherIdentity
+	TotalNumberOfManageData     int
+	MaxNumOfManageDatePerHash   int
+	TXNHashes                   []string
+}
 type MetricDataBindArtifactRequest struct {
-	ID            string        `json:"ID" bson:"id" validate:"required"`
-	Name          string        `json:"Name" bson:"name" validate:"required"`
-	StageID       string        `json:"StageID" bson:"stageId" validate:"required"`
-	MetricID      string        `json:"MetricID" bson:"metricId" validate:"required"`
-	MetricFormula MetricFormula `json:"MetricFormula" bson:"metricFormula" validate:"required"`
-	Revision      int           `json:"Revision" bson:"revision" validate:"required"`
-	TenantID      string        `json:"TenantID" bson:"tenantId" validate:"required"`
-	CreatedAt     string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt     string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	ID                                  string        `json:"ID" bson:"id" validate:"required"`
+	Name                                string        `json:"Name" bson:"name" validate:"required"`
+	StageID                             string        `json:"StageID" bson:"stageId" validate:"required"`
+	MetricID                            string        `json:"MetricID" bson:"metricId" validate:"required"`
+	MetricFormula                       MetricFormula `json:"MetricFormula" bson:"metricFormula" validate:"required"`
+	Revision                            int           `json:"Revision" bson:"revision" validate:"required"`
+	TenantID                            string        `json:"TenantID" bson:"tenantId" validate:"required"`
+	CreatedAt                           string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt                           string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData
 }
 
 type MetricFormula struct {
@@ -316,11 +345,12 @@ type FormulaDetails struct {
 	Field              string
 	ArtifactTemplateID string
 	Description        string `json:"Description" bson:"description" validate:"required"`
+	BindManageData     BindManageData
 }
 
 type MetricExpertFormula struct {
-	ID              string `json:"ID" bson:"description" validate:"required"`
-	Name            string `json:"Name" bson:"description" validate:"required"`
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
 	Formula         []FullFormula
 	FormulaAsString string `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
 	FormulaAsQuery  string `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
@@ -359,4 +389,42 @@ type ActivityMapDetails struct {
 	MetricID   string
 	StageID    string
 	MapID      uint64
+}
+type ActivityFormulaDefinitionManageData struct {
+	ManageDataOrder     int
+	ManageDataType      string
+	ActivityMapID       uint64
+	NoOfDynamicVariable uint32
+	Key                 string
+	Value               []byte
+}
+type BindManageData struct {
+	ManageDataOrder int
+	ManageDataType  string
+	BindData        GeneralValueDefBuildRequest
+	Key             string
+	Value           []byte
+}
+
+type PublisherIdentity struct {
+	ManageDataOrder int
+	ManageDataType  string
+	UserID          string
+	PublicKey       string
+	ManageDataKey   string
+	ManageDataValue []byte
+}
+
+type SuccessResponseMetricBinding struct {
+	Code              int
+	ID                string
+	MetricID          string
+	TransactionHashes []string
+}
+
+type SuccessResponseExpertFormula struct {
+	Code              int
+	ID                string
+	FormulaID         string
+	TransactionHashes []string
 }

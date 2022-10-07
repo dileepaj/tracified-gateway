@@ -11,12 +11,12 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-func  (metric *MetricBinding)BuildFormulaDefinition(formulaMapID, activityMapID uint64, stageID, variableCount uint32, stageName string) (txnbuild.ManageData, error) {
+func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID, stageID uint64, variableCount uint16, stageName string) (txnbuild.ManageData, string, []byte, error) {
 	rebuildStargeName := ""
 	// covert ulint to byte array anf then to string
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%040d", 0))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%036d", 0))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Feture used byte building issue in formula definition")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Feture used byte building issue in formula definition")
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 
@@ -29,7 +29,7 @@ func  (metric *MetricBinding)BuildFormulaDefinition(formulaMapID, activityMapID 
 	}
 	if len(stageName) > 20 {
 		logrus.Error("Stage name is greater than 20 character limit")
-		return txnbuild.ManageData{}, errors.New("Strage name is greater than 20 character limit")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Strage name is greater than 20 character limit")
 	} else {
 		if len(stageName) == 20 {
 			rebuildStargeName = stageName
@@ -44,7 +44,7 @@ func  (metric *MetricBinding)BuildFormulaDefinition(formulaMapID, activityMapID 
 		rebuildStargeName = rebuildStargeName + setReaminder
 	}
 
-	valueString := stellarprotocols.UInt64ToByteString(formulaMapID) + stellarprotocols.UInt32ToByteString(variableCount) + stellarprotocols.UInt64ToByteString(activityMapID) + stellarprotocols.UInt32ToByteString(stageID) +
+	valueString := stellarprotocols.UInt64ToByteString(formulaMapID) + stellarprotocols.UInt16ToByteString(variableCount) + stellarprotocols.UInt64ToByteString(activityMapID) + stellarprotocols.UInt64ToByteString(stageID) +
 		rebuildStargeName + strFetureUsed
 	keyString := strForKey
 
@@ -55,12 +55,12 @@ func  (metric *MetricBinding)BuildFormulaDefinition(formulaMapID, activityMapID 
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("Formula Definition Builder value length not equal to 64")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Formula Definition Builder value length not equal to 64")
 	}
 	if len(keyString) > 64 || len(keyString) == 0 {
 		logrus.Error("Length ", len(keyString))
-		return txnbuild.ManageData{}, errors.New("Formula Definition Builder name length should be less than or equal to 64")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Formula Definition Builder name length should be less than or equal to 64")
 	}
 
-	return formulaDefinitionBuilder, nil
+	return formulaDefinitionBuilder, keyString, []byte(valueString), nil
 }

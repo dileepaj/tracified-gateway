@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
@@ -504,18 +505,18 @@ func (cd *Connection) InsertToAPIThrottler(throttellerReq model.ThrottlerRecord)
 }
 
 // Insert ExpertFormula Details to DB
-func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) error {
+func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) (string,error){
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("ExpertFormula")
-	_, err = c.InsertOne(context.TODO(), expertFormula)
+	result, err := c.InsertOne(context.TODO(), expertFormula)
 	if err != nil {
 		logrus.Info("Error when inserting Expert Formula to DB " + err.Error())
 	}
-	return err
+	return result.InsertedID.(primitive.ObjectID).Hex(),err
 }
 
 func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) error {
@@ -572,4 +573,18 @@ func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails)
 		logrus.Info("Error when inserting activity id to DB " + err.Error())
 	}
 	return err
+}
+
+func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string,error) {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("MetricBinds")
+	result, err := c.InsertOne(context.TODO(), metricBind)
+	if err != nil {
+		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(),err
 }

@@ -42,7 +42,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	} else {
 
 		// validation againt trust network
-		errInTrustNetworkValidation := authentication.ValidateAgainstTrustNetwork(formulaJSON.Expert.ExpertPK)
+		errInTrustNetworkValidation := authentication.ValidateAgainstTrustNetwork(formulaJSON.User.Publickey)
 		if errInTrustNetworkValidation != nil {
 			logrus.Error("Expert is not in the trust network : ", errInTrustNetworkValidation)
 			w.WriteHeader(http.StatusBadRequest)
@@ -52,7 +52,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 
 		authLayer := authentication.AuthLayer{
 			FormulaId: formulaJSON.ID,
-			ExpertPK:  formulaJSON.Expert.ExpertPK,
+			ExpertPK:  formulaJSON.User.Publickey,
 			CiperText: "",
 			Plaintext: formulaJSON.Formula,
 		}

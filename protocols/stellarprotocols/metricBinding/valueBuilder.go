@@ -26,7 +26,7 @@ import (
 *	Stage or Reference ID - 8 bytes (unsigned long integer)
 *	future use - 27 bytes - Done
 */
-func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, error) {
+func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, string, []byte, error) {
 	// key string components
 	resourceNameString := ""
 	keyNameString := ""
@@ -38,8 +38,8 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 	variableNameString := ""
 	// Validate resource name 30 byte limit
 	if len(element.ResourceName) > 30 {
-		logrus.Error("Resource name is greater than 30 character limit")
-		return txnbuild.ManageData{}, errors.New("Resource name is greater than 30 character limit")
+		logrus.Error("Resource name(Key or filed) is greater than 30 character limit")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Resource name(Key or filed) is greater than 30 character limit")
 	} else {
 		if len(element.ResourceName) == 30 {
 			resourceNameString = element.ResourceName
@@ -54,8 +54,8 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 	}
 	// Validate key name 30 limit
 	if len(element.Key) > 30 {
-		logrus.Error("Key name is greater than 30 character limit")
-		return txnbuild.ManageData{}, errors.New("Key name is greater than 30 character limit")
+		logrus.Error("Key is greater than 30 character limit")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Key is greater than 30 character limit")
 	} else {
 		if len(element.Key) == 30 {
 			keyNameString = element.Key
@@ -83,7 +83,7 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 	if variableDefMap == nil {
 		// requested varible does not exists in the DB
 		logrus.Error("Requested variable " + element.VariableName + " does not exists in the gateway DB")
-		return txnbuild.ManageData{}, errors.New("Requested variable " + element.VariableName + " does not exists in the gateway DB")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Requested variable " + element.VariableName + " does not exists in the gateway DB")
 	} else {
 		valueMapData := variableDefMap.(model.ValueIDMap)
 		valueID = valueMapData.MapID
@@ -91,7 +91,7 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 	// check the variable name length for 20 bytes
 	if len(element.VariableName) > 20 {
 		logrus.Error("Variable name is greater than 20 character limit")
-		return txnbuild.ManageData{}, errors.New("Variable name is greater than 20 character limit")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Variable name is greater than 20 character limit")
 	} else {
 		if len(element.VariableName) == 20 {
 			variableNameString = element.VariableName
@@ -110,12 +110,12 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.BindingType))
 		if errInValueTypeConvert != nil {
 			logrus.Error("Error when converting value type ", errInValueTypeConvert)
-			return txnbuild.ManageData{}, errors.New("Error when converting value type " + errInValueTypeConvert.Error())
+			return txnbuild.ManageData{}, "", []byte{}, errors.New("Error when converting value type " + errInValueTypeConvert.Error())
 		}
 		valueTypeString = tempValueType
 	} else {
 		logrus.Error("Invalid binding type, should be 1 or 0")
-		return txnbuild.ManageData{}, errors.New("Invalid binding type, should be 1 or 0")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Invalid binding type, should be 1 or 0")
 	}
 	// Stage/Ref id mapping and adding to string
 	resourceIdMap, errResourceMap := object.GetResourceMapID(element.ResourceID).Then(func(data interface{}) interface{} {
@@ -133,7 +133,7 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 		data, err := object.GetNextSequenceValue("RESOURCEID")
 		if err != nil {
 			logrus.Error("Retrieving resource id from map was failed " + err.Error())
-			return txnbuild.ManageData{}, errors.New("Retrieving resource id from map was failed")
+			return txnbuild.ManageData{}, "", []byte{}, errors.New("Retrieving resource id from map was failed")
 		}
 		insertResourceMap := model.ResourceIdMap{
 			ResourceType: element.ResourceType,
@@ -143,14 +143,14 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 		errWhenInsertingToResourceMap := object.InsertToResourceIDMap(insertResourceMap)
 		if errWhenInsertingToResourceMap != nil {
 			logrus.Error("Inserting to resource map ID was failed" + errWhenInsertingToResourceMap.Error())
-			return txnbuild.ManageData{}, errors.New("Inserting to resource map ID was failed")
+			return txnbuild.ManageData{}, "", []byte{}, errors.New("Inserting to resource map ID was failed")
 		}
 		resourceID = data.SequenceValue
 	}
 	// future use in value
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%054d", 0))
 	if err != nil {
-		return txnbuild.ManageData{}, errors.New("Feture used byte building issue in formula definition")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Feture used byte building issue in formula definition")
 	}
 	futureUseInValue := string(decodedStrFetureUsed)
 	// build key and value string
@@ -159,15 +159,15 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 	// check the key value string length for 64 byte limit
 	if len(keyString) > 64 {
 		logrus.Error("Key string exceeding the given 64 byte limit in variable manage data builder. Length : ", len(keyString))
-		return txnbuild.ManageData{}, errors.New("Key string exceeding the given 64 byte limit in variable manage data builder")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Key string exceeding the given 64 byte limit in variable manage data builder")
 	}
 	if len(valueString) > 64 {
 		logrus.Error("Value string exceeding the given 64 byte limit in variable manage data builder. Length : ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("Value string exceeding the given 64 byte limit in variable manage data builder")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Value string exceeding the given 64 byte limit in variable manage data builder")
 	}
 	generalValueDefinitionBuilder := txnbuild.ManageData{
 		Name:  keyString,
 		Value: []byte(valueString),
 	}
-	return generalValueDefinitionBuilder, nil
+	return generalValueDefinitionBuilder, keyString, []byte(valueString), nil
 }
