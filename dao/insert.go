@@ -9,10 +9,12 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*InsertCoc Insert a single COC Object to COCCollection in DB
+/*
+InsertCoc Insert a single COC Object to COCCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
@@ -30,7 +32,8 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	return err
 }
 
-/*InsertTransaction Insert a single Transaction Object to TransactionCollection in DB
+/*
+InsertTransaction Insert a single Transaction Object to TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
@@ -59,7 +62,8 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	return err
 }
 
-/*InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
+/*
+InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
@@ -79,7 +83,8 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	return err
 }
 
-/*InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
+/*
+InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
@@ -99,7 +104,8 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	return err
 }
 
-/*InsertProfile Insert a single Profile Object to ProfileCollection in DB
+/*
+InsertProfile Insert a single Profile Object to ProfileCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
@@ -120,7 +126,8 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	return err
 }
 
-/*InsertCertificate Insert a single Certificate Object to CertificateCollection in DB
+/*
+InsertCertificate Insert a single Certificate Object to CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) error {
@@ -425,4 +432,159 @@ func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	return err
+}
+
+func (cd *Connection) InsertFormulaIDMap(formulaIDMap model.FormulaIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("FormulaIDMap")
+	_, err = c.InsertOne(context.TODO(), formulaIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertExpertIDMap(expertIDMap model.ExpertIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ExpertIDMap")
+	_, err = c.InsertOne(context.TODO(), expertIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToValueIDMap(valueIDMap model.ValueIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ValueIDMap")
+	_, err = c.InsertOne(context.TODO(), valueIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToUnitIDMap(unitMap model.UnitIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("UnitIDMap")
+	_, err = c.InsertOne(context.TODO(), unitMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToAPIThrottler(throttellerReq model.ThrottlerRecord) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+	_, err = c.InsertOne(context.TODO(), throttellerReq)
+	if err != nil {
+		logrus.Info("Error when inserting new API request to DB " + err.Error())
+	}
+	return err
+}
+
+// Insert ExpertFormula Details to DB
+func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) (string,error){
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ExpertFormula")
+	result, err := c.InsertOne(context.TODO(), expertFormula)
+	if err != nil {
+		logrus.Info("Error when inserting Expert Formula to DB " + err.Error())
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(),err
+}
+
+func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ResourceIDMap")
+	_, err = c.InsertOne(context.TODO(), resourceIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting resource id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertMetricMapID(metricIDMap model.MetricMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("MetricIDMap")
+	_, err = c.InsertOne(context.TODO(), metricIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting metric id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertTenentMapID(tenentIDMap model.TenentMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TenentIDMap")
+	_, err = c.InsertOne(context.TODO(), tenentIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting tenent id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ActivityIDMap")
+	_, err = c.InsertOne(context.TODO(), activityDetails)
+	if err != nil {
+		logrus.Info("Error when inserting activity id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string,error) {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("MetricBinds")
+	result, err := c.InsertOne(context.TODO(), metricBind)
+	if err != nil {
+		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(),err
 }
