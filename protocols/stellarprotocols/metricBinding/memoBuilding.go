@@ -31,7 +31,7 @@ func (metric *MetricBinding) BuildMemo(mapMetricId uint64, metricName string, te
 	}
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%04d", 0))
 	if err != nil {
-		return "", errors.New("Feture used byte building issue in formula definition")
+		return "", errors.New("Feture used byte building issue in memo building")
 	}
 	memo := stellarprotocols.UInt64ToByteString(mapMetricId) + rebuildMetricName + stellarprotocols.UInt32ToByteString(tenantId) + stellarprotocols.UInt16ToByteString(noOfFormula) + string(decodedStrFetureUsed)
 	if len(memo) > 28 {

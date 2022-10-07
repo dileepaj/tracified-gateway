@@ -15,6 +15,7 @@ import (
 type AuthLayer struct {
 	FormulaId string
 	ExpertPK  string
+	ExpertUserID string
 	CiperText string
 	Plaintext []model.FormulaItemRequest
 }
