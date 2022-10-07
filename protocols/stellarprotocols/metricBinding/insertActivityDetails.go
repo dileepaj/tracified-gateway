@@ -8,6 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+ For retrieving mapped activity id from DB or creating a new one with the next sequence value
+*/
 func InsertAndFindActivityID(activityId string, activityName string, metricId string, stageId string) (uint64, error) {
 	var acitivityMapID uint64
 	object := dao.Connection{}

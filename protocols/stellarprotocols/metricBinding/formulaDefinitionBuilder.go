@@ -11,6 +11,21 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+ * des- build the manage data for formula definition (compulsory for each formula)
+ * return the txnbuild.ManageData object
+ * variable definitions and byte used
+		1. formulaMapID  - 8 bytes (uint64)  - mapped id stored in the DB for the formula
+		2. variableCount - 2 bytes (uint16)  - number of dynamic variables in the formula
+		3. activityID    - 8 bytes (uint64)  - mapped id stored in the DB for the activity
+		4. stageID 		 - 8 bytes (uint64)  - actual stage id
+		5. key 			 - 20 bytes (string) - stage name
+		6. future use    - 16 bytes
+ * Manage data
+		name 64 bytes  - the string "FORMULA METADATA"
+		value 64 bytes - formulaMapID + variableCount + activityMapID + stageID + key + future use
+*/
+
 func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID, stageID uint64, variableCount uint16, stageName string) (txnbuild.ManageData, string, []byte, error) {
 	rebuildStargeName := ""
 	// covert ulint to byte array anf then to string

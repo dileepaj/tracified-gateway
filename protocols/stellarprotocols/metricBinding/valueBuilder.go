@@ -13,19 +13,21 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-//Used to define the general metadata of a single variable
-/* KEY
-*	Field name or Stage name - 25 bytes (string) - Done
-*	Key name - 20 bytes - Done
-*	Future use - 19 bytes - Done
-/
-/* VALUE
-*	Value id - 8 bytes (unsigned long integer) - Done
-*	Variable name - 20 bytes (string) - Done
-* 	Binding type - 1 byte (byte) - Done
-*	Stage or Reference ID - 8 bytes (unsigned long integer)
-*	future use - 27 bytes - Done
+/*
+ * des- build the manage data for defining the general metadata of a single variable
+ * return the txnbuild.ManageData object
+ * variable definitions and byte used
+		1. Resource name - 30 bytes (string) - name of the stage or master data
+		2. Key name      - 30 bytes (string) - name of the variable
+		3. ValueID       - 8 bytes (uint64)  - mapped id stored in the DB for the variable
+		4. Variable name - 20 bytes (string) - original variable name used in the used formula
+		5. Binding type  - 1 byte (Byte)     - 0 for master and 1 for stage data
+		6. Resource ID   - 8 bytes (Byte)    - mapped id stored in the DB for the stage or master data
+ * Manage data
+		name 64 bytes  - Resouce name + Key name + Future use
+		value 64 bytes - ValueID + Variable name + Binding type + Resource ID + Future use
 */
+
 func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, string, []byte, error) {
 	// key string components
 	resourceNameString := ""

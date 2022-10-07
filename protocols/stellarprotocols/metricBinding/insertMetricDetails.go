@@ -8,6 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+ For retrieving mapped metric id from DB or creating a new one with the next sequence value
+*/
 func InsertAndFindMetricID(metricID string, metricName string) (uint64,int, error) {
 	var metricMapID uint64
 	object := dao.Connection{}
