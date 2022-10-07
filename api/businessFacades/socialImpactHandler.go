@@ -51,10 +51,11 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 
 		authLayer := authentication.AuthLayer{
-			FormulaId: formulaJSON.ID,
-			ExpertPK:  formulaJSON.User.Publickey,
-			CiperText: "",
-			Plaintext: formulaJSON.Formula,
+			FormulaId:    formulaJSON.ID,
+			ExpertPK:     formulaJSON.User.Publickey,
+			ExpertUserID: formulaJSON.User.ID,
+			CiperText:    formulaJSON.CiperText,
+			Plaintext:    formulaJSON.Formula,
 		}
 
 		err, errCode := authLayer.ValidateExpertRequest()
@@ -96,10 +97,10 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 	var metricBindJSON model.MetricDataBindingRequest
 	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
 	if err != nil {
-		logrus.Error(err,err.Error())
+		logrus.Error(err, err.Error())
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body "+err.Error())
+		json.NewEncoder(w).Encode("Error while decoding the body " + err.Error())
 		return
 	}
 	errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)

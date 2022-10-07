@@ -16,7 +16,7 @@ func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID,
 	// covert ulint to byte array anf then to string
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%036d", 0))
 	if err != nil {
-		return txnbuild.ManageData{}, "", []byte{}, errors.New("Feture used byte building issue in formula definition")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Feture used byte building issue in BuildFormulaDefinition")
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 
@@ -59,7 +59,7 @@ func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID,
 	}
 	if len(keyString) > 64 || len(keyString) == 0 {
 		logrus.Error("Length ", len(keyString))
-		return txnbuild.ManageData{}, "", []byte{}, errors.New("Formula Definition Builder name length should be less than or equal to 64")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Formula Definition Builder value length not equal to 64")
 	}
 
 	return formulaDefinitionBuilder, keyString, []byte(valueString), nil

@@ -90,6 +90,7 @@ type FormulaBuildingRequest struct {
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	User            User
+	CiperText       string `json:"CiperText" bson:"ciperText"`
 }
 
 type User struct {
@@ -261,6 +262,7 @@ type FormulaStore struct {
 	OverflowAmount         int
 	Status                 string
 	CreatedAt              string
+	CiperText              string
 }
 
 type ValueDefOutParmas struct {
@@ -332,7 +334,7 @@ type MetricDataBindArtifactRequest struct {
 
 type MetricFormula struct {
 	ID                  string `json:"ID" bson:"id" validate:"required"`
-	Formula             []FormulaDetails
+	Formula             []FormulaDetails  `json:"Formula" bson:"formula" validate:"required"`
 	MetricExpertFormula MetricExpertFormula
 	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
 	PivotFields         []PivotField
