@@ -4,6 +4,7 @@ go 1.18
 
 require (
 	github.com/chebyrash/promise v0.0.0-20210114125841-d119a93f8638
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-openapi/runtime v0.24.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -12,6 +13,7 @@ require (
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stellar/go v0.0.0-20220713211913-118efe4d14d4
 	go.mongodb.org/mongo-driver v1.9.1
+	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
 )
 
 require (
@@ -73,6 +75,7 @@ require (
 	go.uber.org/ratelimit v0.2.0 // indirect
 	go.uber.org/zap v1.16.0 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
 
