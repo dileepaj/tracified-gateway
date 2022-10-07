@@ -324,7 +324,7 @@ type MetricDataBindArtifactRequest struct {
 	Name                                string        `json:"Name" bson:"name" validate:"required"`
 	StageID                             string        `json:"StageID" bson:"stageId" validate:"required"`
 	MetricID                            string        `json:"MetricID" bson:"metricId" validate:"required"`
-	MetricFormula                       MetricFormula `json:"MetricFormula" bson:"metricFormula" validate:"required"`
+	MetricFormula                       MetricFormula
 	Revision                            int           `json:"Revision" bson:"revision" validate:"required"`
 	TenantID                            string        `json:"TenantID" bson:"tenantId" validate:"required"`
 	CreatedAt                           string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
@@ -334,7 +334,7 @@ type MetricDataBindArtifactRequest struct {
 
 type MetricFormula struct {
 	ID                  string `json:"ID" bson:"id" validate:"required"`
-	Formula             []FormulaDetails  `json:"Formula" bson:"formula" validate:"required"`
+	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula
 	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
 	PivotFields         []PivotField
