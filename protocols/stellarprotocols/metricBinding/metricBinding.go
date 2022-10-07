@@ -16,6 +16,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+StellarMetricBinding
+des- This method build stellar trasaction for metric binding
+
+	 steps
+		* map the metric id and retrieve the mapped id
+		* map the tenent id and retrieve the mapped id
+		* build memo for the transaction
+		* build publisher identity manage data operation
+		* build formula definition manage data operation
+			* map the activity id and retrieve the mapped id
+		* loop through the formulaArray to build the value definition manage data operation
+			* map the stage id and retrieve the mapped id
+		* load stellar account,build and sing the XDR
+		* put XDR to stellar blockchain
+*/
+
 func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson model.MetricDataBindingRequest) {
 	metricBinding := MetricBinding{}
 	stellarProtocol := expertformula.ExpertFormula{}

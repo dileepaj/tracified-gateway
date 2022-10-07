@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+ For retrieving mapped tenant id from DB or creating a new one with the next sequence value
+*/
+
 func InsertAndFindTenentID(tenentUUID string) (uint64, error) {
 	var tenentMapID uint64
 	object := dao.Connection{}
