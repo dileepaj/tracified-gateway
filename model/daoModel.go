@@ -86,6 +86,7 @@ type TransactionIds struct {
 	Url        string
 	Identifier string
 	TdpId      string
+	AvailableProof []string
 }
 
 type PrevTxnResponse struct {

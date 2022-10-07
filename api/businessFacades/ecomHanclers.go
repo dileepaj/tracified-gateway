@@ -172,7 +172,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 				// text := encoded
 				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-					Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
+					Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i], AvailableProof: GetProofName(Txn.TxnType),}
 
 				resultArray = append(resultArray, temp)
 			}
@@ -205,7 +205,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			// text := encoded
 			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
+				Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i], AvailableProof: GetProofName(Txn.TxnType)}
 
 			resultArray = append(resultArray, temp)
 			// }
