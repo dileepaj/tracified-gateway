@@ -57,23 +57,6 @@ func ValidateFields(element model.FormulaItemRequest) error {
 	return nil
 }
 
-func ValidateMetricBindingRequest(element model.MetricBindingRequest) error {
-	validate := validator.New()
-	err := validate.Struct(element)
-	if err != nil {
-		return err
-	}
-	//validate the inner object array
-	for i := 0; i < len(element.Formula); i++ {
-		errInValidateFormulasInMetricBinding := ValidateFormulaForMetricBuilding(element.Formula[i])
-		if errInValidateFormulasInMetricBinding != nil {
-			return errInValidateFormulasInMetricBinding
-		}
-	}
-
-	return nil
-}
-
 func ValidateFormulaForMetricBuilding(element model.FormulaForMetricBinding) error {
 	//check if the required fields are empty
 	validate := validator.New()
