@@ -270,6 +270,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			OverflowAmount:         len(transactionArray),
 			Status:                 status,
 			CreatedAt:              time.Now().String(),
+			CiperText:              formulaJSON.CiperText,
 		}
 		Id, errResult := object.InsertExpertFormula(expertFormulaBuilder)
 		if errResult != nil {

@@ -30,7 +30,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.ErrorMessage = err.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		commons.JSONErrorReturn(w, r, err.Error(), errCode, "InsertAndFindMetricID ")
 		return
@@ -40,7 +40,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.ErrorMessage = err.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 		return
@@ -50,7 +50,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
 		return
@@ -60,7 +60,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.ErrorMessage = err.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildAuthorManageData ")
 		return
@@ -74,7 +74,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
-				logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Stage ID not a int string ")
 			return
@@ -88,7 +88,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
-				logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula in database ")
 			return
@@ -98,7 +98,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
-				logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 			return
@@ -108,7 +108,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
-				logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
 			return
@@ -143,7 +143,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					metricBindingStore.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 					if errResult != nil {
-						logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 					}
 					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
 					return
@@ -176,7 +176,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					metricBindingStore.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 					if errResult != nil {
-						logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 					}
 					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
 					return
@@ -230,7 +230,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
-				logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			logrus.Error("Error when submitting transaction to blockchain  ", err)
 			w.WriteHeader(errCode)
@@ -245,7 +245,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.ErrorMessage = err.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		commons.JSONErrorReturn(w, r, errorInXDR.Error(), http.StatusInternalServerError, "Error when submitting transaction to blockchain ")
 		return
@@ -253,7 +253,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metricBindingStore.Status = "SAVED IN BLOCKCHAIN"
 		id, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 		if errResult != nil {
-			logrus.Error("Error while inserting the expert formula into DB: ", errResult)
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 		}
 		w.WriteHeader(http.StatusOK)
 		response := model.SuccessResponseMetricBinding{
