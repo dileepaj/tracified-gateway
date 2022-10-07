@@ -351,7 +351,7 @@ type NFTSolana struct {
 	Description   string
 	Collection    string
 	NFTBlockChain string
-	Tags          string
+	Tags          []string
 	Categories    string
 	Copies        string
 	NFTLinks      string
@@ -418,7 +418,7 @@ type NFTContracts struct {
 	Description         string
 	Collection          string
 	NFTBlockChain       string
-	Tags                string
+	Tags                []string
 	Categories          string
 	Copies              string
 	NFTLinks            string
@@ -493,7 +493,7 @@ type TrustLineResponseNFT struct {
 	Description           string
 	Collection            string
 	NFTBlockChain         string
-	Tags                  string
+	Tags                  []string
 	Categories            string
 	Copies                string
 	NFTLinks              string
