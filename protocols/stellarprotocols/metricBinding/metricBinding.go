@@ -62,7 +62,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 		return
 	}
-	memo, errInMemoBuilder := metricBinding.BuildMemo(metricMapID, metricBindJson.Name, uint32(tenantMapId), uint16(len(metricBindJson.Activities)))
+	memo, errInMemoBuilder := metricBinding.BuildMemo(metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Activities)))
 	if errInMemoBuilder != nil {
 		metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -72,6 +72,19 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
 		return
 	}
+	//metric name builder
+	metricName, errWhenBuildingMetricName := metricBinding.BuildMetricName(metricBindJson.Name)
+	if errWhenBuildingMetricName != nil {
+		metricBindingStore.ErrorMessage = errWhenBuildingMetricName.Error()
+		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+		if errResult != nil {
+			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+		}
+		commons.JSONErrorReturn(w, r, errWhenBuildingMetricName.Error(), http.StatusInternalServerError, "")
+		return
+	}
+	manageDataOpArray = append(manageDataOpArray, &metricName)
+
 	publisherIdentity, err := stellarProtocol.BuildPublisherManageData(metricBindJson.User.Publickey)
 	if err != nil {
 		metricBindingStore.ErrorMessage = err.Error()
