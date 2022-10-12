@@ -15,14 +15,15 @@ return the txnbuild.ManageData object
 */
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
-func (expertFormula ExpertFormula) BuildMemo(types, variableCount uint32, mappedFormulaID uint64) (string, string, error) {
+// tenant user (publisher) public key length - 2 bytes (uint16)
+func (expertFormula ExpertFormula) BuildMemo(types, variableCount uint32, mappedFormulaID uint64, expertPublicKeyLength uint16) (string, string, error) {
 	manifest := ""
 	if types == 0 {
 		manifest = "0000000000AAAAAAAAAA"
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%012d", 0))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%08d", 0))
 	if err != nil {
 		return "", "", err
 	}
@@ -33,6 +34,6 @@ func (expertFormula ExpertFormula) BuildMemo(types, variableCount uint32, mapped
 	}
 	strManifest := string(decodedManifest)
 
-	memo := strManifest + stellarprotocols.UInt64ToByteString(mappedFormulaID) + stellarprotocols.UInt32ToByteString(variableCount) + strFetureUsed
+	memo := strManifest + stellarprotocols.UInt64ToByteString(mappedFormulaID) + stellarprotocols.UInt32ToByteString(variableCount) + stellarprotocols.UInt16ToByteString(expertPublicKeyLength) + strFetureUsed
 	return memo, manifest, nil
 }
