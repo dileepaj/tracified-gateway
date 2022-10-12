@@ -17,7 +17,8 @@ import (
 	"github.com/chebyrash/promise"
 )
 
-/*GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
+/*
+GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
@@ -51,7 +52,8 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	return p
 }
 
-/*GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
+/*
+GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise {
@@ -114,7 +116,8 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 	return p
 }
 
-/*GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
+/*
+GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
@@ -148,7 +151,8 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	return p
 }
 
-/*GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
+/*
+GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
@@ -176,7 +180,8 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	return p
 }
 
-/*GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
+/*
+GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
@@ -206,7 +211,8 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	return p
 }
 
-/*GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
+/*
+GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
@@ -240,7 +246,8 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	return p
 }
 
-/*GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
+/*
+GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise {
@@ -281,7 +288,8 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 	return p
 }
 
-/*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
+/*
+GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
@@ -312,7 +320,8 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 	return p
 }
 
-/*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
+/*
+GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
@@ -346,7 +355,8 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 	return p
 }
 
-/*GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
+/*
+GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
@@ -375,7 +385,8 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 	return p
 }
 
-/*GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
+/*
+GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
@@ -406,7 +417,8 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 	return p
 }
 
-/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+/*
+GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
@@ -531,7 +543,8 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	return p
 }
 
-/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+/*
+GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
@@ -561,7 +574,8 @@ func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
-/*GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
+/*
+GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
@@ -591,7 +605,8 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	return p
 }
 
-/*GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
+/*
+GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise {
@@ -620,7 +635,8 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 	return p
 }
 
-/*GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
+/*
+GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise {
@@ -649,7 +665,8 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 	return p
 }
 
-/*GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
+/*
+GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
@@ -678,7 +695,8 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 	return p
 }
 
-/*GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
+/*
+GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.Promise {
@@ -710,7 +728,8 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 	return p
 }
 
-/*GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
+/*
+GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *promise.Promise {
@@ -742,7 +761,8 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 	return p
 }
 
-/*GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
+/*
+GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Promise {
@@ -2215,7 +2235,7 @@ func (cd *Connection) GetRSAPublicKeyBySHA256PK(sha256pk string) *promise.Promis
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("RSAKeys")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"sha256pk": sha256pk})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"sha256publickey": sha256pk})
 
 		if err1 != nil {
 			reject(err1)
