@@ -12,7 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*InsertCoc Insert a single COC Object to COCCollection in DB
+/*
+InsertCoc Insert a single COC Object to COCCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
@@ -30,7 +31,8 @@ func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
 	return err
 }
 
-/*InsertTransaction Insert a single Transaction Object to TransactionCollection in DB
+/*
+InsertTransaction Insert a single Transaction Object to TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
@@ -59,7 +61,8 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	return err
 }
 
-/*InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
+/*
+InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
@@ -79,7 +82,8 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	return err
 }
 
-/*InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
+/*
+InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
@@ -99,7 +103,8 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	return err
 }
 
-/*InsertProfile Insert a single Profile Object to ProfileCollection in DB
+/*
+InsertProfile Insert a single Profile Object to ProfileCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
@@ -120,7 +125,8 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	return err
 }
 
-/*InsertCertificate Insert a single Certificate Object to CertificateCollection in DB
+/*
+InsertCertificate Insert a single Certificate Object to CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) error {
@@ -421,6 +427,20 @@ func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTKeys")
 	_, err = c.InsertOne(context.TODO(), nftKeys)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("RSAKeys")
+	_, err = c.InsertOne(context.TODO(), rsaKey)
 	if err != nil {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}

@@ -16,7 +16,8 @@ type Route struct {
 // Routes An Array of type Route
 type Routes []Route
 
-/*routes contains all the routes
+/*
+routes contains all the routes
 @author Azeem Ashraf, Jajeththanan Sabapathipillai
 */
 var routes = Routes{
@@ -547,5 +548,11 @@ var routes = Routes{
 		"PUT",
 		"/socialimapact",
 		businessFacades.UpdateEquation, //Update pool's activities and products details
+	},
+	{
+		"save PGP key",
+		"POST",
+		"/pgp",
+		businessFacades.SavePGPKey,
 	},
 }
