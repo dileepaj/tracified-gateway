@@ -27,6 +27,20 @@ func (metric *MetricBinding) BuildMetricName(metricName string) (txnbuild.Manage
 		}
 	}
 
+	// check the lengths and append 0s if needed
+	if len(nameKey) < 64 {
+		nameKey = nameKey + "/"
+		if len(nameKey) < 64 {
+			nameKey = fmt.Sprintf("%s%s", nameKey, strings.Repeat("0", 64-len(nameKey)))
+		}
+	}
+	if len(nameValue) < 64 {
+		nameValue = nameValue + "/"
+		if len(nameValue) < 64 {
+			nameValue = fmt.Sprintf("%s%s", nameValue, strings.Repeat("0", 64-len(nameValue)))
+		}
+	}
+	
 	logrus.Info("Metric name key : ", nameKey)
 	logrus.Info("Metric name value : ", nameValue)
 
