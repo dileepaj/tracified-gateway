@@ -555,4 +555,10 @@ var routes = Routes{
 		"/pgp",
 		businessFacades.SavePGPKey,
 	},
+	{
+		"retrieve PGP publickey",
+		"GET",
+		"/pgp/{sha256pk}",
+		businessFacades.GetRSAPublicKeyBySHA256PK,
+	},
 }
