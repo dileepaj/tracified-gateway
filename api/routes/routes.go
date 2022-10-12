@@ -543,7 +543,7 @@ var routes = Routes{
 		"/nft/sponsortrust",
 		businessFacades.GetSponsorTrustXDR, //Calls the GetSponsorTrustXDR in the StellarHandler
 	},
-	{
+	Route{
 		"Update Equation stages and product details",
 		"PUT",
 		"/socialimapact",
@@ -560,5 +560,16 @@ var routes = Routes{
 		"GET",
 		"/pgp/{sha256pk}",
 		businessFacades.GetRSAPublicKeyBySHA256PK,
+	Route{
+		"Storing the social impact equation on blockchain",
+		"POST",
+		"/socialimapact/buildformula",
+		businessFacades.BuildSocialImpactExpertFormula,
+	},
+	Route{
+		"Binding metrics with traceability data and Master data",
+		"POST",
+		"/socialimapact/metricbinding",
+		businessFacades.BindMetric,
 	},
 }

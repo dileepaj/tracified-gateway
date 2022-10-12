@@ -1,4 +1,4 @@
-FROM golang:1.17-alpine
+FROM golang:1.18-alpine
 
 # Set destination for COPY
 RUN mkdir -p /go/src/github.com/dileepaj/tracified-gateway/
