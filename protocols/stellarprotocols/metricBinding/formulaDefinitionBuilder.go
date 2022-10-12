@@ -18,18 +18,15 @@ import (
 		1. formulaMapID  - 8 bytes (uint64)  - mapped id stored in the DB for the formula
 		2. variableCount - 2 bytes (uint16)  - number of dynamic variables in the formula
 		3. activityID    - 8 bytes (uint64)  - mapped id stored in the DB for the activity
-		4. stageID 		 - 8 bytes (uint64)  - actual stage id
-		5. key 			 - 20 bytes (string) - stage name
-		6. future use    - 16 bytes
+		4. future use    - 46 bytes
  * Manage data
 		name 64 bytes  - the string "FORMULA METADATA"
-		value 64 bytes - formulaMapID + variableCount + activityMapID + stageID + key + future use
+		value 64 bytes - formulaMapID + variableCount + activityMapID + future use
 */
 
-func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID, stageID uint64, variableCount uint16, stageName string) (txnbuild.ManageData, string, []byte, error) {
-	rebuildStargeName := ""
+func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID uint64, activityMapID uint64, variableCount uint16) (txnbuild.ManageData, string, []byte, error) {
 	// covert ulint to byte array anf then to string
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%036d", 0))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%092d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Feture used byte building issue in BuildFormulaDefinition")
 	}
@@ -42,31 +39,17 @@ func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID, activityMapID,
 		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		strForKey = strForKey + setRemainder
 	}
-	if len(stageName) > 20 {
-		logrus.Error("Stage name is greater than 20 character limit")
-		return txnbuild.ManageData{}, "", []byte{}, errors.New("Strage name is greater than 20 character limit")
-	} else {
-		if len(stageName) == 20 {
-			rebuildStargeName = stageName
-		} else if len(stageName) < 20 {
-			rebuildStargeName = stageName + "/"
-		}
-	}
 
-	if len(rebuildStargeName) < 20 {
-		remain := 20 - len(rebuildStargeName)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		rebuildStargeName = rebuildStargeName + setReaminder
-	}
-
-	valueString := stellarprotocols.UInt64ToByteString(formulaMapID) + stellarprotocols.UInt16ToByteString(variableCount) + stellarprotocols.UInt64ToByteString(activityMapID) + stellarprotocols.UInt64ToByteString(stageID) +
-		rebuildStargeName + strFetureUsed
+	valueString := stellarprotocols.UInt64ToByteString(formulaMapID) + stellarprotocols.UInt16ToByteString(variableCount) + stellarprotocols.UInt64ToByteString(activityMapID) + strFetureUsed
 	keyString := strForKey
 
 	formulaDefinitionBuilder := txnbuild.ManageData{
 		Name:  keyString,
 		Value: []byte(valueString),
 	}
+
+	logrus.Info("Formula definition - generated key : ", keyString)
+	logrus.Info("Formula definition - generated value : ", valueString)
 
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))

@@ -1,9 +1,9 @@
 package metricBinding
 
 import (
+	b64 "encoding/base64"
 	"encoding/json"
 	"net/http"
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -73,7 +73,9 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		return
 	}
 	//metric name builder
-	metricName, errWhenBuildingMetricName := metricBinding.BuildMetricName(metricBindJson.Name)
+	//base64 encode the metric name to overcome stellar UTE-8 issues
+	metricNameB64 := b64.StdEncoding.EncodeToString([]byte(metricBindJson.Name))
+	metricName, errWhenBuildingMetricName := metricBinding.BuildMetricName(metricNameB64)
 	if errWhenBuildingMetricName != nil {
 		metricBindingStore.ErrorMessage = errWhenBuildingMetricName.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -99,7 +101,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	// manage data opration order counter
 	c := 1
 	for i, activity := range metricBindJson.Activities {
-		stageID, err := strconv.Atoi(activity.StageID)
+		//stageID, err := strconv.Atoi(activity.StageID)
 		if err != nil {
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -133,7 +135,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 			return
 		}
-		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint64(stageID), uint16(len(activity.MetricFormula.Formula)), activity.Name)
+		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(activity.MetricFormula.Formula)))
 		if err != nil {
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
