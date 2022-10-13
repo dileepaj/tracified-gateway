@@ -62,7 +62,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 		return
 	}
-	memo, errInMemoBuilder := metricBinding.BuildMemo(metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Activities)))
+	memo, errInMemoBuilder := metricBinding.BuildMemo(metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Activities)), uint16(236))
 	if errInMemoBuilder != nil {
 		metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -72,8 +72,8 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
 		return
 	}
-	//metric name builder
-	//base64 encode the metric name to overcome stellar UTE-8 issues
+	// metric name builder
+	// base64 encode the metric name to overcome stellar UTE-8 issues
 	metricNameB64 := b64.StdEncoding.EncodeToString([]byte(metricBindJson.Name))
 	metricName, errWhenBuildingMetricName := metricBinding.BuildMetricName(metricNameB64)
 	if errWhenBuildingMetricName != nil {
@@ -101,7 +101,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	// manage data opration order counter
 	c := 1
 	for i, activity := range metricBindJson.Activities {
-		//stageID, err := strconv.Atoi(activity.StageID)
+		// stageID, err := strconv.Atoi(activity.StageID)
 		if err != nil {
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)

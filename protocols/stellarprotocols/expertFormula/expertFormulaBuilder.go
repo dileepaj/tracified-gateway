@@ -62,7 +62,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	}
 	expertFormula := ExpertFormula{}
 	// build memo
-	memo, manifest, err := expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue)
+	memo, manifest, err := expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue, uint16(300))
 	if err != nil {
 		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Memo hex converting issue")
 		return
