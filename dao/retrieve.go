@@ -2463,12 +2463,34 @@ func (cd *Connection) GetExpertFormulaCount(formulaID string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("ExpertFormula")
-		count,err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID,"status":"Success"})
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID, "status": "Success"})
 		if err1 != nil {
 			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(count)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
+	result := model.WorkflowMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+		err1 := c.FindOne(context.TODO(), bson.M{"workflowid": workflowId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting workflow id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
 		}
 	})
 	return p

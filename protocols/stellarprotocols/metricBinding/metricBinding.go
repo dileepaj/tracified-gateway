@@ -157,20 +157,14 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		manageDataOpArray = append(manageDataOpArray, &formulaDefinition)
 		for j, formula := range activity.MetricFormula.Formula {
 			if formula.ArtifactTemplateID == "" {
-				valueDetails, err := object.GetValueMapID(formula.ID).Then(func(data interface{}) interface{} {
-					return data
-				}).Await()
-				bindValue := model.GeneralValueDefBuildRequest{
-					ResourceType: "STAGE",
-					ResourceName: formula.Key,
-					Key:          formula.Key,
-					VariableUUID: formula.ID,
-					VariableName: valueDetails.(model.ValueIDMap).ValueName,
-					BindingType:  1,
-					ResourceID:   activity.StageID,
-					FormulaID:    formulaDetails.MapID,
+				bindValue := model.ValueBuilder{
+					ValueUUID:           formula.ID,
+					WorkflowID:          "test",
+					StageID:             activity.StageID,
+					TracabilityDataType: 1,
+					BindingType:         1,
 				}
-				valueDefinition, keyVD, valueVD, err := metricBinding.ValueDefinitionBuilder(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -190,20 +184,14 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				}
 				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
 			} else {
-				valueDetails, err := object.GetValueMapID(formula.ID).Then(func(data interface{}) interface{} {
-					return data
-				}).Await()
-				bindValue := model.GeneralValueDefBuildRequest{
-					ResourceType: "MASTER",
-					ResourceName: formula.Field,
-					Key:          formula.Key,
-					VariableUUID: formula.ID,
-					VariableName: valueDetails.(model.ValueIDMap).ValueName,
-					BindingType:  0,
-					ResourceID:   formula.ArtifactTemplateID,
-					FormulaID:    formulaDetails.MapID,
+				bindValue := model.ValueBuilder{
+					ValueUUID:           formula.ID,
+					WorkflowID:          "test",
+					StageID:             activity.StageID,
+					TracabilityDataType: 7,
+					BindingType:         1,
 				}
-				valueDefinition, keyVD, valueVD, err := metricBinding.ValueDefinitionBuilder(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)

@@ -322,7 +322,7 @@ type MetricDataBindArtifactRequest struct {
 }
 
 type MetricFormula struct {
-	ID                  string           `json:"ID" bson:"id" validate:"required"`
+	ID                  string `json:"ID" bson:"id" validate:"required"`
 	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula
 	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
@@ -340,13 +340,13 @@ type FormulaDetails struct {
 }
 
 type MetricExpertFormula struct {
-	ID              string        `json:"ID" bson:"id" validate:"required"`
-	Name            string        `json:"Name" bson:"name" validate:"required"`
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
 	Formula         []FullFormula
-	FormulaAsString string        `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
-	FormulaAsQuery  string        `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	CreatedAt       string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt       string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	FormulaAsString string `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsQuery  string `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
+	CreatedAt       string `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt       string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 }
 
 type FullFormula struct {
@@ -392,7 +392,7 @@ type ActivityFormulaDefinitionManageData struct {
 type BindManageData struct {
 	ManageDataOrder int
 	ManageDataType  string
-	BindData        GeneralValueDefBuildRequest
+	BindData        ValueBuilder
 	Key             string
 	Value           []byte
 }
@@ -418,4 +418,17 @@ type SuccessResponseExpertFormula struct {
 	ID                string
 	FormulaID         string
 	TransactionHashes []string
+}
+
+type ValueBuilder struct {
+	ValueUUID           string
+	WorkflowID          string
+	StageID             string
+	TracabilityDataType uint
+	BindingType         uint
+}
+
+type WorkflowMap struct {
+	WorkflowID string
+	MapID      uint64
 }

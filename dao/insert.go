@@ -505,7 +505,7 @@ func (cd *Connection) InsertToAPIThrottler(throttellerReq model.ThrottlerRecord)
 }
 
 // Insert ExpertFormula Details to DB
-func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) (string,error){
+func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) (string, error) {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -516,7 +516,7 @@ func (cd *Connection) InsertExpertFormula(expertFormula model.FormulaStore) (str
 	if err != nil {
 		logrus.Info("Error when inserting Expert Formula to DB " + err.Error())
 	}
-	return result.InsertedID.(primitive.ObjectID).Hex(),err
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
 
 func (cd *Connection) InsertToResourceIDMap(resourceIDMap model.ResourceIdMap) error {
@@ -575,7 +575,7 @@ func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails)
 	return err
 }
 
-func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string,error) {
+func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string, error) {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -586,5 +586,19 @@ func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBind
 	if err != nil {
 		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
 	}
-	return result.InsertedID.(primitive.ObjectID).Hex(),err
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+	_, err = c.InsertOne(context.TODO(), tenentIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting workflow id to DB " + err.Error())
+	}
+	return err
 }
