@@ -184,6 +184,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				}
 				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
 			} else {
+				//Master data type
 				bindValue := model.ValueBuilder{
 					ValueUUID:           formula.ID,
 					WorkflowID:          "test",
@@ -210,6 +211,37 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					Value:           valueVD,
 				}
 				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
+
+				//Meta data builder
+				metaDataB64 := b64.StdEncoding.EncodeToString([]byte("Artifact template name"))
+				metaDataBuilder, errInMetaDataBuilder := metricBinding.BuildMetaData(metaDataB64)
+				if errInMetaDataBuilder != nil {
+					logrus.Error("Buidling metadata failed ", errInMetaDataBuilder.Error())
+					metricBindingStore.ErrorMessage = errInMetaDataBuilder.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errInMetaDataBuilder.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+					return
+				}
+				manageDataOpArray = append(manageDataOpArray, &metaDataBuilder)
+
+				//Primary key column name builder
+				pkColumnNameB64 := b64.StdEncoding.EncodeToString([]byte("Primary Key Column Name"))
+				pkColBuilder, errInPKColBuilder := metricBinding.BuildPrimaryKeyColumn(pkColumnNameB64)
+				if errInPKColBuilder != nil {
+					logrus.Error("Buidling primary key column failed ", errInPKColBuilder.Error())
+					metricBindingStore.ErrorMessage = errInMetaDataBuilder.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errInPKColBuilder.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+					return
+				}
+				manageDataOpArray = append(manageDataOpArray, &pkColBuilder)
+
 			}
 		}
 	}
