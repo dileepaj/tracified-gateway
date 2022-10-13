@@ -432,3 +432,9 @@ type WorkflowMap struct {
 	WorkflowID string
 	MapID      uint64
 }
+
+
+type ArtifactIDMap struct {
+	ArtifactID string
+	MapID      uint64
+}

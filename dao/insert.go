@@ -602,3 +602,17 @@ func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error
 	}
 	return err
 }
+
+func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("ArtifactIDMAP")
+	_, err = c.InsertOne(context.TODO(), artifactMap)
+	if err != nil {
+		logrus.Info("Error when inserting artifact id to DB " + err.Error())
+	}
+	return err
+}
