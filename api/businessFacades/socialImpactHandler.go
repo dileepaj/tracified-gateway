@@ -80,21 +80,27 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 // BindMetric method : binds the metric with mutiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	var metricBindJSON model.MetricDataBindingRequest
-	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
-	if err != nil {
-		commons.JSONErrorReturn(w, r, err.Error(), http.StatusBadRequest, "Error while decoding the body ")
-		return
-	}
-	errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)
-	if errInJsonValidationInMetricBind != nil {
-		commons.JSONErrorReturn(w, r, errInJsonValidationInMetricBind.Error(), http.StatusBadRequest, "Request body is invalid, Error :")
+	permissionStatus := authentication.HasPermission(r.Header.Get("Authorization"))
+	if !permissionStatus.Status || !permissionStatus.IsSubscriptionPaid {
+		commons.JSONErrorReturn(w, r, "", http.StatusUnauthorized, "Status Unauthorized")
 		return
 	} else {
-		metricBuilder := protocols.AbstractSocialImpactMetricBinding{
-			Blockchain:     metricBindJSON.Blockchain,
-			MetricBindJSON: metricBindJSON,
+		var metricBindJSON model.MetricDataBindingRequest
+		err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
+		if err != nil {
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusBadRequest, "Error while decoding the body ")
+			return
 		}
-		metricBuilder.SocialImpactMetricBinding(w, r)
+		errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)
+		if errInJsonValidationInMetricBind != nil {
+			commons.JSONErrorReturn(w, r, errInJsonValidationInMetricBind.Error(), http.StatusBadRequest, "Request body is invalid, Error :")
+			return
+		} else {
+			metricBuilder := protocols.AbstractSocialImpactMetricBinding{
+				Blockchain:     metricBindJSON.Blockchain,
+				MetricBindJSON: metricBindJSON,
+			}
+			metricBuilder.SocialImpactMetricBinding(w, r)
+		}
 	}
 }
