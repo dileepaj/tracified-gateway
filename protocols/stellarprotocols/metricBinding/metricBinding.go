@@ -327,6 +327,35 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				}
 				manageDataOpArray = append(manageDataOpArray, &pkColBuilder)
 
+				//Field key builder
+				fieldKeyNameB64 := b64.StdEncoding.EncodeToString([]byte("Field Key Name"))
+				fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.BuildFieldKey(fieldKeyNameB64)
+				if errWhenBuildingFieldKey != nil {
+					logrus.Error("Buidling field key failed ", errWhenBuildingFieldKey.Error())
+					metricBindingStore.ErrorMessage = errWhenBuildingFieldKey.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errWhenBuildingFieldKey.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+					return
+				}
+				manageDataOpArray = append(manageDataOpArray, &fieldKeyBuilder)
+
+				//Field name builder
+				fieldNameB64 := b64.StdEncoding.EncodeToString([]byte("Field Name"))
+				fieldNameBuilder, errWhenBuildingFieldName := metricBinding.BuildFieldName(fieldNameB64)
+				if errWhenBuildingFieldName != nil {
+					logrus.Error("Buidling field name failed ", errWhenBuildingFieldName.Error())
+					metricBindingStore.ErrorMessage = errWhenBuildingFieldName.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errWhenBuildingFieldName.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+					return
+				}
+				manageDataOpArray = append(manageDataOpArray, &fieldNameBuilder)
 			}
 		}
 	}
