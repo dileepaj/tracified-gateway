@@ -294,23 +294,22 @@ type MetricReq struct {
 	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
-	User           User
-	ErrorMessage   string `json:"ErrorMessage" bson:"errorMessage"`
-	Transactions   TransacionDetailsMetricBinding
+	ErrorMessage   string                          `json:"ErrorMessage" bson:"errorMessage"`
+	Transactions   TransacionDetailsMetricBinding  `json:"ErrorMessage" bson:"transactions"`
 }
 type MetricDataBindActivityRequest struct {
-	ID                                  string
-	Name                                string
-	StageID                             string
-	Stage                               StageReq
-	MetricID                            string
-	MetricFormula                       MetricFormulaReq
-	WorkflowID                          string
-	Revision                            int
-	TenantID                            string
-	CreatedAt                           string
-	UpdatedAt                           string
-	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData
+	ID                                  string                              `json:"ID" bson:"id" validate:"required"`
+	Name                                string                              `json:"Name" bson:"id" validate:"required"`
+	StageID                             string                              `json:"StageID" bson:"id" validate:"required"`
+	Stage                               StageReq                            `json:"ID" bson:"id" validate:"required"`
+	MetricID                            string                              `json:"ID" bson:"id" validate:"required"`
+	MetricFormula                       MetricFormulaReq                    `json:"ID" bson:"id" validate:"required"`
+	WorkflowID                          string                              `json:"ID" bson:"id" validate:"required"`
+	Revision                            int                                 `json:"ID" bson:"id" validate:"required"`
+	TenantID                            string                              `json:"ID" bson:"id" validate:"required"`
+	CreatedAt                           string                              `json:"ID" bson:"id" validate:"required"`
+	UpdatedAt                           string                              `json:"ID" bson:"id" validate:"required"`
+	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData `json:"ID" bson:"id" validate:"required"`
 }
 
 type MetricFormulaReq struct {

@@ -135,20 +135,43 @@ func ValidateStageData(element model.Stage) error {
 }
 
 func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) error {
+	//validate Metric Object
+	errWhenValidatingMetricReq := ValidateMetricObject(element.Metric)
+	if errWhenValidatingMetricReq != nil {
+		return errWhenValidatingMetricReq
+	}
+
+	//validate User object
+	errWhenValidatingUserDetails := ValidateUser(element.User)
+	if errWhenValidatingUserDetails != nil {
+		return errWhenValidatingUserDetails
+	}
+
+	return nil
+}
+
+func ValidateMetricObject(element model.MetricReq) error {
 	validate := validator.New()
 	err := validate.Struct(element)
 	if err != nil {
 		return err
 	}
 
-	for i := 0; i < len(element.Metric.Activities); i++ {
-		//validate the MetricDataBindArtifactRequest
-		// errWhenValidatingMetricDataBindArtifactRequest := ValidateMetricDataBindArtifactRequest(element.Metric.Activities[i])
-		// if errWhenValidatingMetricDataBindArtifactRequest != nil {
-		// 	return errWhenValidatingMetricDataBindArtifactRequest
-		// }
-	}
+	//Validate activity array
 
+	return nil
+}
+
+func ValidateActivityArray(element model.MetricDataBindActivityRequest) error {
+	return nil
+}
+
+func ValidateUser(element model.User) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
