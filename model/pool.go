@@ -460,10 +460,10 @@ type CoinConvertBody struct {
 }
 
 type PivotField struct {
-	Name               string `json:"Name" bson:"name" validate:"required"`
-	Condition          string `json:"Condition" bson:"condition" validate:"required"`
-	Value              string `json:"Value" bson:"value" validate:"required"`
-	Field              string `json:"Field" bson:"field" validate:"required"`
-	ArtifactDataId     string `json:"ArtifactDataId" bson:"artifactdataid" validate:"required"`
-	ArtifactTemplateId string `json:"ArtifactTemplateId" bson:"artifacttemplateid" validate:"required"`
+	Name               string
+	Condition          string
+	Value              string
+	Field              string
+	ArtifactDataId     string
+	ArtifactTemplateId string
 }

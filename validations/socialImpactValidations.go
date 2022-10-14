@@ -157,12 +157,111 @@ func ValidateMetricObject(element model.MetricReq) error {
 		return err
 	}
 
-	//Validate activity array
+	for i := 0; i < len(element.Activities); i++ {
+		//Validate activity array
+		errWHenValidatingActivity := ValidateActivityArray(element.Activities[i])
+		if errWHenValidatingActivity != nil {
+			return errWHenValidatingActivity
+		}
+	}
 
 	return nil
 }
 
 func ValidateActivityArray(element model.MetricDataBindActivityRequest) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate stage array
+	errWhenValidatingStageBlock := ValidateStageReq(element.Stage)
+	if errWhenValidatingStageBlock != nil {
+		return errWhenValidatingStageBlock
+	}
+
+	//validate metric formula
+	errWhenValidatingMetricFormula := ValidateMetricFormulaReq(element.MetricFormula)
+	if errWhenValidatingMetricFormula != nil {
+		return errWhenValidatingMetricFormula
+	}
+
+	//validate ActivityFormulaDefinitionManageData
+	errWhenValidatingActivityFormulaDefinitionManageData := ValidateActivityFormulaDefinitionManageData(element.ActivityFormulaDefinitionManageData)
+	if errWhenValidatingActivityFormulaDefinitionManageData != nil {
+		return errWhenValidatingActivityFormulaDefinitionManageData
+	}
+	return nil
+}
+
+func ValidateActivityFormulaDefinitionManageData(element model.ActivityFormulaDefinitionManageData) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateMetricFormulaReq(element model.MetricFormulaReq) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate formula
+	for i := 0; i < len(element.Formula); i++ {
+		errWhenValidatingFormula := ValidateFormula(element.Formula[i])
+		if errWhenValidatingFormula != nil {
+			return errWhenValidatingFormula
+		}
+	}
+
+	//validate metric expert formula
+	errWhenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
+	if errWhenValidatingMetricExpertFormula != nil {
+		return errWhenValidatingMetricExpertFormula
+	}
+
+	return nil
+}
+
+func ValidateFormula(element model.FormulaDetails) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate master data
+	if element.ArtifactTemplateID != "" {
+		//validate artifact template
+		errWhenValidatingArtifactTemplate := ValidateArtifactTemplate(element.ArtifactTemplate)
+		if errWhenValidatingArtifactTemplate != nil {
+			return errWhenValidatingArtifactTemplate
+		}
+
+	}
+
+	return nil
+
+}
+
+func ValidateArtifactTemplate(element model.ArtifactTemplate) error {
+	if element.ID == "" || element.Name == "" || element.FieldName == "" {
+		return errors.New("Artifact template validation failed")
+	}
+	return nil
+}
+
+func ValidateStageReq(element model.StageReq) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
