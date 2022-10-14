@@ -473,3 +473,19 @@ type ArtifactIDMap struct {
 	ArtifactID string
 	MapID      uint64
 }
+type PivotField struct {
+	Name               string
+	Condition          string
+	Value              string
+	Field              string
+	ArtifactDataId     string
+	ArtifactTemplateId string
+}
+
+type Activity struct {
+	ID              string `json:"ID" bson:"id" validate:"required"`
+	Name            string `json:"Name" bson:"name" validate:"required"`
+	ProductName     string
+	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
+	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
+}
