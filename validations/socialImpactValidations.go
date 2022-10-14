@@ -141,12 +141,12 @@ func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) er
 		return err
 	}
 
-	for i := 0; i < len(element.Activities); i++ {
+	for i := 0; i < len(element.Metric.Activities); i++ {
 		//validate the MetricDataBindArtifactRequest
-		errWhenValidatingMetricDataBindArtifactRequest := ValidateMetricDataBindArtifactRequest(element.Activities[i])
-		if errWhenValidatingMetricDataBindArtifactRequest != nil {
-			return errWhenValidatingMetricDataBindArtifactRequest
-		}
+		// errWhenValidatingMetricDataBindArtifactRequest := ValidateMetricDataBindArtifactRequest(element.Metric.Activities[i])
+		// if errWhenValidatingMetricDataBindArtifactRequest != nil {
+		// 	return errWhenValidatingMetricDataBindArtifactRequest
+		// }
 	}
 
 	return nil
@@ -182,13 +182,13 @@ func ValidateMetricFormula(element model.MetricFormula) error {
 		}
 	}
 	//validate MetricExpertFormula
-		errWHenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
-		if errWHenValidatingMetricExpertFormula != nil {
-			return errWHenValidatingMetricExpertFormula
-		}
+	errWHenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
+	if errWHenValidatingMetricExpertFormula != nil {
+		return errWHenValidatingMetricExpertFormula
+	}
 	//validate pivot field
-	for i := 0; i < len(element.PivotFields); i++ {
-		errWhenValidatingPivotFields := ValidatePivotField(element.PivotFields[i])
+	for i := 0; i < len(element.PivotField); i++ {
+		errWhenValidatingPivotFields := ValidatePivotField(element.PivotField[i])
 		if errWhenValidatingPivotFields != nil {
 			return errWhenValidatingPivotFields
 		}

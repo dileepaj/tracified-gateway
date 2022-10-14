@@ -277,10 +277,13 @@ type ResourceIdMap struct {
 }
 
 type MetricDataBindingRequest struct {
+	Metric MetricReq
+	User   User
+}
+
+type MetricReq struct {
 	ID             string `json:"ID" bson:"id" validate:"required"`
 	Blockchain     string `json:"Blockchain" bson:"blockchain" validate:"required"`
-	UserID         string `json:"UserID" bson:"userid"`
-	UserPK         string `json:"UserPK" bson:"userpk"`
 	Name           string `json:"Name" bson:"name" validate:"required"`
 	Description    string `json:"Description" bson:"description" validate:"required"`
 	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef"`
@@ -290,12 +293,38 @@ type MetricDataBindingRequest struct {
 	TenantId       string `json:"TenantId" bson:"tenantId" validate:"required"`
 	CreatedAt      string `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	Activities     []MetricDataBindArtifactRequest
-	User           User
-	Transactions   TransacionDetailsMetricBinding
+	Activities     []MetricDataBindActivityRequest
 	ErrorMessage   string `json:"ErrorMessage" bson:"errorMessage"`
+	Transactions   TransacionDetailsMetricBinding
+}
+type MetricDataBindActivityRequest struct {
+	ID                                  string
+	Name                                string
+	StageID                             string
+	Stage                               StageReq
+	MetricID                            string
+	MetricFormula                       MetricFormulaReq
+	WorkflowID                          string
+	Revision                            int
+	TenantID                            string
+	CreatedAt                           string
+	UpdatedAt                           string
+	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData
 }
 
+type MetricFormulaReq struct {
+	ID                  string
+	Formula             []FormulaDetails
+	MetricExpertFormula MetricExpertFormula
+	TenantID            string
+	PivotField          PivotField
+	Active              bool
+}
+
+type StageReq struct {
+	StageID string
+	Name    string
+}
 type TransacionDetailsMetricBinding struct {
 	Memo                        []byte
 	MetricID                    string
@@ -325,23 +354,30 @@ type MetricFormula struct {
 	ID                  string `json:"ID" bson:"id" validate:"required"`
 	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula
-	TenantID            string `json:"TenantID" bson:"tenantId" validate:"required"`
-	PivotFields         []PivotField
-	Active              bool `json:"Active" bson:"active" validate:"required"`
+	TenantID            string
+	PivotField          []PivotField
+	Active              bool
 }
 
 type FormulaDetails struct {
 	ID                 string `json:"ID" bson:"id" validate:"required"`
 	Key                string `json:"Key" bson:"key" validate:"required"`
 	Field              string
+	Type               int
 	ArtifactTemplateID string
+	ArtifactTemplate   ArtifactTemplate
 	Description        string `json:"Description" bson:"description" validate:"required"`
 	BindManageData     BindManageData
 }
 
+type ArtifactTemplate struct {
+	ID        string
+	Name      string
+	FieldName string
+}
 type MetricExpertFormula struct {
 	ID              string `json:"ID" bson:"id" validate:"required"`
-	Name            string `json:"Name" bson:"name" validate:"required"`
+	Name            string
 	Formula         []FullFormula
 	FormulaAsString string `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
 	FormulaAsQuery  string `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
@@ -432,7 +468,6 @@ type WorkflowMap struct {
 	WorkflowID string
 	MapID      uint64
 }
-
 
 type ArtifactIDMap struct {
 	ArtifactID string

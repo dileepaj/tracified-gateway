@@ -97,7 +97,7 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			metricBuilder := protocols.AbstractSocialImpactMetricBinding{
-				Blockchain:     metricBindJSON.Blockchain,
+				Blockchain:     metricBindJSON.Metric.Blockchain,
 				MetricBindJSON: metricBindJSON,
 			}
 			metricBuilder.SocialImpactMetricBinding(w, r)
