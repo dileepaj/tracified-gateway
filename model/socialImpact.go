@@ -294,7 +294,6 @@ type MetricReq struct {
 	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
-	User           User
 	ErrorMessage   string `json:"ErrorMessage" bson:"errorMessage"`
 	Transactions   TransacionDetailsMetricBinding
 }
