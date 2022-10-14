@@ -239,5 +239,22 @@ func ValidateFullFormula(element model.FullFormula) error {
 	if err != nil {
 		return err
 	}
+	//checking the required fields in each of the field type
+	if element.Type == "DATA" {
+		//check the variable type validations
+		if element.Name == "" || element.Key == "" || element.ID == "" {
+			return errors.New("incorrect data type fields")
+		}
+	} else if element.Type == "CONSTANT" {
+		//check the constant type validations
+		if element.Name == "" || element.ID == "" || element.Key == "" || element.Value == "" {
+			return errors.New("incorrect constant type fields")
+		}
+	} else if element.Type == "OPERATOR" {
+		//check the operator contant type validations
+		if element.ID == "" {
+			return errors.New("incorrect operator type fields")
+		}
+	}
 	return nil
 }

@@ -282,18 +282,19 @@ type MetricDataBindingRequest struct {
 }
 
 type MetricReq struct {
-	ID             string `json:"ID" bson:"id" validate:"required"`
-	Blockchain     string `json:"Blockchain" bson:"blockchain" validate:"required"`
-	Name           string `json:"Name" bson:"name" validate:"required"`
-	Description    string `json:"Description" bson:"description" validate:"required"`
-	BenchmarkRef   string `json:"BenchmarkRef" bson:"benchmarkRef"`
-	BenchmarkValue string `json:"BenchmarkValue" bson:"benchmarkValue"`
-	BenchmarkUnit  string `json:"BenchmarkUnit" bson:"benchmarkUnit"`
-	Status         string `json:"Status" bson:"status"`
-	TenantId       string `json:"TenantId" bson:"tenantId" validate:"required"`
-	CreatedAt      string `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt      string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	Activities     []MetricDataBindActivityRequest
+	ID             string                          `json:"ID" bson:"id" validate:"required"`
+	Blockchain     string                          `json:"Blockchain" bson:"blockchain" validate:"required"`
+	Name           string                          `json:"Name" bson:"name" validate:"required"`
+	Description    string                          `json:"Description" bson:"description" validate:"required"`
+	BenchmarkRef   string                          `json:"BenchmarkRef" bson:"benchmarkRef"`
+	BenchmarkValue string                          `json:"BenchmarkValue" bson:"benchmarkValue"`
+	BenchmarkUnit  string                          `json:"BenchmarkUnit" bson:"benchmarkUnit"`
+	Status         string                          `json:"Status" bson:"status"`
+	TenantId       string                          `json:"TenantId" bson:"tenantId" validate:"required"`
+	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
+	User           User
 	ErrorMessage   string `json:"ErrorMessage" bson:"errorMessage"`
 	Transactions   TransacionDetailsMetricBinding
 }
@@ -351,8 +352,8 @@ type MetricDataBindArtifactRequest struct {
 }
 
 type MetricFormula struct {
-	ID                  string `json:"ID" bson:"id" validate:"required"`
-	Formula             []FormulaDetails
+	ID                  string           `json:"ID" bson:"id" validate:"required"`
+	Formula             []FormulaDetails `json:"Formula" bson:"formula" validate:"required"`
 	MetricExpertFormula MetricExpertFormula
 	TenantID            string
 	PivotField          []PivotField
@@ -376,13 +377,13 @@ type ArtifactTemplate struct {
 	FieldName string
 }
 type MetricExpertFormula struct {
-	ID              string `json:"ID" bson:"id" validate:"required"`
-	Name            string
-	Formula         []FullFormula
-	FormulaAsString string `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
-	FormulaAsQuery  string `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	CreatedAt       string `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt       string `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	ID              string        `json:"ID" bson:"id" validate:"required"`
+	Name            string        `json:"Name" bson:"name" validate:"required"`
+	Formula         []FullFormula `json:"Formula" bson:"formula" validate:"required"`
+	FormulaAsString string        `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsQuery  string        `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
+	CreatedAt       string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt       string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 }
 
 type FullFormula struct {
