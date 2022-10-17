@@ -501,3 +501,54 @@ func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) err
 	}
 	return err
 }
+
+func (cd *Connection) InsertSplitData(obj model.Splits) error {
+	fmt.Println("--------------------------- InsertMassBalanceSplits ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("BatchData")
+	_, err = c.InsertOne(context.TODO(), obj)
+
+	if err != nil {
+		fmt.Println("Error while inserting to BatchData " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertMergeData(obj model.Merges) error {
+	fmt.Println("--------------------------- InsertMassBalanceMerges ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("BatchData")
+	_, err = c.InsertOne(context.TODO(), obj)
+
+	if err != nil {
+		fmt.Println("Error while inserting to BatchData " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) BatchTrackingData(obj model.Batches) error {
+	fmt.Println("--------------------------- InsertBatches ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("BatchTrackingData")
+	_, err = c.InsertOne(context.TODO(), obj)
+
+	if err != nil {
+		fmt.Println("Error while inserting to BatchData " + err.Error())
+	}
+	return err
+}
