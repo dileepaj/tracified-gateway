@@ -3,6 +3,7 @@ package authentication
 import (
 	"fmt"
 	"reflect"
+	"strconv"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -10,16 +11,17 @@ import (
 )
 
 type PermissionStatus struct {
-	Status   bool
-	TenantId string
-	UserId   string
+	Status             bool
+	TenantId           string
+	UserId             string
+	IsSubscriptionPaid bool
 }
 
 /*
  * The HasPermission function will return a boolean value which will be used to check if the user has the required access claim or not
  */
 
-func HasPermission(reqToken string, accessClaim string) PermissionStatus {
+func HasPermission(reqToken string) PermissionStatus {
 	var ps PermissionStatus
 
 	if len(reqToken) > 0 {
@@ -55,7 +57,7 @@ func HasPermission(reqToken string, accessClaim string) PermissionStatus {
 					case reflect.Slice:
 						s := reflect.ValueOf(v)
 						for i := 0; i < s.Len(); i++ {
-							if s.Index(i).Interface().(string) == accessClaim {
+							if s.Index(i).Interface().(string) == "98" {
 								ps.Status = true
 							}
 						}
@@ -64,6 +66,9 @@ func HasPermission(reqToken string, accessClaim string) PermissionStatus {
 					logrus.Println("Permissions not found")
 					ps.Status = false
 				}
+			}
+			if key == "isSubscriptionPaid" {
+				ps.IsSubscriptionPaid, _ = strconv.ParseBool(fmt.Sprintf("%v", val))
 			}
 		}
 	} else {

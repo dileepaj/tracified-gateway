@@ -1728,148 +1728,6 @@ func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promi
 	return p
 }
 
-func (cd *Connection) GetTrustline(coinName string, coinIssuer string, coinReceiver string) *promise.Promise {
-	resultTrustlineObj := model.TrustlineHistory{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			log.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("TrustlineHistory")
-		err = c.FindOne(context.TODO(), bson.M{"coinissuer": coinIssuer, "coinreceiver": coinReceiver, "asset": coinName}).Decode(&resultTrustlineObj)
-		if err != nil {
-			logrus.Info("Error when fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(resultTrustlineObj)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetBatchSpecificAccount(formulaType, batchOrArtifcatId,
-	productId, tenantId string,
-) *promise.Promise {
-	resultBatchAccountObj := model.CoinAccount{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("CoinAccount")
-		if formulaType == "BATCH" {
-			err = c.FindOne(context.TODO(), bson.M{
-				"event.details.batchid":         batchOrArtifcatId,
-				"event.details.tracifieditemid": productId, "tenantid": tenantId,
-				"type": formulaType,
-			}).Decode(&resultBatchAccountObj)
-		} else {
-			err = c.FindOne(context.TODO(), bson.M{
-				"event.details.artifactid": batchOrArtifcatId,
-				"tenantid":                 tenantId, "type": formulaType,
-			}).Decode(&resultBatchAccountObj)
-		}
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(resultBatchAccountObj)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetSpecificAccountByActivityAndFormula(formulaType, batchOrArtifcatId, formulaId,
-	productId, tenantId, activityId string,
-) *promise.Promise {
-	// bpsk
-	resultBatchAccountObj := model.BuildPathPaymentJSon{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("CoinConversion")
-		if formulaType == "BATCH" {
-			err = c.FindOne(context.TODO(), bson.M{
-				"event.event.details.batchid": batchOrArtifcatId, "event.event.details.tracifieditemid": productId,
-				"event.tenantid": tenantId, "event.type": formulaType, "event.metricformulaid": formulaId,
-				"event.metricactivityid": activityId,
-			}).Decode(&resultBatchAccountObj)
-		} else {
-			err = c.FindOne(context.TODO(), bson.M{
-				"event.event.details.artifactid": batchOrArtifcatId,
-				"event.tenantid":                 tenantId, "event.type": formulaType,
-			}).Decode(&resultBatchAccountObj)
-		}
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(resultBatchAccountObj)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetLiquidityPool(equatonId string, tenantId string, formulatype string) *promise.Promise {
-	pool := model.BuildPoolResponse{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(pool)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetLiquidityPoolByProductAndActivity(equatonId, tenantId, formulatype, activityId, stageID string) *promise.Promise {
-	pool := model.BuildPoolResponse{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype, "activity.id": activityId, "activity.stageid": stageID}).Decode(&pool)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(pool)
-		}
-	})
-	return p
-}
-
 func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string, blockchain string) *promise.Promise {
 	result := model.NFTWithTransactionSolana{}
 	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1959,29 +1817,6 @@ func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, di
 	return p
 }
 
-func (cd *Connection) GetLiquidityPoolForArtifact(equatonId string, tenantId string, formulatype string) *promise.Promise {
-	pool := model.BuildPoolResponse{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("PoolDetails")
-		err = c.FindOne(context.TODO(), bson.M{"equationid": equatonId, "tenantid": tenantId, "formulatype": formulatype}).Decode(&pool)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(pool)
-		}
-	})
-	return p
-}
-
 func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
 	result := model.MarketPlaceNFT{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1998,111 +1833,6 @@ func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
 			reject(err1)
 		} else {
 			resolve(result)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetCoinName(coinName string) *promise.Promise {
-	var coin model.CoinName
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("CoinName")
-		// Sort by `price` field descending
-		findOptions := options.FindOne()
-		findOptions.SetSort(bson.D{{"timestamp", -1}})
-		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName}, findOptions).Decode(&coin)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(coin)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetCoinNameByKeys(coinName, fullCoinName, tenantId, equationId, metricId string) *promise.Promise {
-	var coin model.CoinName
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("CoinName")
-		err = c.FindOne(context.TODO(), bson.M{"coinname": coinName, "fullcoinname": fullCoinName, "tenantid": tenantId, "equationid": equationId, "metricid": metricId}).Decode(&coin)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(coin)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetPool(coin1, coin2 string) *promise.Promise {
-	var coin model.Pool
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-		filter := bson.M{
-			"$or": []interface{}{
-				bson.M{"coin1": coin1, "coin2": coin2},
-				bson.M{"coin1": coin2, "coin2": coin1},
-			},
-		}
-		c := session.Client().Database(dbName).Collection("CreatedPool")
-		err = c.FindOne(context.TODO(), filter).Decode(&coin)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(coin)
-		}
-	})
-	return p
-}
-
-func (cd *Connection) GetCreatedPool(coin1, coin2 string) *promise.Promise {
-	var coin model.BuildPool
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			logrus.Error("Error when connecting to DB " + err.Error())
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-		filter := bson.M{
-			"$or": []interface{}{
-				bson.M{"coin1": coin1, "coin2": coin2},
-				bson.M{"coin1": coin2, "coin2": coin1},
-			},
-		}
-		c := session.Client().Database(dbName).Collection("CreatedPool")
-		err = c.FindOne(context.TODO(), filter).Decode(&coin)
-		if err != nil {
-			log.Info("Fetching data from DB " + err.Error())
-			reject(err)
-		} else {
-			resolve(coin)
 		}
 	})
 	return p
@@ -2158,51 +1888,6 @@ func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
 		}
 	})
 	return promise
-}
-
-// get path payment details from the CoinConversion collection
-func (cd *Connection) GetCoinConversionDetails(formulType, equatonId, productName, tenantId string) *promise.Promise {
-	result := []model.CoinConversionDetails{}
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		session, err := cd.connect()
-		if err != nil {
-			reject(err)
-		}
-		defer session.EndSession(context.TODO())
-
-		c := session.Client().Database(dbName).Collection("CoinConversion")
-		if formulType == "BATCH" {
-			cursor, err1 := c.Find(context.TODO(), bson.M{"formulatype": formulType, "equationid": equatonId, "productidname": productName, "tenantid": tenantId})
-
-			if err1 != nil {
-				reject(err1)
-			} else {
-				err2 := cursor.All(context.TODO(), &result)
-				if err2 != nil || len(result) == 0 {
-					log.Error("Error while getting coin convert details from db " + err.Error())
-					reject(err2)
-				} else {
-					resolve(result)
-				}
-			}
-		} else {
-			cursor, err1 := c.Find(context.TODO(), bson.M{"formulatype": formulType, "equationid": equatonId, "tenantid": tenantId})
-
-			if err1 != nil {
-				reject(err1)
-			} else {
-				err2 := cursor.All(context.TODO(), &result)
-				if err2 != nil || len(result) == 0 {
-					log.Error("Error while getting coin convert details from db " + err.Error())
-					reject(err2)
-				} else {
-					resolve(result)
-				}
-			}
-		}
-	})
-	return p
 }
 
 func (cd *Connection) GetFormulaMapID(formulaID string) *promise.Promise {
@@ -2463,12 +2148,56 @@ func (cd *Connection) GetExpertFormulaCount(formulaID string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("ExpertFormula")
-		count,err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID,"status":"Success"})
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID, "status": "Success"})
 		if err1 != nil {
 			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(count)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
+	result := model.WorkflowMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+		err1 := c.FindOne(context.TODO(), bson.M{"workflowid": workflowId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting workflow id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetArtifactMapID(artifactId string) *promise.Promise {
+	result := model.ArtifactIDMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ArtifactIDMAP")
+		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting artifact id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
 		}
 	})
 	return p

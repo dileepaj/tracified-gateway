@@ -57,23 +57,6 @@ func ValidateFields(element model.FormulaItemRequest) error {
 	return nil
 }
 
-func ValidateMetricBindingRequest(element model.MetricBindingRequest) error {
-	validate := validator.New()
-	err := validate.Struct(element)
-	if err != nil {
-		return err
-	}
-	//validate the inner object array
-	for i := 0; i < len(element.Formula); i++ {
-		errInValidateFormulasInMetricBinding := ValidateFormulaForMetricBuilding(element.Formula[i])
-		if errInValidateFormulasInMetricBinding != nil {
-			return errInValidateFormulasInMetricBinding
-		}
-	}
-
-	return nil
-}
-
 func ValidateFormulaForMetricBuilding(element model.FormulaForMetricBinding) error {
 	//check if the required fields are empty
 	validate := validator.New()
@@ -152,6 +135,22 @@ func ValidateStageData(element model.Stage) error {
 }
 
 func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) error {
+	//validate Metric Object
+	errWhenValidatingMetricReq := ValidateMetricObject(element.Metric)
+	if errWhenValidatingMetricReq != nil {
+		return errWhenValidatingMetricReq
+	}
+
+	//validate User object
+	errWhenValidatingUserDetails := ValidateUser(element.User)
+	if errWhenValidatingUserDetails != nil {
+		return errWhenValidatingUserDetails
+	}
+
+	return nil
+}
+
+func ValidateMetricObject(element model.MetricReq) error {
 	validate := validator.New()
 	err := validate.Struct(element)
 	if err != nil {
@@ -159,13 +158,119 @@ func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) er
 	}
 
 	for i := 0; i < len(element.Activities); i++ {
-		//validate the MetricDataBindArtifactRequest
-		errWhenValidatingMetricDataBindArtifactRequest := ValidateMetricDataBindArtifactRequest(element.Activities[i])
-		if errWhenValidatingMetricDataBindArtifactRequest != nil {
-			return errWhenValidatingMetricDataBindArtifactRequest
+		//Validate activity array
+		errWHenValidatingActivity := ValidateActivityArray(element.Activities[i])
+		if errWHenValidatingActivity != nil {
+			return errWHenValidatingActivity
 		}
 	}
 
+	return nil
+}
+
+func ValidateActivityArray(element model.MetricDataBindActivityRequest) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate stage array
+	errWhenValidatingStageBlock := ValidateStageReq(element.Stage)
+	if errWhenValidatingStageBlock != nil {
+		return errWhenValidatingStageBlock
+	}
+
+	//validate metric formula
+	errWhenValidatingMetricFormula := ValidateMetricFormulaReq(element.MetricFormula)
+	if errWhenValidatingMetricFormula != nil {
+		return errWhenValidatingMetricFormula
+	}
+
+	//validate ActivityFormulaDefinitionManageData
+	errWhenValidatingActivityFormulaDefinitionManageData := ValidateActivityFormulaDefinitionManageData(element.ActivityFormulaDefinitionManageData)
+	if errWhenValidatingActivityFormulaDefinitionManageData != nil {
+		return errWhenValidatingActivityFormulaDefinitionManageData
+	}
+	return nil
+}
+
+func ValidateActivityFormulaDefinitionManageData(element model.ActivityFormulaDefinitionManageData) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateMetricFormulaReq(element model.MetricFormulaReq) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate formula
+	for i := 0; i < len(element.Formula); i++ {
+		errWhenValidatingFormula := ValidateFormula(element.Formula[i])
+		if errWhenValidatingFormula != nil {
+			return errWhenValidatingFormula
+		}
+	}
+
+	//validate metric expert formula
+	errWhenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
+	if errWhenValidatingMetricExpertFormula != nil {
+		return errWhenValidatingMetricExpertFormula
+	}
+
+	return nil
+}
+
+func ValidateFormula(element model.FormulaDetails) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+
+	//validate master data
+	if element.ArtifactTemplateID != "" {
+		//validate artifact template
+		errWhenValidatingArtifactTemplate := ValidateArtifactTemplate(element.ArtifactTemplate)
+		if errWhenValidatingArtifactTemplate != nil {
+			return errWhenValidatingArtifactTemplate
+		}
+
+	}
+
+	return nil
+
+}
+
+func ValidateArtifactTemplate(element model.ArtifactTemplate) error {
+	if element.ID == "" || element.Name == "" || element.FieldName == "" {
+		return errors.New("Artifact template validation failed")
+	}
+	return nil
+}
+
+func ValidateStageReq(element model.StageReq) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func ValidateUser(element model.User) error {
+	validate := validator.New()
+	err := validate.Struct(element)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -199,13 +304,13 @@ func ValidateMetricFormula(element model.MetricFormula) error {
 		}
 	}
 	//validate MetricExpertFormula
-		errWHenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
-		if errWHenValidatingMetricExpertFormula != nil {
-			return errWHenValidatingMetricExpertFormula
-		}
+	errWHenValidatingMetricExpertFormula := ValidateMetricExpertFormula(element.MetricExpertFormula)
+	if errWHenValidatingMetricExpertFormula != nil {
+		return errWHenValidatingMetricExpertFormula
+	}
 	//validate pivot field
-	for i := 0; i < len(element.PivotFields); i++ {
-		errWhenValidatingPivotFields := ValidatePivotField(element.PivotFields[i])
+	for i := 0; i < len(element.PivotField); i++ {
+		errWhenValidatingPivotFields := ValidatePivotField(element.PivotField[i])
 		if errWhenValidatingPivotFields != nil {
 			return errWhenValidatingPivotFields
 		}
@@ -255,6 +360,23 @@ func ValidateFullFormula(element model.FullFormula) error {
 	err := validate.Struct(element)
 	if err != nil {
 		return err
+	}
+	//checking the required fields in each of the field type
+	if element.Type == "DATA" {
+		//check the variable type validations
+		if element.Name == "" || element.Key == "" || element.ID == "" {
+			return errors.New("incorrect data type fields")
+		}
+	} else if element.Type == "CONSTANT" {
+		//check the constant type validations
+		if element.Name == "" || element.ID == "" || element.Key == "" || element.Value == "" {
+			return errors.New("incorrect constant type fields")
+		}
+	} else if element.Type == "OPERATOR" {
+		//check the operator contant type validations
+		if element.ID == "" {
+			return errors.New("incorrect operator type fields")
+		}
 	}
 	return nil
 }
