@@ -91,7 +91,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	manageDataOpArray = append(manageDataOpArray, &publisherIdentity)
 	// manage data opration order counter
 	//! Formula definitions magane data strat
-	c := 3
+	c := 2
 	for i, activity := range metricBindJson.Metric.Activities {
 		// checked whether given formulaID already in the database or not
 		formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -419,12 +419,15 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		MtericMapId: metricMapID,
 		TenantMapId: uint32(tenantMapId),
 		MetricName:  metricBindJson.Metric.Name,
-		MetricNameMangeData: model.ManageDataCommon{
-			Name:  metricName.Name,
-			Value: metricName.Value,
+		MetricNameMangeData: model.ManageDataMetricName{
+			ManageDataOrder: 1,
+			ManageDataType:  "MEREIC NAME",
+			MetricName:      metricBindJson.Metric.Name,
+			Name:            metricName.Name,
+			Value:           metricName.Value,
 		},
 		NoOfActivityFormula:         len(metricBindJson.Metric.Activities),
-		PublisherIdentityManageData: model.PublisherIdentity{ManageDataOrder: 1, ManageDataType: "PUBLISHER IDENTITY 1", UserID: metricBindJson.User.ID, PublicKeyHash: metricBindJson.User.Publickey, ManageDataKey: publisherIdentity.Name, ManageDataValue: publisherIdentity.Value},
+		PublisherIdentityManageData: model.PublisherIdentity{ManageDataOrder: 2, ManageDataType: "PUBLISHER IDENTITY", UserID: metricBindJson.User.ID, PublicKeyHash: metricBindJson.User.Publickey, ManageDataKey: publisherIdentity.Name, ManageDataValue: publisherIdentity.Value},
 		TotalNumberOfManageData:     len(manageDataOpArray),
 		MaxNumOfManageDatePerHash:   manageDataPerMetricBindingRequest,
 	}

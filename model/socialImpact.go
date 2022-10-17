@@ -331,7 +331,7 @@ type TransacionDetailsMetricBinding struct {
 	MtericMapId                 uint64
 	TenantMapId                 uint32
 	MetricName                  string
-	MetricNameMangeData         ManageDataCommon
+	MetricNameMangeData         ManageDataMetricName
 	NoOfActivityFormula         int
 	PublisherIdentityManageData PublisherIdentity
 	TotalNumberOfManageData     int
@@ -339,9 +339,12 @@ type TransacionDetailsMetricBinding struct {
 	TXNHashes                   []TransactionHash
 }
 
-type ManageDataCommon struct {
-	Name  string
-	Value []byte
+type ManageDataMetricName struct {
+	ManageDataOrder int
+	ManageDataType  string
+	MetricName      string
+	Name            string
+	Value           []byte
 }
 
 type ManageDataStageName struct {
