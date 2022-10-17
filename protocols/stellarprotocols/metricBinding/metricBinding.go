@@ -118,7 +118,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			return
 		}
 		// 3. Formula definition with metadata (Compulsory MDO for each formula)
-		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities)))
+		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities[i].MetricFormula.Formula)))
 		if err != nil {
 			metricBindingStore.Metric.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
