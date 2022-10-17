@@ -309,7 +309,8 @@ type MetricDataBindActivityRequest struct {
 	TenantID                            string                              `json:"TenantID" bson:"tenantid" validate:"required"`
 	CreatedAt                           string                              `json:"CreatedAt" bson:"createdat" validate:"required"`
 	UpdatedAt                           string                              `json:"UpdatedAt" bson:"updatedat" validate:"required"`
-	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData `json:"ActivityFormulaDefinitionManageData" bson:"activityformuladefinitionmanagedata" validate:"required"`
+	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData `json:"ActivityFormulaDefinitionManageData" bson:"activityformuladefinitionmanagedata"`
+	ActivityNameMangeData               ManageDataActivityName
 }
 
 type MetricFormulaReq struct {
@@ -318,7 +319,7 @@ type MetricFormulaReq struct {
 	MetricExpertFormula MetricExpertFormula `json:"MetricExpertFormula" bson:"metricexpertformula" validate:"required"`
 	TenantID            string              `json:"TenantID" bson:"tenantid" validate:"required"`
 	PivotField          PivotField
-	Active              bool `json:"Active" bson:"active" validate:"required"`
+	Active              bool `json:"Active" bson:"active"`
 }
 
 type StageReq struct {
@@ -326,16 +327,86 @@ type StageReq struct {
 	Name    string `json:"Name" bson:"name" validate:"required"`
 }
 type TransacionDetailsMetricBinding struct {
-	Memo                        []byte
 	MetricID                    string
 	MtericMapId                 uint64
 	TenantMapId                 uint32
 	MetricName                  string
+	MetricNameMangeData         ManageDataCommon
 	NoOfActivityFormula         int
 	PublisherIdentityManageData PublisherIdentity
 	TotalNumberOfManageData     int
 	MaxNumOfManageDatePerHash   int
-	TXNHashes                   []string
+	TXNHashes                   []TransactionHash
+}
+
+type ManageDataCommon struct {
+	Name  string
+	Value []byte
+}
+
+type ManageDataStageName struct {
+	ManageDataOrder int
+	ManageDataType  string
+	StageName       string
+	Name            string
+	Value           []byte
+}
+
+type ManageDataMasterDetails struct {
+	ManageDataOrder      int
+	ManageDataType       string
+	ArtifactID           string
+	TracabilityDataType  uint
+	Name                 string
+	Value                []byte
+	ArtifactTemplateName ManageDataArtifactTemplateName
+	ArtifactFieldKey     ManageDataFieldKey
+	ArtifactFieldName    ManageDataFieldName
+}
+type ManageDataKeyName struct {
+	ManageDataOrder int
+	ManageDataType  string
+	KeyName         string
+	Name            string
+	Value           []byte
+}
+
+type ManageDataArtifactTemplateName struct {
+	ManageDataOrder      int
+	ManageDataType       string
+	ArtifactTemplateName string
+	Name                 string
+	Value                []byte
+}
+
+type ManageDataFieldKey struct {
+	ManageDataOrder int
+	ManageDataType  string
+	FieldKey        string
+	Name            string
+	Value           []byte
+}
+
+type ManageDataFieldName struct {
+	ManageDataOrder int
+	ManageDataType  string
+	FieldName       string
+	Name            string
+	Value           []byte
+}
+
+type ManageDataActivityName struct {
+	ManageDataOrder int
+	ManageDataType  string
+	ActivityName    string
+	Name            string
+	Value           []byte
+}
+
+type TransactionHash struct {
+	Order int
+	Memo  []byte
+	Hash  string
 }
 type MetricDataBindArtifactRequest struct {
 	ID                                  string        `json:"ID" bson:"id" validate:"required"`
@@ -420,7 +491,10 @@ type ActivityMapDetails struct {
 type ActivityFormulaDefinitionManageData struct {
 	ManageDataOrder     int
 	ManageDataType      string
+	FormulaMapID        uint64
+	FormulaID           string
 	ActivityMapID       uint64
+	ActivityID          string
 	NoOfDynamicVariable uint32
 	Key                 string
 	Value               []byte
@@ -431,13 +505,16 @@ type BindManageData struct {
 	BindData        ValueBuilder
 	Key             string
 	Value           []byte
+	Stage           ManageDataStageName
+	KeyName         ManageDataKeyName
+	Master          ManageDataMasterDetails
 }
 
 type PublisherIdentity struct {
 	ManageDataOrder int
 	ManageDataType  string
 	UserID          string
-	PublicKey       string
+	PublicKeyHash   string
 	ManageDataKey   string
 	ManageDataValue []byte
 }
@@ -446,7 +523,7 @@ type SuccessResponseMetricBinding struct {
 	Code              int
 	ID                string
 	MetricID          string
-	TransactionHashes []string
+	TransactionHashes []TransactionHash
 }
 
 type SuccessResponseExpertFormula struct {

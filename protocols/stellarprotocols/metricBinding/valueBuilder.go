@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -30,23 +31,20 @@ variable definitions and byte used
 		Future use            - 18 bytes
 */
 func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuilder) (txnbuild.ManageData, string, []byte, error) {
-
 	var valueId uint64
 	variableNameString := ""
-	var workflowID uint64
-	tdpType := ""
 	bindType := ""
 	futureUseInValue := ""
 	keyString := ""
 	object := dao.Connection{}
 
-	//Build key string
-	remain := 64 - len("GENERAL VALUE DEFINITION")
+	// Build key string
+	remain := 64 - len("GENERAL VALUE DEFINITION/")
 	setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-	keyString = "GENERAL VALUE DEFINITION" + setRemainder
+	keyString = "GENERAL VALUE DEFINITION/" + setRemainder
 
-	//Build value string
-	//take value id and name from the DB
+	// Build value string
+	// take value id and name from the DB
 	variableDefMap, errWhenGettingVariableData := object.GetValueMapID(element.ValueUUID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -61,7 +59,7 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 		valueId = valueMapData.MapID
 		variableNameString = valueMapData.ValueName
 	}
-	//check the variable name string length 20 character
+	// check the variable name string length 20 character
 	if len(variableNameString) > 20 {
 		logrus.Error("Variable name is greater than 20 character limit")
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Variable name is greater than 20 character limit")
@@ -76,23 +74,21 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 		variableNameString = variableNameString + setRemainder
 	}
 
-	//build workflow id
-	workflowID, err := InsertAndFindWorkflowId(element.WorkflowID)
+	// build workflow map id
+	workflowMapID, err := InsertAndFindWorkflowId(element.WorkflowID)
 	if err != nil {
 		logrus.Error("Error when getting the workflow map ID " + err.Error())
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Error when getting the workflow map ID " + err.Error())
 	}
 
-	//tracaility data type
-	tempTDPType, errInTDPTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.BindingType))
+	// tracaility data type
+	tracailityTDPDataType, errInTDPTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.TracabilityDataType))
 	if errInTDPTypeConvert != nil {
 		logrus.Error("Error when converting TDP data type " + errInTDPTypeConvert.Error())
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Error when converting TDP data type " + errInTDPTypeConvert.Error())
 	}
-	tdpType = tempTDPType
-
-	//bind type
-	if element.BindingType == 0 || element.BindingType == 1 {
+	// bind type
+	if element.BindingType == 1 || element.BindingType == 2 {
 		tempBindType, errInBindTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.BindingType))
 		if errInBindTypeConvert != nil {
 			logrus.Error("Error when converting bind data type " + errInBindTypeConvert.Error())
@@ -100,18 +96,18 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 		}
 		bindType = tempBindType
 	} else {
-		logrus.Error("Invalid binding type, should be 1 or 0")
-		return txnbuild.ManageData{}, "", []byte{}, errors.New("Invalid binding type, should be 1 or 0")
+		logrus.Error("Invalid binding type, should be 1 or 2")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Invalid binding type, should be 1 or 2")
 	}
-
-	//build future string in value
+	stageID, err := strconv.Atoi(element.StageID)
+	// build future string in value
 	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%036d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Future use byte building issue in value definition failed")
 	}
 	futureUseInValue = string(decodedStrFutureUsed)
 
-	valueString := stellarprotocols.UInt64ToByteString(valueId) + variableNameString + stellarprotocols.UInt64ToByteString(workflowID) + tdpType + bindType + futureUseInValue
+	valueString := stellarprotocols.UInt64ToByteString(valueId) + variableNameString + stellarprotocols.UInt64ToByteString(workflowMapID) + stellarprotocols.UInt64ToByteString(uint64(stageID)) + tracailityTDPDataType + bindType + futureUseInValue
 
 	valueBuilder := txnbuild.ManageData{
 		Name:  keyString,
@@ -121,7 +117,7 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 	logrus.Info("Value builder key string : ", keyString)
 	logrus.Info("Value builder value string : ", valueString)
 
-	if len(keyString) > 64 || len(valueString) > 64 {
+	if len(keyString) != 64 || len(valueString) != 64 {
 		logrus.Error("Value builder key string or value string length exceeds the 64 byte limit")
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Value builder key string or value string length exceeds the 64 byte limit")
 	}
@@ -209,7 +205,7 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 		variableNameString = variableNameString + setRemainder
 	}
 	// check if the binding type is 0 or 1
-	if element.BindingType == 0 || element.BindingType == 1 {
+	if element.BindingType == 1 || element.BindingType == 2 {
 		tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(element.BindingType))
 		if errInValueTypeConvert != nil {
 			logrus.Error("Error when converting value type ", errInValueTypeConvert)
@@ -217,8 +213,8 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 		}
 		valueTypeString = tempValueType
 	} else {
-		logrus.Error("Invalid binding type, should be 1 or 0")
-		return txnbuild.ManageData{}, "", []byte{}, errors.New("Invalid binding type, should be 1 or 0")
+		logrus.Error("Invalid binding type, should be 1 or 2")
+		return txnbuild.ManageData{}, "", []byte{}, errors.New("Invalid binding type, should be 1 or 2")
 	}
 	// Stage/Ref id mapping and adding to string
 	resourceIdMap, errResourceMap := object.GetResourceMapID(element.ResourceID).Then(func(data interface{}) interface{} {

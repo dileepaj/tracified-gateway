@@ -33,7 +33,7 @@ func (metric *MetricBinding) BuildFormulaDefinition(formulaMapID uint64, activit
 	strFetureUsed := string(decodedStrFetureUsed)
 
 	// String for key
-	strForKey := "FORMULA METADATA"
+	strForKey := "FORMULA METADATA/"
 	if len(strForKey) < 64 {
 		remain := 64 - len(strForKey)
 		setRemainder := fmt.Sprintf("%s", strings.Repeat("0", remain))

@@ -16,7 +16,7 @@ return the txnbuild.ManageData object
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
 // tenant user (publisher) public key length - 2 bytes (uint16)
-func (expertFormula ExpertFormula) BuildMemo(types, variableCount uint32, mappedFormulaID uint64, expertPublicKeyLength uint16) (string, string, error) {
+func (expertFormula ExpertFormula) BuildMemo(types uint8, variableCount uint32, mappedFormulaID uint64, expertPublicKeyLength uint16) (string, string, error) {
 	manifest := ""
 	if types == 0 {
 		manifest = "0000000000AAAAAAAAAA"
