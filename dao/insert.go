@@ -552,3 +552,20 @@ func (cd *Connection) BatchTrackingData(obj model.Batches) error {
 	}
 	return err
 }
+
+func (cd *Connection) ConvertBatches(obj model.Conversions) error {
+	fmt.Println("--------------------------- InsertConversion ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("BatchConversionData")
+	_, err = c.InsertOne(context.TODO(), obj)
+
+	if err != nil {
+		fmt.Println("Error while inserting to BatchConversionData " + err.Error())
+	}
+	return err
+}

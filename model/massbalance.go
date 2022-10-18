@@ -31,3 +31,15 @@ type Batches struct {
 	CurrentOwner  string `json:"CurrentOwner" bson:"CurrentOwner" validate:"required"`
 	PreviousOwner string `json:"PreviousOwner" bson:"PreviousOwner" validate:"required"`
 }
+
+type Conversions struct {
+	Sender      string `json:"Sender" bson:"Sender" validate:"required"`
+	Amount      string `json:"Amount" bson:"Amount" validate:"required"`
+	SellAsset   string `json:"SellAsset" bson:"SellAsset" validate:"required"`
+	BuyAsset    string `json:"BuyAsset" bson:"BuyAsset" validate:"required"`
+	SellIssuer  string `json:"SellIssuer" bson:"SellIssuer" validate:"required"`
+	BuyIssuer   string `json:"BuyIssuer" bson:"BuyIssuer" validate:"required"`
+	Numerator   int    `json:"Numerator" bson:"Numerator" validate:"required"`
+	Denominator int    `json:"Denominator" bson:"Denominator" validate:"required"`
+	TXNHash     string `json:"TXNHash" bson:"TXNHash" validate:"required"`
+}

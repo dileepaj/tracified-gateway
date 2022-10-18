@@ -127,3 +127,55 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func Conversions(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	object := dao.Connection{}
+	var obj model.Conversions
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&obj)
+	if err != nil {
+		panic(err)
+	}
+	result1, err1 := massbalance.SetConversion(obj.Sender, obj.Amount, obj.SellAsset, obj.BuyAsset, obj.SellIssuer, obj.BuyIssuer, obj.Numerator, obj.Denominator)
+	if err1 != nil {
+		ErrorMessage := err1.Error()
+		log.Println(w, ErrorMessage)
+		return
+	} else {
+		newobj := model.Conversions{
+			Sender:      obj.Sender,
+			Amount:      obj.Amount,
+			SellAsset:   obj.SellAsset,
+			BuyAsset:    obj.BuyAsset,
+			SellIssuer:  obj.SellIssuer,
+			BuyIssuer:   obj.BuyIssuer,
+			Numerator:   obj.Numerator,
+			Denominator: obj.Denominator,
+			TXNHash:     result1,
+		}
+		object.ConvertBatches(newobj)
+		result2, err2 := massbalance.ConvertBatches(obj.Sender, obj.Amount, obj.SellAsset, obj.BuyAsset, obj.SellIssuer, obj.BuyIssuer, obj.Numerator, obj.Denominator)
+		if err2 != nil {
+			ErrorMessage := err2.Error()
+			log.Println(w, ErrorMessage)
+			return
+		} else {
+			newobj2 := model.Conversions{
+				Sender:      obj.Sender,
+				Amount:      obj.Amount,
+				SellAsset:   obj.SellAsset,
+				BuyAsset:    obj.BuyAsset,
+				SellIssuer:  obj.SellIssuer,
+				BuyIssuer:   obj.BuyIssuer,
+				Numerator:   obj.Numerator,
+				Denominator: obj.Denominator,
+				TXNHash:     result2,
+			}
+			object.ConvertBatches(newobj2)
+			log.Println("Conversion succeeded with: ", result1, result2)
+		}
+	}
+
+}
