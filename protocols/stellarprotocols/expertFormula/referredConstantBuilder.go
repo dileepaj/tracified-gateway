@@ -40,12 +40,13 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	reffedURL := ""
 	if element.MetricReference.Url == "" {
 		reffedURL = "URL Not Provided"
-	} else if len(element.MetricReference.Url) > 20 {
+		reffedURL = reffedURL + "/" 
+		reffedURL = reffedURL + strings.Repeat("0", 64-len(reffedURL))
+	} else if len(element.MetricReference.Url) > 64 {
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Reffed constant url should be less than 64 character")
-	} else if len(element.MetricReference.Url) < 20 {
-		remain := 30 - len(element.MetricReference.Url)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
-		reffedURL = element.MetricReference.Url + `/` + setReaminder
+	} else if len(element.MetricReference.Url) < 64 {
+		reffedURL = element.MetricReference.Url + `/` 
+		reffedURL = reffedURL + strings.Repeat("0", 64-len(reffedURL))
 	} else {
 		reffedURL = element.MetricReference.Url
 	}

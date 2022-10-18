@@ -173,7 +173,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 	valueString := valueTypeString + stellarprotocols.UInt64ToByteString(valueId) + variableNameString + dataTypeString + unitString + precisionString + strFetureUsed
-	keyString := descriptionString
+	keyString := descriptionString + fmt.Sprintf("%s", strings.Repeat("0", 20))
 	logrus.Info("Building variable with Name string of   : ", keyString)
 	logrus.Info("Building variable with value string of : ", valueString)
 	variableDefinitionBuilder := txnbuild.ManageData{
