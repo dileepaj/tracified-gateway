@@ -166,6 +166,12 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred Constant ")
 				return
 			}
+			//url builder
+			urlBuilder, err := expertFormula.BuildReference(formulaArray[i].MetricReference.Url)
+			if err != nil {
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred URL ")
+				return
+			}
 			c++
 			// Reffered constant object
 			referredConstObj := model.ValueDefinition{
@@ -183,9 +189,16 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, referredConstObj)
 			// append to the manage data array
 			manageDataOpArray = append(manageDataOpArray, &referredConstant)
+			manageDataOpArray = append(manageDataOpArray, &urlBuilder)
 		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
 			// execute the semantic constant builder
 			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.ID, formulaArray[i])
+			if err != nil {
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "SEMANTI CCONSTANT ")
+				return
+			}
+			//value builder
+			valueBuilder, err := expertFormula.BuildSemanticValue(formulaArray[i].Value)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "SEMANTI CCONSTANT ")
 				return
@@ -206,6 +219,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, semanticConstObj)
 			// append to the manage data array
 			manageDataOpArray = append(manageDataOpArray, &sematicConstant)
+			manageDataOpArray = append(manageDataOpArray, &valueBuilder)
 		}
 	}
 	if errInFormulaIdentity == nil && errInAuthorBuilder == nil {

@@ -21,10 +21,11 @@ variable definition and byte used
 	valueId  - 8 byte defieded by protocol
 	unit  - 2 byte defieded by protocol  we maintan a map for each unit defineded by expert
 	referredConstantDataType - 1 byte defieded by protocol -2 for flaot
-	referredConstantDescription - 30 byte defieded by protocol
+	variable name - 30 byte defieded by protocol
+	description 40 bytes
 Manage data
-	name 64 byte character - 64 byte refrence Short URL
-	value 64 byte managedata - valueType + valueId + referredConstantDataType + referredConstantDescription + unit + fetureused
+	name 64 byte character - decription + future use
+	value 64 byte managedata - valueType + valueId + referredConstantDataType + variable name + unit + fetureused
 */
 func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 3
@@ -32,23 +33,11 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	var unit uint16
 	referredConstantDataType := 2
 	referredConstantDescription := ""
+	variableName := ""
 	EMPTY := 0
 	errorRespObj := model.ValueDefOutParmas{
 		ValueMapID: uint64(EMPTY),
 		UnitMapID:  uint16(EMPTY),
-	}
-	reffedURL := ""
-	if element.MetricReference.Url == "" {
-		reffedURL = "URL Not Provided"
-		reffedURL = reffedURL + "/" 
-		reffedURL = reffedURL + strings.Repeat("0", 64-len(reffedURL))
-	} else if len(element.MetricReference.Url) > 64 {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Reffed constant url should be less than 64 character")
-	} else if len(element.MetricReference.Url) < 64 {
-		reffedURL = element.MetricReference.Url + `/` 
-		reffedURL = reffedURL + strings.Repeat("0", 64-len(reffedURL))
-	} else {
-		reffedURL = element.MetricReference.Url
 	}
 
 	referredConstantValue := fmt.Sprintf("%g", element.Value.(float64))
@@ -86,20 +75,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 		valueId = data.SequenceValue
 	}
-	// check variable name is 30 character
-	if len(element.Description) > 30 || element.Description == "" {
-		logrus.Error("Description is greater than 30 character limit or Empty")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 30 character limit")
-	} else {
-		if len(element.Description) < 30 {
-			// add 0s to the rest of the DESCRIPTION
-			remain := 30 - len(element.Description)
-			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
-			referredConstantDescription = element.Description + `/` + setReaminder
-		} else {
-			referredConstantDescription = element.Description
-		}
-	}
+
 	// checked referred ConstantValue value is 8 character
 	if len(referredConstantValue) > 8 {
 		logrus.Error("Value is greater than 8 character limit")
@@ -160,9 +136,43 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 		unit = uint16(data.SequenceValue)
 	}
+
+	//variable builder
+	if len(element.Name) > 30 || element.Name == "" {
+		logrus.Error("Variable name is greater than 30 character limit or Empty")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Variable name is greater than 30 character limit")
+	} else {
+		if len(element.Name) < 30 {
+			// add 0s to the rest of the DESCRIPTION
+			remain := 30 - len(element.Name)
+			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
+			variableName = element.Name + `/` + setReaminder
+		} else {
+			variableName = element.Name
+		}
+	}
+
+	//build description for 40 bytes
+	if len(element.Description) > 40 || element.Description == "" {
+		logrus.Error("Description is greater than 30 character limit or Empty")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 30 character limit")
+	} else {
+		if len(element.Description) < 40 {
+			// add 0s to the rest of the DESCRIPTION
+			remain := 40 - len(element.Description)
+			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
+			referredConstantDescription = element.Description + `/` + setReaminder
+		} else {
+			referredConstantDescription = element.Description
+		}
+	}
+
+	keyFutureUse := fmt.Sprintf("%s", strings.Repeat("0", 24))
+
 	// referred constant's manage data key and value
-	nameString := reffedURL
-	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + stellarprotocols.Float64ToByteString(element.Value.(float64)) + referredConstantDescription + stellarprotocols.UInt16ToByteString(uint16(unit)) + strFetureUsed
+	nameString := referredConstantDescription + keyFutureUse
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + stellarprotocols.Float64ToByteString(element.Value.(float64)) + variableName + stellarprotocols.UInt16ToByteString(uint16(unit)) + strFetureUsed
+
 	logrus.Println("referred constant Name:   ", nameString)
 	logrus.Println("referred constant value:   ", valueString)
 	// Building the manage data operation

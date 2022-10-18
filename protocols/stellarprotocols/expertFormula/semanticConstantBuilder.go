@@ -20,18 +20,20 @@ return the txnbuild.ManageData object
 variable definition and byte used
 	valueType - 1 byte defieded by protocol -2 for sementic constant
 	valueId  - 8 byte defieded by protocol
-	description - 40 byte defieded by protocol
+	value name - 40 byte defieded by protocol
+	description - 40 bytes
 	sementicConstantDataType - 1 byte defieded by protocol -2 for flaot
 
 Manage data
-	name 64 byte character - 	semanticConstantValue - 64 byte defieded by protocol
-	value 64 byte managedata - valueType + valueId + description + referredConstantDataType + fetureused
+	name 64 byte character - 	description - 64 byte defieded by protocol
+	value 64 byte managedata - valueType + valueId +  + value name + fetureused
 */
 func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	valueType := 2
 	var valueId uint64
 	sementicConstantDataType := 2
 	semanticConstantDescription := ""
+	variableName := ""
 	EMPTY := 0
 	errorRespObj := model.ValueDefOutParmas{
 		ValueMapID: uint64(EMPTY),
@@ -72,7 +74,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		}
 		valueId = data.SequenceValue
 	}
-	// check variable name is 20 character
+	// check variable description is 20 character
 	if len(element.Description) > 40 || element.Description == "" {
 		logrus.Error("Description is greater than 40 character limit or Empty")
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 40 character limit")
@@ -86,6 +88,25 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 			semanticConstantDescription = element.Description
 		}
 	}
+
+	//future use of 24 bytes
+	keyFutureUse := fmt.Sprintf("%s", strings.Repeat("0", 24))
+
+	//Variable name - 40 bytes
+	if len(element.Name) > 40 || element.Name == "" {
+		logrus.Error("Value name is greater than 40 character limit or Empty")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Value name is greater than 40 character limit")
+	} else {
+		if len(element.Name) < 40 {
+			// add 0s to the rest of the name
+			remain := 40 - len(element.Name)
+			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
+			variableName = element.Name + `/` + setReaminder
+		} else {
+			variableName = element.Name
+		}
+	}
+
 	// check value is 20 character
 	if len(semanticConstantValue) > 64 {
 		logrus.Error("Value is greater than 8 character limit")
@@ -101,7 +122,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	// define a 14 zeros string
 	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
 	if err != nil {
-		return txnbuild.ManageData{},errorRespObj, err
+		return txnbuild.ManageData{}, errorRespObj, err
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 	srtValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
@@ -113,8 +134,8 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Error when converting data type to binary " + err.Error())
 	}
 	// semantic constant's manage data key and value
-	nameString := semanticConstantValue
-	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + semanticConstantDescription + strFetureUsed
+	nameString := semanticConstantDescription + keyFutureUse
+	valueString := srtValueType + stellarprotocols.UInt64ToByteString(valueId) + srtDataType + variableName + strFetureUsed
 	logrus.Println("Semantic constant Name:   ", nameString)
 	logrus.Println("Semantic constant value:   ", valueString)
 	// Building the manage data operation
