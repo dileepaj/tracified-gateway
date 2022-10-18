@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -16,9 +17,15 @@ func (metric *MetricBinding) BuildMetricNameManageData(name string, typename str
 	nameKey := ""
 	nameValue := ""
 
-	if len(metricName) > 128 {
-		logrus.Error(typename + " is greater than 128 character limit")
-		return txnbuild.ManageData{}, errors.New(typename + "is greater than 128 character limit")
+	actualLength, errInLengthConvert := stellarprotocols.Int8ToByteString(uint8(len(metricName)))
+	if errInLengthConvert != nil {
+		logrus.Info("Error when converting length ", errInLengthConvert)
+		return txnbuild.ManageData{}, errors.New("Error when converting length " + errInLengthConvert.Error())
+	}
+
+	if len(metricName) > 127 {
+		logrus.Error(typename + " is greater than 127 character limit")
+		return txnbuild.ManageData{}, errors.New(typename + "is greater than 127 character limit")
 	} else {
 		// check if the key is greater than 64 characters
 		if len(metricName) > 64 {
@@ -26,7 +33,7 @@ func (metric *MetricBinding) BuildMetricNameManageData(name string, typename str
 			nameValue = metricName[64:]
 		} else if len(metricName) < 64 || len(metricName) == 64 {
 			nameKey = metricName
-			nameValue = fmt.Sprintf("%s", strings.Repeat("0", 64))
+			nameValue = fmt.Sprintf("%s", strings.Repeat("0", 63))
 		}
 	}
 
@@ -37,12 +44,14 @@ func (metric *MetricBinding) BuildMetricNameManageData(name string, typename str
 			nameKey = fmt.Sprintf("%s%s", nameKey, strings.Repeat("0", 64-len(nameKey)))
 		}
 	}
-	if len(nameValue) < 64 {
+	if len(nameValue) < 63 {
 		nameValue = nameValue + "/"
-		if len(nameValue) < 64 {
-			nameValue = fmt.Sprintf("%s%s", nameValue, strings.Repeat("0", 64-len(nameValue)))
+		if len(nameValue) < 63 {
+			nameValue = fmt.Sprintf("%s%s", nameValue, strings.Repeat("0", 63-len(nameValue)))
 		}
 	}
+
+	nameValue = nameValue + actualLength
 
 	logrus.Info(typename+" key : ", nameKey)
 	logrus.Info(typename+"value : ", nameValue)
