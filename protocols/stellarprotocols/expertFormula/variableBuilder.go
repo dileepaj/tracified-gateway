@@ -173,7 +173,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	}
 	strFetureUsed := string(decodedStrFetureUsed)
 	valueString := valueTypeString + stellarprotocols.UInt64ToByteString(valueId) + variableNameString + dataTypeString + unitString + precisionString + strFetureUsed
-	keyString := descriptionString + fmt.Sprintf("%s", strings.Repeat("0", 20))
+	keyString := descriptionString + fmt.Sprintf("%s", strings.Repeat("0", 24))
 	logrus.Info("Building variable with Name string of   : ", keyString)
 	logrus.Info("Building variable with value string of : ", valueString)
 	variableDefinitionBuilder := txnbuild.ManageData{
@@ -181,7 +181,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		Value: []byte(valueString),
 	}
 	// check the lengths of the key and value
-	if len(keyString) > 64 || len(valueString) > 64 {
+	if len(keyString) != 64 || len(valueString) != 64 {
 		logrus.Error("Key string length : ", len(keyString))
 		logrus.Error("Value string length : ", len(valueString))
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Length issue on key or value fields on the variable building")
