@@ -40,11 +40,11 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		authLayer := authentication.AuthLayer{
-			FormulaId:    formulaJSON.ID,
+			FormulaId:    formulaJSON.MetricExpertFormula.ID,
 			ExpertPK:     formulaJSON.User.Publickey,
 			ExpertUserID: formulaJSON.User.ID,
-			CiperText:    formulaJSON.CiperText,
-			Plaintext:    formulaJSON.Formula,
+			CiperText:    formulaJSON.MetricExpertFormula.CiperText,
+			Plaintext:    formulaJSON.MetricExpertFormula.Formula,
 		}
 		err, errCode := authLayer.ValidateExpertRequest()
 		if err != nil {
@@ -52,9 +52,9 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		formulaArray := formulaJSON.Formula
+		formulaArray := formulaJSON.MetricExpertFormula.Formula
 		fieldCount := 0
-		for i, element := range formulaJSON.Formula {
+		for i, element := range formulaJSON.MetricExpertFormula.Formula {
 			if element.Type == "DATA" {
 				formulaArray[i].Type = "VARIABLE"
 			} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
@@ -66,10 +66,10 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 				fieldCount++
 			}
 		}
-		formulaJSON.Formula = formulaArray
+		formulaJSON.MetricExpertFormula.Formula = formulaArray
 		// build the abstract struct and call the SocialImpactExpertFormula
 		socialImpactBuilder := protocols.AbstractSocialImpact{
-			Blockchain:  formulaJSON.Blockchain,
+			Blockchain:  formulaJSON.MetricExpertFormula.Blockchain,
 			FormulaJSON: formulaJSON,
 			FieldCount:  fieldCount,
 		}

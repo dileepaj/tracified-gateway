@@ -31,7 +31,7 @@ des- This method build stellar trasactiond for expert formula
 */
 func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	w.Header().Set("Content-Type", "application/json")
-	formulaArray := formulaJSON.Formula             // formula array sent by the backend
+	formulaArray := formulaJSON.MetricExpertFormula.Formula             // formula array sent by the backend
 	var manageDataOpArray []txnbuild.Operation      // manageDataOpArray all manage data append to to this array
 	var transactionArray []model.FormulaTransaction // transaction array
 	expertIDMap := model.ExpertIDMap{}
@@ -43,7 +43,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 	object := dao.Connection{}
 	// checked whether given formulaID already in the database or not
-	formulaMap, err := object.GetExpertFormulaCount(formulaJSON.ID).Then(func(data interface{}) interface{} {
+	formulaMap, err := object.GetExpertFormulaCount(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -89,7 +89,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			ExpertID:  formulaJSON.User.ID,
 			ExpertPK:  formulaJSON.User.Publickey,
 			MapID:     data.SequenceValue,
-			FormulaID: formulaJSON.ID,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
 		}
 		err1 := object.InsertExpertIDMap(expertIDMap)
 		if err1 != nil {
@@ -102,7 +102,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		expertMapID = expertMap.MapID
 	}
 	// formula identity operation
-	formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.Name)
+	formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.MetricExpertFormula.Name)
 	if errInFormulaIdentity != nil {
 		commons.JSONErrorReturn(w, r, errInFormulaIdentity.Error(), http.StatusInternalServerError, "An error occured when building formula identity ")
 		return
@@ -139,7 +139,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	for i := 0; i < len(formulaArray); i++ {
 		if formulaArray[i].Type == "VARIABLE" {
 			// excute the variable builder
-			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.ID, formulaArray[i])
+			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "VARIABLE ")
 				return
@@ -161,13 +161,13 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &variableBuilder)
 		} else if formulaArray[i].Type == "REFERREDCONSTANT" {
 			// execute the referred constant builder
-			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaJSON.ID, formulaArray[i])
+			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred Constant ")
 				return
 			}
 			//url builder
-			urlBuilder, err := expertFormula.BuildReference(formulaArray[i].MetricReference.Url)
+			urlBuilder, err := expertFormula.BuildReference(formulaArray[i].MetricReference.Reference)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred URL ")
 				return
@@ -192,7 +192,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &urlBuilder)
 		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
 			// execute the semantic constant builder
-			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.ID, formulaArray[i])
+			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "SEMANTI CCONSTANT ")
 				return
@@ -241,7 +241,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		logrus.Info("Transaction Hash for the formula building : ", hash)
 		timeForTransaction := endTransactionTime.Sub(startTransactionTime)
 		formulaIDMap := model.FormulaIDMap{
-			FormulaID: formulaJSON.ID,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
 			MapID:     dataFormulaID.SequenceValue,
 		}
 		// map the formulaID with incremting Integer put those object to blockchain
@@ -274,8 +274,8 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		// save expert formula in the database
 		// Todo: Transactions, overflowAmount, status should be changed to actual values
 		expertFormulaBuilder := model.FormulaStore{
-			Blockchain:             formulaJSON.Blockchain,
-			FormulaID:              formulaJSON.ID,
+			Blockchain:             formulaJSON.MetricExpertFormula.Blockchain,
+			FormulaID:              formulaJSON.MetricExpertFormula.ID,
 			ExpertID:               formulaJSON.User.ID,
 			ExpertPK:               formulaJSON.User.Publickey,
 			VariableCount:          len(formulaArray),
@@ -284,7 +284,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			OverflowAmount:         len(transactionArray),
 			Status:                 status,
 			CreatedAt:              time.Now().String(),
-			CiperText:              formulaJSON.CiperText,
+			CiperText:              formulaJSON.MetricExpertFormula.CiperText,
 		}
 		Id, errResult := object.InsertExpertFormula(expertFormulaBuilder)
 		if errResult != nil {
@@ -294,7 +294,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			response := model.SuccessResponseExpertFormula{
 				Code:              http.StatusOK,
 				ID:                Id,
-				FormulaID:         formulaJSON.ID,
+				FormulaID:         formulaJSON.MetricExpertFormula.ID,
 				TransactionHashes: []string{hash},
 			}
 			json.NewEncoder(w).Encode(response)

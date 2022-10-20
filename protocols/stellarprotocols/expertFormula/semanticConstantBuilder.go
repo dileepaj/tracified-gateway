@@ -75,8 +75,8 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		valueId = data.SequenceValue
 	}
 	// check variable description is 20 character
-	if len(element.Description) > 40 || element.Description == "" {
-		logrus.Error("Description is greater than 40 character limit or Empty")
+	if len(element.Description) > 40 {
+		logrus.Error("Description is greater than 40 character limit")
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 40 character limit")
 	} else {
 		if len(element.Description) < 40 {

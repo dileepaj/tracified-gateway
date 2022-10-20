@@ -153,17 +153,17 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	}
 
 	//build description for 40 bytes
-	if len(element.Description) > 40 || element.Description == "" {
-		logrus.Error("Description is greater than 30 character limit or Empty")
+	if len(element.MetricReference.Description) > 40 {
+		logrus.Error("Description is greater than 30 character limit")
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 30 character limit")
 	} else {
-		if len(element.Description) < 40 {
+		if len(element.MetricReference.Description) < 40 {
 			// add 0s to the rest of the DESCRIPTION
-			remain := 40 - len(element.Description)
+			remain := 40 - len(element.MetricReference.Description)
 			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
-			referredConstantDescription = element.Description + `/` + setReaminder
+			referredConstantDescription = element.MetricReference.Description + `/` + setReaminder
 		} else {
-			referredConstantDescription = element.Description
+			referredConstantDescription = element.MetricReference.Description
 		}
 	}
 
