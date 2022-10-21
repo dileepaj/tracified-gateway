@@ -519,4 +519,16 @@ var routes = Routes{
 		"/socialimapact/metricbinding",
 		businessFacades.BindMetric,
 	},
+	Route{
+		"Saving PGP Account details",
+		"POST",
+		"/pgp/",
+		businessFacades.SavePGPAccount,
+	},
+	Route{
+		"Get PGP Public Key and Username",
+		"GET",
+		"/pgp/getaccounts/{stellarpk}",
+		businessFacades.GetPGPAccountByStellarPK,
+	},
 }

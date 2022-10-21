@@ -2202,3 +2202,24 @@ func (cd *Connection) GetArtifactMapID(artifactId string) *promise.Promise {
 	})
 	return p
 }
+
+func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
+	result := model.PGPAccount{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PGPAccounts")
+		err1 := c.FindOne(context.TODO(), bson.M{"stellarPublicKey": StellarPK}).Decode(&result)
+		if err1 != nil {
+			log.Error("Error while getting PGP Accounts from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}

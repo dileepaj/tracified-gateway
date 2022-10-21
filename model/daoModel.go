@@ -220,6 +220,7 @@ type ArtifactTransaction struct {
 	Txnhash        string `json:"Txnhash"`
 }
 type TestimonialOrganization struct {
+	PGPData        PGPInformation
 	Name           string
 	Description    string
 	Logo           string
@@ -237,6 +238,14 @@ type TestimonialOrganization struct {
 	Status         string
 	ApprovedBy     string
 	ApprovedOn     string
+}
+
+type PGPInformation struct {
+	PGPPublicKey       string
+	StellarPublicKey   string
+	DigitalSignature   string
+	StellarTXNToSave   string
+	StellarTXNToVerify string
 }
 
 type TestimonialOrganizationResponse struct {
