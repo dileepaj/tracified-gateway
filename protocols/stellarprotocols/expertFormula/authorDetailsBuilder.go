@@ -1,9 +1,9 @@
 package expertformula
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -57,42 +57,28 @@ func (expertFormula ExpertFormula) BuildAuthorManageData(expertKey string) (txnb
 	return authorBuilder1, authorBuilder2, nil
 }
 
-func (expertFormula ExpertFormula) BuildPublisherManageData(expertKey string) (txnbuild.ManageData, error) {
-	authorKey := ""
-	authorValue := ""
-
+func (expertFormula ExpertFormula) BuildPublisherManageData(publicKeyHash string) (txnbuild.ManageData, error) {
 	// check if the string is 128 characters
-	if len(expertKey) > 128 {
-		logrus.Error("Expert public key is greater than 128 character limit")
-		return txnbuild.ManageData{}, errors.New("Expert public key is greater than 128 character limit")
-	} else {
-		// check if the expert key is greater than 64 character limit
-		if len(expertKey) > 64 {
-			// divide the expert key to 2 parts with each of 64 bytes
-			authorKey = expertKey[0:64]
-			authorValue = expertKey[64:]
-
-		} else if len(expertKey) < 64 || len(expertKey) == 64 {
-			// add to key field directly
-			authorKey = expertKey
-			authorValue = fmt.Sprintf("%s", strings.Repeat("0", 64))
-		}
+	if len(publicKeyHash) != 64 {
+		logrus.Error("Expert public key is equal to 64 character limit, It is a sha256")
+		return txnbuild.ManageData{}, errors.New("Expert public key is equal to 64 character limit, It is a sha256 value")
 	}
-
-	logrus.Info("Author detials key ", authorKey)
-	logrus.Info("Author details value ", authorValue)
-
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%0128d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, err
+	}
 	authorBuilder := txnbuild.ManageData{
-		Name:  authorKey,
-		Value: []byte(authorValue),
+		Name:  publicKeyHash,
+		Value: decodedStrFetureUsed,
 	}
 
 	// check the lengths of the key and value
-	if len(authorKey) > 64 || len(authorValue) > 64 {
-		logrus.Error("Key string length : ", len(authorKey))
-		logrus.Error("Value string length : ", len(authorValue))
+	if len(publicKeyHash) != 64 || len(decodedStrFetureUsed) != 64 {
+		logrus.Error("Key string length : ", len(publicKeyHash))
+		logrus.Error("Value string length : ", len(decodedStrFetureUsed))
 		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the author details building")
 	}
-
+	logrus.Info("Author detials key ", publicKeyHash)
+	logrus.Info("Author details value ", decodedStrFetureUsed)
 	return authorBuilder, nil
 }
