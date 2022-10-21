@@ -10,8 +10,8 @@ import (
 func ValidateFormulaBuilder(element model.FormulaBuildingRequest) error {
 	validate := validator.New()
 	//validate inner object array
-	for i := 0; i < len(element.Formula); i++ {
-		errInValidateFormulaItem := ValidateFormulaItem(element.Formula[i])
+	for i := 0; i < len(element.MetricExpertFormula.Formula); i++ {
+		errInValidateFormulaItem := ValidateFormulaItem(element.MetricExpertFormula.Formula[i])
 		if errInValidateFormulaItem != nil {
 			return errInValidateFormulaItem
 		}
@@ -40,17 +40,17 @@ func ValidateFields(element model.FormulaItemRequest) error {
 	//checking the required fields in each of the field type
 	if element.Type == "DATA" {
 		//check the variable type validations
-		if element.Name == "" || element.Key == "" || element.Description == "" || element.MeasurementUnit == "" {
+		if element.Name == "" || element.Key == "" || element.MeasurementUnit == "" {
 			return errors.New("Incorrect data type fields")
 		}
 	} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
 		//check the semantic constant type validations
-		if element.Description == "" || element.Name == "" || element.Key == "" {
+		if element.Name == "" || element.Key == "" {
 			return errors.New("Incorrect semantic constant type fields")
 		}
 	} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
 		//check the referred contant type validations
-		if element.Name == "" || element.Description == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" {
+		if element.Name == "" || element.MetricReference.Description == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" {
 			return errors.New("Incorrect referred constant type fields")
 		}
 	}

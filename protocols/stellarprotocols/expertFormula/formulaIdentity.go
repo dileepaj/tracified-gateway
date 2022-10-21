@@ -15,59 +15,42 @@ import (
 BuildFormulaIdentity
 des-Build the formula idenitiy manage data
 */
-func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaName string, formulaDecription string) (txnbuild.ManageData, error) {
-	formName := ""
+func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaName string) (txnbuild.ManageData, error) {
 	authorID := stellarprotocols.UInt64ToByteString(expertId)
-	formDescription := ""
-	//check if the formula name is 15 characters
-	if len(formulaName) > 15 {
-		logrus.Error("Formula name 15 character limit exceeded")
-		return txnbuild.ManageData{}, errors.New("Formula name 15 character limit exceeded")
-	} else {
-		if len(formulaName) == 15 {
-			formName = formulaName
-		} else if len(formulaName) < 15 {
-			formName = formulaName + "/"
-		}
-	}
-	//checking the formula name length if not 15 append 0s to the end
-	if len(formName) < 15 {
-		remain := 15 - len(formName)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		formName = formName + setReaminder
-	}
+	formName := ""
+	
 	//checking if the expert ID is having 8 characters
 	if len(authorID) < 8 {
 		remain := 8 - len(authorID)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
 		authorID = authorID + setReaminder
 	}
-	//check if the formula description have 64 characters
-	if len(formulaDecription) > 64 {
-		logrus.Error("Formula description 64 character limit exceeded")
-		return txnbuild.ManageData{}, errors.New("Formula description 64 character limit exceeded")
+	//check if the formula name have 64 characters
+	if len(formulaName) > 64 {
+		logrus.Error("Formula name 64 character limit exceeded")
+		return txnbuild.ManageData{}, errors.New("Formula name 64 character limit exceeded")
 	} else {
-		if len(formulaDecription) == 64 {
-			formDescription = formulaDecription
-		} else if len(formulaDecription) < 64 {
-			formDescription = formulaDecription + "/"
+		if len(formulaName) == 64 {
+			formName = formulaName
+		} else if len(formulaName) < 64 {
+			formName = formulaName + "/"
 		}
 	}
-	//checking if the formula description has the 64 bytes
-	if len(formDescription) < 64 {
-		remain := 64 - len(formDescription)
+	//checking if the formula name has the 64 bytes
+	if len(formName) < 64 {
+		remain := 64 - len(formName)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		formDescription = formDescription + setReaminder
+		formName = formName + setReaminder
 	}
 	// define a 41 zeros string for future use
-	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%082d", 0))
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0112d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, err
 	}
 	strFutureUse := string(decodedStrFutureUse)
 
-	valueString := formName + authorID + strFutureUse 
-	keyString := formDescription
+	valueString := authorID + strFutureUse 
+	keyString := formName
 	
 	logrus.Info("Formula identity key ", keyString)
 	logrus.Info("Formula identity value ", valueString)

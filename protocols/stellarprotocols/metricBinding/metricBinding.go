@@ -118,7 +118,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			return
 		}
 		// 3. Formula definition with metadata (Compulsory MDO for each formula)
-		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities)))
+		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities[i].MetricFormula.Formula)))
 		if err != nil {
 			metricBindingStore.Metric.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -437,7 +437,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	// loop the manage data opration2d array and build trasacion
 	for i, manadataOperationArray := range manageData2dArray {
 		// initial trasacion memo
-		memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(manageDataPerMetricBindingRequest))
+		memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(manageDataOpArray)))
 		if errInMemoBuilder != nil {
 			metricBindingStore.Metric.ErrorMessage = errInMemoBuilder.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)

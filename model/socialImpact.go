@@ -81,6 +81,11 @@ type UnitIDMap struct {
 }
 
 type FormulaBuildingRequest struct {
+	MetricExpertFormula ExpertFormula			`json:"MetricExpertFormula" bson:"metricExpertFormula"`	
+	User User									`json:"User" bson:"user"`
+}
+
+type ExpertFormula struct {
 	Blockchain      string               `json:"Blockchain" bson:"blockchain" validate:"required"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
@@ -89,8 +94,7 @@ type FormulaBuildingRequest struct {
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	User            User
-	CiperText       string `json:"CiperText" bson:"ciperText"`
+	CiperText       string 				 `json:"CiperText" bson:"ciperText"`
 }
 
 type User struct {
@@ -100,9 +104,11 @@ type User struct {
 }
 
 type MetricReference struct {
+	ID              string 
 	Name            string
 	MeasurementUnit string
-	Url             string
+	Description 	string
+	Reference       string 
 }
 
 type MetricItem struct {
