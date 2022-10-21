@@ -81,8 +81,8 @@ type UnitIDMap struct {
 }
 
 type FormulaBuildingRequest struct {
-	MetricExpertFormula ExpertFormula			`json:"MetricExpertFormula" bson:"metricExpertFormula"`	
-	User User									`json:"User" bson:"user"`
+	MetricExpertFormula ExpertFormula `json:"MetricExpertFormula" bson:"metricExpertFormula"`
+	User                User          `json:"User" bson:"user"`
 }
 
 type ExpertFormula struct {
@@ -94,7 +94,7 @@ type ExpertFormula struct {
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	CiperText       string 				 `json:"CiperText" bson:"ciperText"`
+	CiperText       string               `json:"CiperText" bson:"ciperText"`
 }
 
 type User struct {
@@ -104,11 +104,11 @@ type User struct {
 }
 
 type MetricReference struct {
-	ID              string 
+	ID              string
 	Name            string
 	MeasurementUnit string
-	Description 	string
-	Reference       string 
+	Description     string
+	Reference       string
 }
 
 type MetricItem struct {
@@ -574,4 +574,22 @@ type Activity struct {
 	ProductName     string
 	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
 	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
+}
+
+type ExecutionTemplate struct {
+	Entity            Entity
+	Lst_Commands      []Lst_Commands
+	S_CodeLine        string
+	S_StartVarName    string
+	Ul_SpecialCommand int32
+}
+
+type Entity struct {
+	P_Entity int32
+}
+
+type Lst_Commands struct {
+	P_Arg                ExecutionTemplate
+	S_AdditionalFuncName string
+	Ul_CommandType       int32
 }
