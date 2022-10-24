@@ -94,6 +94,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/jarcoal/httpmock v1.0.8 // indirect
+	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect

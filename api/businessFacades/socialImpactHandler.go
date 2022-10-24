@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
+	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -33,6 +34,22 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		commons.JSONErrorReturn(w, r, errInJsonValidation.Error(), http.StatusBadRequest, "Request body failed the validation check :")
 		return
 	} else {
+		tstMsgEnc := `-----BEGIN PGP MESSAGE----- Version: Keybase OpenPGP v2.0.76 Comment: https://keybase.io/crypto wYwDN3XXL/8v5ksBA/4vRQSu7g/mZovxvzT+XcebWYv8cgtWvK7g4lP7IMopseGl seg6fO3dbfsWiTc7QfVBw8N5IjNSWjrN821etoPDLfujho3aV1FLHtDkFXnOv2Fs VpdXH0p16uSr57hivA1AX4gqrHDDIsFoD2evI01LehrDmb9w1UJ7nX5cMj8et9LA NgHpCi7103et/c+sBJQgQQtEH0YZPi2ddRXwg9aeBZhtpPUHMyWej5oG2crgz/kD tZr3GDkGs05gTcp6Eo5tZ60uI8MQZVkgTbXpFCgUOAwptNSRfvb/ag96kGiTztuh qzPWf9IdW+vEVfy1I/J2vFx2hWI0Q+BzsPixynOIXBfIgcLuDSo/yMc/JhEvwtpV TYvIB04xue2yO3a7cndUVHTXWd14P5tycURUBmTsKFz4gkq1znPm75ug7S9/WARr zf0M+10omwaZMLPKzPDvp5UbCB+XsNTN5xLyzdwY+IetCY0hrBSejzdEVFMXCRm4 mbF3Ct6Vvw== =Ssk2 -----END PGP MESSAGE-----`
+
+		//PGP validation
+		errWhenValidatingPGP, isPGPValidationPassed := authentication.PGPValidator("124", tstMsgEnc, "test message")
+		if errWhenValidatingPGP != nil {
+			logrus.Error("Error when validating PGP keypair ", errWhenValidatingPGP.Error())
+			commons.JSONErrorReturn(w, r, errWhenValidatingPGP.Error(), http.StatusBadRequest, "Error when validating PGP keypair ")
+			return
+		}
+
+		if !isPGPValidationPassed {
+			logrus.Error("PGP key is not in the trust network")
+			commons.JSONErrorReturn(w, r, "", http.StatusBadRequest, "PGP key is not in the trust network")
+			return
+		}
+
 		// validation againt trust network
 		errInTrustNetworkValidation := authentication.ValidateAgainstTrustNetwork(formulaJSON.User.Publickey)
 		if errInTrustNetworkValidation != nil {
