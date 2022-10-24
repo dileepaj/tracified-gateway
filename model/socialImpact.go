@@ -577,19 +577,22 @@ type Activity struct {
 }
 
 type ExecutionTemplate struct {
-	Entity            Entity
-	Lst_Commands      []Lst_Commands
+	Lst_Commands      []Command
+	P_Entity          P_Entity
 	S_CodeLine        string
 	S_StartVarName    string
-	Ul_SpecialCommand int32
+	Ul_SpecialCommand uint32
+	Ul_type           uint64
+	Error             string
 }
 
-type Entity struct {
-	P_Entity int32
+type P_Entity struct {
+	Ul_type int64
+	Value   any
 }
 
-type Lst_Commands struct {
+type Command struct {
 	P_Arg                ExecutionTemplate
 	S_AdditionalFuncName string
-	Ul_CommandType       int32
+	Ul_CommandType       uint32
 }

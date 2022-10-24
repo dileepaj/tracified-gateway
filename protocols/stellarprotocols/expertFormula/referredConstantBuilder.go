@@ -43,7 +43,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	referredConstantValue := fmt.Sprintf("%g", element.Value.(float64))
 	// DB validations for the variable id
 	object := dao.Connection{}
-	valueMap, errValueMap := object.GetValueMapID(element.ID).Then(func(data interface{}) interface{} {
+	valueMap, errValueMap := object.GetValueMapID(element.ID,formulaID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMap != nil {

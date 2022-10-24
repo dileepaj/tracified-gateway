@@ -1956,7 +1956,7 @@ func (cd *Connection) GetExpertMapID(expertID string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetValueMapID(valueID string) *promise.Promise {
+func (cd *Connection) GetValueMapID(valueID, formulaId string) *promise.Promise {
 	result := model.ValueIDMap{}
 	// p := promise.NewPromise()
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -1968,7 +1968,7 @@ func (cd *Connection) GetValueMapID(valueID string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("ValueIDMap")
-		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID,"formulaId":formulaId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
 			reject(err1)
@@ -2218,6 +2218,29 @@ func (cd *Connection) GetArtifactMapID(artifactId string) *promise.Promise {
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetValueMapDetails(formulaID string, key string) *promise.Promise {
+	var valueDef model.ValueIDMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "key": key}).Decode(&valueDef)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(valueDef)
 		}
 	})
 	return p

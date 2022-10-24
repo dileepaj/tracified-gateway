@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -21,20 +23,41 @@ import (
 * 			53 Bytes -> Future use
 */
 
-func Type2TemplateBuilder(value any, isVariable bool, variableID uint64, constType uint) (txnbuild.ManageData, error) {
+func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTemplate) (txnbuild.Operation, error) {
+	var isVariable bool = false
+	var variableID uint64
+	var constantValue = ""
+	constType := uint(executionTemplate.P_Entity.Ul_type)
 
-	// key field
-	constantValue := fmt.Sprintf("%g", value.(float64))
-	// check value is 64 character
-	if len(constantValue) > 64 {
-		logrus.Error("Value is greater than 8 character limit")
-		return txnbuild.ManageData{}, errors.New("value is greater than 64 character limit")
+	if executionTemplate.P_Entity.Ul_type == 0 {
+		isVariable = true
+	}
+
+	if isVariable {
+		object := dao.Connection{}
+		valueMapDetails, errValueMapDetails := object.GetValueMapDetails(formulaID, "$"+executionTemplate.S_StartVarName).Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if errValueMapDetails != nil {
+			logrus.Error("Error in getting value map from key ", errValueMapDetails)
+			return &txnbuild.ManageData{}, errors.New("Error in getting value map from key " + errValueMapDetails.Error())
+		}
+		variableID = valueMapDetails.(model.ValueIDMap).MapID
+		constantValue = strings.Repeat("0", 64)
+
 	} else {
-		if len(constantValue) < 64 {
-			// add 0s to the rest of the name
-			remain := 64 - len(constantValue)
-			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-			constantValue = setReaminder + constantValue
+		constantValue = fmt.Sprintf("%g", executionTemplate.P_Entity.Value.(float64))
+		// check value is 64 character
+		if len(constantValue) > 64 {
+			logrus.Error("Value is greater than 8 character limit")
+			return &txnbuild.ManageData{}, errors.New("value is greater than 64 character limit")
+		} else {
+			if len(constantValue) < 64 {
+				// add 0s to the rest of the name
+				remain := 64 - len(constantValue)
+				setReaminder := strings.Repeat("0", remain)
+				constantValue = setReaminder + constantValue
+			}
 		}
 	}
 
@@ -43,7 +66,7 @@ func Type2TemplateBuilder(value any, isVariable bool, variableID uint64, constTy
 	typeOfTemplate, errInConvertion := stellarprotocols.Int8ToByteString(uint8(2))
 	if errInConvertion != nil {
 		logrus.Info("Error when converting type of template ", errInConvertion)
-		return txnbuild.ManageData{}, errors.New("Error when converting type of template " + errInConvertion.Error())
+		return &txnbuild.ManageData{}, errors.New("Error when converting type of template " + errInConvertion.Error())
 	}
 
 	// convert isVariable from bool to string
@@ -68,13 +91,13 @@ func Type2TemplateBuilder(value any, isVariable bool, variableID uint64, constTy
 	constTypeString, errInConversion := stellarprotocols.Int8ToByteString(uint8(constType))
 	if errInConversion != nil {
 		logrus.Info("Error when converting type of template ", errInConversion)
-		return txnbuild.ManageData{}, errors.New("Error when converting type of template " + errInConversion.Error())
+		return &txnbuild.ManageData{}, errors.New("Error when converting type of template " + errInConversion.Error())
 	}
 
 	// for future use
 	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%0106d", 0))
 	if err != nil {
-		return txnbuild.ManageData{}, err
+		return &txnbuild.ManageData{}, err
 	}
 	futureUse := string(decodedStrFutureUsed)
 
@@ -88,7 +111,7 @@ func Type2TemplateBuilder(value any, isVariable bool, variableID uint64, constTy
 	if len(valueString) != 64 || len(keyString) != 64 {
 		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
 		logrus.Error("Length of the key or value is not 64")
-		return txnbuild.ManageData{}, errors.New("length of the key or value is not 64")
+		return &txnbuild.ManageData{}, errors.New("length of the key or value is not 64")
 	}
 
 	// build the manage data
@@ -97,6 +120,6 @@ func Type2TemplateBuilder(value any, isVariable bool, variableID uint64, constTy
 		Value: []byte(valueString),
 	}
 
-	return template2Builder, nil
+	return &template2Builder, nil
 
 }
