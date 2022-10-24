@@ -11,6 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
+	equationbuilding "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula/equationBuilding"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -256,6 +257,34 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			transaction.Memo = []byte(memo1)
 
 		}
+		// logic section
+		executionTemplate, errInGettingExecutionTemplate := BuildJSONStructure(`"{"lst_Commands":[{"p_Arg":{"lst_Commands":null,"p_Entity":{"ul_type": 0},"s_CodeLine":"","s_StartVarName":"WATER_TO_ELECTRICITY_UNIT","ul_SpecialCommand":0,"ul_type":6},"s_AdditionalFuncName":"","ul_CommandType":2102},{"p_Arg":{"lst_Commands":null,"p_Entity":{"ul_type":0},"s_CodeLine":"","s_StartVarName":"ELECTRICITY_UNIT_TO_CARBON_EMISSION","ul_SpecialCommand":0,"ul_type":6},"s_AdditionalFuncName":"","ul_CommandType":2102}],"p_Entity":{"ul_type":0},"s_CodeLine":"1: $WATER.Multiply($WATER_TO_ELECTRICITY_UNIT).Multiply($ELECTRICITY_UNIT_TO_CARBON_EMISSION)","s_StartVarName":"WATER","ul_SpecialCommand":0,"ul_type":6}"`)
+		if errInGettingExecutionTemplate != nil {
+			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template")
+			return
+		}
+		// build the execution template mdos
+		if executionTemplate.Lst_Commands != nil {
+			// call template 1 object
+			manageDataOp, errTemplate1Builder := equationbuilding.Type1TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
+			if errTemplate1Builder != nil {
+				commons.JSONErrorReturn(w, r, errTemplate1Builder.Error(), http.StatusInternalServerError, "Error in building template 1")
+				return
+			}
+			// append to the manage data array
+			manageDataOpArray = append(manageDataOpArray, manageDataOp...)
+		} else {
+			// call template 2 object
+			// formulaID, value any, isVariable bool, variableID uint64, constType uint
+			template1Builder, errInTemplate1Builder := equationbuilding.Type2TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
+			if errInTemplate1Builder != nil {
+				commons.JSONErrorReturn(w, r, errInTemplate1Builder.Error(), http.StatusInternalServerError, "Error in template 2 builder")
+				return
+			}
+			// append to the manage data array
+			manageDataOpArray = append(manageDataOpArray, template1Builder)
+		}
+
 		startTransactionTime = time.Now()
 		err, errCode, hash := stellarProtocol.SubmitToStellerBlockchain()
 		hashArray = append(hashArray, hash)
