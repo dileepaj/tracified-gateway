@@ -32,7 +32,7 @@ func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetPGPAccountByStellarPK(vars["stellarpk"])
+	p := object.GetPGPAccountByStellarPK(vars["stellarPublicKey"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.PGPAccount)

@@ -528,7 +528,7 @@ var routes = Routes{
 	Route{
 		"Get PGP Public Key and Username",
 		"GET",
-		"/pgp/getaccounts/{stellarpk}",
+		"/pgp/getaccounts/{stellarPublicKey}",
 		businessFacades.GetPGPAccountByStellarPK,
 	},
 }
