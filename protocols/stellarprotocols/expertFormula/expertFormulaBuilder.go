@@ -160,7 +160,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred Constant ")
 				return
 			}
-			//url builder
+			// url builder
 			urlBuilder, err := expertFormula.BuildReference(formulaArray[i].MetricReference.Reference)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Referred URL ")
@@ -191,7 +191,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "SEMANTI CCONSTANT ")
 				return
 			}
-			//value builder
+			// value builder
 			valueBuilder, err := expertFormula.BuildSemanticValue(formulaArray[i].Value)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "SEMANTI CCONSTANT ")
@@ -216,11 +216,40 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			manageDataOpArray = append(manageDataOpArray, &valueBuilder)
 		}
 	}
-	//split the manage data array into two parts
+
+	// logic section
+	executionTemplate, errInGettingExecutionTemplate := BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
+	if errInGettingExecutionTemplate != nil {
+		commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template")
+		return
+	}
+	// build the execution template mdos
+	if executionTemplate.Lst_Commands != nil {
+		// call template 1 object
+		manageDataOp, errTemplate1Builder := equationbuilding.Type1TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
+		if errTemplate1Builder != nil {
+			commons.JSONErrorReturn(w, r, errTemplate1Builder.Error(), http.StatusInternalServerError, "Error in building template 1")
+			return
+		}
+		// append to the manage data array
+		manageDataOpArray = append(manageDataOpArray, manageDataOp...)
+	} else {
+		// call template 2 object
+		// formulaID, value any, isVariable bool, variableID uint64, constType uint
+		template1Builder, errInTemplate1Builder := equationbuilding.Type2TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
+		if errInTemplate1Builder != nil {
+			commons.JSONErrorReturn(w, r, errInTemplate1Builder.Error(), http.StatusInternalServerError, "Error in template 2 builder")
+			return
+		}
+		// append to the manage data array
+		manageDataOpArray = append(manageDataOpArray, template1Builder)
+	}
+
+	// split the manage data array into two parts
 	manageData2dArray := commons.ChunkSlice(manageDataOpArray, 25)
 	for i, manadataOperationArray := range manageData2dArray {
 		if i == 0 {
-			//build memo0 send the transaction
+			// build memo0 send the transaction
 			memo0, manifest, err = expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Memo hex converting issue")
@@ -243,7 +272,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			Memo:  []byte(memo0),
 		}
 		if i != 0 {
-			//here for insted of no of values we pass the current index of the manadataOperationArray array
+			// here for insted of no of values we pass the current index of the manadataOperationArray array
 			memo1, manifest, err = expertFormula.BuildMemo(1, uint32(i), dataFormulaID.SequenceValue)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Memo hex converting issue")
@@ -257,34 +286,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			transaction.Memo = []byte(memo1)
 
 		}
-		// logic section
-		executionTemplate, errInGettingExecutionTemplate := BuildJSONStructure(`"{"lst_Commands":[{"p_Arg":{"lst_Commands":null,"p_Entity":{"ul_type": 0},"s_CodeLine":"","s_StartVarName":"WATER_TO_ELECTRICITY_UNIT","ul_SpecialCommand":0,"ul_type":6},"s_AdditionalFuncName":"","ul_CommandType":2102},{"p_Arg":{"lst_Commands":null,"p_Entity":{"ul_type":0},"s_CodeLine":"","s_StartVarName":"ELECTRICITY_UNIT_TO_CARBON_EMISSION","ul_SpecialCommand":0,"ul_type":6},"s_AdditionalFuncName":"","ul_CommandType":2102}],"p_Entity":{"ul_type":0},"s_CodeLine":"1: $WATER.Multiply($WATER_TO_ELECTRICITY_UNIT).Multiply($ELECTRICITY_UNIT_TO_CARBON_EMISSION)","s_StartVarName":"WATER","ul_SpecialCommand":0,"ul_type":6}"`)
-		if errInGettingExecutionTemplate != nil {
-			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template")
-			return
-		}
-		// build the execution template mdos
-		if executionTemplate.Lst_Commands != nil {
-			// call template 1 object
-			manageDataOp, errTemplate1Builder := equationbuilding.Type1TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
-			if errTemplate1Builder != nil {
-				commons.JSONErrorReturn(w, r, errTemplate1Builder.Error(), http.StatusInternalServerError, "Error in building template 1")
-				return
-			}
-			// append to the manage data array
-			manageDataOpArray = append(manageDataOpArray, manageDataOp...)
-		} else {
-			// call template 2 object
-			// formulaID, value any, isVariable bool, variableID uint64, constType uint
-			template1Builder, errInTemplate1Builder := equationbuilding.Type2TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
-			if errInTemplate1Builder != nil {
-				commons.JSONErrorReturn(w, r, errInTemplate1Builder.Error(), http.StatusInternalServerError, "Error in template 2 builder")
-				return
-			}
-			// append to the manage data array
-			manageDataOpArray = append(manageDataOpArray, template1Builder)
-		}
-
 		startTransactionTime = time.Now()
 		err, errCode, hash := stellarProtocol.SubmitToStellerBlockchain()
 		hashArray = append(hashArray, hash)

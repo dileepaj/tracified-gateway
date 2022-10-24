@@ -29,7 +29,7 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	var constantValue = ""
 	constType := uint(executionTemplate.P_Entity.Ul_type)
 
-	if executionTemplate.P_Entity.Ul_type != 0 {
+	if executionTemplate.P_Entity.Ul_type == 0 {
 		isVariable = true
 	}
 

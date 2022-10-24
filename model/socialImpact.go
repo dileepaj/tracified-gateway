@@ -576,18 +576,19 @@ type Activity struct {
 	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
 }
 
-type ExecutionTemplate struct {          
+type ExecutionTemplate struct {
 	Lst_Commands      []Command
-	P_Entity		  P_Entity
+	P_Entity          P_Entity
 	S_CodeLine        string
 	S_StartVarName    string
 	Ul_SpecialCommand uint32
-	Ul_type 		  uint64
+	Ul_type           uint64
+	Error             string
 }
 
 type P_Entity struct {
 	Ul_type int64
-	Value any
+	Value   any
 }
 
 type Command struct {

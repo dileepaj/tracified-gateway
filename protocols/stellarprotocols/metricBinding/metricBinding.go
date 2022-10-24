@@ -171,7 +171,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					BindingType:         1,
 				}
 				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue,activity.MetricFormula.MetricExpertFormula.ID)
 				if err != nil {
 					metricBindingStore.Metric.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -245,7 +245,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					BindingType:         2,
 				}
 				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue,activity.MetricFormula.MetricExpertFormula.ID)
 				if err != nil {
 					metricBindingStore.Metric.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
