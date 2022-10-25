@@ -1968,7 +1968,7 @@ func (cd *Connection) GetValueMapID(valueID, formulaId string) *promise.Promise 
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("ValueIDMap")
-		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID,"formulaId":formulaId}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID,"formulaid":formulaId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
 			reject(err1)

@@ -86,7 +86,7 @@ type FormulaBuildingRequest struct {
 }
 
 type ExpertFormula struct {
-	Blockchain      string               `json:"Blockchain" bson:"blockchain" validate:"required"`
+	Blockchain      string               `json:"Blockchain" bson:"blockchain"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
@@ -258,6 +258,7 @@ type FormulaStore struct {
 	Status                 string
 	CreatedAt              string
 	CiperText              string
+	ExecutionTemplate      ExecutionTemplate
 }
 
 type ValueDefOutParmas struct {
@@ -289,7 +290,7 @@ type MetricDataBindingRequest struct {
 
 type MetricReq struct {
 	ID             string                          `json:"ID" bson:"id" validate:"required"`
-	Blockchain     string                          `json:"Blockchain" bson:"blockchain" validate:"required"`
+	Blockchain     string                          `json:"Blockchain" bson:"blockchain"`
 	Name           string                          `json:"Name" bson:"name" validate:"required"`
 	Description    string                          `json:"Description" bson:"description" validate:"required"`
 	BenchmarkRef   string                          `json:"BenchmarkRef" bson:"benchmarkRef"`

@@ -52,6 +52,7 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 		logrus.Error("Unable to connect to gateway datastore ", errWhenGettingVariableData)
 	}
 	if variableDefMap == nil {
+		logrus.Error("Formula Id ",formulaId)
 		logrus.Error("Requested variable " + element.ValueUUID + " does not exists in the gateway DB")
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Requested variable " + element.ValueUUID + " does not exists in the gateway DB")
 	} else {

@@ -21,7 +21,7 @@ variable definition and byte used
 	valueId  - 8 byte defieded by protocol
 	unit  - 2 byte defieded by protocol  we maintan a map for each unit defineded by expert
 	referredConstantDataType - 1 byte defieded by protocol -2 for flaot
-	variable name - 30 byte defieded by protocol
+	variable name - 20 byte defieded by protocol
 	description 40 bytes
 Manage data
 	name 64 byte character - decription + future use
@@ -89,7 +89,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 	}
 	// define a 14 zeros string
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%048d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, err
 	}
@@ -138,13 +138,13 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	}
 
 	//variable builder
-	if len(element.Name) > 30 || element.Name == "" {
-		logrus.Error("Variable name is greater than 30 character limit or Empty")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Variable name is greater than 30 character limit")
+	if len(element.Name) > 20 || element.Name == "" {
+		logrus.Error("Variable name is greater than 20 character limit or Empty")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Variable name is greater than 20 character limit")
 	} else {
-		if len(element.Name) < 30 {
+		if len(element.Name) < 20 {
 			// add 0s to the rest of the DESCRIPTION
-			remain := 30 - len(element.Name)
+			remain := 20 - len(element.Name)
 			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
 			variableName = element.Name + `/` + setReaminder
 		} else {
@@ -154,8 +154,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 
 	//build description for 40 bytes
 	if len(element.MetricReference.Description) > 40 {
-		logrus.Error("Description is greater than 30 character limit")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 30 character limit")
+		logrus.Error("Description is greater than 40 character limit")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("Description is greater than 40 character limit")
 	} else {
 		if len(element.MetricReference.Description) < 40 {
 			// add 0s to the rest of the DESCRIPTION
