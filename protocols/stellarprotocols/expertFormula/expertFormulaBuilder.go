@@ -112,7 +112,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	// append to the manage data array
 	manageDataOpArray = append(manageDataOpArray, &formulaIdentityBuilder)
 	// author details opreation
-	authorDetailsBuilder, errInAuthorBuilder := expertFormula.BuildPublisherManageData(formulaJSON.User.Publickey)
+	authorDetailsBuilder, errInAuthorBuilder := expertFormula.BuildPublicManageData(formulaJSON.User.Publickey)
 	if errInAuthorBuilder != nil {
 		commons.JSONErrorReturn(w, r, errInAuthorBuilder.Error(), http.StatusInternalServerError, "An error occured when building author identity ")
 		return
@@ -344,6 +344,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		Status:                 status,
 		CreatedAt:              time.Now().String(),
 		CiperText:              formulaJSON.MetricExpertFormula.CiperText,
+		ExecutionTemplate:      executionTemplate,
 	}
 	Id, errResult := object.InsertExpertFormula(expertFormulaBuilder)
 	if errResult != nil {

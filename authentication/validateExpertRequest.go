@@ -4,23 +4,34 @@ import (
 	"crypto/rand"
 	"crypto/rsa"
 	"errors"
+	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 )
 
 type AuthLayer struct {
-	FormulaId string
-	ExpertPK  string
+	FormulaId    string
+	ExpertPK     string
 	ExpertUserID string
-	CiperText string
-	Plaintext []model.FormulaItemRequest
+	CiperText    string
+	Plaintext    []model.FormulaItemRequest
 }
 
 func (authObject AuthLayer) ValidateExpertRequest() (error, int) {
+	if configs.ValidateAgaintTrustNetworkExpertFormulaEnable {
+		// validation againt trust network
+		errInTrustNetworkValidation := ValidateAgainstTrustNetwork(authObject.ExpertPK)
+		if errInTrustNetworkValidation != nil {
+			logrus.Error("Expert is not in the trust network ", errInTrustNetworkValidation)
+			return errInTrustNetworkValidation, http.StatusBadRequest
+		}
+	}
+
 	err1, code1 := authObject.isExceedRequestLimitPerDay()
 	if err1 != nil {
 		return err1, code1
