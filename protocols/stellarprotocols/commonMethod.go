@@ -11,6 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+des - calling the stellar endpoint to get the transaction details using the txn hash
+*/
+
 func AccecingManageData(hash string) {
 	//! acessing the manage data in blockchain and convert byte to bit string
 	url := "https://horizon-testnet.stellar.org/transactions/" + hash + "/operations"
@@ -64,6 +68,6 @@ func AccecingManageData(hash string) {
 		if err != nil {
 			logrus.Error(err)
 		}
-		fmt.Println(byteVal," converted int ", getInt)
+		fmt.Println(byteVal, " converted int ", getInt)
 	}
 }

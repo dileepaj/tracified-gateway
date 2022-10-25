@@ -11,6 +11,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+des - Build the structure from the FCL JSON
+*/
+
 func BuildJSONStructure(executionTemplateString string) (model.ExecutionTemplate, error) {
 	var result string = fcl.NewFCLWrapper().GetExecutionTemplateJSONString("./Defs.txt", "$WATER.Multiply($WATER_TO_ELECTRICITY_UNIT).Multiply($ELECTRICITY_UNIT_TO_CARBON_EMISSION)")
 	fmt.Println(result)
