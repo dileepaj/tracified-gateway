@@ -244,6 +244,7 @@ type PGPInformation struct {
 	PGPPublicKey       string
 	StellarPublicKey   string
 	DigitalSignature   string
+	SignatureHash      string
 	StellarTXNToSave   string
 	StellarTXNToVerify string
 }

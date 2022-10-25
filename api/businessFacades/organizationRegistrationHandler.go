@@ -33,7 +33,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
+	log.Println("Object: ", Obj)
 	if Obj.Status != model.Pending.String() {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
@@ -52,7 +52,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
+	acceptBuild, _ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
 	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
@@ -62,8 +62,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	rejectBuild,_ :=  txnbuild.TransactionFromXDR(Obj.RejectXDR)
-
+	rejectBuild, _ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
 
 	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
