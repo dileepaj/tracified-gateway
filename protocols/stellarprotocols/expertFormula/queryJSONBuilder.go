@@ -11,9 +11,12 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
-des - Build the structure from the FCL JSON
-*/
+/**
+ * Get the execution template as a string by passing the query string to the FCL query executer
+ * and convert the response to a JSON and store it as a ExecutionTemplate struct
+ * @param query - string
+ * @return ExecutionTemplate - model.ExecutionTemplate
+ */
 
 func BuildJSONStructure(executionTemplateString string) (model.ExecutionTemplate, error) {
 	var result string = fcl.NewFCLWrapper().GetExecutionTemplateJSONString("./Defs.txt", "$WATER.Multiply($WATER_TO_ELECTRICITY_UNIT).Multiply($ELECTRICITY_UNIT_TO_CARBON_EMISSION)")
@@ -34,15 +37,15 @@ func BuildExecutionTemplateByQuery(query string) (model.ExecutionTemplate, error
 	var executionTemplate model.ExecutionTemplate
 	executionTemplateString, err := fclqueryexecuter.FCLQueryToExecutionTempalteJsonString(query)
 	if err != nil {
-		return model.ExecutionTemplate{}, err
+		return model.ExecutionTemplate{}, errors.New("error when getting execution template string from FCL query executer(queryJSONBuilder) " + err.Error())
 	}
 	errWhenUnmarshelling := json.Unmarshal([]byte(executionTemplateString), &executionTemplate)
 	if errWhenUnmarshelling != nil {
-		return model.ExecutionTemplate{}, errors.New("error when unmarshelling string to JSON execution template object " + errWhenUnmarshelling.Error())
+		return model.ExecutionTemplate{}, errors.New("error when unmarshelling string to JSON execution template object(queryJSONBuilder) " + errWhenUnmarshelling.Error())
 	}
 	logrus.Printf("%+v\n", executionTemplate)
 	if executionTemplate.Error != "" {
-		return model.ExecutionTemplate{}, errors.New(executionTemplate.Error)
+		return model.ExecutionTemplate{}, errors.New("error when getting execution template string from FCL query executer(queryJSONBuilder)" + executionTemplate.Error)
 	}
 	return executionTemplate, nil
 }

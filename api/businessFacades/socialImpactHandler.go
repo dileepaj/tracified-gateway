@@ -63,6 +63,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 		formulaJSON.MetricExpertFormula.Formula = formulaArray
 
+		// if the blockchain is not provided in the request, then use the default blockchain 
 		if formulaJSON.MetricExpertFormula.Blockchain == "" {
 			formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
 		}
