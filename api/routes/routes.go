@@ -16,7 +16,8 @@ type Route struct {
 // Routes An Array of type Route
 type Routes []Route
 
-/*routes contains all the routes
+/*
+routes contains all the routes
 @author Azeem Ashraf, Jajeththanan Sabapathipillai
 */
 var routes = Routes{
@@ -427,5 +428,108 @@ var routes = Routes{
 		"GET",
 		"/transaction/identifier/artifact/{artifactid}",
 		businessFacades.TxnForArtifact,
+	},
+	Route{
+		"MintNFTStellarAndAddToDB",
+		"POST",
+		"/nft/mintStellar",
+		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
+	},
+	Route{
+		"MintNFTSolanaAndAddToDB",
+		"POST",
+		"/nft/mintSolana",
+		businessFacades.MintNFTSolana, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
+	Route{
+		"MintNFTContractAndAddToDB",
+		"POST",
+		"/nft/mintcontract",
+		businessFacades.MintNFTContract, //Calls the MintNFTContract in the nftHandler to save contract based minted data
+	},
+	Route{
+		"GetMinterForSolana",
+		"GET",
+		"/nft/minter/{ImageBase64}/{blockchain}",
+		businessFacades.RetrieveSolanaMinter, //Calls the minter from Solana after minting
+	},
+	Route{
+		"RetrieveStellarTxn",
+		"GET",
+		"/nft/gettxn/{ImageBase64}/{blockchain}",
+		businessFacades.RetrieveStellarTxn, //get txn based on the stellar minted nft
+	},
+	Route{
+		"RetriveNFTByStatusAndPK",
+		"GET",
+		"/nft/getnft",
+		businessFacades.RetriveNFTByStatusAndPK, //Calls the RetriveNFTByStatusAndPK in the StellarHandler
+	},
+	Route{
+		"GetNFTIssuerAccount",
+		"GET",
+		"/nft/issueaccount",
+		businessFacades.GetNFTIssuerAccount, //Calls the CreateNFTIssuerAccount in the StellarHandler
+	},
+	Route{
+		"UpdateSellingStatus",
+		"PUT",
+		"/nft/updatesell",
+		businessFacades.UpdateSellingStatus, //Calls the UpdateSellingStatus in the StellarHandler
+	},
+	Route{
+		"UpdateBuyingStatus",
+		"PUT",
+		"/nft/updatebuy",
+		businessFacades.UpdateBuyingStatus, //Calls the UpdateBuyingStatus in the StellarHandler
+	},
+	Route{
+		"GetLastNFTByIdentifier",
+		"GET",
+		"/lastnft/{InitialDistributorPK}",
+		businessFacades.GetLastNFTbyIdentifier, //Calls the GetLastNFTByIdentifier in the StellarHandler
+	},
+	Route{
+		"FundAndGetAccount",
+		"GET",
+		"/nft/fundAccount",
+		businessFacades.FundAndGetAccount, //Calls the FundAccount in the StellarHandler
+	},
+
+	Route{
+		"GetSponsorAccountXDR",
+		"GET",
+		"/nft/sponsor",
+		businessFacades.GetSponsorAccountXDR, //Calls the GetSponsorAccountXDR in the StellarHandler
+	},
+	Route{
+		"GetSponsorTrustXDR",
+		"GET",
+		"/nft/sponsortrust",
+		businessFacades.GetSponsorTrustXDR, //Calls the GetSponsorTrustXDR in the StellarHandler
+	},
+	Route{
+		"Storing the social impact equation on blockchain",
+		"POST",
+		"/socialimapact/buildformula",
+		businessFacades.BuildSocialImpactExpertFormula,
+	},
+	Route{
+		"Binding metrics with traceability data and Master data",
+		"POST",
+		"/socialimapact/metricbinding",
+		businessFacades.BindMetric,
+	},
+	Route{
+		"save PGP key",
+		"POST",
+		"/pgp",
+		businessFacades.SavePGPKey,
+	},
+	Route{
+		"retrieve PGP publickey",
+		"GET",
+		"/pgp/{sha256pk}",
+		businessFacades.GetRSAPublicKeyBySHA256PK,
 	},
 }
