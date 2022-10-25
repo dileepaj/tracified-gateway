@@ -20,9 +20,11 @@ return the txnbuild.ManageData object
 variable definition and byte used
 	valueType - 1 byte defieded by protocol -2 for sementic constant
 	valueId  - 8 byte defieded by protocol
-	value name - 40 byte defieded by protocol
+	data type - 1 byte
+	value name - 20 byte defieded by protocol
 	description - 40 bytes
 	sementicConstantDataType - 1 byte defieded by protocol -2 for flaot
+	future use - 34 bytes
 
 Manage data
 	name 64 byte character - 	description - 64 byte defieded by protocol
@@ -42,7 +44,7 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	semanticConstantValue := fmt.Sprintf("%g", element.Value.(float64))
 	// DB validations for the variable id
 	object := dao.Connection{}
-	valueMap, errValueMap := object.GetValueMapID(element.ID,formulaID).Then(func(data interface{}) interface{} {
+	valueMap, errValueMap := object.GetValueMapID(element.ID, formulaID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMap != nil {
@@ -92,14 +94,14 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	//future use of 24 bytes
 	keyFutureUse := fmt.Sprintf("%s", strings.Repeat("0", 24))
 
-	//Variable name - 40 bytes
-	if len(element.Name) > 40 || element.Name == "" {
+	//Variable name - 20 bytes
+	if len(element.Name) > 20 || element.Name == "" {
 		logrus.Error("Value name is greater than 40 character limit or Empty")
 		return txnbuild.ManageData{}, errorRespObj, errors.New("Value name is greater than 40 character limit")
 	} else {
-		if len(element.Name) < 40 {
+		if len(element.Name) < 20 {
 			// add 0s to the rest of the name
-			remain := 40 - len(element.Name)
+			remain := 20 - len(element.Name)
 			setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain-1))
 			variableName = element.Name + `/` + setReaminder
 		} else {
@@ -119,8 +121,8 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 			semanticConstantValue = setReaminder + semanticConstantValue
 		}
 	}
-	// define a 14 zeros string
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%028d", 0))
+	// define a 34 zeros string
+	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%068d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, errorRespObj, err
 	}

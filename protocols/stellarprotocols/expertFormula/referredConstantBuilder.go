@@ -22,6 +22,7 @@ variable definition and byte used
 	unit  - 2 byte defieded by protocol  we maintan a map for each unit defineded by expert
 	referredConstantDataType - 1 byte defieded by protocol -2 for flaot
 	variable name - 20 byte defieded by protocol
+	value - 8 bytes
 	description 40 bytes
 Manage data
 	name 64 byte character - decription + future use
@@ -43,7 +44,7 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	referredConstantValue := fmt.Sprintf("%g", element.Value.(float64))
 	// DB validations for the variable id
 	object := dao.Connection{}
-	valueMap, errValueMap := object.GetValueMapID(element.ID,formulaID).Then(func(data interface{}) interface{} {
+	valueMap, errValueMap := object.GetValueMapID(element.ID, formulaID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMap != nil {

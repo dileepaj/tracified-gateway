@@ -11,6 +11,12 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+	des - build metric name manage data for metric binding endpoint
+		Metric name - 127 bytes
+		Length of the base64 metric name - 1 byte
+*/
+
 func (metric *MetricBinding) BuildMetricNameManageData(name string, typename string) (txnbuild.ManageData, error) {
 	// base64 encode thetypename+ to overcome stellar UTE-8 issues
 	metricName := base64.StdEncoding.EncodeToString([]byte(name))

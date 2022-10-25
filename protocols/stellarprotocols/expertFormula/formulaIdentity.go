@@ -14,11 +14,14 @@ import (
 /*
 BuildFormulaIdentity
 des-Build the formula idenitiy manage data
+	formula name - 64 (full key)
+	author id -  8 (value)
+	future use - 56 (value)
 */
-func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaName string) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula) BuildFormulaIdentity(expertId uint64, formulaName string) (txnbuild.ManageData, error) {
 	authorID := stellarprotocols.UInt64ToByteString(expertId)
 	formName := ""
-	
+
 	//checking if the expert ID is having 8 characters
 	if len(authorID) < 8 {
 		remain := 8 - len(authorID)
@@ -49,9 +52,9 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaN
 	}
 	strFutureUse := string(decodedStrFutureUse)
 
-	valueString := authorID + strFutureUse 
+	valueString := authorID + strFutureUse
 	keyString := formName
-	
+
 	logrus.Info("Formula identity key ", keyString)
 	logrus.Info("Formula identity value ", valueString)
 	//building the manage data operation

@@ -333,18 +333,19 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	}
 	// save expert formula in the database
 	expertFormulaBuilder := model.FormulaStore{
-		Blockchain:             formulaJSON.MetricExpertFormula.Blockchain,
-		FormulaID:              formulaJSON.MetricExpertFormula.ID,
-		ExpertID:               formulaJSON.User.ID,
-		ExpertPK:               formulaJSON.User.Publickey,
-		VariableCount:          len(formulaArray),
-		FormulaJsonRequestBody: formulaJSON,
-		Transactions:           transactionArray,
-		OverflowAmount:         len(transactionArray),
-		Status:                 status,
-		CreatedAt:              time.Now().String(),
-		CiperText:              formulaJSON.MetricExpertFormula.CiperText,
-		ExecutionTemplate:      executionTemplate,
+		Blockchain:              formulaJSON.MetricExpertFormula.Blockchain,
+		FormulaID:               formulaJSON.MetricExpertFormula.ID,
+		ExpertID:                formulaJSON.User.ID,
+		ExpertPK:                formulaJSON.User.Publickey,
+		VariableCount:           len(formulaArray),
+		FormulaJsonRequestBody:  formulaJSON,
+		Transactions:            transactionArray,
+		OverflowAmount:          len(transactionArray),
+		Status:                  status,
+		CreatedAt:               time.Now().String(),
+		CiperText:               formulaJSON.MetricExpertFormula.CiperText,
+		ExecutionTemplate:       executionTemplate,
+		TotalNumberOfManageData: len(manageDataOpArray),
 	}
 	Id, errResult := object.InsertExpertFormula(expertFormulaBuilder)
 	if errResult != nil {

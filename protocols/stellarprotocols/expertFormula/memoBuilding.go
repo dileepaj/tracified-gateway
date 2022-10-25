@@ -12,6 +12,10 @@ type ExpertFormula struct{}
 /*
 des- build the memo according to the protocol
 return the txnbuild.ManageData object
+	manifest - 10 bytes
+	formula id - 8 bytes
+	no of values - 4
+	future use 6
 */
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign

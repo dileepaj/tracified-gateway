@@ -16,6 +16,20 @@ import (
 /*
 BuildVariableDefinitionManageData
 des-Build the variable definition manage data
+variable definition and byte used
+	valueType - 1 byte defieded by protocol -2 for sementic constant
+	valueId  - 8 byte defieded by protocol
+	data type - 1 byte
+	value name - 20 byte defieded by protocol
+	unit - 2 bytes
+	precision - 1
+	description - 40 bytes
+	sementicConstantDataType - 1 byte defieded by protocol -2 for flaot
+	future use - 34 bytes
+
+Manage data
+	name 64 byte character - 	description - 64 byte defieded by protocol + future use
+	value 64 byte managedata - valueType + valueId +  + value name + fetureused + data type + unit + precision
 */
 func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
 	VALUETYPE := 1
@@ -43,7 +57,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	valueTypeString = tempValueType
 	// DB validations for the variable id
 	object := dao.Connection{}
-	valueMap, errValueMap := object.GetValueMapID(element.ID,formulaID).Then(func(data interface{}) interface{} {
+	valueMap, errValueMap := object.GetValueMapID(element.ID, formulaID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMap != nil {

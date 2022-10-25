@@ -43,18 +43,18 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 			return &txnbuild.ManageData{}, errors.New("Error in getting value map from key " + errValueMapDetails.Error())
 		}
 		variableID = valueMapDetails.(model.ValueIDMap).MapID
-		constantValue = strings.Repeat("0", 64)
+		constantValue = strings.Repeat("0", 58)
 
 	} else {
 		constantValue = fmt.Sprintf("%g", executionTemplate.P_Entity.Value.(float64))
 		// check value is 64 character
-		if len(constantValue) > 64 {
-			logrus.Error("Value is greater than 8 character limit")
-			return &txnbuild.ManageData{}, errors.New("value is greater than 64 character limit")
+		if len(constantValue) > 58 {
+			logrus.Error("Constant value is greater than 58 character limit")
+			return &txnbuild.ManageData{}, errors.New("Constant value is greater than 58 character limit")
 		} else {
-			if len(constantValue) < 64 {
+			if len(constantValue) < 58 {
 				// add 0s to the rest of the name
-				remain := 64 - len(constantValue)
+				remain := 58 - len(constantValue)
 				setReaminder := strings.Repeat("0", remain)
 				constantValue = setReaminder + constantValue
 			}
@@ -101,7 +101,7 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	}
 	futureUse := string(decodedStrFutureUsed)
 
-	keyString := constantValue
+	keyString := "Type2/" + constantValue
 	valueString := typeOfTemplate + isVariableString + stellarprotocols.UInt64ToByteString(variableID) + constTypeString + futureUse
 
 	logrus.Info("Key String ", keyString)

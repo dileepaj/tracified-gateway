@@ -14,8 +14,8 @@ import (
 des - build the reference manage data for referred constant
 return txnbuild.manage data
 
-	reference url - 127 bytes
-	length - 1 byte
+	reference url - 127 bytes (key + value)
+	length - 1 byte (in value)
 */
 
 func (expertFormula ExpertFormula) BuildReference(refUrl string) (txnbuild.ManageData, error) {

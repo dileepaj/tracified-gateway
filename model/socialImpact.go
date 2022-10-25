@@ -247,18 +247,19 @@ type FormulaTransaction struct {
 }
 
 type FormulaStore struct {
-	Blockchain             string
-	FormulaID              string
-	ExpertID               string
-	ExpertPK               string
-	VariableCount          int
-	FormulaJsonRequestBody FormulaBuildingRequest
-	Transactions           []FormulaTransaction
-	OverflowAmount         int
-	Status                 string
-	CreatedAt              string
-	CiperText              string
-	ExecutionTemplate      ExecutionTemplate
+	Blockchain              string
+	FormulaID               string
+	ExpertID                string
+	ExpertPK                string
+	VariableCount           int
+	FormulaJsonRequestBody  FormulaBuildingRequest
+	Transactions            []FormulaTransaction
+	OverflowAmount          int
+	Status                  string
+	CreatedAt               string
+	CiperText               string
+	ExecutionTemplate       ExecutionTemplate
+	TotalNumberOfManageData int
 }
 
 type ValueDefOutParmas struct {

@@ -13,6 +13,8 @@ import (
 /*
 BuildAuthorManageData
 des-Build the author definition manage data
+	public key - 64 bytes
+	future use - 64 bytes
 */
 func (expertFormula ExpertFormula) BuildAuthorManageData(expertKey string) (txnbuild.ManageData, txnbuild.ManageData, error) {
 	authorKey1 := ""
