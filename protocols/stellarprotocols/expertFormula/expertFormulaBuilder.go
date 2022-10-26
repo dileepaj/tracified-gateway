@@ -267,7 +267,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		}
 		stellarProtocol := stellarprotocols.StellarTrasaction{
 			PublicKey:  constants.PublicKey,
-			SecretKey:  constants.SecretKey,
 			Operations: manadataOperationArray,
 			Memo:       memo0,
 		}
@@ -291,7 +290,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 		}
 		startTransactionTime = time.Now()
-		err, errCode, hash := stellarProtocol.SubmitToStellerBlockchain()
+		err, errCode, hash, _ := stellarProtocol.SubmitToStellerBlockchain()
 		hashArray = append(hashArray, hash)
 		endTransactionTime = time.Now()
 		if err != nil {
