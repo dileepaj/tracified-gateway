@@ -11,7 +11,6 @@ require (
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
 	github.com/robfig/cron v1.2.0
-	github.com/shanukabps/FCL-GO_test v0.1.5
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stellar/go v0.0.0-20220713211913-118efe4d14d4
 	go.mongodb.org/mongo-driver v1.9.1
