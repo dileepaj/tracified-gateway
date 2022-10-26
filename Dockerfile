@@ -14,7 +14,7 @@ RUN go mod download
 COPY . ./
 
 # Build
-RUN CGO_ENABLED=0 go build github.com/dileepaj/tracified-gateway
+RUN go build github.com/dileepaj/tracified-gateway
 COPY . ./
 
 # CMD [ "ls" ]
