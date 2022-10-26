@@ -14,6 +14,8 @@ import (
 
 /**
  * This is the template for the manage data for commands in type 1 execution template
+ * Returns an array of manage data operations
+
  * Key -> 64 Bytes -> "Command" padded with 0s
  * Value -> 4 Byte -> Command Type
  * 			1 Bytes -> Has argument
@@ -21,53 +23,50 @@ import (
  */
 
 func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operation, error) {
-	hasArgument := false
-	commandType := command.Ul_CommandType
-	var manageDataOpArray []txnbuild.Operation
+	hasArgument := 0								// command has argument 0 - false and 1 - true
+	commandType := command.Ul_CommandType			// command type (Values given in FCL for Add, Subtract, Multiply, Divide, etc)
+	var manageDataOpArray []txnbuild.Operation		// Array of manage data operations
 
+	// Check if the command has an argument by checking the s_StartVariableName in the p_Arg
 	if command.P_Arg.S_StartVarName != "" {
-		hasArgument = true
+		hasArgument = 1
 	}
 
 	// key field
 	keyString := "Command"
 	if len(keyString) > 64 {
-		logrus.Error("Length of the key is greater than 64")
-		return manageDataOpArray, errors.New("length of the key is greater than 64")
+		logrus.Error("Length of the key is greater than 64(commandBuilder)")
+		return manageDataOpArray, errors.New("length of the key is greater than 64(commandBuilder)")
 	} else if len(keyString) < 64 {
 		keyString = keyString + "/"
 		keyString = keyString + strings.Repeat("0", 64-len(keyString))
 	}
 
 	// value field
-	// convert hasArgument from bool to string
-	hasArgumentInt := 0
-	if hasArgument {
-		hasArgumentInt = 1
-	}
-	hasArgumentString, errInConvertion := stellarprotocols.Int8ToByteString(uint8(hasArgumentInt))
+	// convert hasArgument from int8 to string
+	hasArgumentString, errInConvertion := stellarprotocols.Int8ToByteString(uint8(hasArgument))
 	if errInConvertion != nil {
-		logrus.Info("Error when converting has argument ", errInConvertion)
-		return manageDataOpArray, errors.New("Error when converting has argument " + errInConvertion.Error())
+		logrus.Info("Error when converting hasArgument from int8 to String(commandBuilder) ", errInConvertion)
+		return manageDataOpArray, errors.New("error when converting hasArgument from int8 to String(commandBuilder) " + errInConvertion.Error())
 	}
 
 	// futureUse
-	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%0118d", 0))
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0118d", 0))
 	if err != nil {
-		return manageDataOpArray, err
+		return manageDataOpArray, errors.New("error when decoding future use(commandBuilder) " + err.Error())
 	}
-	futureUse := string(decodedStrFutureUsed)
+	futureUse := string(decodedStrFutureUse)
 
 	valueString := stellarprotocols.UInt32ToByteString(commandType) + hasArgumentString + futureUse
 
-	logrus.Info("Key String ", keyString)
-	logrus.Info("Value String ", valueString)
+	logrus.Info("CommandBuilder Key String ", keyString)
+	logrus.Info("CommandBuilder Value String ", valueString)
 
 	// check if the length of key and value is 64
 	if len(valueString) != 64 || len(keyString) != 64 {
 		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
-		logrus.Error("Length of the key or value is not 64")
-		return manageDataOpArray, errors.New("length of the key or value is not 64")
+		logrus.Error("Length of the key or value is not 64(commandBuilder)")
+		return manageDataOpArray, errors.New("length of the key or value is not 64(commandBuilder)")
 	}
 
 	// build the manage data
@@ -78,23 +77,27 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 
 	manageDataOpArray = append(manageDataOpArray, &commandBuilder)
 
-	if hasArgument {
+	/* if the command has argument then the template type in the arugment should be identified
+			if the lst_commands in P_Arg is not empty	-> call the template 1 builder
+			if the lst_commands in P_Arg is empty		-> call the template 2 builder
+	*/
+	if hasArgument == 1 {
 		// build manage data for argument
 		if command.P_Arg.Lst_Commands != nil {
-			// call template 1
 			manageDataOp, err := Type1TemplateBuilder(formulaId, command.P_Arg)
 			if err != nil {
-				logrus.Error("Error when building the manage data for the argument ", err)
-				return manageDataOpArray, errors.New("error when building the manage data for the argument " + err.Error())
+				logrus.Error("Error when building the manage data for the argument type 1 execution template(commandBuilder) ", err)
+				return manageDataOpArray, errors.New("error when building the manage data for the argument type 1 execution template(commandBuilder) " + err.Error())
 			}
+			// append the manage data to the array
 			manageDataOpArray = append(manageDataOpArray, manageDataOp...)
 		} else {
-			// call template 2
 			manageDataOp, err := Type2TemplateBuilder(formulaId, command.P_Arg)
 			if err != nil {
-				logrus.Error("Error when building the manage data for the argument ", err)
-				return manageDataOpArray, errors.New("error when building the manage data for the argument " + err.Error())
+				logrus.Error("Error when building the manage data for the argument type 2 execution template(commandBuilder) ", err)
+				return manageDataOpArray, errors.New("error when building the manage data for the argument type 2 execution template(commandBuilder) " + err.Error())
 			}
+			// append the manage data to the array
 			manageDataOpArray = append(manageDataOpArray, manageDataOp)
 		}
 	}

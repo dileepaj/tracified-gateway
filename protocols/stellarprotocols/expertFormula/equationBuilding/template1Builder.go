@@ -15,6 +15,8 @@ import (
 
 /**
  * This is the template for the type 1 execution template manage data
+ * Returns an array of manage data operations
+
  * key -> 64 bytes -> "Type 1 Execution Template" padded with 0s
  * value -> 1 Byte -> Type
 			8 Bytes -> Start variable id
@@ -24,71 +26,75 @@ import (
 
 func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTemplate) ([]txnbuild.Operation, error) {
 
-	var startVariableID uint64
-	numberOfCommands := uint32(len(executionTemplate.Lst_Commands))
-	var manageDataOpArray []txnbuild.Operation
+	var startVariableID uint64											// mapped id in the db for Start variable
+	numberOfCommands := uint32(len(executionTemplate.Lst_Commands))		// number of commands in the execution template
+	var manageDataOpArray []txnbuild.Operation							// Array of manage data operations
 
-	// get the mapped id for start variable from db
+	// get the mapped id for start variable from db using formula id and key
 	object := dao.Connection{}
 	valueMapDetails, errValueMapDetails := object.GetValueMapDetails(formulaId, "$"+executionTemplate.S_StartVarName).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errValueMapDetails != nil {
-		logrus.Error("Error in getting value map from key ", errValueMapDetails)
-		return manageDataOpArray, errors.New("Error in getting value map from key " + errValueMapDetails.Error())
+		logrus.Error("Error in getting value map from db(template1Builder) ", errValueMapDetails)
+		return manageDataOpArray, errors.New("error in getting value map from db(template1Builder) " + errValueMapDetails.Error())
 	}
 	startVariableID = valueMapDetails.(model.ValueIDMap).MapID
 
 	// key field 
 	keyString := "Type 1 Execution Template"
 	if len(keyString) > 64 {
-		logrus.Error("Length of the key is greater than 64")
-		return manageDataOpArray, errors.New("length of the key is greater than 64")
+		logrus.Error("Length of the key is greater than 64(template1Builder)")
+		return manageDataOpArray, errors.New("length of the key is greater than 64(template1Builder)")
 	} else if len(keyString) < 64 {
 		keyString = keyString + "/"
 		keyString = keyString + strings.Repeat("0", 64-len(keyString))
 	}
 
 	// value field
-	// convert typeOfTemplate from uint8 to string
+	// convert typeOfTemplate from int8 to string
 	typeOfTemplate, errInConvertion := stellarprotocols.Int8ToByteString(uint8(1))
 	if errInConvertion != nil {
-		logrus.Info("Error when converting type of template ", errInConvertion)
-		return manageDataOpArray, errors.New("Error when converting type of template " + errInConvertion.Error())
+		logrus.Info("Error when converting template type from int8 to string(template1Builder) ", errInConvertion)
+		return manageDataOpArray, errors.New("error when converting template type from int8 to string(template1Builder) " + errInConvertion.Error())
 	}
 
 	// futureUse
-	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%0102d", 0))
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0102d", 0))
 	if err != nil {
-		return manageDataOpArray, err
+		return manageDataOpArray, errors.New("error in decoding future use string(template1Builder) " + err.Error())
 	}
-	futureUse := string(decodedStrFutureUsed)
+	futureUse := string(decodedStrFutureUse)
 
 	valueString := typeOfTemplate + stellarprotocols.UInt64ToByteString(startVariableID) + stellarprotocols.UInt32ToByteString(numberOfCommands) + futureUse
 
-	logrus.Info("Key String ", keyString)
-	logrus.Info("Value String ", valueString)
+	logrus.Info("Template1Builder Key String ", keyString)
+	logrus.Info("Template1Builder Value String ", valueString)
 
 	// check if the length of key and value is 64
 	if len(valueString) != 64 || len(keyString) != 64 {
-		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString), " is not 64")
-		logrus.Error("Length of the key or value is not 64")
-		return manageDataOpArray, errors.New("length of the key or value is not 64")
+		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
+		logrus.Error("Length of the key or value is not 64(template1Builder)")
+		return manageDataOpArray, errors.New("length of the key or value is not 64(template1Builder)")
 	}
 
-	// build the manage data
+	// build the manage data for this template
 	template1Builder := txnbuild.ManageData{
 		Name:  keyString,
 		Value: []byte(valueString),
 	}
+	// append the manage data for template 1 to the array
 	manageDataOpArray = append(manageDataOpArray, &template1Builder)
 
+	// loop through the lst_commands array and build the manage data for each command
+	// build manage data related to a command will be returned as an array
 	for _, command := range executionTemplate.Lst_Commands {
 		manageDataOp, err := CommandBuilder(formulaId, command)	
 		if err != nil {
-			logrus.Error("Error in building the command ", err)
-			return manageDataOpArray, errors.New("Error in building the command " + err.Error())
+			logrus.Error("Error in building the command(template1Builder) ", err)
+			return manageDataOpArray, errors.New("error in building the command(template1Builder) " + err.Error())
 		}
+		// append the manage data for command to the array
 		manageDataOpArray = append(manageDataOpArray, manageDataOp...)
 	}
 	return manageDataOpArray, nil
