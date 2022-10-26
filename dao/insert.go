@@ -516,3 +516,17 @@ func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) err
 	}
 	return err
 }
+
+func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("RSAKeys")
+	_, err = c.InsertOne(context.TODO(), rsaKey)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
+}
