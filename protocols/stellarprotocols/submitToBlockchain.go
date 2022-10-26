@@ -18,6 +18,10 @@ type StellarTrasaction struct {
 	Memo       string
 }
 
+/*
+des - common method to send a transaction to the blockchain
+*/
+
 func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, string) {
 	// load account
 	publicKey := constants.PublicKey

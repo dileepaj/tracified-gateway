@@ -14,21 +14,24 @@ import (
 /*
 BuildFormulaIdentity
 des-Build the formula idenitiy manage data
+	formula name - 64 (full key)
+	author id -  8 (value)
+	future use - 56 (value)
 */
-func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaName string) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula) BuildFormulaIdentity(expertId uint64, formulaName string) (txnbuild.ManageData, error) {
 	authorID := stellarprotocols.UInt64ToByteString(expertId)
 	formName := ""
-	
+
 	//checking if the expert ID is having 8 characters
 	if len(authorID) < 8 {
 		remain := 8 - len(authorID)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		setReaminder := strings.Repeat("0", remain)
 		authorID = authorID + setReaminder
 	}
 	//check if the formula name have 64 characters
 	if len(formulaName) > 64 {
-		logrus.Error("Formula name 64 character limit exceeded")
-		return txnbuild.ManageData{}, errors.New("Formula name 64 character limit exceeded")
+		logrus.Error("Formula name 64 character limit exceeded(formulaIdentity)")
+		return txnbuild.ManageData{}, errors.New("formula name 64 character limit exceeded(formulaIdentity)")
 	} else {
 		if len(formulaName) == 64 {
 			formName = formulaName
@@ -39,7 +42,7 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaN
 	//checking if the formula name has the 64 bytes
 	if len(formName) < 64 {
 		remain := 64 - len(formName)
-		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
+		setReaminder := strings.Repeat("0", remain)
 		formName = formName + setReaminder
 	}
 	// define a 41 zeros string for future use
@@ -49,9 +52,9 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaN
 	}
 	strFutureUse := string(decodedStrFutureUse)
 
-	valueString := authorID + strFutureUse 
+	valueString := authorID + strFutureUse
 	keyString := formName
-	
+
 	logrus.Info("Formula identity key ", keyString)
 	logrus.Info("Formula identity value ", valueString)
 	//building the manage data operation
@@ -63,7 +66,7 @@ func (expertFormula ExpertFormula)BuildFormulaIdentity(expertId uint64, formulaN
 	if len(keyString) > 64 || len(valueString) > 64 {
 		logrus.Error("Key string length : ", len(keyString))
 		logrus.Error("Value string length : ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the formula identity building")
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the formula identity building(formulaIdentity)")
 	}
 	return formulaIdentityBuilder, nil
 }

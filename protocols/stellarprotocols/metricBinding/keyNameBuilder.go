@@ -9,6 +9,11 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
+/*
+des - build the key name manage data
+	128 byttes
+*/
+
 func (metric *MetricBinding) BuildKeyName(keyName string) (txnbuild.ManageData, error) {
 	keyNameKey := ""
 	keyNameValue := ""

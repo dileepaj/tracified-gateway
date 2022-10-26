@@ -81,12 +81,12 @@ type UnitIDMap struct {
 }
 
 type FormulaBuildingRequest struct {
-	MetricExpertFormula ExpertFormula			`json:"MetricExpertFormula" bson:"metricExpertFormula"`	
-	User User									`json:"User" bson:"user"`
+	MetricExpertFormula ExpertFormula `json:"MetricExpertFormula" bson:"metricExpertFormula"`
+	User                User          `json:"User" bson:"user"`
 }
 
 type ExpertFormula struct {
-	Blockchain      string               `json:"Blockchain" bson:"blockchain" validate:"required"`
+	Blockchain      string               `json:"Blockchain" bson:"blockchain"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
@@ -94,7 +94,7 @@ type ExpertFormula struct {
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	CiperText       string 				 `json:"CiperText" bson:"ciperText"`
+	CiperText       string               `json:"CiperText" bson:"ciperText"`
 }
 
 type User struct {
@@ -104,11 +104,11 @@ type User struct {
 }
 
 type MetricReference struct {
-	ID              string 
+	ID              string
 	Name            string
 	MeasurementUnit string
-	Description 	string
-	Reference       string 
+	Description     string
+	Reference       string
 }
 
 type MetricItem struct {
@@ -247,17 +247,19 @@ type FormulaTransaction struct {
 }
 
 type FormulaStore struct {
-	Blockchain             string
-	FormulaID              string
-	ExpertID               string
-	ExpertPK               string
-	VariableCount          int
-	FormulaJsonRequestBody FormulaBuildingRequest
-	Transactions           []FormulaTransaction
-	OverflowAmount         int
-	Status                 string
-	CreatedAt              string
-	CiperText              string
+	Blockchain              string
+	FormulaID               string
+	ExpertID                string
+	ExpertPK                string
+	VariableCount           int
+	FormulaJsonRequestBody  FormulaBuildingRequest
+	Transactions            []FormulaTransaction
+	OverflowAmount          int
+	Status                  string
+	CreatedAt               string
+	CiperText               string
+	ExecutionTemplate       ExecutionTemplate
+	TotalNumberOfManageData int
 }
 
 type ValueDefOutParmas struct {
@@ -289,7 +291,7 @@ type MetricDataBindingRequest struct {
 
 type MetricReq struct {
 	ID             string                          `json:"ID" bson:"id" validate:"required"`
-	Blockchain     string                          `json:"Blockchain" bson:"blockchain" validate:"required"`
+	Blockchain     string                          `json:"Blockchain" bson:"blockchain"`
 	Name           string                          `json:"Name" bson:"name" validate:"required"`
 	Description    string                          `json:"Description" bson:"description" validate:"required"`
 	BenchmarkRef   string                          `json:"BenchmarkRef" bson:"benchmarkRef"`
@@ -574,4 +576,25 @@ type Activity struct {
 	ProductName     string
 	TracifiedItemId string `json:"TracifiedItemId" bson:"tracifiedItemId" validate:"required"`
 	StageId         string `json:"StageId" bson:"stageId" validate:"required"`
+}
+
+type ExecutionTemplate struct {
+	Lst_Commands      []Command
+	P_Entity          P_Entity
+	S_CodeLine        string
+	S_StartVarName    string
+	Ul_SpecialCommand uint32
+	Ul_type           uint64
+	Error             string
+}
+
+type P_Entity struct {
+	Ul_type int64
+	Value   any
+}
+
+type Command struct {
+	P_Arg                ExecutionTemplate
+	S_AdditionalFuncName string
+	Ul_CommandType       uint32
 }

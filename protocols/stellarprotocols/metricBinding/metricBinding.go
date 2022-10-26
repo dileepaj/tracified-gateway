@@ -78,7 +78,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	manageDataOpArray = append(manageDataOpArray, &metricName)
 
 	// 2. Metric publisher public key definition (Compulsory MDO) 64 byte  hash256 of PGP's public key
-	publisherIdentity, err := stellarProtocol.BuildPublisherManageData(metricBindJson.User.Publickey)
+	publisherIdentity, err := stellarProtocol.BuildPublicManageData(metricBindJson.User.Publickey)
 	if err != nil {
 		metricBindingStore.Metric.ErrorMessage = err.Error()
 		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -97,16 +97,16 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
-		formulaDetails := formulaMapID.(model.FormulaIDMap)
 		if err != nil {
 			metricBindingStore.Metric.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
-			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula in database ")
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula Id in the database ")
 			return
 		}
+		formulaDetails := formulaMapID.(model.FormulaIDMap)
 		activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
 		if err != nil {
 			metricBindingStore.Metric.ErrorMessage = err.Error()
@@ -171,7 +171,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					BindingType:         1,
 				}
 				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue, activity.MetricFormula.MetricExpertFormula.ID)
 				if err != nil {
 					metricBindingStore.Metric.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -245,7 +245,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					BindingType:         2,
 				}
 				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
+				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue, activity.MetricFormula.MetricExpertFormula.ID)
 				if err != nil {
 					metricBindingStore.Metric.ErrorMessage = err.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)

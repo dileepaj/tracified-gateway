@@ -30,7 +30,7 @@ variable definitions and byte used
 														   0 -> master
 		Future use            - 18 bytes
 */
-func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuilder) (txnbuild.ManageData, string, []byte, error) {
+func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuilder,formulaId string) (txnbuild.ManageData, string, []byte, error) {
 	var valueId uint64
 	variableNameString := ""
 	bindType := ""
@@ -45,13 +45,14 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 
 	// Build value string
 	// take value id and name from the DB
-	variableDefMap, errWhenGettingVariableData := object.GetValueMapID(element.ValueUUID).Then(func(data interface{}) interface{} {
+	variableDefMap, errWhenGettingVariableData := object.GetValueMapID(element.ValueUUID,formulaId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenGettingVariableData != nil {
 		logrus.Error("Unable to connect to gateway datastore ", errWhenGettingVariableData)
 	}
 	if variableDefMap == nil {
+		logrus.Error("Formula Id ",formulaId)
 		logrus.Error("Requested variable " + element.ValueUUID + " does not exists in the gateway DB")
 		return txnbuild.ManageData{}, "", []byte{}, errors.New("Requested variable " + element.ValueUUID + " does not exists in the gateway DB")
 	} else {
@@ -125,7 +126,7 @@ func (metric *MetricBinding) BuildGeneralValueManageData(element model.ValueBuil
 	return valueBuilder, keyString, []byte(valueString), nil
 }
 
-func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest) (txnbuild.ManageData, string, []byte, error) {
+func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDefBuildRequest,formulaId string) (txnbuild.ManageData, string, []byte, error) {
 	// key string components
 	resourceNameString := ""
 	keyNameString := ""
@@ -172,7 +173,7 @@ func (metric *MetricBinding) ValueDefinitionBuilder(element model.GeneralValueDe
 
 	// get value id from the map for the type, key and formula ID
 	object := dao.Connection{}
-	variableDefMap, errWhenRetrievingVariableInfo := object.GetValueMapID(element.VariableUUID).Then(func(data interface{}) interface{} {
+	variableDefMap, errWhenRetrievingVariableInfo := object.GetValueMapID(element.VariableUUID,formulaId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenRetrievingVariableInfo != nil {
