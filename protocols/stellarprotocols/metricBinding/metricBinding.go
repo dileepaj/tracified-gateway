@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
@@ -447,7 +446,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
 			return
 		}
-		stellarprotocol := stellarprotocols.StellarTrasaction{PublicKey: constants.PublicKey, SecretKey: constants.SecretKey, Operations: manadataOperationArray, Memo: memo0}
+		stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manadataOperationArray, Memo: memo0}
 		transaction := model.TransactionHash{Order: i, Memo: []byte(memo0)}
 		if i != 0 {
 			memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(manadataOperationArray)))
@@ -463,8 +462,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			stellarprotocol.Memo = memo1
 			transaction.Memo = []byte(memo1)
 		}
-		err, errCode, hash := stellarprotocol.SubmitToStellerBlockchain()
-		errorInXDR = err
+		err, errCode, hash,_ := stellarprotocol.SubmitToStellerBlockchain()
 		if err != nil {
 			// status = "Failed"
 			metricBindingStore.Metric.ErrorMessage = err.Error()

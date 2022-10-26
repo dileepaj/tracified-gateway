@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -13,19 +13,25 @@ import (
 
 type StellarTrasaction struct {
 	PublicKey  string
-	SecretKey  string
 	Operations []txnbuild.Operation
 	Memo       string
+	Type string
+	TransactionHash string
+	Sequence        int64
+	XDR             string
+	FormulaId       string
+	MetricId        string
+	User            model.User
 }
 
 /*
 des - common method to send a transaction to the blockchain
 */
 
-func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, string) {
+func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, string, string) {
 	// load account
-	publicKey := constants.PublicKey
-	secretKey := constants.SecretKey
+	publicKey := commons.GoDotEnvVariable("SOCILAIMPACTPUBLICKKEY")
+	secretKey := commons.GoDotEnvVariable("SOCILAIMPACTSEED")
 	tracifiedAccount, err := keypair.ParseFull(secretKey)
 	client := commons.GetHorizonClient()
 	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
@@ -46,13 +52,13 @@ func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, st
 	GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 	if err != nil {
 		logrus.Error("Error while signing the XDR by secretKey  ", err)
-		return err, http.StatusInternalServerError, ""
+		return err, http.StatusInternalServerError, "", GatewayTXE.ToXDR().GoString()
 	}
 	// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 	resp, err := client.SubmitTransaction(GatewayTXE)
 	if err != nil {
 		logrus.Error("XDR submitting issue  ", err)
-		return err, http.StatusInternalServerError, ""
+		return err, http.StatusInternalServerError, "", GatewayTXE.ToXDR().GoString()
 	}
-	return nil, 200, resp.Hash
+	return nil, 200, resp.Hash, GatewayTXE.ToXDR().GoString()
 }
