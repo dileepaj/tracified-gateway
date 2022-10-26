@@ -12,6 +12,7 @@ import (
 )
 
 /**
+ * des : This function is used to build the general master data info manage data operation (only for the master data)
  * Key - 64 Bytes - "MASTER DATA DEFINITION"
  * Value - 8 bytes - Artifact ID
  *  	 - 1 byte - Traceability data type
@@ -29,16 +30,17 @@ func (metric *MetricBinding) BuildGeneralMasterDataInfo(artifactID uint64, trace
 		}
 	}
 
+	// convert the traceability data type to string
 	tdType, errInTDPTypeConvert := stellarprotocols.Int8ToByteString(uint8(traceabilityDataType))
 	if errInTDPTypeConvert != nil {
-		logrus.Error("Error when converting Reaceability data type " + errInTDPTypeConvert.Error())
-		return txnbuild.ManageData{}, errors.New("Error when converting Traceability data type " + errInTDPTypeConvert.Error())
+		logrus.Error("Error when converting traceability data type(generalMasterDataInfoBuilding.go) " + errInTDPTypeConvert.Error())
+		return txnbuild.ManageData{}, errors.New("error when converting traceability data type " + errInTDPTypeConvert.Error())
 	}
 
 	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%0110d", 0))
 	if err != nil {
-		logrus.Error("Error in decoding the future use string")
-		return txnbuild.ManageData{}, errors.New("Error in decoding the future use string")
+		logrus.Error("Error in decoding the future use string(generalMasterDataInfoBuilding.go)")
+		return txnbuild.ManageData{}, errors.New("error in decoding the future use string")
 	}
 	futureUse := string(decodedStrFutureUsed)
 

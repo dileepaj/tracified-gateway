@@ -35,8 +35,8 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 	// key field
 	keyString := "Command"
 	if len(keyString) > 64 {
-		logrus.Error("Length of the key is greater than 64(commandBuilder)")
-		return manageDataOpArray, errors.New("length of the key is greater than 64(commandBuilder)")
+		logrus.Error("Length of the key is greater than 64(commandBuilder.go)")
+		return manageDataOpArray, errors.New("length of the key field is greater than 64 in command building")
 	} else if len(keyString) < 64 {
 		keyString = keyString + "/"
 		keyString = keyString + strings.Repeat("0", 64-len(keyString))
@@ -46,14 +46,14 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 	// convert hasArgument from int8 to string
 	hasArgumentString, errInConvertion := stellarprotocols.Int8ToByteString(uint8(hasArgument))
 	if errInConvertion != nil {
-		logrus.Info("Error when converting hasArgument from int8 to String(commandBuilder) ", errInConvertion)
-		return manageDataOpArray, errors.New("error when converting hasArgument from int8 to String(commandBuilder) " + errInConvertion.Error())
+		logrus.Info("Error when converting hasArgument from int8 to String(commandBuilder.go) ", errInConvertion)
+		return manageDataOpArray, errors.New("error when converting hasArgument to String when building command " + errInConvertion.Error())
 	}
 
 	// futureUse
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0118d", 0))
 	if err != nil {
-		return manageDataOpArray, errors.New("error when decoding future use(commandBuilder) " + err.Error())
+		return manageDataOpArray, errors.New("error when decoding future use " + err.Error())
 	}
 	futureUse := string(decodedStrFutureUse)
 
@@ -65,8 +65,8 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 	// check if the length of key and value is 64
 	if len(valueString) != 64 || len(keyString) != 64 {
 		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
-		logrus.Error("Length of the key or value is not 64(commandBuilder)")
-		return manageDataOpArray, errors.New("length of the key or value is not 64(commandBuilder)")
+		logrus.Error("Length of the key or value is not 64(commandBuilder.go)")
+		return manageDataOpArray, errors.New("length issue on key or value fields in the command building")
 	}
 
 	// build the manage data
@@ -86,16 +86,16 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 		if command.P_Arg.Lst_Commands != nil {
 			manageDataOp, err := Type1TemplateBuilder(formulaId, command.P_Arg)
 			if err != nil {
-				logrus.Error("Error when building the manage data for the argument type 1 execution template(commandBuilder) ", err)
-				return manageDataOpArray, errors.New("error when building the manage data for the argument type 1 execution template(commandBuilder) " + err.Error())
+				logrus.Error("Error when building the manage data for the argument type 1 execution template(commandBuilder.go) ", err)
+				return manageDataOpArray, errors.New("error when building the manage data for the argument type 1 execution template " + err.Error())
 			}
 			// append the manage data to the array
 			manageDataOpArray = append(manageDataOpArray, manageDataOp...)
 		} else {
 			manageDataOp, err := Type2TemplateBuilder(formulaId, command.P_Arg)
 			if err != nil {
-				logrus.Error("Error when building the manage data for the argument type 2 execution template(commandBuilder) ", err)
-				return manageDataOpArray, errors.New("error when building the manage data for the argument type 2 execution template(commandBuilder) " + err.Error())
+				logrus.Error("Error when building the manage data for the argument type 2 execution template(commandBuilder.go) ", err)
+				return manageDataOpArray, errors.New("error when building the manage data for the argument type 2 execution template " + err.Error())
 			}
 			// append the manage data to the array
 			manageDataOpArray = append(manageDataOpArray, manageDataOp)

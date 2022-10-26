@@ -19,18 +19,18 @@ func InsertAndFindActivityID(activityId string, activityName string, metricId st
 		return data
 	}).Await()
 	if errInActivityMap != nil {
-		logrus.Info("Error when retrieving activity ID " + errInActivityMap.Error())
+		logrus.Info("Error when retrieving activity ID(insertActivityDetails.go) " + errInActivityMap.Error())
 	}
 	if activityMap != nil {
-		logrus.Info("Activity ID " + activityId + " is recorded in the DB")
+		logrus.Info("Activity ID " + activityId + " is recorded in the DB(insertActivityDetails.go)")
 		activityMapData := activityMap.(model.ActivityMapDetails)
 		acitivityMapID = activityMapData.MapID
 	} else {
-		logrus.Error("Activity ID " + activityId + " is not recorded in the DB")
+		logrus.Error("Activity ID " + activityId + " is not recorded in the DB(insertActivityDetails.go)")
 		data, errWhenGettingTheSequence := object.GetNextSequenceValue("ACTIVITYID")
 		if errWhenGettingTheSequence != nil {
-			logrus.Error("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
-			return 0, errors.New("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
+			logrus.Error("Error when taking the sequence no Error(insertActivityDetails.go) : " + errWhenGettingTheSequence.Error())
+			return 0, errors.New("error when taking the sequence number Error : " + errWhenGettingTheSequence.Error())
 		}
 
 		insertActivityDetails := model.ActivityMapDetails{
@@ -43,8 +43,8 @@ func InsertAndFindActivityID(activityId string, activityName string, metricId st
 
 		errWhenInsertActivityDetails := object.InsertActivityID(insertActivityDetails)
 		if errWhenInsertActivityDetails != nil {
-			logrus.Error("Inserting to activity map ID was failed" + errWhenInsertActivityDetails.Error())
-			return 0, errors.New("Inserting to activity map ID was failed")
+			logrus.Error("Inserting to activity map ID was failed(insertActivityDetails.go) " + errWhenInsertActivityDetails.Error())
+			return 0, errors.New("inserting to activity map ID was failed")
 		}
 
 		acitivityMapID = data.SequenceValue

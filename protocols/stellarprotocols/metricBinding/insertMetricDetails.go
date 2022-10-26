@@ -25,7 +25,7 @@ func InsertAndFindMetricID(metricID string, metricName string) (uint64,int, erro
 		data, errWhenGettingTheSequence := object.GetNextSequenceValue("METRICID")
 		if errWhenGettingTheSequence != nil {
 			logrus.Error("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
-			return 0,500, errors.New("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
+			return 0,500, errors.New("Error when taking the sequence no Error: " + errWhenGettingTheSequence.Error())
 		}
 		insertMerticMap := model.MetricMapDetails{
 			MetricID:   metricID,
@@ -35,7 +35,7 @@ func InsertAndFindMetricID(metricID string, metricName string) (uint64,int, erro
 		errWhenInsertingToResourceMap := object.InsertMetricMapID(insertMerticMap)
 		if errWhenInsertingToResourceMap != nil {
 			logrus.Error("Inserting to metric map ID was failed" + errWhenInsertingToResourceMap.Error())
-			return 0,500, errors.New("Inserting to metric map ID was failed")
+			return 0,500, errors.New("Inserting to metric map ID was failed Error: " + errWhenInsertingToResourceMap.Error())
 		}
 		metricMapID = data.SequenceValue
 	} else {

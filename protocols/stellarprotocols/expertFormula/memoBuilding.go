@@ -30,12 +30,12 @@ func (expertFormula ExpertFormula) BuildMemo(types uint8, variableCount uint32, 
 	}
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%012d", 0))
 	if err != nil {
-		return "", "", errors.New("error in decoding future use(memoBuilding) " + err.Error())
+		return "", "", errors.New("error in decoding future use " + err.Error())
 	}
 	strFetureUsed := string(decodedStrFutureUse)
 	decodedManifest, err := hex.DecodeString(manifest)
 	if err != nil {
-		return "", "", errors.New("error in decoding manifest(memoBuilding) " + err.Error())
+		return "", "", errors.New("error in decoding manifest " + err.Error())
 	}
 	strManifest := string(decodedManifest)
 

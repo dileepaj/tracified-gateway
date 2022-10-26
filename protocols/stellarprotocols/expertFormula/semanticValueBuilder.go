@@ -23,8 +23,8 @@ func (expertFormula ExpertFormula) BuildSemanticValue(value any) (txnbuild.Manag
 	semanticConstantValue := fmt.Sprintf("%g", value.(float64))
 	// check value is 64 character
 	if len(semanticConstantValue) > 64 {
-		logrus.Error("Value is greater than 64 character limit(semanticValueBuilder) ")
-		return txnbuild.ManageData{}, errors.New("value is greater than 64 character limit(semanticValueBuilder) ")
+		logrus.Error("Value is greater than 64 character limit(semanticValueBuilder.go) ")
+		return txnbuild.ManageData{}, errors.New("value is greater than 64 character limit ")
 	} else {
 		if len(semanticConstantValue) < 64 {
 			// add 0s to the rest of the name
@@ -46,8 +46,8 @@ func (expertFormula ExpertFormula) BuildSemanticValue(value any) (txnbuild.Manag
 	logrus.Info("Semantic Value : ", valueString)
 
 	if len(nameString) > 64 || len(valueString) > 64 {
-		logrus.Error("Key or Value on semantic value builder exceeded 64 character limit(semanticValueBuilder) ")
-		return txnbuild.ManageData{}, errors.New("key or Value on semantic value builder exceeded 64 character limit(semanticValueBuilder) ")
+		logrus.Error("Key or Value on semantic value builder exceeded 64 character limit(semanticValueBuilder.go) ")
+		return txnbuild.ManageData{}, errors.New("key or Value on semantic value builder exceeded 64 character limit ")
 	}
 
 	semanticValueBuilder := txnbuild.ManageData{

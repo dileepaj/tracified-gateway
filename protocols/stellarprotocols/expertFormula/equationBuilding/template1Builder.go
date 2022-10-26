@@ -36,16 +36,16 @@ func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTem
 		return data
 	}).Await()
 	if errValueMapDetails != nil {
-		logrus.Error("Error in getting value map from db(template1Builder) ", errValueMapDetails)
-		return manageDataOpArray, errors.New("error in getting value map from db(template1Builder) " + errValueMapDetails.Error())
+		logrus.Error("Error in getting value map from db(template1Builder.go) ", errValueMapDetails)
+		return manageDataOpArray, errors.New("error in getting value map from db " + errValueMapDetails.Error())
 	}
 	startVariableID = valueMapDetails.(model.ValueIDMap).MapID
 
 	// key field 
 	keyString := "Type 1 Execution Template"
 	if len(keyString) > 64 {
-		logrus.Error("Length of the key is greater than 64(template1Builder)")
-		return manageDataOpArray, errors.New("length of the key is greater than 64(template1Builder)")
+		logrus.Error("Length of the key is greater than 64(template1Builder.go)")
+		return manageDataOpArray, errors.New("length of the key is greater than 64 ")
 	} else if len(keyString) < 64 {
 		keyString = keyString + "/"
 		keyString = keyString + strings.Repeat("0", 64-len(keyString))
@@ -55,14 +55,14 @@ func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTem
 	// convert typeOfTemplate from int8 to string
 	typeOfTemplate, errInConvertion := stellarprotocols.Int8ToByteString(uint8(1))
 	if errInConvertion != nil {
-		logrus.Info("Error when converting template type from int8 to string(template1Builder) ", errInConvertion)
-		return manageDataOpArray, errors.New("error when converting template type from int8 to string(template1Builder) " + errInConvertion.Error())
+		logrus.Info("Error when converting template type from int8 to string(template1Builder.go) ", errInConvertion)
+		return manageDataOpArray, errors.New("error when converting template type to string " + errInConvertion.Error())
 	}
 
 	// futureUse
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0102d", 0))
 	if err != nil {
-		return manageDataOpArray, errors.New("error in decoding future use string(template1Builder) " + err.Error())
+		return manageDataOpArray, errors.New("error in decoding future use string " + err.Error())
 	}
 	futureUse := string(decodedStrFutureUse)
 
@@ -74,8 +74,8 @@ func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTem
 	// check if the length of key and value is 64
 	if len(valueString) != 64 || len(keyString) != 64 {
 		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
-		logrus.Error("Length of the key or value is not 64(template1Builder)")
-		return manageDataOpArray, errors.New("length of the key or value is not 64(template1Builder)")
+		logrus.Error("Length of the key or value is not 64(template1Builder.go)")
+		return manageDataOpArray, errors.New("length issue on key or value fields in the template type 1 building")
 	}
 
 	// build the manage data for this template
@@ -91,8 +91,8 @@ func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTem
 	for _, command := range executionTemplate.Lst_Commands {
 		manageDataOp, err := CommandBuilder(formulaId, command)	
 		if err != nil {
-			logrus.Error("Error in building the command(template1Builder) ", err)
-			return manageDataOpArray, errors.New("error in building the command(template1Builder) " + err.Error())
+			logrus.Error("Error in building the command(template1Builder.go) ", err)
+			return manageDataOpArray, errors.New("error in building the command " + err.Error())
 		}
 		// append the manage data for command to the array
 		manageDataOpArray = append(manageDataOpArray, manageDataOp...)

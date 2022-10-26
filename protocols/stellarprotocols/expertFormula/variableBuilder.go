@@ -52,7 +52,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	tempValueType, errInValueTypeConvert := stellarprotocols.Int8ToByteString(uint8(VALUETYPE))
 	if errInValueTypeConvert != nil {
 		logrus.Info("Error when converting value type from int8 to string(variableBuilder) ", errInValueTypeConvert)
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type from int8 to string(variableBuilder) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type from int8 to string ")
 	}
 	valueTypeString = tempValueType
 	// DB validations for the variable id
@@ -76,7 +76,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
 			logrus.Error("Retrieving value id from map was failed(variableBuilder) " + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("retrieving value id from map was failed(variableBuilder) ")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("retrieving value id from map was failed ")
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -89,7 +89,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
 			logrus.Error("Inserting to Value map ID was failed(variableBuilder) " + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting to Value map ID was failed(variableBuilder) ")
+			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting to Value map ID was failed ")
 		}
 		// add the data as the new value id to the manage data key part string
 		valueId = data.SequenceValue
@@ -97,7 +97,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	// check variable name is 20 character
 	if len(element.Name) > 20 {
 		logrus.Error("Variable name is greater than 20 character limit(variableBuilder) ")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("variable name is greater than 20 character limit(variableBuilder) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("variable name is greater than 20 character limit ")
 	} else {
 		if len(element.Name) == 20 {
 			variableNameString = element.Name
@@ -115,7 +115,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	tempDataType, errInDataTypeConvert := stellarprotocols.Int8ToByteString(uint8(DATATYPE))
 	if errInDataTypeConvert != nil {
 		logrus.Info("Error when converting data type(variableBuilder) ", errInDataTypeConvert)
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type(variableBuilder) " + errInDataTypeConvert.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type " + errInDataTypeConvert.Error())
 	}
 	dataTypeString = tempDataType
 	// depending on the unit type decide the integer to be asigned
@@ -124,25 +124,25 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
-		logrus.Info("Unable to connect to gateway datastore(variableBuilder) ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore(variableBuilder.go) ", errValueMap)
 		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	// check if the unit is in the unit map
 	if unitMap != nil {
-		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map(variableBuilder) ")
+		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map(variableBuilder.go) ")
 		// add map id as the unit in the key string
 		unitMapData := unitMap.(model.UnitIDMap)
 		unitId = unitMapData.MapID
 		unitString = stellarprotocols.UInt16ToByteString(uint16(unitMapData.MapID))
 	} else {
 		// if not add the incrementing id
-		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map(variableBuilder) ")
+		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map(variableBuilder.go) ")
 
 		// get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValue was failed(variableBuilder) " + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("getNextSequenceValue of unit map was failed(variableBuilder) " + err.Error())
+			logrus.Error("GetNextSequenceValue was failed(variableBuilder.go) " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("getNextSequenceValue of unit map was failed " + err.Error())
 		}
 		unitIdMap := model.UnitIDMap{
 			Unit:  element.MeasurementUnit,
@@ -151,22 +151,22 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		unitId = uint16(data.SequenceValue)
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
-			logrus.Error("Insert unit map ID was failed(variableBuilder) " + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting to unit map ID was failed(variableBuilder) " + err1.Error())
+			logrus.Error("Insert unit map ID was failed(variableBuilder.go) " + err1.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting to unit map ID was failed " + err1.Error())
 		}
 		unitString = stellarprotocols.UInt16ToByteString(uint16(data.SequenceValue))
 	}
 	// precision
 	tempPrecision, errInPrecisionConvert := stellarprotocols.Int8ToByteString(uint8(element.Precision))
 	if errInPrecisionConvert != nil {
-		logrus.Info("Error when converting precision(variableBuilder) ", errInPrecisionConvert)
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting precision(variableBuilder) " + errInPrecisionConvert.Error())
+		logrus.Info("Error when converting precision(variableBuilder.go) ", errInPrecisionConvert)
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting precision " + errInPrecisionConvert.Error())
 	}
 	precisionString = tempPrecision
 	// check if the description is 40 characters
 	if len(element.Description) > 40 {
-		logrus.Error("Description is greater than 40 character limit(variableBuilder) ")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit(variableBuilder) ")
+		logrus.Error("Description is greater than 40 character limit(variableBuilder.go) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit ")
 	} else {
 		if len(element.Description) == 40 {
 			descriptionString = element.Description
@@ -198,7 +198,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	if len(keyString) != 64 || len(valueString) != 64 {
 		logrus.Error("Key string length : ", len(keyString))
 		logrus.Error("Value string length : ", len(valueString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("length issue on key or value fields on the variable building(variableBuilder) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("length issue on key or value fields on the variable building ")
 	}
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,

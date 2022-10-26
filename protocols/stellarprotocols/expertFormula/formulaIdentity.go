@@ -30,8 +30,8 @@ func (expertFormula ExpertFormula) BuildFormulaIdentity(expertId uint64, formula
 	}
 	//check if the formula name have 64 characters
 	if len(formulaName) > 64 {
-		logrus.Error("Formula name 64 character limit exceeded(formulaIdentity)")
-		return txnbuild.ManageData{}, errors.New("formula name 64 character limit exceeded(formulaIdentity)")
+		logrus.Error("Formula name 64 character limit exceeded(formulaIdentity.go)")
+		return txnbuild.ManageData{}, errors.New("formula name 64 character limit exceeded")
 	} else {
 		if len(formulaName) == 64 {
 			formName = formulaName
@@ -66,7 +66,7 @@ func (expertFormula ExpertFormula) BuildFormulaIdentity(expertId uint64, formula
 	if len(keyString) > 64 || len(valueString) > 64 {
 		logrus.Error("Key string length : ", len(keyString))
 		logrus.Error("Value string length : ", len(valueString))
-		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the formula identity building(formulaIdentity)")
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the formula identity building")
 	}
 	return formulaIdentityBuilder, nil
 }
