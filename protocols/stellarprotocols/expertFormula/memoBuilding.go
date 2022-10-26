@@ -2,6 +2,7 @@ package expertformula
 
 import (
 	"encoding/hex"
+	"errors"
 	"fmt"
 
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
@@ -12,6 +13,10 @@ type ExpertFormula struct{}
 /*
 des- build the memo according to the protocol
 return the txnbuild.ManageData object
+	manifest - 10 bytes
+	formula id - 8 bytes
+	no of values - 4
+	future use 6
 */
 // types = 0 - strating manifest
 // types = 1 - managedata overflow sign
@@ -23,14 +28,14 @@ func (expertFormula ExpertFormula) BuildMemo(types uint8, variableCount uint32, 
 	} else if types == 1 {
 		manifest = "00000000AAAABBBBCCCC"
 	}
-	decodedStrFetureUsed, err := hex.DecodeString(fmt.Sprintf("%012d", 0))
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%012d", 0))
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("error in decoding future use(memoBuilding) " + err.Error())
 	}
-	strFetureUsed := string(decodedStrFetureUsed)
+	strFetureUsed := string(decodedStrFutureUse)
 	decodedManifest, err := hex.DecodeString(manifest)
 	if err != nil {
-		return "", "", err
+		return "", "", errors.New("error in decoding manifest(memoBuilding) " + err.Error())
 	}
 	strManifest := string(decodedManifest)
 

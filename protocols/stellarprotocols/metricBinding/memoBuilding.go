@@ -16,8 +16,10 @@ return the txnbuild.ManageData object
 Fields
 	1. Manifest      - 10 bytes (uint64)  - used to identify the transacions
 	2. Metric ID    - 8 bytes (uint32)  - mapped id stored in the DB for the tenant
-	4. Tenant ID     - 8 bytes - tracified tanant id
+	4. Tenant ID     - 4 bytes - tracified tanant id
 	3. No of formulas - 2 bytes (uint16)  - no of formulas in the defined metric
+	5. No of manage data in the current transaction - 1 byte
+	6. Future use - 3 bytes
 
 types = 0 - strating manifest
 types = 1 - managedata overflow sign

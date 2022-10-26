@@ -8,6 +8,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+/*
+des - Insert and find the workflow ID
+*/
+
 func InsertAndFindWorkflowId(workflowID string) (uint64, error) {
 	var workflowId uint64
 	object := dao.Connection{}
