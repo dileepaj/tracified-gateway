@@ -18,22 +18,17 @@ import (
  */
 
 func ValidateAgainstTrustNetwork(expertPK string) error {
-
 	object := dao.Connection{}
-
 	TrustNetworkKeyMap, err := object.GetTrustNetworkKeyMap(expertPK).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
-
 	if err != nil {
 		logrus.Error("Error while getting the trust network key map : ", err)
-		return err
+		return errors.New("Expert is not in the trust network")
 	}
-
 	if TrustNetworkKeyMap == nil {
 		return errors.New("Expert is not in the trust network")
 	} else {
 		return nil
 	}
-
 }

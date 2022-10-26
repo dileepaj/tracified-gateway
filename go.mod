@@ -5,6 +5,7 @@ go 1.18
 require (
 	github.com/chebyrash/promise v0.0.0-20210114125841-d119a93f8638
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
+	github.com/dileepaj/FCL_Go v0.1.2
 	github.com/go-openapi/runtime v0.24.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
@@ -22,7 +23,6 @@ require (
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/rabbitmq/amqp091-go v1.3.4
 	github.com/teris-io/shortid v0.0.0-20220617161101-71ec9f2aa569 // indirect
 )
 
@@ -95,6 +95,7 @@ require (
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/jarcoal/httpmock v1.0.8 // indirect
+	github.com/jchavannes/go-pgp v0.0.0-20200131171414-e5978e6d02b4
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/manucorporat/sse v0.0.0-20160126180136-ee05b128a739 // indirect
 	github.com/onsi/ginkgo v1.16.5 // indirect

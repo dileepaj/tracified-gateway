@@ -5,10 +5,11 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/authentication"
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
-	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -23,52 +24,32 @@ des-This handler the expert formula bulding,
 func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	var formulaJSON model.FormulaBuildingRequest
-
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
-		logrus.Error(err)
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body " + err.Error())
+		commons.JSONErrorReturn(w, r, err.Error(), http.StatusBadRequest, "Error while decoding the body ")
 		return
 	}
-
 	errInJsonValidation := validations.ValidateFormulaBuilder(formulaJSON)
 	if errInJsonValidation != nil {
-		logrus.Error("Request body failed the validation check : ", errInJsonValidation)
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidation.Error())
+		commons.JSONErrorReturn(w, r, errInJsonValidation.Error(), http.StatusBadRequest, "Request body failed the validation check :")
 		return
 	} else {
-
-		// validation againt trust network
-		errInTrustNetworkValidation := authentication.ValidateAgainstTrustNetwork(formulaJSON.User.Publickey)
-		if errInTrustNetworkValidation != nil {
-			logrus.Error("Expert is not in the trust network : ", errInTrustNetworkValidation)
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode("Expert is not in the trust network, Error : " + errInTrustNetworkValidation.Error())
-			return
-		}
-
 		authLayer := authentication.AuthLayer{
-			FormulaId:    formulaJSON.ID,
+			FormulaId:    formulaJSON.MetricExpertFormula.ID,
 			ExpertPK:     formulaJSON.User.Publickey,
 			ExpertUserID: formulaJSON.User.ID,
-			CiperText:    formulaJSON.CiperText,
-			Plaintext:    formulaJSON.Formula,
+			CiperText:    formulaJSON.MetricExpertFormula.CiperText,
+			Plaintext:    formulaJSON.MetricExpertFormula.Formula,
 		}
-
 		err, errCode := authLayer.ValidateExpertRequest()
 		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(errCode)
-			json.NewEncoder(w).Encode(err.Error())
+			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Authentication Issue, ")
 			return
 		}
 
-		formulaArray := formulaJSON.Formula
+		formulaArray := formulaJSON.MetricExpertFormula.Formula
 		fieldCount := 0
-		for i, element := range formulaJSON.Formula {
+		for i, element := range formulaJSON.MetricExpertFormula.Formula {
 			if element.Type == "DATA" {
 				formulaArray[i].Type = "VARIABLE"
 			} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
@@ -80,10 +61,15 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 				fieldCount++
 			}
 		}
-		formulaJSON.Formula = formulaArray
+		formulaJSON.MetricExpertFormula.Formula = formulaArray
+
+		// if the blockchain is not provided in the request, then use the default blockchain 
+		if formulaJSON.MetricExpertFormula.Blockchain == "" {
+			formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
+		}
 		// build the abstract struct and call the SocialImpactExpertFormula
 		socialImpactBuilder := protocols.AbstractSocialImpact{
-			Blockchain:  formulaJSON.Blockchain,
+			Blockchain:  formulaJSON.MetricExpertFormula.Blockchain,
 			FormulaJSON: formulaJSON,
 			FieldCount:  fieldCount,
 		}
@@ -94,24 +80,29 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 // BindMetric method : binds the metric with mutiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	if configs.JWTAuthEnableBindMetricEndpoint {
+		permissionStatus := authentication.HasPermission(r.Header.Get("Authorization"))
+		if !permissionStatus.Status || !permissionStatus.IsSubscriptionPaid {
+			commons.JSONErrorReturn(w, r, "", http.StatusUnauthorized, "Status Unauthorized")
+			return
+		}
+	}
 	var metricBindJSON model.MetricDataBindingRequest
 	err := json.NewDecoder(r.Body).Decode(&metricBindJSON)
 	if err != nil {
-		logrus.Error(err, err.Error())
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while decoding the body " + err.Error())
+		commons.JSONErrorReturn(w, r, err.Error(), http.StatusBadRequest, "Error while decoding the body ")
 		return
 	}
 	errInJsonValidationInMetricBind := validations.ValidateMetricDataBindingRequest(metricBindJSON)
 	if errInJsonValidationInMetricBind != nil {
-		logrus.Error("Request body failed the validation check : ", errInJsonValidationInMetricBind)
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Request body is invalid, Error : " + errInJsonValidationInMetricBind.Error())
+		commons.JSONErrorReturn(w, r, errInJsonValidationInMetricBind.Error(), http.StatusBadRequest, "Request body is invalid, Error :")
 		return
 	} else {
+		if metricBindJSON.Metric.Blockchain == "" {
+			metricBindJSON.Metric.Blockchain = configs.DefaultBlockchain
+		}
 		metricBuilder := protocols.AbstractSocialImpactMetricBinding{
-			Blockchain:     metricBindJSON.Blockchain,
+			Blockchain:     metricBindJSON.Metric.Blockchain,
 			MetricBindJSON: metricBindJSON,
 		}
 		metricBuilder.SocialImpactMetricBinding(w, r)

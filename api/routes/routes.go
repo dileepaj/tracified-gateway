@@ -16,7 +16,8 @@ type Route struct {
 // Routes An Array of type Route
 type Routes []Route
 
-/*routes contains all the routes
+/*
+routes contains all the routes
 @author Azeem Ashraf, Jajeththanan Sabapathipillai
 */
 var routes = Routes{
@@ -429,36 +430,6 @@ var routes = Routes{
 		businessFacades.TxnForArtifact,
 	},
 	Route{
-		"Create pools for batch",
-		"POST",
-		"/socialimapact/batch/pool",
-		businessFacades.CreatePoolForBatch,
-	},
-	Route{
-		"Create pools artifatc",
-		"POST",
-		"/socialimapact/artifact/pool",
-		businessFacades.CreatePoolForArtifact,
-	},
-	Route{
-		"Convert batch coins via pool",
-		"POST",
-		"/socialimapact/batch/coinconvert",
-		businessFacades.BatchConvertCoin,
-	},
-	Route{
-		"Convert batch coins via pool",
-		"POST",
-		"/socialimapact/artifact/coinconvert",
-		businessFacades.ArtifactConvertCoin,
-	},
-	Route{
-		"Calculate equation result for artifatc specific Account",
-		"POST",
-		"/socialimapact/accont",
-		businessFacades.CalculateEquationForBatch,
-	},
-	Route{
 		"MintNFTStellarAndAddToDB",
 		"POST",
 		"/nft/mintStellar",
@@ -524,12 +495,7 @@ var routes = Routes{
 		"/nft/fundAccount",
 		businessFacades.FundAndGetAccount, //Calls the FundAccount in the StellarHandler
 	},
-	Route{
-		"Get coin convert details",
-		"GET",
-		"/socialimapact/pathPaymentDetails",
-		businessFacades.GetPathPaymentDetails, //Get the path payment details
-	},
+
 	Route{
 		"GetSponsorAccountXDR",
 		"GET",
@@ -543,12 +509,6 @@ var routes = Routes{
 		businessFacades.GetSponsorTrustXDR, //Calls the GetSponsorTrustXDR in the StellarHandler
 	},
 	Route{
-		"Update Equation stages and product details",
-		"PUT",
-		"/socialimapact",
-		businessFacades.UpdateEquation, //Update pool's activities and products details
-	},
-	Route{
 		"Storing the social impact equation on blockchain",
 		"POST",
 		"/socialimapact/buildformula",
@@ -559,5 +519,17 @@ var routes = Routes{
 		"POST",
 		"/socialimapact/metricbinding",
 		businessFacades.BindMetric,
+	},
+	Route{
+		"save PGP key",
+		"POST",
+		"/pgp",
+		businessFacades.SavePGPKey,
+	},
+	Route{
+		"retrieve PGP publickey",
+		"GET",
+		"/pgp/{sha256pk}",
+		businessFacades.GetRSAPublicKeyBySHA256PK,
 	},
 }
