@@ -2,7 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -35,18 +35,12 @@ func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	object := dao.Connection{}
 	p := object.GetPGPAccountByStellarPK(vars["stellarPublicKey"])
-	p.Then(func(data interface{}) interface{} {
-		result := data.(model.PGPAccount)
-		fmt.Println("data response:", result)
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-		return nil
-	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "StellarPK Not Found in Gateway DataStore"}
-		json.NewEncoder(w).Encode(response)
-		return error
-	})
-	p.Await()
+	rst, err := p.Await()
+	if err != nil {
+		json.NewEncoder(w).Encode("failed to Get PGP account : " + err.Error())
+		return
+	}
+	log.Println("Await response:", rst)
+	json.NewEncoder(w).Encode(rst)
 
 }
