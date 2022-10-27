@@ -116,36 +116,33 @@ func ReciverRmq() error {
 				logrus.Info("Received mgs Type (EXPERTFORMULA)")
 				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
-				metricBindingStore := model.MetricBindingStore{
-					MetricId:    queue.MetricBinding.Metric.ID,
-					MetricMapID: queue.MetricBinding.MetricMapID,
-					Metric:      queue.MetricBinding.Metric,
-					User:        queue.MetricBinding.User,
+				expertFormulaStore := queue.ExpertFormula
+				expertFormulaStore = model.FormulaStore{
+					User:        queue.ExpertFormula.User,
 					Memo:        queue.Memo,
-					Status:      "SUCCESS",
-					XDR:         xdr,
 					TxnSenderPK: senderPK,
+					XDR:         xdr,
+					Status:      "SUCCESS",
 					Timestamp:   time.Now().String(),
 				}
 				if err != nil {
-					metricBindingStore.ErrorMessage = err.Error()
-					metricBindingStore.ErrorMessage = err.Error()
-					metricBindingStore.Status = "Falied"
-					_, err := object.InsertMetricBindingFormula(metricBindingStore)
+					expertFormulaStore.ErrorMessage = err.Error()
+					expertFormulaStore.Status = "FAILED"
+					_, err := object.InsertExpertFormula(expertFormulaStore)
 					if err != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", err)
+						logrus.Error("Error while inserting the expert formula into DB: ", err)
 					}
-					logrus.Error("Stellar transacion submitting issue in queue", err, " error code ", errCode)
+					logrus.Error("Stellar transacion submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
 					logrus.Println("XDR  ", xdr)
 				} else {
-					metricBindingStore.SequenceNo = sequenceNo
-					metricBindingStore.TxnHash = hash
-					_, err := object.InsertMetricBindingFormula(metricBindingStore)
+					expertFormulaStore.SequenceNo = sequenceNo
+					expertFormulaStore.TxnHash = hash
+					_, err := object.InsertExpertFormula(expertFormulaStore)
 					if err != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", err)
+						logrus.Error("Error while inserting the expert formula into DB: ", err)
 					}
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
-					logrus.Info("Stellar transacion submitting to blockchain (METRICBINDINIG) , Transaction Hash : ", hash)
+					logrus.Info("Stellar transacion submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			}

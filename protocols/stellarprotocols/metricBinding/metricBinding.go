@@ -313,7 +313,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		}
 	}
 	// split manage data in to 25 length sub arrays
-	manageData2dArray := commons.ChunkSliceA(manageDataOpArray, manageDataPerMetricBindingRequest)
+	manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
 	// loop the manage data opration2d array and build trasacion
 	for i, managedataOperationArray := range manageData2dArray {
 		// initial trasacion memo
@@ -349,7 +349,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			Type:          "METRICBIND",
 			User:          metricBindJson.User,
 			Memo:          []byte(memo),
-			Operations: managedataOperationArray,
+			Operations:    managedataOperationArray,
 		}
 		err := services.SendToQueue(buildMetricBind)
 		if err != nil {
@@ -359,8 +359,8 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			logrus.Error("Error when submitting managedata to queue  ", err)
-			w.WriteHeader(errCode)
-			response := model.Error{Code: errCode, Message: "Error when submitting managedata to queue  " + err.Error()}
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "Error when submitting managedata to queue  " + err.Error()}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
@@ -369,7 +369,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	response := model.SuccessResponseMetricBinding{
 		Code:     http.StatusOK,
 		MetricID: metricBindJson.Metric.ID,
-		Message:  "Metric bind request send to queue",
+		Message:  "Metric binding request sent to queue",
 	}
 	json.NewEncoder(w).Encode(response)
 	return

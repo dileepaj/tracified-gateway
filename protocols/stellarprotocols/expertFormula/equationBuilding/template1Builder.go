@@ -24,11 +24,11 @@ import (
 			51 Bytes -> Future use
 */
 
-func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTemplate) ([]txnbuild.Operation, error) {
+func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTemplate) ([]txnbuild.ManageData, error) {
 
 	var startVariableID uint64											// mapped id in the db for Start variable
 	numberOfCommands := uint32(len(executionTemplate.Lst_Commands))		// number of commands in the execution template
-	var manageDataOpArray []txnbuild.Operation							// Array of manage data operations
+	var manageDataOpArray []txnbuild.ManageData							// Array of manage data operations
 
 	// get the mapped id for start variable from db using formula id and key
 	object := dao.Connection{}
@@ -84,7 +84,7 @@ func Type1TemplateBuilder(formulaId string, executionTemplate model.ExecutionTem
 		Value: []byte(valueString),
 	}
 	// append the manage data for template 1 to the array
-	manageDataOpArray = append(manageDataOpArray, &template1Builder)
+	manageDataOpArray = append(manageDataOpArray, template1Builder)
 
 	// loop through the lst_commands array and build the manage data for each command
 	// build manage data related to a command will be returned as an array
