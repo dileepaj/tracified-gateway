@@ -47,20 +47,20 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		return data
 	}).Await()
 	if errValueMap != nil {
-		logrus.Info("Unable to connect to gateway datastore(referredConstantBuilder) ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore(referredConstantBuilder.go) ", errValueMap)
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
-		logrus.Info("Value ID is already recorded in the DB Map(referredConstantBuilder)")
+		logrus.Info("Value ID is already recorded in the DB Map(referredConstantBuilder.go)")
 		valueMapData := valueMap.(model.ValueIDMap)
 		valueId = valueMapData.MapID
 	} else {
 		// if not add with incrementing id
-		logrus.Info("Value ID is not recorded in the DB Map(referredConstantBuilder) ")
+		logrus.Info("Value ID is not recorded in the DB Map(referredConstantBuilder.go) ")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
-			logrus.Error("Get Next Sequence Value for value id was failed(referredConstantBuilder) " + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("get Next Sequence Value for value id was failed(referredConstantBuilder) " + err.Error())
+			logrus.Error("Get Next Sequence Value for value id was failed(referredConstantBuilder.go) " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("get Next Sequence Value for value id was failed " + err.Error())
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -71,46 +71,46 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
-			logrus.Error("Inserting Value map ID was failed(referredConstantBuilder)" + err1.Error())
+			logrus.Error("Inserting Value map ID was failed(referredConstantBuilder.go)" + err1.Error())
 		}
 		valueId = data.SequenceValue
 	}
 	// define a 14 zeros string
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%048d", 0))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("unable to decode the future use string(referredConstantBuilder) " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("unable to decode the future use string " + err.Error())
 	}
 	strFutureUse := string(decodedStrFutureUse)
 	// convert value type Int to binary string
 	strValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type from int8 to byte string(referredConstantBuilder) " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type from int8 to byte string " + err.Error())
 	}
 	// convert data type Int to byte string
 	strDataType, err := stellarprotocols.Int8ToByteString(uint8(referredConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type from int8 to byte string(referredConstantBuilder) " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type from int8 to byte string " + err.Error())
 	}
 	// unit building// convert value type Int to byte string
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errInUnitIdMap != nil {
-		logrus.Info("Unable to connect to gateway datastore(referredConstantBuilder) ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore(referredConstantBuilder.go) ", errValueMap)
 		// return txnbuild.ManageData{}, errors.New("Unable to connect gateway datastore to get value map ID")
 	}
 	if unitMap != nil {
-		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map(referredConstantBuilder)")
+		logrus.Info(element.MeasurementUnit + " is already recorded in the DB Map(referredConstantBuilder.go)")
 		// add map id as the unit in the key string
 		unitMapData := unitMap.(model.UnitIDMap)
 		unit = unitMapData.MapID
 	} else {
-		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map(referredConstantBuilder)")
+		logrus.Info(element.MeasurementUnit + " is not recorded in the DB Map(referredConstantBuilder.go)")
 		// get the current sequence for the units
 		data, err := object.GetNextSequenceValue("UNITID")
 		if err != nil {
-			logrus.Error("Get next sequence value ID was failed(referredConstantBuilder) " + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("get next sequence value ID was failed(referredConstantBuilder) " + err.Error())
+			logrus.Error("Get next sequence value ID was failed(referredConstantBuilder.go) " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("get next sequence value ID was failed " + err.Error())
 		}
 		unitIdMap := model.UnitIDMap{
 			Unit:  element.MeasurementUnit,
@@ -118,16 +118,16 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 		}
 		err1 := object.InsertToUnitIDMap(unitIdMap)
 		if err1 != nil {
-			logrus.Error("Inserting unit map ID was failed(referredConstantBuilder)" + err1.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting unit map ID was failed(referredConstantBuilder) " + err1.Error())
+			logrus.Error("Inserting unit map ID was failed(referredConstantBuilder.go)" + err1.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("inserting unit map ID was failed " + err1.Error())
 		}
 		unit = uint16(data.SequenceValue)
 	}
 
 	//variable builder
 	if len(element.Name) > 20 || element.Name == "" {
-		logrus.Error("Variable name is greater than 20 character limit or Empty(referredConstantBuilder)")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("variable name is greater than 20 character limit(referredConstantBuilder)")
+		logrus.Error("Variable name is greater than 20 character limit or Empty(referredConstantBuilder.go)")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("variable name is greater than 20 character limit")
 	} else {
 		if len(element.Name) < 20 {
 			// add 0s to the rest of the DESCRIPTION
@@ -141,8 +141,8 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 
 	//build description for 40 bytes
 	if len(element.MetricReference.Description) > 40 {
-		logrus.Error("Description is greater than 40 character limit(referredConstantBuilder)")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit(referredConstantBuilder)")
+		logrus.Error("Description is greater than 40 character limit(referredConstantBuilder.go)")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit")
 	} else {
 		if len(element.MetricReference.Description) < 40 {
 			// add 0s to the rest of the DESCRIPTION
@@ -169,11 +169,11 @@ func (expertFormula ExpertFormula) BuildReferredConstantManageData(formulaID str
 	}
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("referred constant value length not equal to 64(referredConstantBuilder)")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("referred constant value length not equal to 64")
 	}
 	if len(nameString) > 64 || len(nameString) == 0 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("referred constant name length should be less than or equal to 64(referredConstantBuilder)")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("referred constant name length should be less than or equal to 64")
 	}
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,

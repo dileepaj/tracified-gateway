@@ -44,8 +44,8 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 			return data
 		}).Await()
 		if errValueMapDetails != nil {
-			logrus.Error("Error in getting value map from db(template2Builder) ", errValueMapDetails)
-			return &txnbuild.ManageData{}, errors.New("error in getting value map from db(template2Builder) " + errValueMapDetails.Error())
+			logrus.Error("Error in getting value map from db(template2Builder.go) ", errValueMapDetails)
+			return &txnbuild.ManageData{}, errors.New("error in getting value map from db " + errValueMapDetails.Error())
 		}
 		variableID = valueMapDetails.(model.ValueIDMap).MapID
 		constantValue = strings.Repeat("0", 58)
@@ -54,8 +54,8 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 		constantValue = fmt.Sprintf("%g", executionTemplate.P_Entity.Value.(float64))
 		// check value is 58 character
 		if len(constantValue) > 58 {
-			logrus.Error("Constant value is greater than 58 character limit(temlate2Builder)")
-			return &txnbuild.ManageData{}, errors.New("constant value is greater than 58 character limit(template2Builder)")
+			logrus.Error("Constant value is greater than 58 character limit(temlate2Builder.go)")
+			return &txnbuild.ManageData{}, errors.New("constant value is greater than 58 character limit")
 		} else {
 			if len(constantValue) < 58 {
 				// add 0s to the rest of the name
@@ -70,8 +70,8 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	// convert typeOfTemplate from uint8 to string
 	typeOfTemplate, errInConvertion := stellarprotocols.Int8ToByteString(uint8(2))
 	if errInConvertion != nil {
-		logrus.Info("Error when converting type of template from int8 to String(template2Builder) ", errInConvertion)
-		return &txnbuild.ManageData{}, errors.New("error when converting type of template from int8 to String(template2Builder) " + errInConvertion.Error())
+		logrus.Info("Error when converting type of template from int8 to String(template2Builder.go) ", errInConvertion)
+		return &txnbuild.ManageData{}, errors.New("error when converting type of template to String " + errInConvertion.Error())
 	}
 
 	// convert isVariable from int8 to string
@@ -79,7 +79,7 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	if isVariable == 1 {
 		isVariable, errInConvertion := stellarprotocols.Int8ToByteString(uint8(isVariable))
 		if errInConvertion != nil {
-			logrus.Info("Error when converting isVariable from int8 to String(template2Builder) ", errInConvertion)
+			logrus.Info("Error when converting isVariable from int8 to String(template2Builder.go) ", errInConvertion)
 		}
 		isVariableString = isVariable
 	} 
@@ -87,14 +87,14 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	// convert variableID from uint8 to string
 	constTypeString, errInConversion := stellarprotocols.Int8ToByteString(uint8(constType))
 	if errInConversion != nil {
-		logrus.Info("Error when converting constant type from int8 to String(template2Builder) ", errInConversion)
-		return &txnbuild.ManageData{}, errors.New("error when converting constant type from int8 to String(template2Builder) " + errInConversion.Error())
+		logrus.Info("Error when converting constant type from int8 to String(template2Builder.go) ", errInConversion)
+		return &txnbuild.ManageData{}, errors.New("error when converting constant type to String " + errInConversion.Error())
 	}
 
 	// for future use in the value
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0106d", 0))
 	if err != nil {
-		return &txnbuild.ManageData{}, errors.New("error in decoding future use (template2Builder) " + err.Error())
+		return &txnbuild.ManageData{}, errors.New("error in decoding future use " + err.Error())
 	}
 	futureUse := string(decodedStrFutureUse)
 
@@ -107,8 +107,8 @@ func Type2TemplateBuilder(formulaID string, executionTemplate model.ExecutionTem
 	// check if the key and value is 64 bytes
 	if len(valueString) != 64 || len(keyString) != 64 {
 		logrus.Error("Length of the key: ", len(keyString), " and value: ", len(valueString))
-		logrus.Error("Length of the key or value is not 64(template2Builder)")
-		return &txnbuild.ManageData{}, errors.New("length of the key or value is not 64(template2Builder)")
+		logrus.Error("Length of the key or value is not 64(template2Builder.go)")
+		return &txnbuild.ManageData{}, errors.New("length issue on key or value fields in the template type 2 building")
 	}
 
 	// build the manage data

@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/stellar/go/txnbuild"
 )
 
 type BuildFormula struct {
@@ -289,6 +291,23 @@ type MetricDataBindingRequest struct {
 	User   User
 }
 
+type MetricBindingStore struct {
+	MetricId            string
+	MetricMapID         uint64
+	Metric              MetricReq
+	User                User
+	TotalNoOfManageData int
+	NoOfManageDataInTxn int
+	Memo                []byte
+	TxnHash             string
+	TxnSenderPK         string
+	XDR                 string
+	SequenceNo          int64
+	Status              string
+	Timestamp           string
+	ErrorMessage        string
+}
+
 type MetricReq struct {
 	ID             string                          `json:"ID" bson:"id" validate:"required"`
 	Blockchain     string                          `json:"Blockchain" bson:"blockchain"`
@@ -302,8 +321,6 @@ type MetricReq struct {
 	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
-	ErrorMessage   string                          `json:"ErrorMessage" bson:"errorMessage"`
-	Transactions   TransacionDetailsMetricBinding  `json:"Transactions" bson:"transactions"`
 }
 type MetricDataBindActivityRequest struct {
 	ID                                  string                              `json:"ID" bson:"id" validate:"required"`
@@ -531,10 +548,10 @@ type PublisherIdentity struct {
 }
 
 type SuccessResponseMetricBinding struct {
-	Code              int
-	ID                string
-	MetricID          string
-	TransactionHashes []TransactionHash
+	Code     int
+	ID       string
+	MetricID string
+	Message  string
 }
 
 type SuccessResponseExpertFormula struct {
@@ -597,4 +614,14 @@ type Command struct {
 	P_Arg                ExecutionTemplate
 	S_AdditionalFuncName string
 	Ul_CommandType       uint32
+}
+
+type SendToQueue struct {
+	MetricBinding MetricBindingStore
+	Type          string
+	User          User
+	Memo          []byte
+	Status        string
+	Operations    []txnbuild.ManageData
+	ErrorMessage  string
 }

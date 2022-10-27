@@ -39,7 +39,7 @@ func (metric *MetricBinding) BuildMetricNameManageData(name string, typename str
 			nameValue = metricName[64:]
 		} else if len(metricName) < 64 || len(metricName) == 64 {
 			nameKey = metricName
-			nameValue = fmt.Sprintf("%s", strings.Repeat("0", 63))
+			nameValue = strings.Repeat("0", 63)
 		}
 	}
 
@@ -66,7 +66,7 @@ func (metric *MetricBinding) BuildMetricNameManageData(name string, typename str
 	if len(nameKey) > 64 || len(nameValue) > 64 {
 		logrus.Error(typename+" Key string length : ", len(nameKey))
 		logrus.Error(typename+" Value string length : ", len(nameValue))
-		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on " + typename)
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on " + typename)
 	}
 
 	metricNameBuilder := txnbuild.ManageData{
