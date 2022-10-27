@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
+	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -34,6 +35,18 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		commons.JSONErrorReturn(w, r, errInJsonValidation.Error(), http.StatusBadRequest, "Request body failed the validation check :")
 		return
 	} else {
+		errInValidator, isTrue := authentication.PGPValidator("", []byte(""), "")
+		if errInValidator != nil {
+			logrus.Info("Error in PGP Validator : ", errInValidator.Error())
+			commons.JSONErrorReturn(w, r, errInValidator.Error(), 400, "Error in PGP Validator : "+errInValidator.Error())
+			return
+		}
+		if !isTrue {
+			logrus.Info("PGP validation, verification failed")
+			commons.JSONErrorReturn(w, r, "", 400, "PGP validation, verification failed")
+			return
+		}
+
 		authLayer := authentication.AuthLayer{
 			FormulaId:    formulaJSON.MetricExpertFormula.ID,
 			ExpertPK:     formulaJSON.User.Publickey,
@@ -63,7 +76,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 		formulaJSON.MetricExpertFormula.Formula = formulaArray
 
-		// if the blockchain is not provided in the request, then use the default blockchain 
+		// if the blockchain is not provided in the request, then use the default blockchain
 		if formulaJSON.MetricExpertFormula.Blockchain == "" {
 			formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
 		}
