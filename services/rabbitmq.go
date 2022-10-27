@@ -81,33 +81,38 @@ func ReciverRmq() error {
 				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
 				metricBindingStore := model.MetricBindingStore{
-					MetricId:    queue.MetricBinding.Metric.ID,
-					MetricMapID: queue.MetricBinding.MetricMapID,
-					Metric:      queue.MetricBinding.Metric,
-					User:        queue.MetricBinding.User,
-					Memo:        queue.Memo,
-					Status:      "SUCCESS",
-					XDR:         xdr,
-					TxnSenderPK: senderPK,
-					Timestamp:   time.Now().String(),
+					MetricId:            queue.MetricBinding.Metric.ID,
+					MetricMapID:         queue.MetricBinding.MetricMapID,
+					Metric:              queue.MetricBinding.Metric,
+					User:                queue.MetricBinding.User,
+					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData,
+					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn,
+					Memo:                queue.Memo,
+					Status:              "SUCCESS",
+					XDR:                 xdr,
+					TxnSenderPK:         senderPK,
+					Timestamp:           time.Now().String(),
+					TxnUUID:             queue.MetricBinding.TxnUUID,
 				}
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
 					metricBindingStore.ErrorMessage = err.Error()
 					metricBindingStore.Status = "Falied"
-					_, err := object.InsertMetricBindingFormula(metricBindingStore)
-					if err != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", err)
+					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore) // update -> metric id + txnUUID
+					if errWhenUpdatingMetricBind != nil {
+						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
 					}
+					logrus.Info("Metric update called with failed status")
 					logrus.Error("Stellar transacion submitting issue in queue", err, " error code ", errCode)
 					logrus.Println("XDR  ", xdr)
 				} else {
 					metricBindingStore.SequenceNo = sequenceNo
 					metricBindingStore.TxnHash = hash
-					_, err := object.InsertMetricBindingFormula(metricBindingStore)
-					if err != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", err)
+					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(metricBindingStore.MetricId, metricBindingStore.TxnUUID, metricBindingStore)
+					if errWhenUpdatingMetricBind != nil {
+						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
 					}
+					logrus.Info("Metric update called with success status")
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Stellar transacion submitting to blockchain (METRICBINDINIG) , Transaction Hash : ", hash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")

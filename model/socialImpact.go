@@ -306,6 +306,7 @@ type MetricBindingStore struct {
 	Status              string
 	Timestamp           string
 	ErrorMessage        string
+	TxnUUID             string
 }
 
 type MetricReq struct {
