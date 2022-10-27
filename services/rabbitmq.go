@@ -72,8 +72,8 @@ func ReciverRmq() error {
 			if err := json.Unmarshal(d.Body, &queue); err != nil {
 				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
 			}
-			for _, manageData := range queue.Operations {
-				manageDataOprations = append(manageDataOprations, &manageData)
+			for i := range queue.Operations {
+				manageDataOprations = append(manageDataOprations, &queue.Operations[i])
 			}
 			logrus.Info("Received to queue")
 			if queue.Type == "METRICBIND" {
