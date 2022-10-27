@@ -7,7 +7,6 @@ import (
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
@@ -218,13 +217,13 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		}
 	}
 
-	/* logic section of the expert formula builder 
+	/* logic section of the expert formula builder
 
-		* BuildExecutionTemplateByQuery() method will return the execution template that returns from the FCL 
-		* if the lst_commands in the returned execution template is not empty 
-			-> Type 1 execution template(Start variable followed by a list of commands) - returns an array of manage data operations
-		  else 
-			-> Type 2 execution template(Entity) - returns a single manage data operation
+	* BuildExecutionTemplateByQuery() method will return the execution template that returns from the FCL
+	* if the lst_commands in the returned execution template is not empty
+		-> Type 1 execution template(Start variable followed by a list of commands) - returns an array of manage data operations
+	  else
+		-> Type 2 execution template(Entity) - returns a single manage data operation
 	*/
 	executionTemplate, errInGettingExecutionTemplate := BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
 	if errInGettingExecutionTemplate != nil {
@@ -266,7 +265,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 		}
 		stellarProtocol := stellarprotocols.StellarTrasaction{
-			PublicKey:  constants.PublicKey,
 			Operations: manadataOperationArray,
 			Memo:       memo0,
 		}
@@ -290,7 +288,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 
 		}
 		startTransactionTime = time.Now()
-		err, errCode, hash, _ := stellarProtocol.SubmitToStellerBlockchain()
+		err, errCode, hash, _, _, _ := stellarProtocol.SubmitToStellerBlockchain()
 		hashArray = append(hashArray, hash)
 		endTransactionTime = time.Now()
 		if err != nil {

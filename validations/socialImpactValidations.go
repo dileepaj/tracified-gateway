@@ -135,9 +135,6 @@ func ValidateStageData(element model.Stage) error {
 }
 
 func ValidateMetricDataBindingRequest(element model.MetricDataBindingRequest) error {
-	if element.Metric.ErrorMessage != "" || len(element.Metric.Transactions.TXNHashes) != 0 {
-		return errors.New("Invalid palylod, ErrorMessage and Transactions fileds should be empty")
-	}
 	// validate Metric Object
 	errWhenValidatingMetricReq := ValidateMetricObject(element.Metric)
 	if errWhenValidatingMetricReq != nil {
