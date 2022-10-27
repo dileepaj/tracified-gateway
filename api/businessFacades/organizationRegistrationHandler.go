@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,19 +22,21 @@ import (
 func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 	var Obj model.TestimonialOrganization
-
-	err := json.NewDecoder(r.Body).Decode(&Obj)
+	b, err := ioutil.ReadAll(r.Body)
+	log.Println("request body:", r.Body)
+	defer r.Body.Close()
+	//err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil {
-		fmt.Println(err)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
+		http.Error(w, err.Error(), 500)
 		return
 	}
-	log.Println("Object: ", Obj)
+	errjson := json.Unmarshal(b, &Obj)
+	if errjson != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	log.Println("Decoded Object: ", Obj)
+	log.Println("PGP info", Obj.PGPData)
 	if Obj.Status != model.Pending.String() {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)

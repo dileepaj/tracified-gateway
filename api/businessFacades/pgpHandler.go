@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -28,14 +29,15 @@ func SavePGPAccount(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
+// TODO: check get request
 func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
 	object := dao.Connection{}
 	p := object.GetPGPAccountByStellarPK(vars["stellarPublicKey"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.PGPAccount)
+		fmt.Println("data response:", result)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
