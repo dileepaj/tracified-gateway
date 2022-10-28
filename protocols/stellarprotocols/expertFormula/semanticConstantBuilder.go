@@ -48,20 +48,20 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		return data
 	}).Await()
 	if errValueMap != nil {
-		logrus.Info("Unable to connect to gateway datastore(semanticConstantBuilder) ", errValueMap)
+		logrus.Info("Unable to connect to gateway datastore(semanticConstantBuilder.go) ", errValueMap)
 	}
 	// check if the variable id for this formula is in the variale mapping
 	if valueMap != nil {
-		logrus.Info("Value ID is already recorded in the DB Map(semanticConstantBuilder) ")
+		logrus.Info("Value ID is already recorded in the DB Map(semanticConstantBuilder.go) ")
 		valueMapData := valueMap.(model.ValueIDMap)
 		valueId = valueMapData.MapID
 	} else {
 		// if not add with incrementing id
-		logrus.Info("Value ID is not recorded in the DB Map(semanticConstantBuilder) ")
+		logrus.Info("Value ID is not recorded in the DB Map(semanticConstantBuilder.go) ")
 		data, err := object.GetNextSequenceValue("VALUEID")
 		if err != nil {
-			logrus.Error("GetNextSequenceValue was failed(semanticConstantBuilder) " + err.Error())
-			return txnbuild.ManageData{}, errorRespObj, errors.New("get next sequence value of value map was failed(semanticConstantBuilder) ")
+			logrus.Error("GetNextSequenceValue was failed(semanticConstantBuilder.go) " + err.Error())
+			return txnbuild.ManageData{}, errorRespObj, errors.New("get next sequence value of value map was failed ")
 		}
 		valueIdMap := model.ValueIDMap{
 			ValueId:   element.ID,
@@ -72,14 +72,14 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 		}
 		err1 := object.InsertToValueIDMap(valueIdMap)
 		if err1 != nil {
-			logrus.Error("Inserting Value map ID was failed(semanticConstantBuilder) " + err1.Error())
+			logrus.Error("Inserting Value map ID was failed(semanticConstantBuilder.go) " + err1.Error())
 		}
 		valueId = data.SequenceValue
 	}
 	// check variable description is 40 character
 	if len(element.Description) > 40 {
-		logrus.Error("Description is greater than 40 character limit(semanticConstantBuilder) ")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit(semanticConstantBuilder) ")
+		logrus.Error("Description is greater than 40 character limit(semanticConstantBuilder.go) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("description is greater than 40 character limit ")
 	} else {
 		if len(element.Description) < 40 {
 			// add 0s to the rest of the name
@@ -96,8 +96,8 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 
 	//Variable name - 20 bytes
 	if len(element.Name) > 20 || element.Name == "" {
-		logrus.Error("Value name is greater than 20 character limit or Empty(semanticConstantBuilder) ")
-		return txnbuild.ManageData{}, errorRespObj, errors.New("value name is greater than 20 character limit(semanticConstantBuilder) ")
+		logrus.Error("Value name is greater than 20 character limit or Empty(semanticConstantBuilder.go) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("value name is greater than 20 character limit ")
 	} else {
 		if len(element.Name) < 20 {
 			// add 0s to the rest of the name
@@ -117,11 +117,11 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	strFutureUse := string(decodedStrFutureUse)
 	strValueType, err := stellarprotocols.Int8ToByteString(uint8(valueType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type to binary(semanticConstantBuilder) " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting value type to string " + err.Error())
 	}
 	strDataType, err := stellarprotocols.Int8ToByteString(uint8(sementicConstantDataType))
 	if err != nil {
-		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type to binary(semanticConstantBuilder) " + err.Error())
+		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type to string " + err.Error())
 	}
 	// semantic constant's manage data key and value
 	nameString := semanticConstantDescription + keyFutureUse
@@ -135,11 +135,11 @@ func (expertFormula ExpertFormula) BuildSemanticConstantManageData(formulaID str
 	}
 	if len(valueString) != 64 {
 		logrus.Error("Length ", len(nameString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant name length not equal to 64(semanticConstantBuilder) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant name length not equal to 64 ")
 	}
 	if len(nameString) > 64 {
 		logrus.Error("Length ", len(valueString))
-		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant value length should be less than or equal to 64(semanticConstantBuilder) ")
+		return txnbuild.ManageData{}, errorRespObj, errors.New("semantic constant value length should be less than or equal to 64 ")
 	}
 	respObj := model.ValueDefOutParmas{
 		ValueMapID: valueId,

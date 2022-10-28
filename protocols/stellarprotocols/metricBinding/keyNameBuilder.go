@@ -20,7 +20,7 @@ func (metric *MetricBinding) BuildKeyName(keyName string) (txnbuild.ManageData, 
 
 	if len(keyName) > 128 {
 		logrus.Error("key name is greater than 128 character limit")
-		return txnbuild.ManageData{}, errors.New("Key name is greater than 128 character limit")
+		return txnbuild.ManageData{}, errors.New("key name is greater than 128 character limit")
 	} else {
 		// check and divide the key name into key and value
 		if len(keyName) > 64 {
@@ -28,7 +28,7 @@ func (metric *MetricBinding) BuildKeyName(keyName string) (txnbuild.ManageData, 
 			keyNameValue = keyName[64:]
 		} else if len(keyName) < 64 || len(keyName) == 64 {
 			keyNameKey = keyName
-			keyNameValue = fmt.Sprintf("%s", strings.Repeat("0", 64))
+			keyNameValue = strings.Repeat("0", 64)
 		}
 	}
 
@@ -53,7 +53,7 @@ func (metric *MetricBinding) BuildKeyName(keyName string) (txnbuild.ManageData, 
 	if len(keyNameKey) > 64 || len(keyNameValue) > 64 {
 		logrus.Error("Key string length : ", len(keyNameKey))
 		logrus.Error("Value string length : ", len(keyNameValue))
-		return txnbuild.ManageData{}, errors.New("Length issue on key or value fields on the key name building")
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the key name building")
 	}
 
 	keyNameBuilder := txnbuild.ManageData{

@@ -1968,7 +1968,7 @@ func (cd *Connection) GetValueMapID(valueID, formulaId string) *promise.Promise 
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("ValueIDMap")
-		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID,"formulaid":formulaId}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID, "formulaid": formulaId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
 			reject(err1)
@@ -2209,7 +2209,7 @@ func (cd Connection) GetRSAPublicKeyBySHA256PK(sha256pk string) *promise.Promise
 
 func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
 	result := model.WorkflowMap{}
-  p := promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -2273,3 +2273,50 @@ func (cd *Connection) GetValueMapDetails(formulaID string, key string) *promise.
 	})
 	return p
 }
+
+func (cd *Connection) GetMetricStatus(metricId string) *promise.Promise {
+	var metricMap model.MetricBindingStore
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("MetricBinds")
+		err = c.FindOne(context.TODO(), bson.M{"metricid": metricId}).Decode(&metricMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(metricMap)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
+	var metricMap model.FormulaStore
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&metricMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(metricMap)
+		}
+	})
+	return p
+}
+

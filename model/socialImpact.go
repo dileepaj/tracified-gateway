@@ -2,6 +2,8 @@ package model
 
 import (
 	"time"
+
+	"github.com/stellar/go/txnbuild"
 )
 
 type BuildFormula struct {
@@ -247,19 +249,25 @@ type FormulaTransaction struct {
 }
 
 type FormulaStore struct {
-	Blockchain              string
-	FormulaID               string
-	ExpertID                string
-	ExpertPK                string
-	VariableCount           int
-	FormulaJsonRequestBody  FormulaBuildingRequest
-	Transactions            []FormulaTransaction
-	OverflowAmount          int
-	Status                  string
-	CreatedAt               string
-	CiperText               string
-	ExecutionTemplate       ExecutionTemplate
-	TotalNumberOfManageData int
+	MetricExpertFormula ExpertFormula
+	User                User
+	FormulaID           string
+	FormulaMapID        uint64
+	VariableCount       int
+	ExecutionTemplate   ExecutionTemplate
+	TotalNoOfManageData int
+	NoOfManageDataInTxn int
+	Memo                []byte
+	TxnHash             string
+	TxnSenderPK         string
+	XDR                 string
+	SequenceNo          int64
+	Status              string
+	Timestamp           string
+	TransactionTime     string
+	TransactionCost     string
+	ErrorMessage        string
+	TxnUUID             string
 }
 
 type ValueDefOutParmas struct {
@@ -289,6 +297,26 @@ type MetricDataBindingRequest struct {
 	User   User
 }
 
+type MetricBindingStore struct {
+	MetricId            string
+	MetricMapID         uint64
+	Metric              MetricReq
+	User                User
+	TotalNoOfManageData int
+	NoOfManageDataInTxn int
+	Memo                []byte
+	TxnHash             string
+	TxnSenderPK         string
+	XDR                 string
+	SequenceNo          int64
+	Status              string
+	Timestamp           string
+	ErrorMessage        string
+	TxnUUID             string
+	TransactionTime     string
+	TransactionCost     string
+}
+
 type MetricReq struct {
 	ID             string                          `json:"ID" bson:"id" validate:"required"`
 	Blockchain     string                          `json:"Blockchain" bson:"blockchain"`
@@ -302,8 +330,6 @@ type MetricReq struct {
 	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
 	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
-	ErrorMessage   string                          `json:"ErrorMessage" bson:"errorMessage"`
-	Transactions   TransacionDetailsMetricBinding  `json:"Transactions" bson:"transactions"`
 }
 type MetricDataBindActivityRequest struct {
 	ID                                  string                              `json:"ID" bson:"id" validate:"required"`
@@ -531,17 +557,16 @@ type PublisherIdentity struct {
 }
 
 type SuccessResponseMetricBinding struct {
-	Code              int
-	ID                string
-	MetricID          string
-	TransactionHashes []TransactionHash
+	Code     int
+	ID       string
+	MetricID string
+	Message  string
 }
 
 type SuccessResponseExpertFormula struct {
-	Code              int
-	ID                string
-	FormulaID         string
-	TransactionHashes []string
+	Code      int
+	FormulaID string
+	Message   string
 }
 
 type ValueBuilder struct {
@@ -597,4 +622,15 @@ type Command struct {
 	P_Arg                ExecutionTemplate
 	S_AdditionalFuncName string
 	Ul_CommandType       uint32
+}
+
+type SendToQueue struct {
+	MetricBinding MetricBindingStore
+	ExpertFormula FormulaStore
+	Type          string
+	User          User
+	Memo          []byte
+	Status        string
+	Operations    []txnbuild.ManageData
+	ErrorMessage  string
 }
