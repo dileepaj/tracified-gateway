@@ -785,4 +785,5 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 		return errWhenUpdate
 	}
 	return nil
+	//end of function
 }
