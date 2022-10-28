@@ -9,3 +9,5 @@ var ValidateAgaintTrustNetworkExpertFormulaEnable = false
 var PGPkeyEnable = false
 
 var DefaultBlockchain = "STELLAR"
+
+var DigitalSIgnatureValidationEnabled = false

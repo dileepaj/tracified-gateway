@@ -460,7 +460,7 @@ func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails)
 	return err
 }
 
-func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string, error) {
+func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricBindingStore) (string, error) {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())

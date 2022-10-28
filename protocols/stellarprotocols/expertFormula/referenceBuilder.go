@@ -27,13 +27,13 @@ func (expertFormula ExpertFormula) BuildReference(refUrl string) (txnbuild.Manag
 
 	actualLength, errInLength := stellarprotocols.Int8ToByteString(uint8(len(refUrl)))
 	if errInLength != nil {
-		logrus.Info("Error when converting length(referenceBuilder) ", errInLength)
-		return txnbuild.ManageData{}, errors.New("error when converting length(referenceBuilder) " + errInLength.Error())
+		logrus.Info("Error when converting length(referenceBuilder.go) ", errInLength)
+		return txnbuild.ManageData{}, errors.New("error when converting reference url length to String " + errInLength.Error())
 	}
 
 	if len(refUrl) > 127 {
-		logrus.Error(refUrl + " is greater than 127 character limit(referenceBuilder)")
-		return txnbuild.ManageData{}, errors.New(refUrl + "is greater than 127 character limit(referenceBuilder)")
+		logrus.Error(refUrl + " is greater than 127 character limit(referenceBuilder.go)")
+		return txnbuild.ManageData{}, errors.New(refUrl + "is greater than 127 character limit")
 	} else {
 		// check if the key is greater than 64 characters
 		if len(refUrl) > 64 {
@@ -66,7 +66,7 @@ func (expertFormula ExpertFormula) BuildReference(refUrl string) (txnbuild.Manag
 	if len(nameKey) > 64 || len(nameValue) > 64 {
 		logrus.Error("Referece URL key : ", len(nameKey))
 		logrus.Error("Reference URL value : ", len(nameValue))
-		return txnbuild.ManageData{}, errors.New("length issue on key or value fields(referenceBuilder) on " + refUrl)
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on " + refUrl)
 	}
 
 	urlBuilder := txnbuild.ManageData{

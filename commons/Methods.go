@@ -25,8 +25,8 @@ func JSONErrorReturn(w http.ResponseWriter, r *http.Request, err string, errorCo
 	return
 }
 
-func ChunkSlice(slice []txnbuild.Operation, chunkSize int) [][]txnbuild.Operation {
-	var chunks [][]txnbuild.Operation
+func ChunkSlice(slice []txnbuild.ManageData, chunkSize int) [][]txnbuild.ManageData {
+	var chunks [][]txnbuild.ManageData
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
 		// necessary check to avoid slicing beyond

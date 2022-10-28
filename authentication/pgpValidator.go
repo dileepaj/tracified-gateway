@@ -1,12 +1,13 @@
 package authentication
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"encoding/base64"
 	"errors"
 
-	"github.com/jchavannes/go-pgp/pgp"
 	"github.com/sirupsen/logrus"
 )
 
@@ -41,24 +42,27 @@ func PGPValidator(sha256hash string, signature []byte, originalMsg string) (erro
 
 	//convert to pem string
 	publicKeyPemString, _ := ExportRsaPublicKeyAsPemStr(&privateKey.PublicKey)
-	pub_parsed, _ := ParseRsaPublicKeyFromPemStr(publicKeyPemString)
-	pub_parsed_pem, _ := ExportRsaPublicKeyAsPemStr(pub_parsed)
 
 	//base64 convert the public key
-	base64PublicKey := base64.StdEncoding.EncodeToString([]byte(pub_parsed_pem))
-	decodedPublicKey, _ := base64.StdEncoding.DecodeString(base64PublicKey)
+	base64PublicKey := base64.StdEncoding.EncodeToString([]byte(publicKeyPemString))
 
-	//TODO: decrypt the string
-	publicEntity, errWhenGettingEntity := pgp.GetEntity(decodedPublicKey, []byte{})
-	if errWhenGettingEntity != nil {
-		logrus.Error("Error when getting the entity from public key : " + errWhenGettingEntity.Error())
-		return errors.New("Error when getting the entity from public key : " + errWhenGettingEntity.Error()), false
+	//-------------------------------------------------------------------------------
+	decodedPublicKey, errWhenDecodongBase64 := base64.StdEncoding.DecodeString(base64PublicKey)
+
+	if errWhenDecodongBase64 != nil {
+		logrus.Error()
 	}
 
-	err1 := pgp.Verify(publicEntity, []byte(secretMessage), signatureTxt)
-	if err1 != nil {
-		logrus.Error("Error when validating the public key : " + err1.Error())
-		return errors.New("Error when validating the public key  : " + err1.Error()), false
+	parsingPublicKey := string(decodedPublicKey[:])
+
+	pub_parsed, _ := ParseRsaPublicKeyFromPemStr(parsingPublicKey) //pass the decoded base 64 value to this method
+
+	hashed := sha256.Sum256([]byte(secretMessage))
+
+	errInVerifier := rsa.VerifyPKCS1v15(pub_parsed, crypto.SHA256, hashed[:], signatureTxt)
+	if errInVerifier != nil {
+		logrus.Error("Verification failed " + errInVerifier.Error())
+		return errors.New("Verification failed :" + errInVerifier.Error()), false
 	}
 
 	return nil, true
