@@ -12,7 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
+/*
+UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -75,7 +76,8 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
-/*UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
+/*
+UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
@@ -205,7 +207,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	return err
 }
 
-/*UpdateCertificate Update a Certificate Object from CertificateCollection in DB
+/*
+UpdateCertificate Update a Certificate Object from CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -727,7 +730,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	return err
 }
 
-//auto count sequence incrementer
+// auto count sequence incrementer
 func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 	var result model.Counters
 	session, err := cd.connect()
@@ -762,6 +765,23 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
 	if errWhenUpdate != nil {
 		logrus.Error("Error when updating the throttler counter in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("Organizations")
+	filter := bson.D{{"sequenceno", data.SequenceNo}}
+	update := bson.D{{"$set", bson.D{{"pgpdata", data.PGPData}, {"status", data.Status}, {"sequenceno", data.SequenceNo}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		log.Println(err.Error())
 		return errWhenUpdate
 	}
 	return nil
