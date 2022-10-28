@@ -34,7 +34,6 @@ func ReciverRmq() error {
 	ch, err := conn.Channel()
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to open a channel", err)
-		return err
 	}
 	defer ch.Close()
 
@@ -48,7 +47,6 @@ func ReciverRmq() error {
 	)
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to declare a queue", err)
-		return err
 	}
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -61,7 +59,6 @@ func ReciverRmq() error {
 	)
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to register a consumer", err)
-		return err
 	}
 	var forever chan struct{}
 
@@ -152,7 +149,7 @@ func ReciverRmq() error {
 				if err != nil {
 					expertFormulaStore.ErrorMessage = err.Error()
 					expertFormulaStore.Status = "FAILED"
-					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) //update
+					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) // update
 					if errWhenUpdateingFormulaSatus != nil {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
@@ -162,7 +159,7 @@ func ReciverRmq() error {
 				} else {
 					expertFormulaStore.SequenceNo = sequenceNo
 					expertFormulaStore.TxnHash = hash
-					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) //update
+					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) // update
 					if errWhenUpdateingFormulaSatus != nil {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
@@ -185,14 +182,12 @@ func SendToQueue(queue model.SendToQueue) error {
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("rabbitmq connection issue ", err)
-		return err
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to open a channel", err)
-		return err
 	}
 	defer ch.Close()
 
@@ -206,7 +201,6 @@ func SendToQueue(queue model.SendToQueue) error {
 	)
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to declare a queue", err)
-		return err
 	}
 	reqBodyBytes := new(bytes.Buffer)
 	json.NewEncoder(reqBodyBytes).Encode(queue)
@@ -224,7 +218,6 @@ func SendToQueue(queue model.SendToQueue) error {
 
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to publish a message", err)
-		return err
 	}
 	return nil
 }
