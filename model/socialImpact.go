@@ -264,9 +264,10 @@ type FormulaStore struct {
 	SequenceNo          int64
 	Status              string
 	Timestamp           string
-	TransactionTime     float32
-	TransactionCost     float32
+	TransactionTime     string
+	TransactionCost     string
 	ErrorMessage        string
+	TxnUUID             string
 }
 
 type ValueDefOutParmas struct {
@@ -312,6 +313,8 @@ type MetricBindingStore struct {
 	Timestamp           string
 	ErrorMessage        string
 	TxnUUID             string
+	TransactionTime     string
+	TransactionCost     string
 }
 
 type MetricReq struct {

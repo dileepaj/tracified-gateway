@@ -782,6 +782,8 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 		User:                update.User,
 		TotalNoOfManageData: update.TotalNoOfManageData,
 		NoOfManageDataInTxn: update.NoOfManageDataInTxn,
+		TransactionTime:     update.TransactionTime,
+		TransactionCost:     update.TransactionCost,
 		Memo:                update.Memo,
 		TxnHash:             update.TxnHash,
 		TxnSenderPK:         update.TxnSenderPK,
@@ -809,4 +811,52 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 
 	return err
 
+}
+
+func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, update model.FormulaStore) error {
+	logrus.Info("--------", formulaID, "---", txnUUID)
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.FormulaStore{
+		MetricExpertFormula: update.MetricExpertFormula,
+		User:                update.User,
+		FormulaID:           update.FormulaID,
+		FormulaMapID:        update.FormulaMapID,
+		VariableCount:       update.VariableCount,
+		ExecutionTemplate:   update.ExecutionTemplate,
+		TotalNoOfManageData: update.TotalNoOfManageData,
+		NoOfManageDataInTxn: update.NoOfManageDataInTxn,
+		Memo:                update.Memo,
+		TxnHash:             update.TxnHash,
+		TxnSenderPK:         update.TxnSenderPK,
+		XDR:                 update.XDR,
+		SequenceNo:          update.SequenceNo,
+		Status:              update.Status,
+		Timestamp:           update.Timestamp,
+		TransactionTime:     update.TransactionTime,
+		TransactionCost:     update.TransactionCost,
+		ErrorMessage:        update.ErrorMessage,
+		TxnUUID:             update.TxnUUID,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("ExpertFormula")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"formulaid": formulaID, "txnuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
 }

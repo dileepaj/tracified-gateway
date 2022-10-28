@@ -3,6 +3,7 @@ package services
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -78,8 +79,12 @@ func ReciverRmq() error {
 			logrus.Info("Received to queue")
 			if queue.Type == "METRICBIND" {
 				logrus.Info("Received mgs Type (METRICBIND)")
+				startTime := time.Now()
 				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
+				endTime := time.Now()
+				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
+				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
 				metricBindingStore := model.MetricBindingStore{
 					MetricId:            queue.MetricBinding.Metric.ID,
 					MetricMapID:         queue.MetricBinding.MetricMapID,
@@ -87,6 +92,8 @@ func ReciverRmq() error {
 					User:                queue.MetricBinding.User,
 					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData,
 					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn,
+					TransactionTime:     convertedTime,
+					TransactionCost:     convertedCost,
 					Memo:                queue.Memo,
 					Status:              "SUCCESS",
 					XDR:                 xdr,
@@ -95,7 +102,6 @@ func ReciverRmq() error {
 					TxnUUID:             queue.MetricBinding.TxnUUID,
 				}
 				if err != nil {
-					metricBindingStore.ErrorMessage = err.Error()
 					metricBindingStore.ErrorMessage = err.Error()
 					metricBindingStore.Status = "Falied"
 					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore) // update -> metric id + txnUUID
@@ -108,7 +114,7 @@ func ReciverRmq() error {
 				} else {
 					metricBindingStore.SequenceNo = sequenceNo
 					metricBindingStore.TxnHash = hash
-					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(metricBindingStore.MetricId, metricBindingStore.TxnUUID, metricBindingStore)
+					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore)
 					if errWhenUpdatingMetricBind != nil {
 						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
 					}
@@ -119,33 +125,48 @@ func ReciverRmq() error {
 				}
 			} else if queue.Type == "EXPERTFORMULA" {
 				logrus.Info("Received mgs Type (EXPERTFORMULA)")
+				startTime := time.Now()
 				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
 				expertFormulaStore := queue.ExpertFormula
+				endTime := time.Now()
+				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
+				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
 				expertFormulaStore = model.FormulaStore{
-					User:        queue.ExpertFormula.User,
-					Memo:        queue.Memo,
-					TxnSenderPK: senderPK,
-					XDR:         xdr,
-					Status:      "SUCCESS",
-					Timestamp:   time.Now().String(),
+					MetricExpertFormula: queue.ExpertFormula.MetricExpertFormula,
+					FormulaID:           queue.ExpertFormula.FormulaID,
+					FormulaMapID:        queue.ExpertFormula.FormulaMapID,
+					VariableCount:       queue.ExpertFormula.VariableCount,
+					TotalNoOfManageData: queue.ExpertFormula.TotalNoOfManageData,
+					NoOfManageDataInTxn: queue.ExpertFormula.NoOfManageDataInTxn,
+					TransactionTime:     convertedTime,
+					TransactionCost:     convertedCost,
+					User:                queue.ExpertFormula.User,
+					Memo:                queue.Memo,
+					TxnSenderPK:         senderPK,
+					XDR:                 xdr,
+					Status:              "SUCCESS",
+					Timestamp:           time.Now().String(),
+					TxnUUID:             queue.ExpertFormula.TxnUUID,
 				}
 				if err != nil {
 					expertFormulaStore.ErrorMessage = err.Error()
 					expertFormulaStore.Status = "FAILED"
-					_, err := object.InsertExpertFormula(expertFormulaStore)
-					if err != nil {
-						logrus.Error("Error while inserting the expert formula into DB: ", err)
+					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) //update
+					if errWhenUpdateingFormulaSatus != nil {
+						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
+					logrus.Info("Formula update called with failed status")
 					logrus.Error("Stellar transacion submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
 					logrus.Println("XDR  ", xdr)
 				} else {
 					expertFormulaStore.SequenceNo = sequenceNo
 					expertFormulaStore.TxnHash = hash
-					_, err := object.InsertExpertFormula(expertFormulaStore)
-					if err != nil {
-						logrus.Error("Error while inserting the expert formula into DB: ", err)
+					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) //update
+					if errWhenUpdateingFormulaSatus != nil {
+						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
+					logrus.Info("Formula update called with success status")
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Stellar transacion submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")

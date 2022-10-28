@@ -30,6 +30,20 @@ func (authObject AuthLayer) ValidateExpertRequest() (error, int) {
 			logrus.Error("Expert is not in the trust network ", errInTrustNetworkValidation)
 			return errInTrustNetworkValidation, http.StatusBadRequest
 		}
+
+	}
+
+	//PGP validator
+	if configs.DigitalSIgnatureValidationEnabled {
+		errWhenValidatingDigitalSignature, isValidated := PGPValidator(authObject.ExpertPK, []byte(authObject.CiperText), "")
+		if errWhenValidatingDigitalSignature != nil {
+			logrus.Error("Expert is not in the trust network ", errWhenValidatingDigitalSignature)
+			return errWhenValidatingDigitalSignature, http.StatusInternalServerError
+		}
+		if !isValidated {
+			logrus.Error("Signature validation failed, incorrect credentials")
+			return errors.New("Signature validation failed, incorrect credentials"), http.StatusBadRequest
+		}
 	}
 
 	err1, code1 := authObject.isExceedRequestLimitPerDay()
@@ -42,6 +56,7 @@ func (authObject AuthLayer) ValidateExpertRequest() (error, int) {
 		}
 		return err1, code1
 	}
+
 }
 
 func (authObject AuthLayer) isExceedRequestLimitPerDay() (error, int) {

@@ -2296,3 +2296,26 @@ func (cd *Connection) GetMetricStatus(metricId string) *promise.Promise {
 	})
 	return p
 }
+
+func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
+	var metricMap model.FormulaStore
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&metricMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(metricMap)
+		}
+	})
+	return p
+}
