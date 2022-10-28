@@ -2319,3 +2319,4 @@ func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
 	})
 	return p
 }
+
