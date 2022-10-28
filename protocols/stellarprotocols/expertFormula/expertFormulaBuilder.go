@@ -2,15 +2,14 @@ package expertformula
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	equationbuilding "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula/equationBuilding"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
 )
@@ -32,19 +31,20 @@ des- This method build stellar trasactions for expert formula
 */
 func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	w.Header().Set("Content-Type", "application/json")
-
-	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend
-	var hashArray []string                                  // formula array sent by the backend
-	var manageDataOpArray []txnbuild.Operation              // manageDataOpArray all manage data append to to this array
-	var transactionArray []model.FormulaTransaction         // transaction array
+	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend                               // formula array sent by the backend
+	var manageDataOpArray []txnbuild.ManageData             // manageDataOpArray all manage data append to to this array
 	expertIDMap := model.ExpertIDMap{}
-	var ValueDefinitionManageDataArray []model.ValueDefinition // value definition array
-	var status string
-	var startTransactionTime time.Time
-	var endTransactionTime time.Time
+	// var startTransactionTime, endTransactionTime time.Time
 	var expertMapID uint64
-	var memo0, memo1, manifest string
+	var memo0, memo1 string
 	object := dao.Connection{}
+	// save expert formula in the database
+	expertFormulaBuilder := model.FormulaStore{
+		FormulaID:     formulaJSON.MetricExpertFormula.ID,
+		VariableCount: len(formulaArray),
+		Timestamp:     time.Now().String(),
+		Status:        "FALIED",
+	}
 	// checked whether given formulaID already in the database or not
 	formulaMap, err := object.GetExpertFormulaCount(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
@@ -64,7 +64,6 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		return
 	}
 	expertFormula := ExpertFormula{}
-
 	// checked whether given ExpertID already in the database or not
 	expertMapdata, err := object.GetExpertMapID(formulaJSON.User.ID).Then(func(data interface{}) interface{} {
 		return data
@@ -101,61 +100,30 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		commons.JSONErrorReturn(w, r, errInFormulaIdentity.Error(), http.StatusInternalServerError, "An error occured when building formula identity ")
 		return
 	}
-	// build formula object to be inserted
-	formulaManageDataObj := model.FormulaIdentity{
-		ManageDataOrder: 1,
-		ManageDataName:  "FORMULA IDENTITY",
-		FormulaMapID:    dataFormulaID.SequenceValue,
-		ManageDataKey:   formulaIdentityBuilder.Name,
-		ManageDataValue: formulaIdentityBuilder.Value,
-	}
 	// append to the manage data array
-	manageDataOpArray = append(manageDataOpArray, &formulaIdentityBuilder)
+	manageDataOpArray = append(manageDataOpArray, formulaIdentityBuilder)
 	// author details opreation
 	authorDetailsBuilder, errInAuthorBuilder := expertFormula.BuildPublicManageData(formulaJSON.User.Publickey)
 	if errInAuthorBuilder != nil {
 		commons.JSONErrorReturn(w, r, errInAuthorBuilder.Error(), http.StatusInternalServerError, "An error occured when building author identity ")
 		return
 	}
-	// build author identity manage data object(Expert is the author)
-	// author-->Expert
-	authorObj1 := model.AuthorIdentity{
-		ManageDataOrder: 2,
-		ManageDataName:  "AUTHOR IDENTITY",
-		Expert:          expertIDMap,
-		ManageDataKey:   authorDetailsBuilder.Name,
-		ManageDataValue: authorDetailsBuilder.Value,
-	}
 	// append to the manage data array
-	manageDataOpArray = append(manageDataOpArray, &authorDetailsBuilder)
+	manageDataOpArray = append(manageDataOpArray, authorDetailsBuilder)
 	// loop through the formulaArray to see build the field definitions
-	c := 2
 	for i := 0; i < len(formulaArray); i++ {
 		if formulaArray[i].Type == "VARIABLE" {
 			// excute the variable builder
-			variableBuilder, respObj, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
+			variableBuilder, _, err := expertFormula.BuildVariableDefinitionManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Building Variable was failed ")
 				return
 			}
-			c++
-			variableDefMGOObj := model.ValueDefinition{
-				ManageDataOrder:   c,
-				ValueType:         "VARIABLE",
-				ValueMapID:        respObj.ValueMapID,
-				UnitMapID:         respObj.UnitMapID,
-				Precision:         formulaArray[i].Precision,
-				MetricReferenceID: formulaArray[i].MetricReferenceId,
-				ManageDataKey:     variableBuilder.Name,
-				ManageDataValue:   variableBuilder.Value,
-			}
-			// append to value definition array to be inserted in to the DB
-			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, variableDefMGOObj)
 			// append to the manage data array
-			manageDataOpArray = append(manageDataOpArray, &variableBuilder)
+			manageDataOpArray = append(manageDataOpArray, variableBuilder)
 		} else if formulaArray[i].Type == "REFERREDCONSTANT" {
 			// execute the referred constant builder
-			referredConstant, respObj, err := expertFormula.BuildReferredConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
+			referredConstant, _, err := expertFormula.BuildReferredConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Building Referred Constant was failed ")
 				return
@@ -166,27 +134,12 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Building Referred Constant Reference was failed ")
 				return
 			}
-			c++
-			// Reffered constant object
-			referredConstObj := model.ValueDefinition{
-				ManageDataOrder:   c,
-				ValueType:         "REFERREDCONSTANT",
-				ValueMapID:        respObj.ValueMapID,
-				UnitMapID:         respObj.UnitMapID,
-				Precision:         formulaArray[i].Precision,
-				Value:             formulaArray[i].Value.(float64),
-				MetricReferenceID: formulaArray[i].MetricReferenceId,
-				ManageDataKey:     referredConstant.Name,
-				ManageDataValue:   referredConstant.Value,
-			}
-			// append to the value definition array
-			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, referredConstObj)
 			// append to the manage data array
-			manageDataOpArray = append(manageDataOpArray, &referredConstant)
-			manageDataOpArray = append(manageDataOpArray, &urlBuilder)
+			manageDataOpArray = append(manageDataOpArray, referredConstant)
+			manageDataOpArray = append(manageDataOpArray, urlBuilder)
 		} else if formulaArray[i].Type == "SEMANTICCONSTANT" {
 			// execute the semantic constant builder
-			sematicConstant, respObj, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
+			sematicConstant, _, err := expertFormula.BuildSemanticConstantManageData(formulaJSON.MetricExpertFormula.ID, formulaArray[i])
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Building Semantic Constant was failed ")
 				return
@@ -197,23 +150,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Building Semantic Constant Value was failed ")
 				return
 			}
-			c++
-			// semantic constant object
-			semanticConstObj := model.ValueDefinition{
-				ValueType:         "SEMANTICCONSTANT",
-				ValueMapID:        respObj.ValueMapID,
-				UnitMapID:         respObj.UnitMapID,
-				Precision:         formulaArray[i].Precision,
-				Value:             formulaArray[i].Value.(float64),
-				MetricReferenceID: formulaArray[i].MetricReferenceId,
-				ManageDataKey:     sematicConstant.Name,
-				ManageDataValue:   sematicConstant.Value,
-			}
-			// append to the value definition array
-			ValueDefinitionManageDataArray = append(ValueDefinitionManageDataArray, semanticConstObj)
 			// append to the manage data array
-			manageDataOpArray = append(manageDataOpArray, &sematicConstant)
-			manageDataOpArray = append(manageDataOpArray, &valueBuilder)
+			manageDataOpArray = append(manageDataOpArray, sematicConstant)
+			manageDataOpArray = append(manageDataOpArray, valueBuilder)
 		}
 	}
 
@@ -252,8 +191,9 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	manageData2dArray := commons.ChunkSlice(manageDataOpArray, 25)
 	for i, manadataOperationArray := range manageData2dArray {
 		if i == 0 {
+
 			// build memo0 send the transaction
-			memo0, manifest, err = expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue)
+			memo0, _, err = expertFormula.BuildMemo(0, uint32(fieldCount), dataFormulaID.SequenceValue)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Hex conversion issue in building memo ")
 				return
@@ -262,19 +202,11 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, "Memo length error(expertFormulaBuilder) ", http.StatusInternalServerError, memo0)
 				return
 			}
-
 		}
-		stellarProtocol := stellarprotocols.StellarTrasaction{
-			Operations: manadataOperationArray,
-			Memo:       memo0,
-		}
-		transaction := model.TransactionHash{
-			Order: i,
-			Memo:  []byte(memo0),
-		}
+		memo := memo0
 		if i != 0 {
 			// here for insted of no of values we pass the current index of the manadataOperationArray array
-			memo1, manifest, err = expertFormula.BuildMemo(1, uint32(i), dataFormulaID.SequenceValue)
+			memo1, _, err = expertFormula.BuildMemo(1, uint32(i), dataFormulaID.SequenceValue)
 			if err != nil {
 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Hex conversion issue in building memo")
 				return
@@ -283,22 +215,37 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				commons.JSONErrorReturn(w, r, "Memo length error(expertFormulaBuilder) ", http.StatusInternalServerError, memo1)
 				return
 			}
-			stellarProtocol.Memo = memo1
-			transaction.Memo = []byte(memo1)
-
+			memo = memo1
 		}
-		startTransactionTime = time.Now()
-		err, errCode, hash, _, _, _ := stellarProtocol.SubmitToStellerBlockchain()
-		hashArray = append(hashArray, hash)
-		endTransactionTime = time.Now()
+		expertFormulaBuilder.FormulaMapID = dataFormulaID.SequenceValue
+		expertFormulaBuilder.NoOfManageDataInTxn = len(manadataOperationArray)
+		expertFormulaBuilder.TotalNoOfManageData = len(manageDataOpArray)
+		buildMetricBind := model.SendToQueue{
+			ExpertFormula: expertFormulaBuilder,
+			Type:          "EXPERTFORMULA",
+			User:          formulaJSON.User,
+			Status:        "QUEUE",
+			Operations:    manadataOperationArray,
+			Memo:          []byte(memo),
+		}
+		err := services.SendToQueue(buildMetricBind)
 		if err != nil {
-			status = "Failed"
-			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Error when submitting transaction to blockchain ")
+			expertFormulaBuilder.ErrorMessage = err.Error()
+			_, errResult := object.InsertExpertFormula(expertFormulaBuilder)
+			if errResult != nil {
+				logrus.Error("Error while inserting the Expoert formula into DB: ", errResult)
+			}
+			logrus.Error("Error when submitting managedata to queue (METRIC BINDING) ", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			response := model.Error{Code: http.StatusInternalServerError, Message: "Error when submitting managedata to queue (METRIC BINDING) " + err.Error()}
+			json.NewEncoder(w).Encode(response)
 			return
 		}
-		status = "Success"
-		logrus.Info("Transaction Hash of ", i+1, " transaction for the formula building : ", hash)
-		timeForTransaction := endTransactionTime.Sub(startTransactionTime)
+		logrus.Info("Expert formula request sent to queue ")
+		_, errResult := object.InsertExpertFormula(expertFormulaBuilder)
+		if errResult != nil {
+			logrus.Error("Error while inserting the metric expoert formula into DB: ", errResult)
+		}
 		formulaIDMap := model.FormulaIDMap{
 			FormulaID: formulaJSON.MetricExpertFormula.ID,
 			MapID:     dataFormulaID.SequenceValue,
@@ -306,58 +253,14 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		// map the formulaID with incrementing Integer put those object to blockchain
 		err1 := object.InsertFormulaIDMap(formulaIDMap)
 		if err1 != nil {
-			logrus.Error("Inserting formula to the formula map was failed " + err1.Error())
+			logrus.Error("Inserting formula to the expoert formula map was failed " + err1.Error())
 		}
-		// build ManageData Array
-		manageDataObj := model.FormulaManageData{
-			FormulaIdentity:  formulaManageDataObj,
-			AuthorIdentity:   []model.AuthorIdentity{authorObj1},
-			ValueDefinitions: ValueDefinitionManageDataArray,
-		}
-
-		transactionCost := float64(int64(len(manadataOperationArray))) * 0.00001
-		// build transaction
-		// memo put to DB as a []byte to overcome invalid UTF-8 basonformate
-		transactionObj := model.FormulaTransaction{
-			TransactionHash:   string(hash),
-			TransactionStatus: status,
-			Manifest:          manifest,
-			Memo:              []byte(transaction.Memo),
-			FormulaMapID:      dataFormulaID.SequenceValue,
-			NoOfVariables:     fieldCount,
-			ManageData:        manageDataObj,
-			TransactionTime:   timeForTransaction.String(),
-			Cost:              fmt.Sprintf("%f", transactionCost),
-		}
-		// append this transaction to the transaction array
-		transactionArray = append(transactionArray, transactionObj)
-	}
-	// save expert formula in the database
-	expertFormulaBuilder := model.FormulaStore{
-		Blockchain:              formulaJSON.MetricExpertFormula.Blockchain,
-		FormulaID:               formulaJSON.MetricExpertFormula.ID,
-		ExpertID:                formulaJSON.User.ID,
-		ExpertPK:                formulaJSON.User.Publickey,
-		VariableCount:           len(formulaArray),
-		FormulaJsonRequestBody:  formulaJSON,
-		Transactions:            transactionArray,
-		OverflowAmount:          len(transactionArray),
-		Status:                  status,
-		CreatedAt:               time.Now().String(),
-		CiperText:               formulaJSON.MetricExpertFormula.CiperText,
-		ExecutionTemplate:       executionTemplate,
-		TotalNumberOfManageData: len(manageDataOpArray),
-	}
-	Id, errResult := object.InsertExpertFormula(expertFormulaBuilder)
-	if errResult != nil {
-		logrus.Error("Error while inserting the expert formula into DB: ", errResult)
 	}
 	w.WriteHeader(http.StatusOK)
 	response := model.SuccessResponseExpertFormula{
-		Code:              http.StatusOK,
-		ID:                Id,
-		FormulaID:         formulaJSON.MetricExpertFormula.ID,
-		TransactionHashes: hashArray,
+		Code:      http.StatusOK,
+		FormulaID: formulaJSON.MetricExpertFormula.ID,
+		Message:   "Expert formula request sent to queue",
 	}
 	json.NewEncoder(w).Encode(response)
 	return

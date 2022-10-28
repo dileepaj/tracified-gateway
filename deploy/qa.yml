@@ -99,3 +99,5 @@
             GOMAILSENDERPW: "{{ lookup('env','GOMAILSENDERPW') }}"
             ALLOWREQUESTPERDAY: "{{ lookup('env','ALLOWREQUESTPERDAY') }}"
             ALLOWREQUESTPERWEEK: "{{ lookup('env','ALLOWREQUESTPERWEEK') }}"
+            SOCILAIMPACTPUBLICKKEY: "{{ lookup('env','ALLOWREQUESTPERWEEK') }}"
+            SOCILAIMPACTSEED: "{{ lookup('env','ALLOWREQUESTPERWEEK') }}"

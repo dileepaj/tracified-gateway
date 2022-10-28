@@ -249,19 +249,24 @@ type FormulaTransaction struct {
 }
 
 type FormulaStore struct {
-	Blockchain              string
-	FormulaID               string
-	ExpertID                string
-	ExpertPK                string
-	VariableCount           int
-	FormulaJsonRequestBody  FormulaBuildingRequest
-	Transactions            []FormulaTransaction
-	OverflowAmount          int
-	Status                  string
-	CreatedAt               string
-	CiperText               string
-	ExecutionTemplate       ExecutionTemplate
-	TotalNumberOfManageData int
+	MetricExpertFormula ExpertFormula
+	User                User
+	FormulaID           string
+	FormulaMapID        uint64
+	VariableCount       int
+	ExecutionTemplate   ExecutionTemplate
+	TotalNoOfManageData int
+	NoOfManageDataInTxn int
+	Memo                []byte
+	TxnHash             string
+	TxnSenderPK         string
+	XDR                 string
+	SequenceNo          int64
+	Status              string
+	Timestamp           string
+	TransactionTime     float32
+	TransactionCost     float32
+	ErrorMessage        string
 }
 
 type ValueDefOutParmas struct {
@@ -556,10 +561,9 @@ type SuccessResponseMetricBinding struct {
 }
 
 type SuccessResponseExpertFormula struct {
-	Code              int
-	ID                string
-	FormulaID         string
-	TransactionHashes []string
+	Code      int
+	FormulaID string
+	Message   string
 }
 
 type ValueBuilder struct {
@@ -619,6 +623,7 @@ type Command struct {
 
 type SendToQueue struct {
 	MetricBinding MetricBindingStore
+	ExpertFormula FormulaStore
 	Type          string
 	User          User
 	Memo          []byte

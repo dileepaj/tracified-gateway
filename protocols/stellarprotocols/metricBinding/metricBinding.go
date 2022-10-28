@@ -342,7 +342,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			}
 		}
 		// split manage data in to 25 length sub arrays
-		manageData2dArray := commons.ChunkSliceA(manageDataOpArray, manageDataPerMetricBindingRequest)
+		manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
 		// loop the manage data opration2d array and build trasacion
 		var memo string
 		for i, managedataOperationArray := range manageData2dArray {

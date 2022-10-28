@@ -22,10 +22,10 @@ import (
  * 			59 Bytes -> Future use
  */
 
-func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operation, error) {
+func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.ManageData, error) {
 	hasArgument := 0								// command has argument 0 - false and 1 - true
 	commandType := command.Ul_CommandType			// command type (Values given in FCL for Add, Subtract, Multiply, Divide, etc)
-	var manageDataOpArray []txnbuild.Operation		// Array of manage data operations
+	var manageDataOpArray []txnbuild.ManageData		// Array of manage data operations
 
 	// Check if the command has an argument by checking the s_StartVariableName in the p_Arg
 	if command.P_Arg.S_StartVarName != "" {
@@ -75,7 +75,7 @@ func CommandBuilder(formulaId string, command model.Command) ([]txnbuild.Operati
 		Value: []byte(valueString),
 	}
 
-	manageDataOpArray = append(manageDataOpArray, &commandBuilder)
+	manageDataOpArray = append(manageDataOpArray, commandBuilder)
 
 	/* if the command has argument then the template type in the arugment should be identified
 			if the lst_commands in P_Arg is not empty	-> call the template 1 builder
