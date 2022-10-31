@@ -100,7 +100,7 @@ func ReciverRmq() error {
 				}
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
-					metricBindingStore.Status = "Falied"
+					metricBindingStore.Status = "FAILED"
 					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore) // update -> metric id + txnUUID
 					if errWhenUpdatingMetricBind != nil {
 						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
