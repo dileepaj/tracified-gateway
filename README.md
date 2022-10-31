@@ -78,7 +78,7 @@ Steps to contribute:
 
     docker network create tillitgatewaynetwork
 
-    docker run -itd --rm --hostname rabbit-1 --name rabbitmq-1 --network tillitgatewaynetwork -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
+    docker run -itd --rm --hostname rabbit-1 --name rabbit-1 --network tillitgatewaynetwork -p 5672:5672 -p 15672:15672 rabbitmq:3.10-management
 
     docker build . -t [gateway tag name]
 
@@ -90,13 +90,15 @@ Steps to contribute:
         In Local environment it should be
         RABBITUSER     = "guest"
         RABBITPASSWORD = "guest"
-        RABBITHOSTNAME = ""
+        RABBITHOSTNAME = "rabbit-1"
         RABBITPORT     = "5672"
 
-        env variable in be qa, staring, production
+        // Both rabbitmq container host nema and container name, and env file's RABBITHOSTNAME should be same
+
+        env variable with docker
         RABBITHOSTNAME= "rabbit-1"
 
-        local
+        without docker local environment
         RABBITHOSTNAME= "localhost"
 
 ```
