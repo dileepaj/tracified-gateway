@@ -75,6 +75,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			User:                formulaJSON.User,
 			VariableCount:       fieldCount,
 			Timestamp:           time.Now().String(),
+			Status:              "FAILED",
 		}
 		// checked whether given formulaID already in the database or not
 		formulaMap, err := object.GetExpertFormulaCount(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {

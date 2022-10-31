@@ -40,8 +40,8 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	var manageDataOpArray []txnbuild.ManageData
 	var metStatus string
 	object := dao.Connection{}
-	//find -> status -> Queue fail(retry) -> fail pass on -> sucess error and drop
-	//get the metric curent status from the DB
+	// find -> status -> Queue fail(retry) -> fail pass on -> sucess error and drop
+	// get the metric curent status from the DB
 	metricMapDetials, errIGettingMetricStatus := object.GetMetricStatus(metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -57,20 +57,21 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		logrus.Info("Status recorded : ", metStatus)
 	}
 
-	//check the status of the metric status
+	// check the status of the metric status
 	if metStatus == "QUEUE" {
-		//ask user to try again
+		// ask user to try again
 		logrus.Info("Requested metric is in the queue, please try again")
 		commons.JSONErrorReturn(w, r, metStatus, 400, "Requested metric is in the queue, please try again")
 		return
 	} else if metStatus == "FAILED" || metStatus == "" {
 		logrus.Info("Requested metric id status is failed or a new binding request")
-		//pass on the transaction
+		// pass on the transaction
 		metricBindingStore := model.MetricBindingStore{
 			MetricId:  metricBindJson.Metric.ID,
 			Metric:    metricBindJson.Metric,
 			User:      metricBindJson.User,
 			Timestamp: time.Now().String(),
+			Status:    "FAILED",
 		}
 		// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32
 		metricMapID, errCode, err := InsertAndFindMetricID(metricBindJson.Metric.ID, metricBindJson.Metric.Name)
@@ -383,7 +384,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.NoOfManageDataInTxn = len(managedataOperationArray)
 			metricBindingStore.TotalNoOfManageData = len(manageDataOpArray)
 			metricBindingStore.Status = "QUEUE"
-			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) //update
+			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) // update
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
@@ -419,7 +420,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 
 	} else if metStatus == "SUCCESS" {
 		logrus.Info("Metic is already recorded in the blockchain and the gateway DB")
-		//response indicating that metric is already recorded
+		// response indicating that metric is already recorded
 		commons.JSONErrorReturn(w, r, metStatus, 400, "Metic is already recorded in the blockchain and the gateway DB")
 		return
 	} else {
