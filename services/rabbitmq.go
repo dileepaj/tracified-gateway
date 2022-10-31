@@ -131,19 +131,23 @@ func ReciverRmq() error {
 				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
 				expertFormulaStore = model.FormulaStore{
 					MetricExpertFormula: queue.ExpertFormula.MetricExpertFormula,
+					User:                queue.ExpertFormula.User,
 					FormulaID:           queue.ExpertFormula.FormulaID,
 					FormulaMapID:        queue.ExpertFormula.FormulaMapID,
 					VariableCount:       queue.ExpertFormula.VariableCount,
+					ExecutionTemplate:   queue.ExpertFormula.ExecutionTemplate,
 					TotalNoOfManageData: queue.ExpertFormula.TotalNoOfManageData,
 					NoOfManageDataInTxn: queue.ExpertFormula.NoOfManageDataInTxn,
-					TransactionTime:     convertedTime,
-					TransactionCost:     convertedCost,
-					User:                queue.ExpertFormula.User,
 					Memo:                queue.Memo,
+					TxnHash:             hash,
 					TxnSenderPK:         senderPK,
 					XDR:                 xdr,
+					SequenceNo:          sequenceNo,
 					Status:              "SUCCESS",
 					Timestamp:           time.Now().String(),
+					TransactionTime:     convertedTime,
+					TransactionCost:     convertedCost,
+					ErrorMessage:        "",
 					TxnUUID:             queue.ExpertFormula.TxnUUID,
 				}
 				if err != nil {

@@ -72,6 +72,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		expertFormulaBuilder := model.FormulaStore{
 			FormulaID:           formulaJSON.MetricExpertFormula.ID,
 			MetricExpertFormula: formulaJSON.MetricExpertFormula,
+			User:                formulaJSON.User,
 			VariableCount:       fieldCount,
 			Timestamp:           time.Now().String(),
 		}
