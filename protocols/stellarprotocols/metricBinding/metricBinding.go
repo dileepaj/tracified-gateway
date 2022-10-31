@@ -63,7 +63,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		logrus.Info("Requested metric is in the queue, please try again")
 		commons.JSONErrorReturn(w, r, metStatus, 400, "Requested metric is in the queue, please try again")
 		return
-	} else if metStatus == "Falied" || metStatus == "" {
+	} else if metStatus == "FAILED" || metStatus == "" {
 		logrus.Info("Requested metric id status is failed or a new binding request")
 		//pass on the transaction
 		metricBindingStore := model.MetricBindingStore{
@@ -72,7 +72,6 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			User:      metricBindJson.User,
 			Timestamp: time.Now().String(),
 		}
-		metricBindingStore.Status = "Failed"
 		// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32
 		metricMapID, errCode, err := InsertAndFindMetricID(metricBindJson.Metric.ID, metricBindJson.Metric.Name)
 		if err != nil {
