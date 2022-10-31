@@ -57,22 +57,25 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 	}
 
 	if formStat == "QUEUE" {
-		//ask user to try again
+		// ask user to try again
 		logrus.Info("Requested formula is in the queue, please try again")
 		commons.JSONErrorReturn(w, r, formStat, 400, "Requested formual is in the queue, please try again")
 		return
 	} else if formStat == "SUCCESS" {
 		logrus.Info("Formula is already recorded in the blockchain and the gateway DB")
-		//response indicating that formula is already recorded
+		// response indicating that formula is already recorded
 		commons.JSONErrorReturn(w, r, formStat, 400, "Formula is already recorded in the blockchain and the gateway DB")
 		return
 	} else if formStat == "FAILED" || formStat == "" {
 		logrus.Info("Requested formula id status is failed or a new binding request")
 		// save expert formula in the database
 		expertFormulaBuilder := model.FormulaStore{
-			FormulaID:     formulaJSON.MetricExpertFormula.ID,
-			VariableCount: len(formulaArray),
-			Timestamp:     time.Now().String(),
+			FormulaID:           formulaJSON.MetricExpertFormula.ID,
+			MetricExpertFormula: formulaJSON.MetricExpertFormula,
+			User:                formulaJSON.User,
+			VariableCount:       fieldCount,
+			Timestamp:           time.Now().String(),
+			Status:              "FAILED",
 		}
 		// checked whether given formulaID already in the database or not
 		formulaMap, err := object.GetExpertFormulaCount(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -198,6 +201,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 			return
 		}
+		expertFormulaBuilder.ExecutionTemplate = executionTemplate
 		if executionTemplate.Lst_Commands != nil {
 			manageDataOp, errTemplate1Builder := equationbuilding.Type1TemplateBuilder(formulaJSON.MetricExpertFormula.ID, executionTemplate)
 			if errTemplate1Builder != nil {
@@ -235,7 +239,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			memo := memo0
 			if i != 0 {
 				// here for insted of no of values we pass the current index of the manadataOperationArray array
-				memo1, _, err = expertFormula.BuildMemo(1, uint32(i), dataFormulaID.SequenceValue)
+				memo1, _, err = expertFormula.BuildMemo(1, uint32(fieldCount), dataFormulaID.SequenceValue)
 				if err != nil {
 					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Hex conversion issue in building memo")
 					return
@@ -306,5 +310,4 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 		commons.JSONErrorReturn(w, r, formStat, 504, "Formula bind status is invalid, status : ")
 		return
 	}
-
 }
