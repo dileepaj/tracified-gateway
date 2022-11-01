@@ -39,6 +39,8 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	stellarProtocol := expertformula.ExpertFormula{}
 	var manageDataOpArray []txnbuild.ManageData
 	var metStatus string
+	var metricMapDet model.MetricBindingStore
+	var buildMetricBind model.SendToQueue
 	object := dao.Connection{}
 	// find -> status -> Queue fail(retry) -> fail pass on -> sucess error and drop
 	// get the metric curent status from the DB
@@ -52,7 +54,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		metStatus = ""
 	}
 	if metricMapDetials != nil {
-		metricMapDet := metricMapDetials.(model.MetricBindingStore)
+		metricMapDet = metricMapDetials.(model.MetricBindingStore)
 		metStatus = metricMapDet.Status
 		logrus.Info("Status recorded : ", metStatus)
 	}
@@ -383,17 +385,35 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.MetricMapID = metricMapID
 			metricBindingStore.NoOfManageDataInTxn = len(managedataOperationArray)
 			metricBindingStore.TotalNoOfManageData = len(manageDataOpArray)
-			metricBindingStore.Status = "QUEUE"
-			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) // update
-			if errResult != nil {
-				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-			}
-			buildMetricBind := model.SendToQueue{
-				MetricBinding: metricBindingStore,
-				Type:          "METRICBIND",
-				User:          metricBindJson.User,
-				Memo:          []byte(memo),
-				Operations:    managedataOperationArray,
+			if metStatus == "FAILED" {
+				metricMapDet.Status = "QUEUE"
+				logrus.Info("-------------", i, "--------------", metricMapDet.TxnUUID)
+				errWhenUpdatingStatus := object.UpdateMetricBindStatus(metricBindJson.Metric.ID, metricMapDet.TxnUUID, metricMapDet)
+				if errWhenUpdatingStatus != nil {
+					logrus.Info("Error when updating the status ", errWhenUpdatingStatus)
+					commons.JSONErrorReturn(w, r, errWhenUpdatingStatus.Error(), http.StatusInternalServerError, "")
+					return
+				}
+				buildMetricBind = model.SendToQueue{
+					MetricBinding: metricMapDet,
+					Type:          "METRICBIND",
+					User:          metricBindJson.User,
+					Memo:          []byte(memo),
+					Operations:    managedataOperationArray,
+				}
+			} else if metStatus == "" {
+				metricBindingStore.Status = "QUEUE"
+				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+				if errResult != nil {
+					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+				}
+				buildMetricBind = model.SendToQueue{
+					MetricBinding: metricBindingStore,
+					Type:          "METRICBIND",
+					User:          metricBindJson.User,
+					Memo:          []byte(memo),
+					Operations:    managedataOperationArray,
+				}
 			}
 			err := services.SendToQueue(buildMetricBind)
 			if err != nil {
