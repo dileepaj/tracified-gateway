@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
 	"github.com/sirupsen/logrus"
@@ -29,6 +30,8 @@ des-This mothod check the blockchain Type and call the relevent method according
 func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	if soacialImpact.Blockchain == "STELLAR" {
 		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
+	} else if soacialImpact.Blockchain == "ETHEREUM" {
+		codeGenerator.SmartContractGenerator(w, r, soacialImpact.FormulaJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)
