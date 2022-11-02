@@ -9,7 +9,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
-	"github.com/sirupsen/logrus"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -30,7 +29,7 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	//call the general header writer
 	generalValues := GeneralCodeWriter(contractName)
 
-	//setting up the contract body
+	//setting up variable to store the results as the first line of the contract body
 	contractBody = `uint public Result;`
 
 	//pass the query to the FCL and get the execution template
@@ -39,36 +38,42 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 		commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
 	}
-	logrus.Info("Execution template is ", executionTemplate)
 
-	//loop through the execution template and generate the contract body
+	//loop through the execution template and getting the list of start variable declarations, setter list and the built equation
 	startVariableDeclarations, setterList, executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 	if errInExecutionTemplateString != nil {
 		commons.JSONErrorReturn(w, r, errInExecutionTemplateString.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
 	}
 
+	// loop through the start variable declarations and append them to the contract body
 	for _, startVariableDeclaration := range startVariableDeclarations {
 		contractBody = contractBody + "\n\t" + startVariableDeclaration
 	}
 	contractBody = contractBody + "\n"
+
+	// loop through the setters list returned from the ExecutionTemplateDivider and append it to the contract body
 	for _, setter := range setterList {
 		contractBody = contractBody + "\n\t" + setter + "\n"
 	}
 
+	//setting up the executor (Result)
 	executorBody := "\n\t\t" + `Result` + " = " + executionTemplateString + ";"
 	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
-	// create and write the contract to a file
+	// getter for the result
+	contractBody = contractBody + "\n\n\t" + `function getResult() public view returns (uint) {` + "\n\t\t" + `return Result;` + "\n\t" + `}`
+
+	// create the contract
 	template := generalValues.License + "\n\n" + generalValues.StartingCodeLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
 
+	// write the contract to a solidity file
 	fo, errInOutput := os.Create(`protocols/ethereum/contracts/` + contractName + `.sol`)
 	if errInOutput != nil {
 		commons.JSONErrorReturn(w, r, errInOutput.Error(), http.StatusInternalServerError, "Error in creating the output file ")
 		return
 	}
 	defer fo.Close()
-
 	_, errInWritingOutput := fo.Write([]byte(template))
 	if errInWritingOutput != nil {
 		commons.JSONErrorReturn(w, r, errInWritingOutput.Error(), http.StatusInternalServerError, "Error in writing the output file ")

@@ -11,6 +11,7 @@ func CommandBuilder(command model.Command) ([]string, []string, string, error) {
 	var startVariableDeclarations []string
 	var setterList []string
 
+	// check the command type and get the operator as a string
 	if command.Ul_CommandType == 2100 {
 		commandString = " + "
 	} else if command.Ul_CommandType == 2101 {
@@ -22,8 +23,6 @@ func CommandBuilder(command model.Command) ([]string, []string, string, error) {
 	} else if command.Ul_CommandType == 10000 {
 		commandString = " * "
 	}
-
-	// check the command type and generate the command type
 
 	// check the whether the command has argument or not and call relevant function
 	if command.P_Arg.S_StartVarName != "" {
