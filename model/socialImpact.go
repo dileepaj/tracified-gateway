@@ -329,7 +329,7 @@ type MetricReq struct {
 	TenantId       string                          `json:"TenantId" bson:"tenantId" validate:"required"`
 	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
 	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	Activities     []MetricDataBindActivityRequest `json:"Activities" bson:"activities" validate:"required"`
+	MetricActivities     []MetricDataBindActivityRequest `json:"MetricActivities" bson:"metricActivities" validate:"required"`
 }
 type MetricDataBindActivityRequest struct {
 	ID                                  string                              `json:"ID" bson:"id" validate:"required"`
@@ -558,7 +558,6 @@ type PublisherIdentity struct {
 
 type SuccessResponseMetricBinding struct {
 	Code     int
-	ID       string
 	MetricID string
 	Message  string
 }
