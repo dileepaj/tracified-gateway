@@ -123,7 +123,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		manageDataOpArray = append(manageDataOpArray, publisherIdentity)
 		// manage data operation order counter
 		//! Formula definitions manage data start
-		for i, activity := range metricBindJson.Metric.Activities {
+		for i, activity := range metricBindJson.Metric.MetricActivities {
 			// checked whether given formulaID already in the database or not
 			formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 				return data
@@ -149,7 +149,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				return
 			}
 			// 3. Formula definition with metadata (Compulsory MDO for each formula)
-			formulaDefinition, _, _, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities[i].MetricFormula.Formula)))
+			formulaDefinition, _, _, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula)))
 			if err != nil {
 				metricBindingStore.ErrorMessage = err.Error()
 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -273,7 +273,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, keyNameBuilder)
 
 					// Artifact ID Map
-					artifactMapId, err := InsertAndFindArtifactID(metricBindJson.Metric.Activities[i].MetricFormula.Formula[j].ArtifactTemplateID)
+					artifactMapId, err := InsertAndFindArtifactID(metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula[j].ArtifactTemplateID)
 					if err != nil {
 						metricBindingStore.ErrorMessage = err.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -348,7 +348,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		for i, managedDataOperationArray := range manageData2dArray {
 			// initial transaction memo
 			if i == 0 {
-				memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedDataOperationArray)))
+				memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.MetricActivities)), uint8(len(managedDataOperationArray)))
 				if errInMemoBuilder != nil {
 					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -362,7 +362,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			}
 
 			if i != 0 {
-				memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedDataOperationArray)))
+				memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.MetricActivities)), uint8(len(managedDataOperationArray)))
 				if errInMemoBuilder != nil {
 					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)

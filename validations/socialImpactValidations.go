@@ -157,9 +157,9 @@ func ValidateMetricObject(element model.MetricReq) error {
 		return err
 	}
 
-	for i := 0; i < len(element.Activities); i++ {
+	for i := 0; i < len(element.MetricActivities); i++ {
 		// Validate activity array
-		errWHenValidatingActivity := ValidateActivityArray(element.Activities[i])
+		errWHenValidatingActivity := ValidateActivityArray(element.MetricActivities[i])
 		if errWHenValidatingActivity != nil {
 			return errWHenValidatingActivity
 		}
