@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"golang.org/x/text/cases"
@@ -52,6 +53,10 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	//meta variable definition
 	metaDataVariables := WriteMetaData()
 	contractBody = contractBody + metaDataVariables
+
+	//removeDuplicatesFromArrays
+	startVariableDeclarations =  ethereum.RemoveDuplicatesInAnArray(startVariableDeclarations)
+	setterList = ethereum.RemoveDuplicatesInAnArray(setterList)
 
 	// loop through the start variable declarations and append them to the contract body
 	for _, startVariableDeclaration := range startVariableDeclarations {

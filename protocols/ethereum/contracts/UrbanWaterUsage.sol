@@ -31,7 +31,7 @@ contract UrbanWaterUsage {
 
 
 	function Executor() public {
-		Result = WATER * WATER_TO_ELECTRICITY_UNIT * ELECTRICITY_UNIT_TO_CARBON_EMISSION;
+		Result = (WATER * WATER_TO_ELECTRICITY_UNIT * (ELECTRICITY_UNIT_TO_CARBON_EMISSION * (WATER_TO_ELECTRICITY_UNIT + ELECTRICITY_UNIT_TO_CARBON_EMISSION)));
 	}
 
 	function getResult() public view returns (uint) {

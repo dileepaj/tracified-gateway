@@ -21,7 +21,7 @@ import (
 	setter := `function set` + executionTemplate.S_StartVarName + `(uint _` + executionTemplate.S_StartVarName + `) public {` 
 	setter = setter + "\n\t\t" + executionTemplate.S_StartVarName + ` = _` + executionTemplate.S_StartVarName + `;` + "\n\t" + `}`
 	setterList = append(setterList, setter)
-	strTemplate = executionTemplate.S_StartVarName
+	strTemplate = `(` + executionTemplate.S_StartVarName
 
 	// loop through the commands 
 	for _, command := range executionTemplate.Lst_Commands {
@@ -36,6 +36,7 @@ import (
 		// append the returned setter list to the setterList
 		setterList = append(setterList, setters...)
 	}
+	strTemplate = strTemplate + `)`
 
 	return startVariableDeclarations, setterList, strTemplate, nil
 }
