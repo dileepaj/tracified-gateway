@@ -634,3 +634,10 @@ type SendToQueue struct {
 	Operations    []txnbuild.ManageData
 	ErrorMessage  string
 }
+
+type ContractGeneral struct {
+	License          string
+	StartingCodeLine string
+	ContractStart    string
+	ContractEnd      string
+}

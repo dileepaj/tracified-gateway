@@ -16,21 +16,19 @@ import (
 
 // initial keywords for the contract
 var (
-	license          = `// SPDX-License-Identifier: MIT`
-	startingCodeLine = `pragma solidity >=0.7.0 <0.9.0;`
-	contractName     = ``
-	contractStart    = `contract ` + contractName + ` {`
-	contractEnd      = `}`
-	contractBody     = `string public name = ` + contractName + `;`
+	contractName       = ``
+	contractBody       = `string public name = ` + contractName + `;`
 	startOfTheExecutor = `function Executor() public {`
-	endOfTheExecutor = "\n\t" + `}`
+	endOfTheExecutor   = "\n\t" + `}`
 )
 
 func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest) {
 	//setting up the contract name and starting the contract
 	contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 	contractName = strings.ReplaceAll(contractName, " ", "")
-	contractStart = `contract ` + contractName + ` {`
+
+	//call the general header writer
+	generalValues := GeneralCodeWriter(contractName)
 
 	//setting up the contract body
 	contractBody = `uint public ` + contractName + `;`
@@ -42,7 +40,7 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 		return
 	}
 	logrus.Info("Execution template is ", executionTemplate)
-	
+
 	//loop through the execution template and generate the contract body
 	executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 	if errInExecutionTemplateString != nil {
@@ -54,9 +52,9 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + constructorBody + endOfTheExecutor
 
 	// create and write the contract to a file
-	template := license + "\n\n" + startingCodeLine + "\n\n" + contractStart + "\n\t" + contractBody + "\n" + contractEnd
+	template := generalValues.License + "\n\n" + generalValues.StartingCodeLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
 
-	fo, errInOutput := os.Create(`protocols/ethereum/contracts/`+ contractName +`.sol`)
+	fo, errInOutput := os.Create(`protocols/ethereum/contracts/` + contractName + `.sol`)
 	if errInOutput != nil {
 		commons.JSONErrorReturn(w, r, errInOutput.Error(), http.StatusInternalServerError, "Error in creating the output file ")
 		return
