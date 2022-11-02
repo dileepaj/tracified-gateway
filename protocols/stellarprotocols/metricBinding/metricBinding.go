@@ -19,17 +19,17 @@ import (
 
 /*
 StellarMetricBinding
-des- This method build stellar trasaction for metric binding
+des- This method build stellar transactions for metric binding
 	 steps
 		* map the metric id and retrieve the mapped id
-		* map the tenent id and retrieve the mapped id
+		* map the tenant id and retrieve the mapped id
 		* build memo for the transaction
 		* build publisher identity manage data operation
 		* build formula definition manage data operation
 			* map the activity id and retrieve the mapped id
 		* loop through the formulaArray to build the value definition manage data operation
 			* map the stage id and retrieve the mapped id
-		* put managedata array to rabbitmq server
+		* put managed data array to rabbitmq server
 */
 
 var manageDataPerMetricBindingRequest int = 25
@@ -40,19 +40,19 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 	var manageDataOpArray []txnbuild.ManageData
 	var metStatus string
 	object := dao.Connection{}
-	// find -> status -> Queue fail(retry) -> fail pass on -> sucess error and drop
-	// get the metric curent status from the DB
-	metricMapDetials, errIGettingMetricStatus := object.GetMetricStatus(metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
+	// find -> status -> Queue fail(retry) -> fail pass on -> success error and drop
+	// get the metric current status from the DB
+	metricMapDetails, errIGettingMetricStatus := object.GetMetricStatus(metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errIGettingMetricStatus != nil {
-		logrus.Error("An error occured when getting metric status ", errIGettingMetricStatus)
+		logrus.Error("An error occurred when getting metric status ", errIGettingMetricStatus)
 	}
-	if metricMapDetials == nil {
+	if metricMapDetails == nil {
 		metStatus = ""
 	}
-	if metricMapDetials != nil {
-		metricMapDet := metricMapDetials.(model.MetricBindingStore)
+	if metricMapDetails != nil {
+		metricMapDet := metricMapDetails.(model.MetricBindingStore)
 		metStatus = metricMapDet.Status
 		logrus.Info("Status recorded : ", metStatus)
 	}
@@ -81,11 +81,11 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
-			commons.JSONErrorReturn(w, r, err.Error(), errCode, "InsertAndFindMetricID ")
+			commons.JSONErrorReturn(w, r, err.Error(), errCode, " InsertAndFindMetricID ")
 			return
 		}
 		metricBindingStore.MetricMapID = metricMapID
-		tenantMapId, err := InsertAndFindTenentID(metricBindJson.Metric.TenantId)
+		tenantMapId, err := InsertAndFindTenantID(metricBindJson.Metric.TenantId)
 		if err != nil {
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -121,8 +121,8 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			return
 		}
 		manageDataOpArray = append(manageDataOpArray, publisherIdentity)
-		// manage data opration order counter
-		//! Formula definitions magane data strat
+		// manage data operation order counter
+		//! Formula definitions manage data start
 		for i, activity := range metricBindJson.Metric.Activities {
 			// checked whether given formulaID already in the database or not
 			formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -197,7 +197,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// 6. stage name builder
 					stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
 					if errInStageNameBuilder != nil {
-						logrus.Error("Buidling stage name failed ", errInStageNameBuilder.Error())
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -211,7 +211,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// 7. Key name manage data(workflow → revision number→ stage[] → stage id → traceability data → “key name” )
 					keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
 					if errInKeyNameBuilder != nil {
-						logrus.Error("Buidling key name failed ", errInKeyNameBuilder.Error())
+						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -247,7 +247,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// 6. stage name builder
 					stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
 					if errInStageNameBuilder != nil {
-						logrus.Error("Buidling stage name failed ", errInStageNameBuilder.Error())
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -261,7 +261,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// 7. key name builder
 					keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
 					if errInKeyNameBuilder != nil {
-						logrus.Error("Buidling key name failed ", errInKeyNameBuilder.Error())
+						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -286,7 +286,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// General master data info builder
 					generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactMapId, uint(formula.Type))
 					if errInGeneralInfoBuilder != nil {
-						logrus.Error("Buidling general master data info failed ", errInGeneralInfoBuilder.Error())
+						logrus.Error("Building general master data info failed ", errInGeneralInfoBuilder.Error())
 						metricBindingStore.ErrorMessage = errInGeneralInfoBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -300,7 +300,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					// Metadata/ Artifact template name / Table name builder
 					ArtifactNameBuilder, errInMetaDataBuilder := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.Name, "Artifact template name")
 					if errInMetaDataBuilder != nil {
-						logrus.Error("Buidling metadata failed ", errInMetaDataBuilder.Error())
+						logrus.Error("Building metadata failed ", errInMetaDataBuilder.Error())
 						metricBindingStore.ErrorMessage = errInMetaDataBuilder.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -311,10 +311,10 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					}
 					manageDataOpArray = append(manageDataOpArray, ArtifactNameBuilder)
 
-					// Field key builder ---> Atrifact field key (which column) → key of field array in artifact template
-					fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.BuildMetricNameManageData(formula.Field, "Atrifact field key")
+					// Field key builder ---> Artifact field key (which column) → key of field array in artifact template
+					fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.BuildMetricNameManageData(formula.Field, "Artifact field key")
 					if errWhenBuildingFieldKey != nil {
-						logrus.Error("Buidling field key failed ", errWhenBuildingFieldKey.Error())
+						logrus.Error("Building field key failed ", errWhenBuildingFieldKey.Error())
 						metricBindingStore.ErrorMessage = errWhenBuildingFieldKey.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -326,9 +326,9 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, fieldKeyBuilder)
 
 					// Field name builder  Field name (which column) → name in field array in artifact template
-					fieldNameBuilder, errWhenBuildingFieldName := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.FieldName, "Atrifact field name")
+					fieldNameBuilder, errWhenBuildingFieldName := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.FieldName, "Artifact field name")
 					if errWhenBuildingFieldName != nil {
-						logrus.Error("Buidling field name failed ", errWhenBuildingFieldName.Error())
+						logrus.Error("Building field name failed ", errWhenBuildingFieldName.Error())
 						metricBindingStore.ErrorMessage = errWhenBuildingFieldName.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 						if errResult != nil {
@@ -343,12 +343,12 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		}
 		// split manage data in to 25 length sub arrays
 		manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
-		// loop the manage data opration2d array and build trasacion
+		// loop the manage data operation 2d array and build transaction
 		var memo string
-		for i, managedataOperationArray := range manageData2dArray {
-			// initial trasacion memo
+		for i, managedDataOperationArray := range manageData2dArray {
+			// initial transaction memo
 			if i == 0 {
-				memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedataOperationArray)))
+				memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedDataOperationArray)))
 				if errInMemoBuilder != nil {
 					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -362,7 +362,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			}
 
 			if i != 0 {
-				memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedataOperationArray)))
+				memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(managedDataOperationArray)))
 				if errInMemoBuilder != nil {
 					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
 					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -381,7 +381,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			logrus.Info("TXN UUID : ", id)
 			metricBindingStore.TxnUUID = id.String()
 			metricBindingStore.MetricMapID = metricMapID
-			metricBindingStore.NoOfManageDataInTxn = len(managedataOperationArray)
+			metricBindingStore.NoOfManageDataInTxn = len(managedDataOperationArray)
 			metricBindingStore.TotalNoOfManageData = len(manageDataOpArray)
 			metricBindingStore.Status = "QUEUE"
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) // update
@@ -393,7 +393,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				Type:          "METRICBIND",
 				User:          metricBindJson.User,
 				Memo:          []byte(memo),
-				Operations:    managedataOperationArray,
+				Operations:    managedDataOperationArray,
 			}
 			err := services.SendToQueue(buildMetricBind)
 			if err != nil {
@@ -402,9 +402,9 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				if errResult != nil {
 					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 				}
-				logrus.Error("Error when submitting managedata to queue  ", err)
+				logrus.Error("Error when submitting managed data to queue  ", err)
 				w.WriteHeader(errCode)
-				response := model.Error{Code: errCode, Message: "Error when submitting managedata to queue  " + err.Error()}
+				response := model.Error{Code: errCode, Message: "Error when submitting manage data to queue  " + err.Error()}
 				json.NewEncoder(w).Encode(response)
 				return
 			}
