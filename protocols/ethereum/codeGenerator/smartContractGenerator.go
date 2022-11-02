@@ -33,7 +33,7 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	contractStart = `contract ` + contractName + ` {`
 
 	//setting up the contract body
-	contractBody = `uint public ` + contractName + `;`
+	contractBody = `uint public Result;`
 
 	//pass the query to the FCL and get the execution template
 	executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
@@ -44,14 +44,22 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	logrus.Info("Execution template is ", executionTemplate)
 	
 	//loop through the execution template and generate the contract body
-	executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
+	startVariableDeclarations, setterList, executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 	if errInExecutionTemplateString != nil {
 		commons.JSONErrorReturn(w, r, errInExecutionTemplateString.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
 	}
 
-	constructorBody := "\n\t\t" + contractName + " = " + executionTemplateString + ";"
-	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + constructorBody + endOfTheExecutor
+	for _, startVariableDeclaration := range startVariableDeclarations {
+		contractBody = contractBody + "\n\t" + startVariableDeclaration
+	}
+	contractBody = contractBody + "\n"
+	for _, setter := range setterList {
+		contractBody = contractBody + "\n\t" + setter + "\n"
+	}
+
+	executorBody := "\n\t\t" + `Result` + " = " + executionTemplateString + ";"
+	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
 	// create and write the contract to a file
 	template := license + "\n\n" + startingCodeLine + "\n\n" + contractStart + "\n\t" + contractBody + "\n" + contractEnd

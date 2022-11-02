@@ -2,31 +2,44 @@ package executionTemplates
 
 import (
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/components"
 )
 
-func CommandBuilder(command model.Command) (string, error) {
+// returns -> start variable declarations, setter list, built equation, error
+func CommandBuilder(command model.Command) ([]string, []string, string, error) {
+
 	var commandString string = ""
-	
-	str, errInCommandString := components.GenerateCommandType(command.Ul_CommandType) 
-	if errInCommandString != nil {
-		return "", errInCommandString
+	var startVariableDeclarations []string
+	var setterList []string
+
+	if command.Ul_CommandType == 2100 {
+		commandString = " + "
+	} else if command.Ul_CommandType == 2101 {
+		commandString = " - "
+	} else if command.Ul_CommandType == 2102 {
+		commandString = " * "
+	} else if command.Ul_CommandType == 2103 {
+		commandString = " / "
+	} else if command.Ul_CommandType == 10000 {
+		commandString = " * "
 	}
-	commandString = commandString + str
 
 	// check the command type and generate the command type
 
 	// check the whether the command has argument or not and call relevant function
 	if command.P_Arg.S_StartVarName != "" {
 		if command.P_Arg.Lst_Commands != nil {
-			strTemplate, _ := Template1Builder(command.P_Arg)
+			startVariables, setters, strTemplate, _ := Template1Builder(command.P_Arg)
 			commandString += strTemplate
+			startVariableDeclarations = append(startVariableDeclarations, startVariables...)
+			setterList = append(setterList, setters...)
 
 		} else {
-			strTemplate, _ := Template2Builder(command.P_Arg)
+			varDeclaration, setter, strTemplate, _ := Template2Builder(command.P_Arg)
 			commandString += strTemplate
+			startVariableDeclarations = append(startVariableDeclarations, varDeclaration)
+			setterList = append(setterList, setter)
 		}
 	}
 
-	return commandString, nil
+	return startVariableDeclarations, setterList, commandString, nil
 }
