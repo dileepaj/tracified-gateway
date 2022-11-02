@@ -21,6 +21,9 @@ var (
 	endOfTheExecutor   = "\n\t" + `}`
 )
 
+/*
+	Generate the smart contract for the solidity formula definitions
+*/
 func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest) {
 	//setting up the contract name and starting the contract
 	contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
@@ -46,11 +49,19 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 		return
 	}
 
+	//meta variable definition
+	metaDataVariables := WriteMetaData()
+	contractBody = contractBody + metaDataVariables
+
 	// loop through the start variable declarations and append them to the contract body
 	for _, startVariableDeclaration := range startVariableDeclarations {
 		contractBody = contractBody + "\n\t" + startVariableDeclaration
 	}
 	contractBody = contractBody + "\n"
+
+	//meta data setter
+	metaDataSetter := MetaDataSetter()
+	contractBody = contractBody + metaDataSetter
 
 	// loop through the setters list returned from the ExecutionTemplateDivider and append it to the contract body
 	for _, setter := range setterList {
@@ -63,6 +74,18 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 
 	// getter for the result
 	contractBody = contractBody + "\n\n\t" + `function getResult() public view returns (uint) {` + "\n\t\t" + `return Result;` + "\n\t" + `}`
+
+	//formulaID getter getter
+	formulaIDGetter := MetaDataFormulaIDGetter()
+	contractBody = contractBody + formulaIDGetter
+
+	//expert PK getter
+	expertPKGetter := MetaDataExpertPKGetter()
+	contractBody = contractBody + expertPKGetter
+
+	//tenet ID getter
+	tenetIDGetter := MetaDataTenantIDGetter()
+	contractBody = contractBody + tenetIDGetter
 
 	// create the contract
 	template := generalValues.License + "\n\n" + generalValues.StartingCodeLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
