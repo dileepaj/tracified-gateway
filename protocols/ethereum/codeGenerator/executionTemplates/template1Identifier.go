@@ -2,27 +2,31 @@ package executionTemplates
 
 import (
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/components"
 )
 
-func Template1Builder(executionTemplate model.ExecutionTemplate) (string, error) {
+// returns -> start variable declarations, setter list, built equation, error
+func Template1Builder(executionTemplate model.ExecutionTemplate) ([]string, []string, string, error) {
+	var startVariableDeclarations []string
+	var setterList []string
 	var strTemplate string
 
 	// get the generated solidity code for start variable and append it to the strTemplate
-	startVariableForSolidity, errorInStartVariable := components.GenerateStartVariable(executionTemplate.S_StartVarName)
-	if errorInStartVariable != nil {
-		return "", errorInStartVariable
-	}
-	strTemplate = startVariableForSolidity
+	varDeclaration := `uint public ` + executionTemplate.S_StartVarName + `;`	
+	startVariableDeclarations = append(startVariableDeclarations, varDeclaration)
+	setter := `function set` + executionTemplate.S_StartVarName + `(uint _` + executionTemplate.S_StartVarName + `) public {` + executionTemplate.S_StartVarName + ` = _` + executionTemplate.S_StartVarName + `;}`
+	setterList = append(setterList, setter)
+	strTemplate = executionTemplate.S_StartVarName
 
 	// loop through the commands and get the generated solidity code for each command and append it to the strTemplate
 	for _, command := range executionTemplate.Lst_Commands {
-		commandForSolidity, errInCommand := CommandBuilder(command)
+		startVariables, setters, commandForSolidity, errInCommand := CommandBuilder(command)
 		if errInCommand != nil {
-			return "", errInCommand
+			return nil, nil , "", errInCommand
 		}
 		strTemplate = strTemplate + commandForSolidity
+		startVariableDeclarations = append(startVariableDeclarations, startVariables...)
+		setterList = append(setterList, setters...)
 	}
 
-	return strTemplate, nil
+	return startVariableDeclarations, setterList, strTemplate, nil
 }
