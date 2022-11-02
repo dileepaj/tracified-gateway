@@ -1,6 +1,8 @@
 package components
 
-func GenerateStartVariable() (string, error) {
+func GenerateStartVariable(startVariable string) (string, error) {
 
-	return "", nil
+	strStartVariable := startVariable
+
+	return strStartVariable, nil
 }
