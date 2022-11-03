@@ -51,9 +51,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	//call the general header writer
 	generalValues := GeneralCodeWriter(contractName)
 
-	//setting up variable to store the results as the first line of the contract body
-	contractBody = `uint public Result;`
-
 	//pass the query to the FCL and get the execution template
 	executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
 	if errInGettingExecutionTemplate != nil {
@@ -68,34 +65,12 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 	}
 
-	//meta variable definition
-	metaDataVariables := WriteMetaData()
-	contractBody = contractBody + metaDataVariables
-
-	contractBody = contractBody + "\n"
-
-	//meta data setter
-	metaDataSetter := MetaDataSetter()
-	contractBody = contractBody + metaDataSetter
-
 	//setting up the executor (Result)
 	executorBody := "\n\t\t" + `Result` + " = " + executionTemplateString + ";"
 	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
 	// getter for the result
 	contractBody = contractBody + "\n\n\t" + `function getResult() public view returns (uint) {` + "\n\t\t" + `return Result;` + "\n\t" + `}`
-
-	//formulaID getter getter
-	formulaIDGetter := MetaDataFormulaIDGetter()
-	contractBody = contractBody + formulaIDGetter
-
-	//expert PK getter
-	expertPKGetter := MetaDataExpertPKGetter()
-	contractBody = contractBody + expertPKGetter
-
-	//tenet ID getter
-	tenetIDGetter := MetaDataTenantIDGetter()
-	contractBody = contractBody + tenetIDGetter
 
 	// create the contract
 	template := generalValues.License + "\n\n" + generalValues.StartingCodeLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
