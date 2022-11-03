@@ -96,8 +96,8 @@ github.com/dfuse-io/logging v0.0.0-20210109005628-b97a57253f70/go.mod h1:EoK/8RF
 github.com/dgrijalva/jwt-go v3.2.0+incompatible h1:7qlOGliEKZXTDg6OTjfoBKDXWrumCAMpl/TFQ4/5kLM=
 github.com/dgrijalva/jwt-go v3.2.0+incompatible/go.mod h1:E3ru+11k8xSBh+hMPgOLZmtrrCbhqsmaPHjLKYnJCaQ=
 github.com/dgryski/go-sip13 v0.0.0-20181026042036-e10d5fee7954/go.mod h1:vAd38F8PWV+bWy6jNmig1y/TA+kYO4g3RSRF0IAv0no=
-github.com/dileepaj/FCL_Go v0.1.2 h1:3OxgYFVDX+ZIfCIuHhFRTJ5dP9BySbPBUvqdbmyTdos=
-github.com/dileepaj/FCL_Go v0.1.2/go.mod h1:E5mA3pnjwN4J5pQMFcT2q6fpxacaSfByPMfVCdGaj0U=
+github.com/dileepaj/FCL_Go v0.1.3 h1:nMpA/nXaReRe+ttqaQkCSq1kuXNGeHJHWuBAQbpIZNw=
+github.com/dileepaj/FCL_Go v0.1.3/go.mod h1:E5mA3pnjwN4J5pQMFcT2q6fpxacaSfByPMfVCdGaj0U=
 github.com/docker/go-units v0.4.0/go.mod h1:fgPhTUdO+D/Jk86RDLlptpiXQzgHJF7gydDDbaIK4Dk=
 github.com/envoyproxy/go-control-plane v0.9.0/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=
 github.com/envoyproxy/go-control-plane v0.9.1-0.20191026205805-5f8ba28d4473/go.mod h1:YTl/9mNaCwkRvm6d1a2C3ymFceY/DCBVvsKhRF0iEA4=

@@ -97,7 +97,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		}
 
 		// 1. Metric Name Definition (Compulsory MDO) metric name builder
-		metricName, errWhenBuildingMetricName := metricBinding.BuildMetricNameManageData(metricBindJson.Metric.Name, "Metric name")
+		metricName, errWhenBuildingMetricName := metricBinding.CommonStringBuilder(metricBindJson.Metric.Name, "Metric name")
 		if errWhenBuildingMetricName != nil {
 			metricBindingStore.ErrorMessage = errWhenBuildingMetricName.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -161,7 +161,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			}
 			manageDataOpArray = append(manageDataOpArray, formulaDefinition)
 			// 4. Activity Name Definition (Compulsory MDO) metric name builder
-			activityName, err := metricBinding.BuildMetricNameManageData(activity.Name, "Activity name")
+			activityName, err := metricBinding.CommonStringBuilder(activity.Name, "Activity name")
 			if err != nil {
 				metricBindingStore.ErrorMessage = err.Error()
 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -194,22 +194,22 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					}
 					manageDataOpArray = append(manageDataOpArray, valueDefinition)
 
-					// // 6. stage name builder
-					// stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
-					// if errInStageNameBuilder != nil {
-					// 	logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
-					// 	metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
-					// 	_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					// 	if errResult != nil {
-					// 		logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					// 	}
-					// 	commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
-					// 	return
-					// }
-					// manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
+					// 6. stage name builder
+					stageNameBuilder, errInStageNameBuilder := metricBinding.CommonStringBuilder(activity.Stage.Name, "Stage Name")
+					if errInStageNameBuilder != nil {
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
 
 					// 7. Key name manage data(workflow → revision number→ stage[] → stage id → traceability data → “key name” )
-					keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
+					keyNameBuilder, errInKeyNameBuilder := metricBinding.CommonStringBuilder(formula.Key, "Key Name")
 					if errInKeyNameBuilder != nil {
 						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
@@ -244,22 +244,22 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					}
 					manageDataOpArray = append(manageDataOpArray, valueDefinition)
 
-					// // 6. stage name builder
-					// stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
-					// if errInStageNameBuilder != nil {
-					// 	logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
-					// 	metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
-					// 	_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					// 	if errResult != nil {
-					// 		logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					// 	}
-					// 	commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
-					// 	return
-					// }
-					// manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
+					// 6. stage name builder
+					stageNameBuilder, errInStageNameBuilder := metricBinding.CommonStringBuilder(activity.Stage.Name, "Stage Name")
+					if errInStageNameBuilder != nil {
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
 
 					// 7. key name builder
-					keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
+					keyNameBuilder, errInKeyNameBuilder := metricBinding.CommonStringBuilder(formula.Key, "Key Name")
 					if errInKeyNameBuilder != nil {
 						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
 						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
@@ -298,7 +298,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, generalInfoBuilder)
 
 					// Metadata/ Artifact template name / Table name builder
-					ArtifactNameBuilder, errInMetaDataBuilder := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.Name, "Artifact template name")
+					ArtifactNameBuilder, errInMetaDataBuilder := metricBinding.CommonStringBuilder(formula.ArtifactTemplate.Name, "Artifact template name")
 					if errInMetaDataBuilder != nil {
 						logrus.Error("Building metadata failed ", errInMetaDataBuilder.Error())
 						metricBindingStore.ErrorMessage = errInMetaDataBuilder.Error()
@@ -312,7 +312,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, ArtifactNameBuilder)
 
 					// Field key builder ---> Artifact field key (which column) → key of field array in artifact template
-					fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.BuildMetricNameManageData(formula.Field, "Artifact field key")
+					fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.CommonStringBuilder(formula.Field, "Artifact field key")
 					if errWhenBuildingFieldKey != nil {
 						logrus.Error("Building field key failed ", errWhenBuildingFieldKey.Error())
 						metricBindingStore.ErrorMessage = errWhenBuildingFieldKey.Error()
@@ -326,7 +326,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, fieldKeyBuilder)
 
 					// Field name builder  Field name (which column) → name in field array in artifact template
-					fieldNameBuilder, errWhenBuildingFieldName := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.FieldName, "Artifact field name")
+					fieldNameBuilder, errWhenBuildingFieldName := metricBinding.CommonStringBuilder(formula.ArtifactTemplate.FieldName, "Artifact field name")
 					if errWhenBuildingFieldName != nil {
 						logrus.Error("Building field name failed ", errWhenBuildingFieldName.Error())
 						metricBindingStore.ErrorMessage = errWhenBuildingFieldName.Error()
