@@ -7,7 +7,6 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"golang.org/x/text/cases"
@@ -62,8 +61,8 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 	}
 
-	//loop through the execution template and getting the list of start variable declarations, setter list and the built equation
-	startVariableDeclarations, setterList, executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
+	//loop through the execution template and getting the built equation
+	executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 	if errInExecutionTemplateString != nil {
 		commons.JSONErrorReturn(w, r, errInExecutionTemplateString.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
@@ -73,24 +72,11 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	metaDataVariables := WriteMetaData()
 	contractBody = contractBody + metaDataVariables
 
-	//removeDuplicatesFromArrays
-	startVariableDeclarations = ethereum.RemoveDuplicatesInAnArray(startVariableDeclarations)
-	setterList = ethereum.RemoveDuplicatesInAnArray(setterList)
-
-	// loop through the start variable declarations and append them to the contract body
-	for _, startVariableDeclaration := range startVariableDeclarations {
-		contractBody = contractBody + "\n\t" + startVariableDeclaration
-	}
 	contractBody = contractBody + "\n"
 
 	//meta data setter
 	metaDataSetter := MetaDataSetter()
 	contractBody = contractBody + metaDataSetter
-
-	// loop through the setters list returned from the ExecutionTemplateDivider and append it to the contract body
-	for _, setter := range setterList {
-		contractBody = contractBody + "\n\t" + setter + "\n"
-	}
 
 	//setting up the executor (Result)
 	executorBody := "\n\t\t" + `Result` + " = " + executionTemplateString + ";"
