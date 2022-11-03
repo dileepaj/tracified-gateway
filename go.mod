@@ -5,11 +5,12 @@ go 1.18
 require (
 	github.com/chebyrash/promise v0.0.0-20210114125841-d119a93f8638
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/dileepaj/FCL_Go v0.1.2
+	github.com/dileepaj/FCL_Go v0.1.3
 	github.com/go-openapi/runtime v0.24.1
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
+	github.com/oklog/ulid v1.3.1
 	github.com/rabbitmq/amqp091-go v1.5.0
 	github.com/robfig/cron v1.2.0
 	github.com/sirupsen/logrus v1.8.1
@@ -66,7 +67,6 @@ require (
 	github.com/mostynb/zstdpool-freelist v0.0.0-20201229113212-927304c0c3b1 // indirect
 	github.com/mr-tron/base58 v1.2.0 // indirect
 	github.com/near/borsh-go v0.3.1-0.20210831082424-4377deff6791 // indirect
-	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/tidwall/gjson v1.9.3 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
