@@ -1,5 +1,6 @@
 package codeGenerator
 
+//DB checks for metadata
 /*
 Generate the code for meta data variable definitions
 */

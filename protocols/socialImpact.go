@@ -31,7 +31,7 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 	if soacialImpact.Blockchain == "STELLAR" {
 		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
 	} else if soacialImpact.Blockchain == "ETHEREUM" {
-		codeGenerator.SmartContractGenerator(w, r, soacialImpact.FormulaJSON)
+		codeGenerator.SmartContractGeneratorForFormula(w, r, soacialImpact.FormulaJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)

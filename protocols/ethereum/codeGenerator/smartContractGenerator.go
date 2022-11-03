@@ -25,7 +25,26 @@ var (
 /*
 	Generate the smart contract for the solidity formula definitions
 */
-func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest) {
+func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest) {
+
+	//--------------------------------------------TODO----------------------------------------------------------------
+	//Metadata DB validations + Common code writer
+
+	//Variable builder
+	//DB Check, Initialization, Setter
+
+	//Semantic Constant
+	//DB Check , Initialization
+
+	//Ref Constant
+	//DB check, Initialization
+
+	//run the execution template
+	//build the equation
+	//execution writer
+
+	//-------------------------------------------------------------------------------------------------------------
+
 	//setting up the contract name and starting the contract
 	contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 	contractName = strings.ReplaceAll(contractName, " ", "")
@@ -55,7 +74,7 @@ func SmartContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON 
 	contractBody = contractBody + metaDataVariables
 
 	//removeDuplicatesFromArrays
-	startVariableDeclarations =  ethereum.RemoveDuplicatesInAnArray(startVariableDeclarations)
+	startVariableDeclarations = ethereum.RemoveDuplicatesInAnArray(startVariableDeclarations)
 	setterList = ethereum.RemoveDuplicatesInAnArray(setterList)
 
 	// loop through the start variable declarations and append them to the contract body

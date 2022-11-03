@@ -2,6 +2,7 @@ package codeGenerator
 
 import "github.com/dileepaj/tracified-gateway/model"
 
+//All the structures and the metadata setter
 /*
 	Generate the common keywords in the solidity contract header
 */
