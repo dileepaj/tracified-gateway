@@ -22,10 +22,19 @@ func (metric *MetricBinding) CommonStringBuilder(name string, typename string) (
 	metricName := base64.StdEncoding.EncodeToString([]byte(name))
 	nameKey := ""
 	nameValue := ""
-	nameLength :=127
+	nameLength := 127
 
-	if nameLength<127{
-		nameLength=len(metricName)
+	if len(metricName) >= 127 {
+		nameKey = metricName[0:64]
+		nameValue = metricName[64:127]
+	} else if len(metricName) > 64 && len(metricName) < 127 {
+		nameKey = metricName[0:64]
+		nameValue = metricName[64:]
+		nameLength = len(metricName)
+	} else if len(metricName) < 64 || len(metricName) == 64 {
+		nameKey = metricName
+		nameValue = strings.Repeat("0", 63)
+		nameLength = len(metricName)
 	}
 
 	actualLength, errInLengthConvert := stellarprotocols.Int8ToByteString(uint8(nameLength))
@@ -34,13 +43,6 @@ func (metric *MetricBinding) CommonStringBuilder(name string, typename string) (
 		return txnbuild.ManageData{}, errors.New("Error when converting length " + errInLengthConvert.Error())
 	}
 	// check if the key is greater than 64 characters
-	if len(metricName) > 64 {
-		nameKey = metricName[0:64]
-		nameValue = metricName[64:127]
-	} else if len(metricName) < 64 || len(metricName) == 64 {
-		nameKey = metricName
-		nameValue = strings.Repeat("0", 63)
-	}
 
 	// check the lengths and append 0s if needed
 	if len(nameKey) < 64 {

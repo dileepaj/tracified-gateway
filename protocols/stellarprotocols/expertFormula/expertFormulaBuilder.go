@@ -31,7 +31,7 @@ des- This method build stellar trasactions for expert formula
 		* load stellar account,build and sing the XDR
 		* put XDR to stellar blockchain
 */
-func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
+func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int,variableCount int) {
 	w.Header().Set("Content-Type", "application/json")
 	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend                               // formula array sent by the backend
 	var manageDataOpArray []txnbuild.ManageData             // manageDataOpArray all manage data append to to this array
@@ -287,13 +287,15 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 				logrus.Error("Error while inserting the metric expoert formula into DB: ", errResult)
 			}
 			formulaIDMap := model.FormulaIDMap{
-				FormulaID: formulaJSON.MetricExpertFormula.ID,
-				MapID:     dataFormulaID.SequenceValue,
+				FormulaID:     formulaJSON.MetricExpertFormula.ID,
+				MapID:         dataFormulaID.SequenceValue,
+				VariableCount: variableCount,
+				FieldCount:    fieldCount,
 			}
 			// map the formulaID with incrementing Integer put those object to blockchain
 			err1 := object.InsertFormulaIDMap(formulaIDMap)
 			if err1 != nil {
-				logrus.Error("Inserting formula to the expoert formula map was failed " + err1.Error())
+				logrus.Error("Inserting formula to the export formula map was failed " + err1.Error())
 			}
 		}
 		w.WriteHeader(http.StatusOK)
