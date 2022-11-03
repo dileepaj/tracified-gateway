@@ -93,6 +93,7 @@ type ExpertFormula struct {
 	Blockchain      string               `json:"Blockchain" bson:"blockchain"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
+	Description     string               `json:"Description" bson:"description"`
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
 	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString"`
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`

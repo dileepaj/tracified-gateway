@@ -31,7 +31,7 @@ des- This method build stellar trasactions for expert formula
 		* load stellar account,build and sing the XDR
 		* put XDR to stellar blockchain
 */
-func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int,variableCount int) {
+func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int, variableCount int) {
 	w.Header().Set("Content-Type", "application/json")
 	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend                               // formula array sent by the backend
 	var manageDataOpArray []txnbuild.ManageData             // manageDataOpArray all manage data append to to this array
@@ -127,7 +127,7 @@ func StellarExpertFormulBuilder(w http.ResponseWriter, r *http.Request, formulaJ
 			expertMapID = expertMap.MapID
 		}
 		// formula identity operation
-		formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.MetricExpertFormula.Name)
+		formulaIdentityBuilder, errInFormulaIdentity := expertFormula.BuildFormulaIdentity(expertMapID, formulaJSON.MetricExpertFormula.Description, formulaJSON.MetricExpertFormula.Name)
 		if errInFormulaIdentity != nil {
 			commons.JSONErrorReturn(w, r, errInFormulaIdentity.Error(), http.StatusInternalServerError, "An error occured when building formula identity ")
 			return
