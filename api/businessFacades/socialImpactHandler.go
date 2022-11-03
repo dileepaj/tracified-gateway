@@ -49,9 +49,11 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 
 		formulaArray := formulaJSON.MetricExpertFormula.Formula
 		fieldCount := 0
+		variableCount := 0
 		for i, element := range formulaJSON.MetricExpertFormula.Formula {
 			if element.Type == "DATA" {
 				formulaArray[i].Type = "VARIABLE"
+				variableCount++
 			} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
 				formulaArray[i].Type = "REFERREDCONSTANT"
 			} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
@@ -69,9 +71,10 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		}
 		// build the abstract struct and call the SocialImpactExpertFormula
 		socialImpactBuilder := protocols.AbstractSocialImpact{
-			Blockchain:  formulaJSON.MetricExpertFormula.Blockchain,
-			FormulaJSON: formulaJSON,
-			FieldCount:  fieldCount,
+			Blockchain:    formulaJSON.MetricExpertFormula.Blockchain,
+			FormulaJSON:   formulaJSON,
+			FieldCount:    fieldCount,
+			VariableCount: variableCount,
 		}
 		socialImpactBuilder.SocialImpactExpertFormula(w, r)
 	}
