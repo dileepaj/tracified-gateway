@@ -47,13 +47,15 @@ type FormulaItemRequest struct {
 }
 
 type Expert struct {
-	ExpertID string `json:"ExpertID" bson:"expertID" validate:"required"`
-	ExpertPK string `json:"ExpertPK" bson:"expertPK" validate:"required"`
+	ExpertID string `json:"ExpertID" bson:"expertID"`
+	ExpertPK string `json:"ExpertPK" bson:"expertPK"`
 }
 
 type FormulaIDMap struct {
-	FormulaID string
-	MapID     uint64
+	FormulaID     string
+	MapID         uint64
+	VariableCount int
+	FieldCount    int
 }
 
 type ExpertIDMap struct {
@@ -92,10 +94,10 @@ type ExpertFormula struct {
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Formula         []FormulaItemRequest `json:"Formula" bson:"formula" validate:"required"`
-	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsString string               `json:"FormulaAsString" bson:"formulaAsString"`
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	CreatedAt       string               `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	CreatedAt       string               `json:"CreatedAt" bson:"createdAt"`
+	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt"`
 	CiperText       string               `json:"CiperText" bson:"ciperText"`
 }
 
@@ -116,7 +118,7 @@ type MetricReference struct {
 type MetricItem struct {
 	ID          string `json:"ID" bson:"id" validate:"required"`
 	Name        string `json:"Name" bson:"name" validate:"required"`
-	Description string `json:"Description" bson:"description" validate:"required"`
+	Description string `json:"Description" bson:"description"`
 }
 
 type ActivityForMetricBinding struct {
@@ -318,18 +320,18 @@ type MetricBindingStore struct {
 }
 
 type MetricReq struct {
-	ID             string                          `json:"ID" bson:"id" validate:"required"`
-	Blockchain     string                          `json:"Blockchain" bson:"blockchain"`
-	Name           string                          `json:"Name" bson:"name" validate:"required"`
-	Description    string                          `json:"Description" bson:"description" validate:"required"`
-	BenchmarkRef   string                          `json:"BenchmarkRef" bson:"benchmarkRef"`
-	BenchmarkValue string                          `json:"BenchmarkValue" bson:"benchmarkValue"`
-	BenchmarkUnit  string                          `json:"BenchmarkUnit" bson:"benchmarkUnit"`
-	Status         string                          `json:"Status" bson:"status"`
-	TenantId       string                          `json:"TenantId" bson:"tenantId" validate:"required"`
-	CreatedAt      string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt      string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
-	MetricActivities     []MetricDataBindActivityRequest `json:"MetricActivities" bson:"metricActivities" validate:"required"`
+	ID               string                          `json:"ID" bson:"id" validate:"required"`
+	Blockchain       string                          `json:"Blockchain" bson:"blockchain"`
+	Name             string                          `json:"Name" bson:"name" validate:"required"`
+	Description      string                          `json:"Description" bson:"description" validate:"required"`
+	BenchmarkRef     string                          `json:"BenchmarkRef" bson:"benchmarkRef"`
+	BenchmarkValue   string                          `json:"BenchmarkValue" bson:"benchmarkValue"`
+	BenchmarkUnit    string                          `json:"BenchmarkUnit" bson:"benchmarkUnit"`
+	Status           string                          `json:"Status" bson:"status"`
+	TenantId         string                          `json:"TenantId" bson:"tenantId" validate:"required"`
+	CreatedAt        string                          `json:"CreatedAt" bson:"createdAt" validate:"required"`
+	UpdatedAt        string                          `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	MetricActivities []MetricDataBindActivityRequest `json:"MetricActivities" bson:"metricActivities" validate:"required"`
 }
 type MetricDataBindActivityRequest struct {
 	ID                                  string                              `json:"ID" bson:"id" validate:"required"`
@@ -453,8 +455,8 @@ type MetricDataBindArtifactRequest struct {
 	MetricFormula                       MetricFormula `json:"MetricFormula" bson:"metricformula" validate:"required"`
 	Revision                            int           `json:"Revision" bson:"revision" validate:"required"`
 	TenantID                            string        `json:"TenantID" bson:"tenantId" validate:"required"`
-	CreatedAt                           string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt                           string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	CreatedAt                           string        `json:"CreatedAt" bson:"createdAt"`
+	UpdatedAt                           string        `json:"UpdatedAt" bson:"updatedAt"`
 	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData
 }
 
@@ -474,8 +476,7 @@ type FormulaDetails struct {
 	Type               int
 	ArtifactTemplateID string
 	ArtifactTemplate   ArtifactTemplate
-	Description        string `json:"Description" bson:"description" validate:"required"`
-	BindManageData     BindManageData
+	Description        string `json:"Description" bson:"description"`
 }
 
 type ArtifactTemplate struct {
@@ -487,10 +488,10 @@ type MetricExpertFormula struct {
 	ID              string        `json:"ID" bson:"id" validate:"required"`
 	Name            string        `json:"Name" bson:"name" validate:"required"`
 	Formula         []FullFormula `json:"Formula" bson:"formula" validate:"required"`
-	FormulaAsString string        `json:"FormulaAsString" bson:"formulaAsString" validate:"required"`
+	FormulaAsString string        `json:"FormulaAsString" bson:"formulaAsString"`
 	FormulaAsQuery  string        `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
-	CreatedAt       string        `json:"CreatedAt" bson:"createdAt" validate:"required"`
-	UpdatedAt       string        `json:"UpdatedAt" bson:"updatedAt" validate:"required"`
+	CreatedAt       string        `json:"CreatedAt" bson:"createdAt"`
+	UpdatedAt       string        `json:"UpdatedAt" bson:"updatedAt"`
 }
 
 type FullFormula struct {

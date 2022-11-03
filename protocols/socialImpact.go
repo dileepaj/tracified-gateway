@@ -12,9 +12,10 @@ import (
 
 // FieldCount - unique formula element Count -formula element count, can be VARIABLE, SEMATICCONSTANT, REFERREDCONSTANT
 type AbstractSocialImpact struct {
-	Blockchain  string
-	FormulaJSON model.FormulaBuildingRequest
-	FieldCount  int
+	Blockchain    string
+	FormulaJSON   model.FormulaBuildingRequest
+	FieldCount    int
+	VariableCount int
 }
 
 type AbstractSocialImpactMetricBinding struct {
@@ -28,7 +29,7 @@ des-This mothod check the blockchain Type and call the relevent method according
 */
 func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	if soacialImpact.Blockchain == "STELLAR" {
-		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
+		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount, soacialImpact.VariableCount)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)
