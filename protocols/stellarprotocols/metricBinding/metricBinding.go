@@ -179,16 +179,16 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				if len(keyBase64) > 127 {
 					keyInBlockchain = keyInBlockchain[0:127]
 				}
-				bindKeyMap, err := object.GetBindKey(activity.MetricFormula.ID, keyInBlockchain, metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
+				bindKeyMap, err := object.GetBindKey(activity.MetricFormula.MetricExpertFormula.ID, keyInBlockchain, metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 				if err != nil {
-					logrus.Error("Error while inserting the bind Key into DB: ", formula.Key, "", activity.MetricFormula.ID)
+					logrus.Error("Error while inserting the bind Key into DB: ", formula.Key, "", activity.MetricFormula.MetricExpertFormula.ID)
 				}
 				if bindKeyMap == nil {
 
 					bindKey := model.BindKeyMap{
-						FormulaId:          activity.MetricFormula.ID,
+						FormulaId:          activity.MetricFormula.MetricExpertFormula.ID,
 						Key:                formula.Key,
 						KeyInBlockchain:    keyInBlockchain,
 						Id:                 formula.ID,
@@ -298,9 +298,9 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 						return
 					}
 					manageDataOpArray = append(manageDataOpArray, keyNameBuilder)
-
+					artifactTemplate := metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula[j]
 					// Artifact ID Map
-					artifactMapId, err := InsertAndFindArtifactID(metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula[j].ArtifactTemplateID)
+					artifactTemplateMapId, err := InsertAndFindArtifactTemplateID(artifactTemplate.ArtifactTemplateID)
 					if err != nil {
 						metricBindingStore.ErrorMessage = err.Error()
 						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -310,8 +310,31 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 						commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindArtifactID ")
 						return
 					}
+					// there is no pivot filter
+					//! primaryKey--->artifactID
+					var primaryKeyMapID uint64 = 0
+					// check the pivot filter array
+					if len(activity.MetricFormula.PivotFields) > 0 {
+						for _, pivot := range activity.MetricFormula.PivotFields {
+							//! variable used as a constant(using pivot)
+							if artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && artifactTemplate.Field == pivot.Field &&
+								pivot.Condition == "EQUAL" {
+								primaryKeyMapId, err := InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
+								if err != nil {
+									metricBindingStore.ErrorMessage = err.Error()
+									_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+									if errResult != nil {
+										logrus.Error("Error while inserting the primary key formula into DB: ", errResult)
+									}
+									commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+									return
+								}
+								primaryKeyMapID = primaryKeyMapId
+							}
+						}
+					}
 					// General master data info builder
-					generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactMapId, uint(formula.Type))
+					generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactTemplateMapId, primaryKeyMapID, uint(formula.Type))
 					if errInGeneralInfoBuilder != nil {
 						logrus.Error("Building general master data info failed ", errInGeneralInfoBuilder.Error())
 						metricBindingStore.ErrorMessage = errInGeneralInfoBuilder.Error()

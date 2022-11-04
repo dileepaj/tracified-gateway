@@ -346,8 +346,6 @@ type MetricDataBindActivityRequest struct {
 	TenantID                            string                              `json:"TenantID" bson:"tenantid" validate:"required"`
 	CreatedAt                           string                              `json:"CreatedAt" bson:"createdat" validate:"required"`
 	UpdatedAt                           string                              `json:"UpdatedAt" bson:"updatedat" validate:"required"`
-	ActivityFormulaDefinitionManageData ActivityFormulaDefinitionManageData `json:"ActivityFormulaDefinitionManageData" bson:"activityformuladefinitionmanagedata"`
-	ActivityNameMangeData               ManageDataActivityName
 }
 
 type MetricFormulaReq struct {
@@ -355,7 +353,7 @@ type MetricFormulaReq struct {
 	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula `json:"MetricExpertFormula" bson:"metricexpertformula" validate:"required"`
 	TenantID            string              `json:"TenantID" bson:"tenantid" validate:"required"`
-	PivotField          PivotField
+	PivotFields          []PivotField
 	Active              bool `json:"Active" bson:"active"`
 }
 
@@ -583,10 +581,16 @@ type WorkflowMap struct {
 	MapID      uint64
 }
 
-type ArtifactIDMap struct {
+type ArtifactTemplateId struct {
 	ArtifactID string
 	MapID      uint64
 }
+
+type PrimaryKeyMap struct {
+	PrimaryKeyID string
+	MapID      uint64
+}
+
 type PivotField struct {
 	Name               string
 	Condition          string
