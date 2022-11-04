@@ -186,12 +186,6 @@ func ValidateActivityArray(element model.MetricDataBindActivityRequest) error {
 	if errWhenValidatingMetricFormula != nil {
 		return errWhenValidatingMetricFormula
 	}
-
-	// validate ActivityFormulaDefinitionManageData
-	errWhenValidatingActivityFormulaDefinitionManageData := ValidateActivityFormulaDefinitionManageData(element.ActivityFormulaDefinitionManageData)
-	if errWhenValidatingActivityFormulaDefinitionManageData != nil {
-		return errWhenValidatingActivityFormulaDefinitionManageData
-	}
 	return nil
 }
 

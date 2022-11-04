@@ -489,13 +489,13 @@ func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
 }
 
 
-func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error {
+func (cd *Connection) InsertToWorkflowIDMap(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+	c := session.Client().Database(dbName).Collection("WorkflowIDMap")
 	_, err = c.InsertOne(context.TODO(), tenentIDMap)
 	if err != nil {
 		logrus.Info("Error when inserting workflow id to DB " + err.Error())
@@ -503,13 +503,13 @@ func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error
 	return err
 }
 
-func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) error {
+func (cd *Connection) InsertToArtifactTemplateIDMap(artifactMap model.ArtifactTemplateId) error {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("ArtifactIDMAP")
+	c := session.Client().Database(dbName).Collection("ArtifactTemplateIDMap")
 	_, err = c.InsertOne(context.TODO(), artifactMap)
 	if err != nil {
 		logrus.Info("Error when inserting artifact id to DB " + err.Error())
@@ -529,4 +529,18 @@ func (cd *Connection) InsertBindKey(bindKey model.BindKeyMap) (string, error) {
 		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PrimaryKeyIdMap")
+	_, err = c.InsertOne(context.TODO(), artifactMap)
+	if err != nil {
+		logrus.Info("Error when inserting artifact id to DB " + err.Error())
+	}
+	return err
 }

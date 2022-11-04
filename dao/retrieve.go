@@ -2217,7 +2217,7 @@ func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+		c := session.Client().Database(dbName).Collection("WorkflowIDMap")
 		err1 := c.FindOne(context.TODO(), bson.M{"workflowid": workflowId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting workflow id from db " + err1.Error())
@@ -2229,8 +2229,8 @@ func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetArtifactMapID(artifactId string) *promise.Promise {
-	result := model.ArtifactIDMap{}
+func (cd *Connection) GetArtifactTemplateMapID(artifactId string) *promise.Promise {
+	result := model.ArtifactTemplateId{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -2239,7 +2239,7 @@ func (cd *Connection) GetArtifactMapID(artifactId string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("ArtifactIDMAP")
+		c := session.Client().Database(dbName).Collection("ArtifactTemplateIDMap")
 		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting artifact id from db " + err1.Error())
@@ -2338,6 +2338,28 @@ func (cd *Connection) GetBindKey(formulaID , key , metricId string) *promise.Pro
 			reject(err)
 		} else {
 			resolve(bindKey)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
+	result := model.ArtifactTemplateId{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PrimaryKeyIdMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting artifact id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
 		}
 	})
 	return p
