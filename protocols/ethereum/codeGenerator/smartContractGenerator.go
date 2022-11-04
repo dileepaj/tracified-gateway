@@ -18,7 +18,7 @@ import (
 var (
 	contractName       = ``
 	contractBody       = ``
-	startOfTheExecutor = `function Executor() public {`
+	startOfTheExecutor = `function executeCalculation() public returns (int256) {`
 	endOfTheExecutor   = "\n\t" + `}`
 )
 
@@ -57,6 +57,13 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 	}
 
+	//call the value builder and get the string for the variable initialization and setter
+	variableValues, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
+	if errInGeneratingValues != nil {
+		commons.JSONErrorReturn(w, r, errInGeneratingValues.Error(), http.StatusInternalServerError, "Error in getting codes for values ")
+	}
+	contractBody = contractBody + variableValues
+
 	//pass the query to the FCL and get the execution template
 	executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
 	if errInGettingExecutionTemplate != nil {
@@ -79,11 +86,11 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	}
 
 	//setting up the executor (Result)
-	executorBody := "\n\t\t" + `Result` + " = " + executionTemplateString + ";"
-	contractBody = contractBody + "\n\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
-
-	// getter for the result
-	contractBody = contractBody + "\n\n\t" + `function getResult() public view returns (uint) {` + "\n\t\t" + `return Result;` + "\n\t" + `}`
+	commentForExecutor := `// method to get the result of the calculation`
+	executorBody := "\t\n\t\t" + `if (Result == -9999) {`
+	executorBody = executorBody + "\n\t\t\t" + `Result` + " = " + executionTemplateString + ";" + "\n\t\t" + `}`
+	executorBody = executorBody + "\n\t\t" + `return Result;`
+	contractBody = contractBody + "\n\n\t" + commentForExecutor + "\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
 	// create the contract
 	template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd

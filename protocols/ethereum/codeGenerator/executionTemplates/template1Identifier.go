@@ -11,7 +11,7 @@ import (
  func Template1Builder(executionTemplate model.ExecutionTemplate) (string, error) {
 	var strTemplate string					// the final equation from the execution template
 
-	strTemplate = `(` + executionTemplate.S_StartVarName
+	strTemplate = `(` + executionTemplate.S_StartVarName + `.value.value`
 
 	// loop through the commands 
 	for _, command := range executionTemplate.Lst_Commands {
