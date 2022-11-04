@@ -2320,3 +2320,25 @@ func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetBindKey(formulaID , key , metricId string) *promise.Promise {
+	var bindKey model.BindKeyMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("BindKeyMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "keyinblockchain": key, "metricId": metricId}).Decode(&bindKey)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(bindKey)
+		}
+	})
+	return p
+}

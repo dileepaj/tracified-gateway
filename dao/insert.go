@@ -517,3 +517,16 @@ func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) err
 	return err
 }
 
+func (cd *Connection) InsertBindKey(bindKey model.BindKeyMap) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("BindKeyMap")
+	result, err := c.InsertOne(context.TODO(), bindKey)
+	if err != nil {
+		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
