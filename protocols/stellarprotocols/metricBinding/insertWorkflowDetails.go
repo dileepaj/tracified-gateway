@@ -39,7 +39,7 @@ func InsertAndFindWorkflowId(workflowID string) (uint64, error) {
 			MapID:      data.SequenceValue,
 		}
 
-		errWhenInsertingWorkflowDetails := object.InsertToWorkflowIDMAP(insertWorkflowDetails)
+		errWhenInsertingWorkflowDetails := object.InsertToWorkflowIDMap(insertWorkflowDetails)
 		if errWhenInsertingWorkflowDetails != nil {
 			logrus.Error("Inserting to workflow map ID was failed " + errWhenInsertingWorkflowDetails.Error())
 			return 0, errors.New("Inserting to workflow map ID was failed " + errWhenInsertingWorkflowDetails.Error())
