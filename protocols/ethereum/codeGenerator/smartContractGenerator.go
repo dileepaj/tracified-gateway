@@ -18,12 +18,12 @@ import (
 var (
 	contractName       = ``
 	contractBody       = ``
-	startOfTheExecutor = `function executeCalculation() public returns (int256) {`
+	startOfTheExecutor = `function executeCalculation() public returns (int) {`
 	endOfTheExecutor   = "\n\t" + `}`
 )
 
 /*
-	Generate the smart contract for the solidity formula definitions
+Generate the smart contract for the solidity formula definitions
 */
 func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest) {
 
@@ -57,6 +57,14 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 	}
 
+	contractBody = contractBody + generalValues.ResultVariable
+	contractBody = contractBody + generalValues.MetaDataStructure
+	contractBody = contractBody + generalValues.ValueDataStructure
+	contractBody = contractBody + generalValues.VariableStructure
+	contractBody = contractBody + generalValues.SemanticConstantStructure
+	contractBody = contractBody + generalValues.ReferredConstant
+	contractBody = contractBody + generalValues.MetadataDeclaration
+
 	//call the value builder and get the string for the variable initialization and setter
 	variableValues, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
 	if errInGeneratingValues != nil {
@@ -70,13 +78,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
 	}
-	contractBody = contractBody + generalValues.ResultVariable
-	contractBody = contractBody + generalValues.MetaDataStructure
-	contractBody = contractBody + generalValues.ValueDataStructure
-	contractBody = contractBody + generalValues.VariableStructure
-	contractBody = contractBody + generalValues.SemanticConstantStructure
-	contractBody = contractBody + generalValues.ReferredConstant
-	contractBody = contractBody + generalValues.MetadataDeclaration
 
 	//loop through the execution template and getting the built equation
 	executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
@@ -87,9 +88,9 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 
 	//setting up the executor (Result)
 	commentForExecutor := `// method to get the result of the calculation`
-	executorBody := "\t\n\t\t" + `if (Result == -9999) {`
-	executorBody = executorBody + "\n\t\t\t" + `Result` + " = " + executionTemplateString + ";" + "\n\t\t" + `}`
-	executorBody = executorBody + "\n\t\t" + `return Result;`
+	executorBody := "\t\n\t\t" + `if (result == -9999) {`
+	executorBody = executorBody + "\n\t\t\t" + `result` + " = " + executionTemplateString + ";" + "\n\t\t" + `}`
+	executorBody = executorBody + "\n\t\t" + `return result;`
 	contractBody = contractBody + "\n\n\t" + commentForExecutor + "\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
 	// create the contract
