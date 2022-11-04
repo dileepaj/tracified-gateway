@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -16,7 +17,7 @@ import (
 // initial keywords for the contract
 var (
 	contractName       = ``
-	contractBody       = `string public name = ` + contractName + `;`
+	contractBody       = ``
 	startOfTheExecutor = `function Executor() public {`
 	endOfTheExecutor   = "\n\t" + `}`
 )
@@ -49,7 +50,12 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	contractName = strings.ReplaceAll(contractName, " ", "")
 
 	//call the general header writer
-	generalValues := GeneralCodeWriter(contractName)
+	generalValues, errWhenBuildingGeneralCodeSnippet := WriteGeneralCodeSnippets(formulaJSON, contractName)
+	if errWhenBuildingGeneralCodeSnippet != nil {
+		logrus.Error("Error when writing the general code snippet, ERROR : " + errWhenBuildingGeneralCodeSnippet.Error())
+		commons.JSONErrorReturn(w, r, errWhenBuildingGeneralCodeSnippet.Error(), http.StatusInternalServerError, "Error when writing the general code snippet, ERROR : ")
+		return
+	}
 
 	//pass the query to the FCL and get the execution template
 	executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
@@ -57,6 +63,13 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
 		return
 	}
+	contractBody = contractBody + generalValues.ResultVariable
+	contractBody = contractBody + generalValues.MetaDataStructure
+	contractBody = contractBody + generalValues.ValueDataStructure
+	contractBody = contractBody + generalValues.VariableStructure
+	contractBody = contractBody + generalValues.SemanticConstantStructure
+	contractBody = contractBody + generalValues.ReferredConstant
+	contractBody = contractBody + generalValues.MetadataDeclaration
 
 	//loop through the execution template and getting the built equation
 	executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
@@ -73,7 +86,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	contractBody = contractBody + "\n\n\t" + `function getResult() public view returns (uint) {` + "\n\t\t" + `return Result;` + "\n\t" + `}`
 
 	// create the contract
-	template := generalValues.License + "\n\n" + generalValues.StartingCodeLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
+	template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
 
 	// write the contract to a solidity file
 	fo, errInOutput := os.Create(`protocols/ethereum/contracts/` + contractName + `.sol`)

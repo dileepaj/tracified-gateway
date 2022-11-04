@@ -1,64 +1,84 @@
 package codeGenerator
 
-//DB checks for metadata
-/*
-Generate the code for meta data variable definitions
-*/
-func WriteMetaData() string {
-	formulaIDInitiator := "\n\t" + `bytes32 formulaID;`
-	expertPKInitiator := "\n\t" + `bytes32 expertPK;`
-	tenetID := "\n\t" + `bytes32 tenetID;`
-
-	initiatorString := formulaIDInitiator + expertPKInitiator + tenetID
-	return initiatorString
-}
+import (
+	"github.com/dileepaj/tracified-gateway/model"
+)
 
 /*
-Generate the code for meta data variable setter
+	Generate the general code snippets common to all the formula build smart contracts
+	Building:
+		Header code snippets
+		Result variable
+		Metadata structure
+		Value structure
+		Variable structure
+		Semantic constant structure
+		Referred constant structure
+		Metadata declaration
 */
-func MetaDataSetter() string {
-	functionSignature := "\n\t" + `function setMetadata(bytes32 _formulaID, bytes32 _expertPK, bytes32 _tenetID) public {`
-	formulaIDSet := "\n\t\t" + `formulaID = _formulaID;`
-	expertPkSet := "\n\t\t" + `expertPK = _expertPK;`
-	tenetIDSet := "\n\t\t" + `tenetID = _tenetID;`
-	endFunc := "\n\t" + `}` + "\n"
+func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName string) (model.ContractGeneral, error) {
+	//Meta data structure
+	metaDataStructComment := "\t" + `//Metadata structure` + "\n"
+	metaDataStructHead := "\t" + `struct Metadata {` + "\n"
+	metaDataFormulaID := "\t\t" + `bytes32 formulaID; //initialize at start` + "\n"
+	metaDataFormulaName := "\t\t" + `string formulaName; //initialize at start` + "\n"
+	metaDataExpertPK := "\t\t" + `string expertPK; //initialize at start` + "\n"
+	metaDataStructEnd := "\t" + `}` + "\n"
+	metaDataStructStr := metaDataStructComment + metaDataStructHead + metaDataFormulaID + metaDataFormulaName + metaDataExpertPK + metaDataStructEnd
 
-	setterString := functionSignature + formulaIDSet + expertPkSet + tenetIDSet + endFunc
-	return setterString
-}
+	//Value data structure
+	valueDataStructComment := "\t" + `//Parent value structure` + "\n"
+	valueDataStructHead := "\t" + `struct Value {` + "\n"
+	valueType := "\t\t" + `string valueType; //initialize at start` + "\n"
+	valueID := "\t\t" + `bytes32 valueID; //initialize at start` + "\n"
+	valueName := "\t\t" + `string valueName; //initialize at start` + "\n"
+	valueDef := "\t\t" + `int value; //initialize at start, added using setter` + "\n"
+	valueDescription := "\t\t" + `string description; //initialize at start` + "\n"
+	valueDataStructEnd := "\t" + `}` + "\n"
+	valueDataStructStr := valueDataStructComment + valueDataStructHead + valueType + valueID + valueName + valueDef + valueDescription + valueDataStructEnd
 
-/*
-Generate the code for formula ID getter
-*/
-func MetaDataFormulaIDGetter() string {
-	functionSign := "\n\t" + `function getFormulaID() public view returns (bytes32) {`
-	returnCmd := "\n\t\t" + `return formulaID;`
-	endFunc := "\n\t" + `}` + "\n"
+	//Variable data structure
+	variableStructComment := "\t" + `//Variable structure, child of Value` + "\n"
+	variableStructHead := "\t" + `struct Variable {` + "\n"
+	variableValue := "\t\t" + `Value value; //initialize at start` + "\n"
+	variableUnit := "\t\t" + `bytes32 unit; //initialize at start` + "\n"
+	variablePrecision := "\t\t" + `bytes32 precision; //initialize at start` + "\n"
+	variableStructEnd := "\t" + `}` + "\n"
+	variableStructStr := variableStructComment + variableStructHead + variableValue + variableUnit + variablePrecision + variableStructEnd
 
-	getterString := functionSign + returnCmd + endFunc
-	return getterString
-}
+	//Semantic data structure
+	semanticStructComment := "\t" + `//Semantic constant structure, child of Value` + "\n"
+	semanticStructHead := "\t" + `struct SemanticConstant {` + "\n"
+	semanticValue := "\t\t" + `Value value; //initialize at start` + "\n"
+	semanticStructEnd := "\t" + `}` + "\n"
+	semanticStructStr := semanticStructComment + semanticStructHead + semanticValue + semanticStructEnd
 
-/*
-Generate the code for expert pk getter
-*/
-func MetaDataExpertPKGetter() string {
-	functionSign := "\n\t" + `function getExpertPK() public view returns (bytes32) {`
-	returnCmd := "\n\t\t" + `return expertPK;`
-	endFunc := "\n\t" + `}` + "\n"
+	//Referred data structure
+	referredStructComment := "\t" + `//Referred constant structure, child of Value` + "\n"
+	referredStructHead := "\t" + `struct ReferredConstant {` + "\n"
+	referredValue := "\t\t" + `Value value; //initialize at start` + "\n"
+	referredUnit := "\t\t" + `bytes32 unit; //initialize at start` + "\n"
+	referredRefURL := "\t\t" + `string refUrl; //initialize at start` + "\n"
+	referredStructEnd := "\t" + `}` + "\n"
+	referredStructStr := referredStructComment + referredStructHead + referredValue + referredUnit + referredRefURL + referredStructEnd
 
-	getterString := functionSign + returnCmd + endFunc
-	return getterString
-}
+	//Metadata declaration
+	metaDataInitComment := "\t" + `//Metadata declaration` + "\n"
+	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.User.Publickey + `");` + "\n"
 
-/*
-Generate the code for tenet ID getter
-*/
-func MetaDataTenantIDGetter() string {
-	functionSign := "\n\t" + `function getTenetID() public view returns (bytes32) {`
-	returnCmd := "\n\t\t" + `return tenetID;`
-	endFunc := "\n\t" + `}` + "\n"
+	generalBuilder := model.ContractGeneral{
+		License:                   `// SPDX-License-Identifier: MIT`,
+		PragmaLine:                `pragma solidity ^0.8.7;`,
+		ContractStart:             `contract ` + contractName + ` {`,
+		ResultVariable:            `int public result = -9999;` + "\n",
+		MetaDataStructure:         metaDataStructStr,
+		ValueDataStructure:        valueDataStructStr,
+		VariableStructure:         variableStructStr,
+		SemanticConstantStructure: semanticStructStr,
+		ReferredConstant:          referredStructStr,
+		MetadataDeclaration:       metaDataInitComment + metaDataInit,
+		ContractEnd:               `}`,
+	}
 
-	getterString := functionSign + returnCmd + endFunc
-	return getterString
+	return generalBuilder, nil
 }

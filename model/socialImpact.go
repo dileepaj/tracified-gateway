@@ -636,8 +636,15 @@ type SendToQueue struct {
 }
 
 type ContractGeneral struct {
-	License          string
-	StartingCodeLine string
-	ContractStart    string
-	ContractEnd      string
+	License                   string
+	PragmaLine                string
+	ContractStart             string
+	ResultVariable            string
+	MetaDataStructure         string
+	ValueDataStructure        string
+	VariableStructure         string
+	SemanticConstantStructure string
+	ReferredConstant          string
+	MetadataDeclaration       string
+	ContractEnd               string
 }
