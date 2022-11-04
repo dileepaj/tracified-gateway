@@ -635,3 +635,11 @@ type SendToQueue struct {
 	Operations    []txnbuild.ManageData
 	ErrorMessage  string
 }
+
+type BindKeyMap struct {
+	FormulaId          string
+	Key                string
+	KeyInBlockchain    string
+	Id                 string
+	ArtifactTemplateId string
+}

@@ -1,6 +1,7 @@
 package metricBinding
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"math/rand"
 	"net/http"
@@ -173,6 +174,32 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			}
 			manageDataOpArray = append(manageDataOpArray, activityName)
 			for j, formula := range activity.MetricFormula.Formula {
+				keyBase64 := base64.StdEncoding.EncodeToString([]byte(base64.StdEncoding.EncodeToString([]byte(formula.Key))))
+				keyInBlockchain := keyBase64
+				if len(keyBase64) > 127 {
+					keyInBlockchain = keyInBlockchain[0:127]
+				}
+				bindKeyMap, err := object.GetBindKey(activity.MetricFormula.ID, keyInBlockchain, metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if err != nil {
+					logrus.Error("Error while inserting the bind Key into DB: ", formula.Key, "", activity.MetricFormula.ID)
+				}
+				if bindKeyMap == nil {
+
+					bindKey := model.BindKeyMap{
+						FormulaId:          activity.MetricFormula.ID,
+						Key:                formula.Key,
+						KeyInBlockchain:    keyInBlockchain,
+						Id:                 formula.ID,
+						ArtifactTemplateId: formula.ArtifactTemplateID,
+					}
+
+					_, errResult := object.InsertBindKey(bindKey)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+				}
 				if formula.ArtifactTemplateID == "" {
 					bindValue := model.ValueBuilder{
 						ValueUUID:           formula.ID,
