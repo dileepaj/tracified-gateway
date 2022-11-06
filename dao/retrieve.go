@@ -2189,8 +2189,8 @@ func (cd Connection) GetRSAPublicKeyBySHA256PK(sha256pk string) *promise.Promise
 		}
 
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("RSAKeys")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"sha256publickey": sha256pk})
+		c := session.Client().Database(dbName).Collection("PGPAccounts")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"pgppksha256": sha256pk})
 
 		if err1 != nil {
 			reject(err1)
@@ -2320,7 +2320,7 @@ func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
 	return p
 }
 
-func (cd *Connection) GetBindKey(formulaID , key , metricId string) *promise.Promise {
+func (cd *Connection) GetBindKey(formulaID, key, metricId string) *promise.Promise {
 	var bindKey model.BindKeyMap
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
