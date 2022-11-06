@@ -11,5 +11,8 @@ type RSAKeySaveSuccess struct {
 }
 
 type RSAPublickey struct {
-	Publickey string `json:"publicKey"`
+	PgpPublickkey    string
+	PgpPksha256      string
+	StellarPublickey string
+	Username         string
 }

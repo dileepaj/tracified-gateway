@@ -99,7 +99,7 @@ type ExpertFormula struct {
 	FormulaAsQuery  string               `json:"FormulaAsQuery" bson:"formulaAsQuery" validate:"required"`
 	CreatedAt       string               `json:"CreatedAt" bson:"createdAt"`
 	UpdatedAt       string               `json:"UpdatedAt" bson:"updatedAt"`
-	CiperText       string               `json:"CiperText" bson:"ciperText"`
+	Signature       string               `json:"Signature" bson:"signature"`
 }
 
 type User struct {
