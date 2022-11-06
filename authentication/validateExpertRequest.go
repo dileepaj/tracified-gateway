@@ -62,14 +62,15 @@ func (authObject AuthLayer) isExceedRequestLimitPerDay() (error, int) {
 		logrus.Error("Issue when converting string to int  ", err)
 	}
 	apiReq := model.API_ThrottlerRequest{
-		RequestEntityType: "Test",
-		RequestEntity:     "PK",
+		RequestEntityType: "EXPERT",
+		RequestEntity:     authObject.ExpertPK,
 		FormulaID:         authObject.FormulaId,
 		AllowedAmount:     allowReqPerDay,
 		FromTime:          convertedFromTime,
 		ToTime:            convertedFromTime.AddDate(0, 0, +1),
 	}
-	err, errCode, _ := APIThrottler(apiReq)
+	err, errCode, count := APIThrottler(apiReq, true)
+	logrus.Info("  REQUESTPERDAY  ", count)
 	if err != nil {
 		return err, errCode
 	}
@@ -85,14 +86,15 @@ func (authObject AuthLayer) isExceedRequestLimitPerWeek() (error, int) {
 		logrus.Error("Issue when converting string to int  ", err)
 	}
 	apiReq := model.API_ThrottlerRequest{
-		RequestEntityType: "Test",
-		RequestEntity:     "PK",
+		RequestEntityType: "EXPERT",
+		RequestEntity:     authObject.ExpertPK,
 		FormulaID:         authObject.FormulaId,
 		AllowedAmount:     allowReqPerWeek,
 		FromTime:          convertedFromTime.AddDate(0, 0, -6),
 		ToTime:            convertedFromTime.AddDate(0, 0, +1),
 	}
-	err, errCode, _ := APIThrottler(apiReq)
+	err, errCode, count := APIThrottler(apiReq, false)
+	logrus.Info("  REQUESTPERWEEK  ", count)
 	if err != nil {
 		if errCode != 429 {
 			return err, errCode
