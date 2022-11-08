@@ -75,7 +75,6 @@
             GATEWAY_ATLAS: "{{ lookup('env','GATEWAY_ATLAS') }}"
             STELLARLABORATORYCLIENT: "{{ lookup('env','STELLARLABORATORYCLIENT') }}"
             TRACIFIEDBACKEND: "{{ lookup('env','TRACIFIEDBACKEND') }}"
-            TRACIFIEDBACKENDTOKEN: "{{ lookup('env','TRACIFIEDBACKENDTOKEN') }}"
             AWS_ACCESS_KEY: "{{ lookup('env','AWS_ACCESS_KEY') }}"
             AWS_SECRET_KEY: "{{ lookup('env','AWS_SECRET_KEY') }}"
             AWS_REGION: "{{ lookup('env','AWS_REGION') }}"
