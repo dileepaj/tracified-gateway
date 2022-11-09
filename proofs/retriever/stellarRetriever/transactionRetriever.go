@@ -20,7 +20,7 @@ type ConcreteStellarTransaction struct {
 }
 
 func (stxn *ConcreteStellarTransaction) RetrieveTransaction() (*model.StellarTransaction, error) {
-	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + stxn.Txnhash)
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + stxn.Txnhash)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func (stxn *ConcreteStellarTransaction) RetrieveTransaction() (*model.StellarTra
 }
 
 func (stxn *ConcreteStellarTransaction) RetrieveOperations() (*model.StellarOperations, error) {
-	result, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + stxn.Txnhash + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + stxn.Txnhash + "/operations")
 	if err != nil {
 		return nil, err
 	}
@@ -163,6 +163,18 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 			break
 		case "mergeid": 
 			txe.MergeID = dataValue
+			break
+		case "realidentifer":
+			txe.RealIdentifier = dataValue
+			break
+		case "mapidentifier":
+			txe.MapIdentifier = dataValue
+			break
+		case "mapidentifier1":
+			txe.MapIdentifier1 = dataValue
+			break
+		case "mapidentifier2":
+			txe.MapIdentifier2 = dataValue
 			break
 	}
 	return txe

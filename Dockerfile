@@ -1,4 +1,5 @@
-FROM golang:1.16-alpine
+FROM golang:1.18-alpine
+RUN apk add --update cmake gcc g++ git  make  tar wget python3
 
 # Set destination for COPY
 RUN mkdir -p /go/src/github.com/dileepaj/tracified-gateway/
@@ -13,7 +14,7 @@ RUN go mod download
 COPY . ./
 
 # Build
-RUN CGO_ENABLED=0 go build github.com/dileepaj/tracified-gateway
+RUN go build github.com/dileepaj/tracified-gateway
 COPY . ./
 
 # CMD [ "ls" ]

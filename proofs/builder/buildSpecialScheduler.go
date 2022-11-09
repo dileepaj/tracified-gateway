@@ -1,13 +1,15 @@
 package builder
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 
 	"strconv"
 	"strings"
+
+	log "github.com/sirupsen/logrus"
 
 	// "github.com/dileepaj/tracified-gateway/model"
 	// "github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
@@ -15,6 +17,7 @@ import (
 	// "github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+
 	// "github.com/stellar/go/build"
 	// "github.com/stellar/go/clients/horizon"
 	"github.com/stellar/go/xdr"
@@ -30,13 +33,18 @@ import (
 @note -
 @params - ResponseWriter,Request
 */
+type Identifier struct {
+	Id   string
+	Type string
+}
+
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
 
-	log.Debug("------------------------- SubmitSpecial --------------------------")
+	// log.Debug("------------------------- SubmitSpecial --------------------------")
 	var Done []bool           //array to decide whether the actions are done
 	Done = append(Done, true) //starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
+	var id apiModel.IdentifierModel
 	object := dao.Connection{}
 	// var UserTxnHashes []string
 
@@ -53,7 +61,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial "+err.Error())
+			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
 		}
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
@@ -62,7 +70,6 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		// AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
-		
 		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
 
 		AP.TxnBody[i].Status = "pending"
@@ -79,6 +86,23 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 			}
 			json.NewEncoder(w).Encode(response)
 			return
+		}
+
+		if AP.TxnBody[i].TxnType == "0" {
+			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
+			if err != nil {
+				panic(err)
+			}
+
+			var jsonID Identifier
+			json.Unmarshal([]byte(rawDecodedText), &jsonID)
+			id.MapValue = AP.TxnBody[i].Identifier
+			id.Identifier = jsonID.Id
+			id.Type = jsonID.Type
+			err3 := object.InsertIdentifier(id)
+			if err3 != nil {
+				fmt.Println("identifier map failed" + err3.Error())
+			}
 		}
 	}
 
@@ -115,7 +139,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialData "+err.Error())
+			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialData " + err.Error())
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -123,13 +147,11 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
-
 		AP.TxnBody[i].Status = "pending"
 
-		fmt.Println(AP.TxnBody[i].Identifier)
 		err = object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err != nil {
-			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialData "+err.Error())
+			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialData " + err.Error())
 			Done = append(Done, false)
 			w.WriteHeader(http.StatusBadRequest)
 			response := apiModel.SubmitXDRSuccess{
@@ -171,7 +193,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 		//decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
-			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialTransfer "+err.Error())
+			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialTransfer " + err.Error())
 		}
 		//GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
@@ -184,10 +206,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 
 		AP.TxnBody[i].Status = "pending"
 
-		log.Debug(AP.TxnBody[i].Identifier)
 		err = object.InsertSpecialToTempOrphan(AP.TxnBody[i])
 		if err != nil {
-			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialTransfer "+err.Error())
+			log.Error("Error @ InsertSpecialToTempOrphan @SubmitSpecialTransfer " + err.Error())
 			Done = append(Done, false)
 			w.WriteHeader(http.StatusBadRequest)
 			response := apiModel.SubmitXDRSuccess{

@@ -20,6 +20,7 @@ var adminMgoSession mongo.Session
 var adminMgoConnectionUrl string
 
 func GetAdminMongoSession() (mongo.Session, error) {
+	//log.Println("-------------------------Get admin mongo session---------------")
 	if adminMgoSession == nil {
 		var err error
 		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(adminMgoConnectionUrl))

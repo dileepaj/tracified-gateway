@@ -3,26 +3,29 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
+
+	log "github.com/sirupsen/logrus"
 
 	// "strconv"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
 /*SubmitRenewCertificate - WORKING MODEL
 @author - Azeem Ashraf
-@desc - Builds the TXN Type C2 for the gateway where it receives the user XDR 
-and decodes it's contents and submit's to stellar and further maps the received TXN 
+@desc - Builds the TXN Type C2 for the gateway where it receives the user XDR
+and decodes it's contents and submit's to stellar and further maps the received TXN
 to Gateway Signed TXN's to maintain the profile, also records the activity in the gateway datastore
 @note - Should implement a validation layer to validate the contents of the XDR per builder before submission.
 @params - ResponseWriter,Request
@@ -31,6 +34,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 	log.Debug("======================= SubmitRenewCertificate ========================")
 	var Done []bool
 	Done = append(Done, true)
+	//netClient := commons.GetHorizonClient()
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
@@ -42,6 +46,10 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// var result model.SubmitXDRResponse
 
 	for i, TxnBody := range AP.TxnBody {
@@ -113,34 +121,72 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 
 		for i, TxnBody := range AP.TxnBody {
 
-			var PreviousTXNBuilder build.ManageDataBuilder
+			var PreviousTXNBuilder txnbuild.ManageData
 
 			//GET THE PREVIOUS CERTIFICATE FOR THE PUBLIC KEY
 			p := object.GetLastCertificatebyPublicKey(AP.TxnBody[i].PublicKey)
 			p.Then(func(data interface{}) interface{} {
 				result := data.(model.CertificateCollectionBody)
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(result.CertificateID))
+				//PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(result.CertificateID))
+				PreviousTXNBuilder = txnbuild.ManageData{
+					Name:"PreviousTXN",
+					Value: []byte(result.CertificateID),
+				}
 				AP.TxnBody[i].PreviousCertificate = result.CertificateID
 				return nil
 			}).Catch(func(error error) error {
 				log.Error("Error while GetLastCertificatebyPublicKey @SubmitRenewCertificate "+error.Error())
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
+				//PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(""))
+				PreviousTXNBuilder = txnbuild.ManageData{
+					Name: "PreviousTXN",
+					Value: []byte(""),
+				}
 				return error
 			})
 			p.Await()
 
+			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+			kp,_ := keypair.Parse(publicKey)
+			client := commons.GetHorizonNetwork()
+			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
+			pubaccount, err := client.AccountDetail(ar)
+			if err != nil {
+				log.Fatal(err)
+			}
+
 			//BUILD THE GATEWAY XDR
-			tx, err := build.Transaction(
-				commons.GetHorizonNetwork(),
-				build.SourceAccount{publicKey},
-				build.AutoSequence{commons.GetHorizonClient()},
-				build.SetData("Type", []byte("G"+TxnBody.TxnType)),
-				PreviousTXNBuilder,
-				build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+			// tx, err := build.Transaction(
+			// 	commons.GetHorizonNetwork(),
+			// 	build.SourceAccount{publicKey},
+			// 	build.AutoSequence{commons.GetHorizonClient()},
+			// 	build.SetData("Type", []byte("G"+TxnBody.TxnType)),
+			// 	PreviousTXNBuilder,
+			// 	build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+			// )
+
+			TypeTxnBuilder := txnbuild.ManageData{
+				Name: "Type",
+				Value: []byte("G"+TxnBody.TxnType),
+			}
+
+			CurrentTXNBuilder := txnbuild.ManageData{
+				Name: "CurrentTXN",
+				Value: []byte(UserTxnHashes[i]),
+			}
+
+			tx, err := txnbuild.NewTransaction(
+					txnbuild.TransactionParams{
+					SourceAccount: &pubaccount,
+					IncrementSequenceNum: true,
+					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
+					BaseFee: txnbuild.MinBaseFee,
+					Preconditions:txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				},
 			)
 
 			//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-			GatewayTXE, err := tx.Sign(secretKey)
+			GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 			if err != nil {
 				log.Error("Error while sign"+err.Error())
 				AP.TxnBody[i].CertificateID = UserTxnHashes[i]

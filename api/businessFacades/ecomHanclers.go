@@ -2,21 +2,19 @@ package businessFacades
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"regexp"
 	"sort"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/stellar/go/xdr"
-
-	"encoding/json"
-	"fmt"
-	"net/http"
-	"regexp"
-
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -52,7 +50,7 @@ func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 		text := encoded
 		result := model.TransactionId{Txnhash: TxnHash,
-			Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+			Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 				text + "%3D%3D&network=public"}
 
 		// res := TDP{TdpId: result.TdpId}
@@ -91,9 +89,9 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier: TxnBody.Identifier}
+				Identifier:TxnBody.Identifier}
 			result = append(result, temp)
 		}
 		// res := TDP{TdpId: result.TdpId}
@@ -172,7 +170,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 				// text := encoded
 				temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-					Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
+					Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 
 				resultArray = append(resultArray, temp)
 			}
@@ -205,17 +203,12 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			// encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			// text := encoded
 			temp := model.TransactionIds{Txnhash: Txn.TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
-
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + Txn.TxnHash, Identifier: Txn.Identifier, TdpId: TDPs.TdpID[i]}
 			resultArray = append(resultArray, temp)
-			// }
-
-			// res := TDP{TdpId: result.TdpId}
 			return nil
 		}).Catch(func(error error) error {
 			temp := model.TransactionIds{Txnhash: "Not Found", Url: "Not Found", Identifier: "Not Found", TdpId: TDPs.TdpID[i]}
 			resultArray = append(resultArray, temp)
-
 			return error
 		})
 		q.Await()
@@ -228,7 +221,6 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 
 func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	vars := mux.Vars(r)
 	var result []model.TransactionIds
 	object := dao.Connection{}
@@ -238,23 +230,19 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			TxnHash := TxnBody.TxnHash
-
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
 			// fmt.Println(string(mapB))
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
-
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
+				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
-
+				Identifier:TxnBody.Identifier, TdpId: TxnBody.TdpId,}
 			result = append(result, temp)
 		}
-
 		// res := TDP{TdpId: result.TdpId}
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
@@ -266,39 +254,33 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
-	log.Debug("----------------------------- QueryTransactionsByKey --------------------------------")
+	//log.Debug("----------------------------- QueryTransactionsByKey --------------------------------")
+	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var result []model.PrevTxnResponse
 	key1, error := r.URL.Query()["perPage"]
-
 	if !error || len(key1[0]) < 1 {
 		log.Println("Url Param 'perPage' is missing")
 		return
 	}
-
 	key2, error := r.URL.Query()["page"]
-
 	if !error || len(key2[0]) < 1 {
 		log.Println("Url Param 'page' is missing")
 		return
 	}
-
 	key3, error := r.URL.Query()["txn"]
-
 	if !error || len(key2[0]) < 1 {
 		log.Println("Url Param 'txn' is missing")
 		return
 	}
-
 	perPage, err := strconv.Atoi(key1[0])
 	if err != nil {
 		log.Error("Error while read limit " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		response = model.Error{Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -306,32 +288,46 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Error while read limit " + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		response = model.Error{Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-
 	txn := key3[0]
-
 	object := dao.Connection{}
-
+	log.Info("SearchBy:  ", checkValidVersionByte(txn))
 	switch checkValidVersionByte(txn) {
 	case "pk":
 		qdata, err := object.GetAllTransactionForPK_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
-
-		if err != nil || qdata == nil {
-			log.Error("Error while GetAllTransactionForTxId " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "PublicKey is Not Found in Gateway DataStore"}
+		if err != nil {
+			log.Error("Unable to connect gateway datastore")
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastore"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		if qdata == nil {
+			log.Error("Identifier is not found in gateway datastore")
+			w.WriteHeader(http.StatusNoContent)
+			response = model.Error{Code: http.StatusNoContent, Message: "Identifier is not found in gateway datastore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
 		res := qdata.(model.TransactionCollectionBodyWithCount)
-		// fmt.Println(res)
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
+
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
+
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
+
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
 			status := "success"
@@ -341,16 +337,25 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
-				status = "Txn Id Not Found in Stellar Public Net"
+				log.Error("Unable to reach Stellar network in result1")
+				status = "Unable to reach Stellar network"
+				w.WriteHeader(http.StatusNotFound)
+				response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+				json.NewEncoder(w).Encode(response)
+			}
+			if result1.StatusCode != 200 {
+				log.Error("Transaction could not be retrieved from Stellar Network in result1")
+				status = "Transaction could not be retrieved from Stellar Network"
+				w.WriteHeader(http.StatusNoContent)
+				response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+				json.NewEncoder(w).Encode(response)
 			}
 			data, err := ioutil.ReadAll(result1.Body)
 			if err != nil {
-				log.Error("Error while reading ioutil.ReadAll(result1.Body) " + err.Error())
-			}
-			if result1.StatusCode != 200 {
-				status = "Txn Id Not Found in Stellar Public Net"
+				log.Error("Unable to reading response")
+				response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 			}
 			if status == "success" {
 				var raw map[string]interface{}
@@ -362,90 +367,112 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				to = fmt.Sprintf("%s", raw["source_account"])
 				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 				if errXDR != nil {
-					log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
+					//log.Error("Error while SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Error while getting transactions by txnhash ")
+						w.WriteHeader(http.StatusNotFound)
+						response := model.Error{Code: http.StatusNotFound, Message: "Txn for the TXN does not exist in the Blockchain "}
 						json.NewEncoder(w).Encode(response)
-
+					}
+					if result1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var raw map[string]interface{}
 					err = json.Unmarshal(data, &raw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal row data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					out, err := json.Marshal(raw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal embedded")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal embedded"}
 					}
 					var raw1 map[string]interface{}
 					err = json.Unmarshal(out, &raw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					out1, err := json.Marshal(raw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					keysBody := out1
 					keys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(keysBody, &keys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal keys data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 					acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 					if err != nil {
-						log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						log.Error("Unable to base64 decoding")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to base64 decoding"}
 					}
 					acceptTxn := string(acceptTxn_byteData)
-					log.Info("acceptTxn: " + acceptTxn)
-
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					//log.Info("acceptTxn: " + acceptTxn)
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in acceptresult1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
 					}
-
+					if acceptresult1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
+					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response", err)
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var acceptraw map[string]interface{}
 					err = json.Unmarshal(acceptdata, &acceptraw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					acceptout, err := json.Marshal(acceptraw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal _embedded ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal _embedded"}
 					}
 					var acceptraw1 map[string]interface{}
 					err = json.Unmarshal(acceptout, &acceptraw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					acceptout1, err := json.Marshal(acceptraw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					acceptkeysBody := acceptout1
 					acceptkeys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(acceptkeysBody, &acceptkeys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal key's data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 
 					to = string(acceptkeys[3].To)
@@ -457,8 +484,6 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 					assetcode = string(acceptkeys[3].Asset_code)
 					log.Info("Asset Code: " + assetcode)
 				}
-			} else {
-				log.Error("Not success")
 			}
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
@@ -469,13 +494,13 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     TxnBody.Identifier,
+				Identifier:     commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
-				Blockchain:		"Stellar",
+				Blockchain:     "Stellar",
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
 				FeePaid:        feePaid,
@@ -487,8 +512,17 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				To:             to,
 				ProductName:    TxnBody.ProductName,
 				Itemcount:      count,
-				AssetCode:      assetcode}
-
+				AssetCode:      assetcode,
+				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+			}
+			if response.Message != "" && response.Code != 0 {
+				log.Error(response.Message)
+				w.WriteHeader(response.Code)
+				json.NewEncoder(w).Encode(response)
+			} else {
+				result = append(result, temp)
+			}
 			result = append(result, temp)
 		}
 		sort.SliceStable(result, func(i, j int) bool {
@@ -502,17 +536,33 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		qdata, err := object.GetAllTransactionForTxId(txn).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
-
-		if err != nil || qdata == nil {
-			log.Error("Error while GetAllTransactionForTxId " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "TxnHash is Not Found in Gateway DataStore"}
+		if err != nil {
+			log.Error("Unable to connect gateway datastore")
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
-
+		if qdata == nil {
+			log.Error("Identifier is not found in gateway datastore")
+			w.WriteHeader(http.StatusNoContent)
+			response = model.Error{Code: http.StatusNoContent, Message: "Identifier is not found in gateway datastore"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
 		res := qdata.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
+
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
+
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
+
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
 			status := "success"
@@ -522,15 +572,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
-			log.Info(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
-				status = "Txn Id Not Found in Stellar Public Net"
+				log.Error("Unable to reach Stellar network in result1")
+				status = "Unable to reach Stellar network"
+				w.WriteHeader(http.StatusNotFound)
+				response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+				json.NewEncoder(w).Encode(response)
+			}
+			if result1.StatusCode != 200 {
+				log.Error("Transaction could not be retrieved from Stellar Network in result1")
+				status = "Transaction could not be retrieved from Stellar Network"
+				w.WriteHeader(http.StatusNoContent)
+				response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
-			if result1.StatusCode != 200 {
-				status = "Txn Id Not Found in Stellar Public Net"
-			}
 			if status == "success" {
 				var raw map[string]interface{}
 				json.Unmarshal(data, &raw)
@@ -541,90 +598,113 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				to = fmt.Sprintf("%s", raw["source_account"])
 				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 				if errXDR != nil {
-					log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+					//log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in result1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
+					}
+					if result1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in result1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var raw map[string]interface{}
 					err = json.Unmarshal(data, &raw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal row data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					out, err := json.Marshal(raw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal embedded")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal embedded"}
 					}
 					var raw1 map[string]interface{}
 					err = json.Unmarshal(out, &raw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					out1, err := json.Marshal(raw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					keysBody := out1
 					keys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(keysBody, &keys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal keys data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 					acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 					if err != nil {
-						log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						log.Error("Unable to base64 decoding")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to base64 decoding"}
 					}
 					acceptTxn := string(acceptTxn_byteData)
-					log.Info("acceptTxn: " + acceptTxn)
-
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					//log.Info("acceptTxn: " + acceptTxn)
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in acceptresult1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
 					}
-
+					if acceptresult1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
+					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response", err)
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var acceptraw map[string]interface{}
 					err = json.Unmarshal(acceptdata, &acceptraw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					acceptout, err := json.Marshal(acceptraw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal _embedded ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal _embedded"}
 					}
 					var acceptraw1 map[string]interface{}
 					err = json.Unmarshal(acceptout, &acceptraw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					acceptout1, err := json.Marshal(acceptraw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					acceptkeysBody := acceptout1
 					acceptkeys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(acceptkeysBody, &acceptkeys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal key's data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 
 					to = string(acceptkeys[3].To)
@@ -647,12 +727,12 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     TxnBody.Identifier,
+				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:          TxnBody.TdpId,
-				Blockchain:		"Stellar",
+				Blockchain:     "Stellar",
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
 				TxnType:        GetTransactiontype(TxnBody.TxnType),
@@ -664,9 +744,19 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AvailableProof: GetProofName(TxnBody.TxnType),
 				To:             to,
 				ProductName:    TxnBody.ProductName,
-				AssetCode:      assetcode}
-			result = append(result, temp)
+				AssetCode:      assetcode,
+				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+			}
+			if response.Message != "" && response.Code != 0 {
+				log.Error(response.Message)
+				w.WriteHeader(response.Code)
+				json.NewEncoder(w).Encode(response)
+			} else {
+				result = append(result, temp)
+			}
 		}
+
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return
@@ -675,17 +765,34 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		qdata, err := object.GetAllTransactionForTdpId_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
-
-		if err != nil || qdata == nil {
-			log.Error("Error while GetAllTransactionForTxId " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "TDPId is Not Found in Gateway DataStore"}
+		if err != nil {
+			log.Error("Unable to connect gateway datastore")
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		if qdata == nil {
+			log.Error("Identifier is not found in gateway datastore")
+			w.WriteHeader(http.StatusNoContent)
+			response = model.Error{Code: http.StatusNoContent, Message: "Identifier is not found in gateway datastore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
 		res := qdata.(model.TransactionCollectionBodyWithCount)
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
+
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
+
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
+
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
 			status := "success"
@@ -695,14 +802,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
-				status = "Txn Id Not Found in Stellar Public Net"
+				log.Error("Unable to reach Stellar network in result1")
+				status = "Unable to reach Stellar network"
+				w.WriteHeader(http.StatusNotFound)
+				response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+				json.NewEncoder(w).Encode(response)
+			}
+			if result1.StatusCode != 200 {
+				log.Error("Transaction could not be retrieved from Stellar Network in result1")
+				status = "Transaction could not be retrieved from Stellar Network"
+				w.WriteHeader(http.StatusNoContent)
+				response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
-			if result1.StatusCode != 200 {
-				status = "Txn Id Not Found in Stellar Public Net"
-			}
 			if status == "success" {
 				var raw map[string]interface{}
 				json.Unmarshal(data, &raw)
@@ -713,90 +828,113 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				// to = fmt.Sprintf("%s", raw["source_account"])
 				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 				if errXDR != nil {
-					log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+					//log.Error("Error SafeUnmarshalBase64" + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in result1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
+					}
+					if result1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in result1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var raw map[string]interface{}
 					err = json.Unmarshal(data, &raw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal row data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					out, err := json.Marshal(raw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal embedded")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal embedded"}
 					}
 					var raw1 map[string]interface{}
 					err = json.Unmarshal(out, &raw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					out1, err := json.Marshal(raw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					keysBody := out1
 					keys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(keysBody, &keys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal keys data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 					acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 					if err != nil {
-						log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						log.Error("Unable to base64 decoding")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to base64 decoding"}
 					}
 					acceptTxn := string(acceptTxn_byteData)
-					log.Info("acceptTxn: " + acceptTxn)
-
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					//log.Info("acceptTxn: " + acceptTxn)
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in acceptresult1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
 					}
-
+					if acceptresult1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
+					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response", err)
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var acceptraw map[string]interface{}
 					err = json.Unmarshal(acceptdata, &acceptraw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					acceptout, err := json.Marshal(acceptraw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal _embedded ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal _embedded"}
 					}
 					var acceptraw1 map[string]interface{}
 					err = json.Unmarshal(acceptout, &acceptraw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					acceptout1, err := json.Marshal(acceptraw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					acceptkeysBody := acceptout1
 					acceptkeys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(acceptkeysBody, &acceptkeys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal key's data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 
 					to = string(acceptkeys[3].To)
@@ -807,7 +945,6 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 					assetcode = string(acceptkeys[3].Asset_code)
 					log.Info("Asset Code: " + assetcode)
-
 				}
 			}
 			mapD := map[string]string{"transaction": TxnHash}
@@ -819,11 +956,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     TxnBody.Identifier,
-				Blockchain:		"Stellar",
+				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
+				Blockchain:     "Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -837,8 +974,17 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				To:             to,
 				ProductName:    TxnBody.ProductName,
 				Itemcount:      count,
-				AssetCode:      assetcode}
-			result = append(result, temp)
+				AssetCode:      assetcode,
+				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+			}
+			if response.Message != "" && response.Code != 0 {
+				log.Error(response.Message)
+				w.WriteHeader(response.Code)
+				json.NewEncoder(w).Encode(response)
+			} else {
+				result = append(result, temp)
+			}
 		}
 		sort.SliceStable(result, func(i, j int) bool {
 			return result[i].Timestamp > result[j].Timestamp
@@ -848,21 +994,48 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 		return
 
 	case "":
+
+		_, err := object.GetMapValue(txn).Then(func(data interface{}) interface{} {
+			realIdentifier := data.(apiModel.IdentifierModel)
+			txn = realIdentifier.MapValue
+			return nil
+		}).Await()
+
+		if err != nil {
+			log.Print("Unable to get real identifier")
+		}
+
 		qdata, err := object.GetTransactionsbyIdentifier_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
-
-		if err != nil || qdata == nil {
-			log.Error("Error while GetAllTransactionForTxId " + err.Error())
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "identifier is Not Found in Gateway DataStore"}
+		if err != nil {
+			log.Error("Unable to connect gateway datastore")
+			w.WriteHeader(http.StatusNotFound)
+			response = model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
-
+		if qdata == nil {
+			log.Error("Identifier is not found in gateway datastore")
+			w.WriteHeader(http.StatusNoContent)
+			response = model.Error{Code: http.StatusNoContent, Message: "Identifier is not found in gateway datastore"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
 		res := qdata.(model.TransactionCollectionBodyWithCount)
 		count := strconv.Itoa(int(res.Count))
 		for _, TxnBody := range res.Transactions {
+
+			_, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+				realIdentifier := data.(apiModel.IdentifierModel)
+				TxnBody.Identifier = realIdentifier.Identifier
+				return nil
+			}).Await()
+
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
+
 			TxnHash := TxnBody.TxnHash
 			var txe xdr.Transaction
 			status := "success"
@@ -872,14 +1045,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 			assetcode := ""
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
-				status = "Txn Id Not Found in Stellar Public Net"
+				log.Error("Unable to reach Stellar network in result1")
+				status = "Unable to reach Stellar network"
+				w.WriteHeader(http.StatusBadRequest)
+				response = model.Error{Code: http.StatusBadRequest, Message: "Unable to reach Stellar network"}
+				json.NewEncoder(w).Encode(response)
+			}
+			if result1.StatusCode != 200 {
+				log.Error("Transaction could not be retrieved from Stellar Network in result1")
+				status = "Transaction could not be retrieved from Stellar Network"
+				w.WriteHeader(http.StatusNoContent)
+				response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+				json.NewEncoder(w).Encode(response)
 			}
 			data, _ := ioutil.ReadAll(result1.Body)
-			if result1.StatusCode != 200 {
-				status = "Txn Id Not Found in Stellar Public Net"
-			}
 			if status == "success" {
 				var raw map[string]interface{}
 				json.Unmarshal(data, &raw)
@@ -890,90 +1071,113 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				to = fmt.Sprintf("%s", raw["source_account"])
 				errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 				if errXDR != nil {
-					log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+					//log.Error("Error SafeUnmarshalBase64" + errXDR.Error())
 				}
 				if TxnBody.TxnType == "10" {
-					result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+					result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in result1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
+					}
+					if result1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in result1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
 					}
 					data, err := ioutil.ReadAll(result1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var raw map[string]interface{}
 					err = json.Unmarshal(data, &raw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal row data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					out, err := json.Marshal(raw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal embedded")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal embedded"}
 					}
 					var raw1 map[string]interface{}
 					err = json.Unmarshal(out, &raw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					out1, err := json.Marshal(raw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					keysBody := out1
 					keys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(keysBody, &keys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal keys data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 					acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 					if err != nil {
-						log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+						log.Error("Unable to base64 decoding")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to base64 decoding"}
 					}
 					acceptTxn := string(acceptTxn_byteData)
-					log.Info("acceptTxn: " + acceptTxn)
-
-					acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+					//log.Info("acceptTxn: " + acceptTxn)
+					acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 					if err != nil {
-						log.Error("Error while getting transactions by txnhash " + err.Error())
-						w.WriteHeader(http.StatusBadRequest)
-						response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
+						log.Error("Unable to reach Stellar network in acceptresult1")
+						status = "Unable to reach Stellar network"
+						w.WriteHeader(http.StatusNotFound)
+						response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
 						json.NewEncoder(w).Encode(response)
-
 					}
-
+					if acceptresult1.StatusCode != 200 {
+						log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+						status = "Transaction could not be retrieved from Stellar Network"
+						w.WriteHeader(http.StatusNoContent)
+						response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+						json.NewEncoder(w).Encode(response)
+					}
 					acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 					if err != nil {
-						log.Error("Error while read response " + err.Error())
+						log.Error("Unable to reading response", err)
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 					}
 					var acceptraw map[string]interface{}
 					err = json.Unmarshal(acceptdata, &acceptraw)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
-
 					acceptout, err := json.Marshal(acceptraw["_embedded"])
 					if err != nil {
-						log.Error("Error while json marshal _embedded " + err.Error())
+						log.Error("Unable to marshal _embedded ")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal _embedded"}
 					}
 					var acceptraw1 map[string]interface{}
 					err = json.Unmarshal(acceptout, &acceptraw1)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+						log.Error("Unable to unmarshal data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 					}
 					acceptout1, err := json.Marshal(acceptraw1["records"])
 					if err != nil {
-						log.Error("Error while json marshal records " + err.Error())
+						log.Error("Unable to marshal records")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 					}
 					acceptkeysBody := acceptout1
 					acceptkeys := make([]PublicKeyPOCOC, 0)
 					err = json.Unmarshal(acceptkeysBody, &acceptkeys)
 					if err != nil {
-						log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+						log.Error("Unable to unmarshal key's data")
+						response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 					}
 
 					to = string(acceptkeys[3].To)
@@ -984,7 +1188,6 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 
 					assetcode = string(acceptkeys[3].Asset_code)
 					log.Info("Asset Code: " + assetcode)
-
 				}
 			}
 			mapD := map[string]string{"transaction": TxnHash}
@@ -996,11 +1199,11 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			text := encoded
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     TxnBody.Identifier,
-				Blockchain:		"Stellar",
+				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
+				Blockchain:     "Stellar",
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -1014,7 +1217,17 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				To:             to,
 				ProductName:    TxnBody.ProductName,
 				Itemcount:      count,
-				AssetCode:      assetcode}
+				AssetCode:      assetcode,
+				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+			}
+			if response.Message != "" && response.Code != 0 {
+				log.Error(response.Message)
+				w.WriteHeader(response.Code)
+				json.NewEncoder(w).Encode(response)
+			} else {
+				result = append(result, temp)
+			}
 			result = append(result, temp)
 		}
 		sort.SliceStable(result, func(i, j int) bool {
@@ -1047,7 +1260,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 			from := ""
 			to := ""
 
-			result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 			if err != nil {
 				status = "Txn Id Not Found in Stellar Public Net"
 			}
@@ -1088,10 +1301,10 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			temp := model.PrevTxnResponse{
 				Status: status, Txnhash: TxnHash,
-				Url: commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
+				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     TxnBody.Identifier,
+				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 				TdpId:          TxnBody.TdpId,
 				DataHash:       TxnBody.DataHash,
 				Timestamp:      timestamp,
@@ -1102,7 +1315,10 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				From:           from,
 				SequenceNo:     TxnBody.SequenceNo,
 				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to}
+				To:             to,
+				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+			}
 
 			result = append(result, temp)
 		}
@@ -1187,51 +1403,68 @@ func checkValidVersionByte(key string) string {
 	return ""
 }
 
+func RetrievePreviousTranasctionsCount(w http.ResponseWriter, r *http.Request) {
+	object := dao.Connection{}
+	var totalRecordCount model.TotalTransaction
+	_, err := object.GetTransactionCount().Then(func(data interface{}) interface{} {
+		totalRecordCount = model.TotalTransaction{TotalTransactionCount: data.(int64)}
+		w.WriteHeader(http.StatusOK)
+		return json.NewEncoder(w).Encode(totalRecordCount)
+	}).Await()
+	if err != nil {
+		log.Error("Unable Reach to Database", err)
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "Unable Reach to Database"})
+		return
+	}
+}
+
 //RetrievePreviousTranasctions ...
 func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
+	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["perPage"]
 
 	if !error || len(key1[0]) < 1 {
-		log.Println("Url Param 'perPage' is missing")
+		log.Error("Url Parameter 'perPage' is missing")
 		return
 	}
 
 	key2, error := r.URL.Query()["page"]
 
 	if !error || len(key2[0]) < 1 {
-		log.Println("Url Param 'page' is missing")
+		log.Error("Url Parameter 'page' is missing")
 		return
 	}
 
 	key3, error := r.URL.Query()["NoPage"]
 
 	if !error || len(key3[0]) < 1 {
-		log.Println("Url Param 'NoPage' is missing")
+		log.Error("Url Parameter 'NoPage' is missing")
 		return
 	}
 
 	perPage, err := strconv.Atoi(key1[0])
 	if err != nil {
-		log.Error("Error while read limit " + err.Error())
+		log.Error("Query parameter error" + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 	page, err := strconv.Atoi(key2[0])
 	if err != nil {
-		log.Error("Error while read limit " + err.Error())
+		log.Error("Query parameter error" + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 	NoPage, err := strconv.Atoi(key3[0])
 	if err != nil {
-		log.Error("Error while read limit " + err.Error())
+		log.Error("Query parameter error" + err.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "The parameter should be an integer " + err.Error()}
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -1242,6 +1475,17 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
+
+			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+			// 	realIdentifier := data.(apiModel.IdentifierModel)
+			// 	TxnBody.Identifier = realIdentifier.Identifier
+			// 	return nil
+			// }).Await()
+
+			if err != nil {
+				log.Print("Unable to get real identifier")
+			}
+
 			if TxnBody.TxnType != "11" {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
@@ -1252,21 +1496,25 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				from := ""
 				to := ""
 				assetcode := ""
-				result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash)
+				result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash)
 				if err != nil {
-					log.Error("Txn Id Not Found in Stellar Public Net " + err.Error())
-					status = "Txn Id Not Found in Stellar Public Net"
-					return nil
+					log.Error("Unable to reach Stellar network in result1")
+					status = "Unable to reach Stellar network"
+					w.WriteHeader(http.StatusNotFound)
+					response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+					return json.NewEncoder(w).Encode(response)
+				}
+				if result1.StatusCode != 200 {
+					log.Error("Transaction could not be retrieved from Stellar Network in result1")
+					status = "Transaction could not be retrieved from Stellar Network"
+					w.WriteHeader(http.StatusNoContent)
+					response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+					return json.NewEncoder(w).Encode(response)
 				}
 				data, _ := ioutil.ReadAll(result1.Body)
-				if result1.StatusCode != 200 {
-					status = "Txn Id Not Found in Stellar Public Net"
-					return nil
-				}
 				if status == "success" {
 					var raw map[string]interface{}
 					json.Unmarshal(data, &raw)
-					fmt.Println(raw)
 					timestamp = fmt.Sprintf("%s", raw["created_at"])
 					ledger = fmt.Sprintf("%.0f", raw["ledger"])
 					feePaid = fmt.Sprintf("%s", raw["fee_charged"])
@@ -1274,92 +1522,114 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					to = fmt.Sprintf("%s", raw["source_account"])
 					errXDR := xdr.SafeUnmarshalBase64(fmt.Sprintf("%s", raw["envelope_xdr"]), &txe)
 					if errXDR != nil {
-						log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
+						//log.Error("Error SafeUnmarshalBase64 " + errXDR.Error())
 					}
 					if TxnBody.TxnType == "10" {
-						result1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations")
+						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations")
 						if err != nil {
-							log.Error("Error while getting transactions by txnhash " + err.Error())
-							w.WriteHeader(http.StatusBadRequest)
-							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
-							json.NewEncoder(w).Encode(response)
-
+							log.Error("Unable to reach Stellar network in result1")
+							status = "Unable to reach Stellar network"
+							w.WriteHeader(http.StatusNotFound)
+							response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+							return json.NewEncoder(w).Encode(response)
+						}
+						if result1.StatusCode != 200 {
+							log.Error("Transaction could not be retrieved from Stellar Network in result1")
+							status = "Transaction could not be retrieved from Stellar Network"
+							w.WriteHeader(http.StatusNoContent)
+							response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+							return json.NewEncoder(w).Encode(response)
 						}
 						data, err := ioutil.ReadAll(result1.Body)
 						if err != nil {
-							log.Error("Error while read response " + err.Error())
+							log.Error("Unable to reading response")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 						}
 						var raw map[string]interface{}
 						err = json.Unmarshal(data, &raw)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+							log.Error("Unable to unmarshal row data")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 						}
-
 						out, err := json.Marshal(raw["_embedded"])
 						if err != nil {
-							log.Error("Error while json marshal _embedded " + err.Error())
+							log.Error("Unable to marshal embedded")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal embedded"}
 						}
 						var raw1 map[string]interface{}
 						err = json.Unmarshal(out, &raw1)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+							log.Error("Unable to unmarshal  json.Unmarshal(out, &raw1)")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 						}
 						out1, err := json.Marshal(raw1["records"])
 						if err != nil {
-							log.Error("Error while json marshal records " + err.Error())
+							log.Error("Unable to marshal records ")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 						}
 						keysBody := out1
 						keys := make([]PublicKeyPOCOC, 0)
 						err = json.Unmarshal(keysBody, &keys)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+							log.Error("Unable to unmarshal keys data")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 						}
 						acceptTxn_byteData, err := base64.StdEncoding.DecodeString(keys[2].Value)
 						if err != nil {
-							log.Error("Error while base64.StdEncoding.DecodeString " + err.Error())
+							log.Error("Unable to base64 decoding")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to base64 decoding"}
 						}
 						acceptTxn := string(acceptTxn_byteData)
 						log.Info("acceptTxn: " + acceptTxn)
-
-						acceptresult1, err := http.Get(commons.GetHorizonClient().URL + "/transactions/" + acceptTxn + "/operations")
+						acceptresult1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + acceptTxn + "/operations")
 						if err != nil {
-							log.Error("Error while getting transactions by txnhash " + err.Error())
-							w.WriteHeader(http.StatusBadRequest)
-							response := model.Error{Message: "Txn for the TXN does not exist in the Blockchain " + err.Error()}
-							json.NewEncoder(w).Encode(response)
-
+							log.Error("Unable to reach Stellar network in acceptresult1")
+							status = "Unable to reach Stellar network"
+							w.WriteHeader(http.StatusNotFound)
+							response = model.Error{Code: http.StatusNotFound, Message: "Unable to reach Stellar network"}
+							return json.NewEncoder(w).Encode(response)
 						}
-
+						if acceptresult1.StatusCode != 200 {
+							log.Error("Transaction could not be retrieved from Stellar Network in acceptresult1")
+							status = "Transaction could not be retrieved from Stellar Network"
+							w.WriteHeader(http.StatusNoContent)
+							response = model.Error{Code: http.StatusNoContent, Message: "Transaction could not be retrieved from Stellar Network"}
+							return json.NewEncoder(w).Encode(response)
+						}
 						acceptdata, err := ioutil.ReadAll(acceptresult1.Body)
 						if err != nil {
-							log.Error("Error while read response " + err.Error())
+							log.Error("Unable to reading response", err)
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to reading response"}
 						}
 						var acceptraw map[string]interface{}
 						err = json.Unmarshal(acceptdata, &acceptraw)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(data, &raw) " + err.Error())
+							log.Error("Unable to unmarshal data")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 						}
-
 						acceptout, err := json.Marshal(acceptraw["_embedded"])
 						if err != nil {
-							log.Error("Error while json marshal _embedded " + err.Error())
+							log.Error("Unable to marshal _embedded ")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal _embedded"}
 						}
 						var acceptraw1 map[string]interface{}
 						err = json.Unmarshal(acceptout, &acceptraw1)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(out, &raw1) " + err.Error())
+							log.Error("Unable to unmarshal data")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal data"}
 						}
 						acceptout1, err := json.Marshal(acceptraw1["records"])
 						if err != nil {
-							log.Error("Error while json marshal records " + err.Error())
+							log.Error("Unable to marshal records")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to marshal records"}
 						}
 						acceptkeysBody := acceptout1
 						acceptkeys := make([]PublicKeyPOCOC, 0)
 						err = json.Unmarshal(acceptkeysBody, &acceptkeys)
 						if err != nil {
-							log.Error("Error while json.Unmarshal(keysBody, &keys) " + err.Error())
+							log.Error("Unable to unmarshal key's data")
+							response = model.Error{Code: http.StatusInternalServerError, Message: "Unable to unmarshal key's data"}
 						}
-
 						to = string(acceptkeys[3].To)
 						log.Info("Destination: " + to)
 
@@ -1368,7 +1638,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 						assetcode = string(acceptkeys[3].Asset_code)
 						log.Info("Source: " + assetcode)
-
 					}
 				}
 				//mapD := map[string]string{"transaction": TxnHash}
@@ -1383,8 +1652,8 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 				//text := encoded
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
-					Url:            commons.GetHorizonClient().URL + "/transactions/" + TxnHash + "/operations",
-					Identifier:     TxnBody.Identifier,
+					Url:             commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
+					Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
 					TdpId:          TxnBody.TdpId,
 					DataHash:       TxnBody.DataHash,
 					Timestamp:      timestamp,
@@ -1397,7 +1666,10 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					AvailableProof: GetProofName(TxnBody.TxnType),
 					To:             to,
 					ProductName:    TxnBody.ProductName,
-					AssetCode:      assetcode}
+					AssetCode:      assetcode,
+					FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
+					FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+				}
 				result = append(result, temp)
 			}
 		}
@@ -1411,10 +1683,15 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	}).Await()
 
 	if err != nil {
-		log.Error("No Transactions Found in Gateway DataStore " + err.Error())
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "No Transactions Found in Gateway DataStore " + err.Error()}
-		json.NewEncoder(w).Encode(response)
+		if response.Message != "" && response.Code != 0 {
+			log.Error(response.Message)
+			w.WriteHeader(response.Code)
+			json.NewEncoder(w).Encode(response)
+		} else {
+			log.Error("No Transactions Found in Gateway DataStore")
+			w.WriteHeader(http.StatusNoContent)
+			json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "No Transactions Found in Gateway DataStore"})
+		}
 	}
 }
 

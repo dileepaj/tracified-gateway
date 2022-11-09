@@ -3,16 +3,20 @@ package businessFacades
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/build"
+	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -259,8 +263,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 
 		return
 	}
-	fmt.Println(TDP)
-
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecial(w, r)
 	// 	display.SubmitGenesis(w,r)
@@ -305,8 +307,8 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(TDP)
-
+	//fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
+	//fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
 	display.SubmitSpecial(w, r)
@@ -733,10 +735,11 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err1)
 	}
 
-	brr := build.TransactionBuilder{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	//brr := txnbuild.TransactionFrom{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	brr,_ := txnbuild.TransactionFromXDR(TDP.XDR)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 	// fmt.Println(brr.Hash())
-	t, _ := brr.Hash()
+	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
 	w.WriteHeader(http.StatusOK)
@@ -867,4 +870,123 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+}
+
+func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var result []model.TransactionHashWithIdentifier
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+	p := object.GetRealIdentifierByMapValue(vars["identifier"])
+	p.Then(func(data interface{}) interface{} {
+		dbResult := data.([]model.TransactionCollectionBody)
+		for _, TxnBody := range dbResult {
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + TxnBody.TxnHash)
+			if err != nil {
+				logrus.Error("Unable to reach Stellar network in result1")
+			}
+			if result1.StatusCode != 200 {
+				logrus.Error("Transaction could not be retrieved from Stellar Network in result1")
+			}
+			data, _ := ioutil.ReadAll(result1.Body)
+			var raw map[string]interface{}
+			json.Unmarshal(data, &raw)
+			createdAt := fmt.Sprintf("%s", raw["created_at"])
+
+			temp := model.TransactionHashWithIdentifier{
+				Status:          TxnBody.Status,
+				Txnhash:         TxnBody.TxnHash,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				Identifier:      TxnBody.Identifier,
+				FromIdentifier1: TxnBody.FromIdentifier1,
+				FromIdentifier2: TxnBody.FromIdentifier2,
+				ToIdentifier:    TxnBody.ToIdentifier,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				ProductName:     TxnBody.ProductName,
+				ProductID:       TxnBody.ProductID,
+				Timestamp:       createdAt,
+			}
+			result = append(result, temp)
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Identifier Not Found in Gateway DataStore"}
+		json.NewEncoder(w).Encode(response)
+		return error
+	}).Await()
+}
+func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var result []model.TransactionHashWithIdentifier
+	vars := mux.Vars(r)
+	object := dao.Connection{}
+
+	//call backend to get identiderby artifactId
+	url := constants.TracifiedBackend+"/api/v2/identifiers/artifact/" + vars["artifactid"]
+	bearer := "Bearer " + constants.BackendToken
+	// Create a new request using http
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		logrus.Error("Error while create new request using http " + err.Error())
+	}
+	req.Header.Add("Authorization", bearer)
+	client := &http.Client{}
+	resq, err1 := client.Do(req)
+	if err1 != nil {
+		logrus.Error("Error while getting response " + err1.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + err1.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	body, err3 := ioutil.ReadAll(resq.Body)
+	if err3 != nil {
+		logrus.Error("Error while ioutil.ReadAll(resq.Body) " + err3.Error())
+	}
+	var identifiers []string
+	json.Unmarshal(body, &identifiers)
+	if(resq.StatusCode==200||resq.StatusCode==204){
+	if(len(identifiers)>0){
+	p := object.GetRealIdentifiersByArtifactId(identifiers)
+	p.Then(func(data interface{}) interface{} {
+		dbResult := data.([]model.TransactionCollectionBody)
+			for _, TxnBody := range dbResult {
+			temp := model.TransactionHashWithIdentifier{
+				Status: TxnBody.Status,
+				Txnhash: TxnBody.TxnHash,
+				Identifier:     TxnBody.Identifier,
+				FromIdentifier1: TxnBody.FromIdentifier1,
+				FromIdentifier2: TxnBody.FromIdentifier2,
+				ToIdentifier: TxnBody.ToIdentifier,
+				TxnType:        GetTransactiontype(TxnBody.TxnType),
+				AvailableProof: GetProofName(TxnBody.TxnType),
+				ProductID:  TxnBody.ProductID,
+				ProductName:    TxnBody.ProductName,
+				}
+			result = append(result, temp)
+				}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+		return nil
+	}).Catch(func(error error) error {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: error.Error()}
+		json.NewEncoder(w).Encode(response)
+		return error
+	}).Await()
+	}else{
+		w.WriteHeader(http.StatusNoContent)
+		response := model.Error{Message: "Can not find the identires for artifactid"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+}else {
+	w.WriteHeader(http.StatusBadGateway)
+	response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
+	json.NewEncoder(w).Encode(response)
+	return
+}
 }

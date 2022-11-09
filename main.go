@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
 )
@@ -22,7 +23,6 @@ func getPort() string {
 }
 
 func main() {
-
 	// godotenv package
 	envName := commons.GoDotEnvVariable("BRANCH_NAME")
 
@@ -48,9 +48,14 @@ func main() {
 		services.CheckTempOrphan()
 	})
 	c.Start()
-
 	router := routes.NewRouter()
+	// rabbit mq server
+	go services.ReciverRmq()
+	// serve swagger documentation
+	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.yaml"}
+	sh := middleware.SwaggerUI(opts, nil)
+	router.Handle("/docs", sh)
+	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
-
 }

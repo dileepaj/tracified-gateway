@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -105,10 +105,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	brr,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t, _ := brr.Hash()
+	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
 	err = xdr.SafeUnmarshalBase64(GObj.RejectXdr, &reject)
@@ -116,10 +116,10 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr1 := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	brr1,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t1, _ := brr1.Hash()
+	t1, _ := brr1.Hash(network.TestNetworkPassphrase)
 	test1 := fmt.Sprintf("%x", t1)
 
 	var txe xdr.Transaction
@@ -132,7 +132,6 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < len(txe.Operations); i++ {
 
 		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			fmt.Println("HAHAHAHA BUMPY")
 			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
 			fmt.Println(v)
 			GObj.SequenceNo = v
@@ -194,7 +193,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(GObj)
 	object := dao.Connection{}
 	switch GObj.Status {
-	case "accepted":
+	case model.Accepted.String():
 		_, err := object.GetCOCbyAcceptTxn(GObj.AcceptTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
 			var TXNS []model.TransactionCollectionBody
@@ -247,17 +246,19 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(err)
 		}
 		break
-	case "rejected":
-		p := object.GetCOCbyRejectTxn(GObj.RejectTxn)
-		p.Then(func(data interface{}) interface{} {
+	case model.Rejected.String():
+		_, err := object.GetCOCbyRejectTxn(GObj.RejectTxn).Then(func(data interface{}) interface{} {
 			selection = data.(model.COCCollectionBody)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
-				result = apiModel.InsertCOCCollectionResponse{
-					Message: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				GObj.TxnHash = response.TXNID
@@ -285,13 +286,12 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			}
 
 			return data
-		}).Catch(func(error error) error {
+		}).Await()
+		if err != nil {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(400)
-			json.NewEncoder(w).Encode(error)
-			return error
-		})
-		p.Await()
+			json.NewEncoder(w).Encode(err)
+		}
 		break
 
 	default:
@@ -446,25 +446,25 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 		if Coc.Available && Org.Available && Testimonial.Available {
 
 			if (Cocseq > Testimonialseq) && (Cocseq >= Orgseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Cocseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Coc.Operation, Receiver: Coc.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Cocseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Coc.Operation, Receiver: Coc.Receiver, Expiration: Coc.Expiration})
 			} else if (Testimonialseq > Cocseq) && (Testimonialseq > Orgseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Testimonialseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Testimonialseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, Expiration: Testimonial.Expiration})
 			} else if (Orgseq > Cocseq) && (Orgseq > Testimonialseq) {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Orgseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Org.Operation, Receiver: Org.Receiver})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SequenceNo: strconv.Itoa(Orgseq), SubAccount: GObj.SubAccounts[i], Available: true, Operation: Org.Operation, Receiver: Org.Receiver, Expiration: Org.Expiration})
 			} else {
 				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: true})
 			}
 		} else {
 			if Org.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Org.Operation, Receiver: Org.Receiver, SequenceNo: Org.SequenceNo, Expiration: Org.Expiration})
 			}
 
 			if Testimonial.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Testimonial.Operation, Receiver: Testimonial.Receiver, SequenceNo: Testimonial.SequenceNo, Expiration: Testimonial.Expiration})
 			}
 
 			if Coc.Available == false {
-				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo})
+				result = append(result, apiModel.GetSubAccountStatusResponse{SubAccount: GObj.SubAccounts[i], Available: false, Operation: Coc.Operation, Receiver: Coc.Receiver, SequenceNo: Coc.SequenceNo, Expiration: Coc.Expiration})
 			}
 
 		}

@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -13,26 +15,23 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
-	// "fmt"
-
 	"github.com/chebyrash/promise"
 )
 
-/*GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
+/*
+GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -49,14 +48,13 @@ func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
+/*
+GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by SubAccount PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise {
@@ -64,14 +62,12 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -91,7 +87,6 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		result2.Receiver = result.Receiver
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
@@ -109,29 +104,33 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 			result2.Available = true
 			result2.Operation = "COC"
 		}
-		resolve(result2)
 
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
+		resolve(result2)
 	})
 
 	return p
-
 }
 
-/*GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
+/*
+GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -148,24 +147,23 @@ func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
+/*
+GetCOCbyAcceptTxn Retrieve a COC Object from COCCollection in DB by Accept TXN
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			log.Error("Error while connecting to db " + err.Error())
+			logrus.Info("Error while connecting to db " + err.Error())
 			reject(err)
 		}
 
@@ -174,7 +172,7 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 		err1 := c.FindOne(context.TODO(), bson.M{"accepttxn": accepttxn}).Decode(&result)
 
 		if err1 != nil {
-			log.Error("Error while getting COC from db " + err.Error())
+			logrus.Info("Error while getting COC from db " + err.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -183,21 +181,20 @@ func (cd *Connection) GetCOCbyAcceptTxn(accepttxn string) *promise.Promise {
 	return p
 }
 
-/*GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
+/*
+GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -207,32 +204,28 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
 	})
 
 	return p
-
 }
 
-/*GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
+/*
+GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	result := []model.COCCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -249,14 +242,13 @@ func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
+/*
+GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise {
@@ -264,14 +256,12 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -294,14 +284,13 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		}
 
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
+/*
+GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
@@ -309,14 +298,12 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -329,28 +316,25 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 		}
 
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
+/*
+GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -367,28 +351,25 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 				resolve(result[len(result)-1])
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
+/*
+GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -398,31 +379,27 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
+/*
+GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -433,25 +410,22 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+/*
+GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -473,10 +447,32 @@ func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
+/*Get total transaction count in a collection
+ */
+func (cd *Connection) GetTransactionCount() *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while getting db connection " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		count, er := c.CountDocuments(context.TODO(), bson.M{})
+		if er != nil {
+			log.Error("Error while retrieving Transactions by tdpid " + err.Error())
+			reject(er)
+		} else {
+			resolve(count)
+		}
+	})
+	return p
+}
+
 func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -487,7 +483,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
-		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}})
+		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}})
 		// count only genesis, TDP, splitparent, splitchild and COC transactions
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
@@ -507,7 +503,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		}
 
 		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
-		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}, opt)
+		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}}, opt)
 		// retrieve only genesis, TDP, splitparent, splitchild and COC transactions
 		err2 := cursor.All(context.TODO(), &result)
 
@@ -525,14 +521,12 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -542,25 +536,22 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
+/*
+GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection in DB by TDPID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -584,21 +575,20 @@ func (cd *Connection) GetAllTransactionForTdpId(TdpId string) *promise.Promise {
 	return p
 }
 
-/*GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
+/*
+GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection in DB by TXNID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -608,33 +598,28 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
+/*
+GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -644,31 +629,27 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
+/*
+GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by Identifier
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -678,31 +659,27 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
+/*
+GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by ProfileID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -712,31 +689,27 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 		resolve(result)
-
 	})
 
 	return p
-
 }
 
-/*GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
+/*
+GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateCollection in DB by PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -748,33 +721,28 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result[len(result)-1])
-
 		}
-
 	})
 
 	return p
-
 }
 
-/*GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
+/*
+GetLastCertificatebyCertificateID Retrieve Last Certificate Object from CertificateCollection in DB by CertificateID
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -787,7 +755,6 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result[len(result)-1])
 		}
@@ -795,21 +762,20 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 	return p
 }
 
-/*GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
+/*
+GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCollection in DB by PublicKey
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -822,30 +788,24 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 		if err1 != nil || err2 != nil || len(result) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 	result := []model.TransactionId{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
@@ -861,25 +821,21 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -889,30 +845,24 @@ func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer s
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
@@ -928,25 +878,21 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -963,26 +909,23 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
-//GetSpecialForPkAndSeq ...
+// GetSpecialForPkAndSeq ...
 func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) *promise.Promise {
+	// fmt.Println("Address to get special ", Publickey)
+	// fmt.Println("Sequence no of the address ", SequenceNo)
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
-			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -990,26 +933,21 @@ func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) 
 		err1 := c.FindOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
-//GetTransactionByTxnhash ..
+// GetTransactionByTxnhash ..
 func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 	session, err := cd.connect()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 
 		if err != nil {
@@ -1034,7 +972,7 @@ func (cd *Connection) GetTransactionByTxnhash(Txnhash string) *promise.Promise {
 func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 	result := []model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1063,7 +1001,7 @@ func (cd *Connection) GetAllApprovedOrganizations() *promise.Promise {
 func (cd *Connection) GetOrganizationByAuthor(publickey string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1087,7 +1025,7 @@ func (cd *Connection) GetOrganizationByAuthor(publickey string) *promise.Promise
 func (cd *Connection) GetOrganizationByAcceptTxn(acceptTxn string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1112,7 +1050,7 @@ func (cd *Connection) GetOrganizationByAcceptTxn(acceptTxn string) *promise.Prom
 func (cd *Connection) GetOrganizationByRejectTxn(rejectTxn string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1137,7 +1075,7 @@ func (cd *Connection) GetOrganizationByRejectTxn(rejectTxn string) *promise.Prom
 func (cd *Connection) GetTestimonialBySenderPublickey(publickey string) *promise.Promise {
 	result := []model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1167,7 +1105,7 @@ func (cd *Connection) GetTestimonialBySenderPublickey(publickey string) *promise
 func (cd *Connection) GetTestimonialByRecieverPublickey(publickey string) *promise.Promise {
 	result := []model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1197,7 +1135,7 @@ func (cd *Connection) GetTestimonialByRecieverPublickey(publickey string) *promi
 func (cd *Connection) GetTestimonialByAcceptTxn(acceptTxn string) *promise.Promise {
 	result := model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1222,7 +1160,7 @@ func (cd *Connection) GetTestimonialByAcceptTxn(acceptTxn string) *promise.Promi
 func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promise {
 	result := model.Testimonial{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1249,14 +1187,12 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Organizations")
@@ -1272,7 +1208,6 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
 		if err1 != nil {
 			reject(err1)
-
 		}
 		result2.Receiver = result.ApprovedBy
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
@@ -1290,12 +1225,17 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 			result2.Available = true
 			result2.Operation = "Organization"
 		}
-		resolve(result2)
 
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
+		resolve(result2)
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise.Promise {
@@ -1303,14 +1243,12 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 	result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Testimonials")
@@ -1329,7 +1267,6 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		if err1 != nil {
 			// fmt.Println(err1)
 			reject(err1)
-
 		}
 
 		result2.Receiver = result.Reciever
@@ -1348,18 +1285,23 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 			result2.Available = true
 			result2.Operation = "Testimonial"
 		}
-		resolve(result2)
 
+		if result.Status == model.Expired.String() {
+			result2.Expiration = true
+		} else {
+			result2.Expiration = false
+		}
+
+		resolve(result2)
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 	result := []model.TestimonialOrganization{}
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1377,7 +1319,6 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 		} else {
 			resolve(result)
 		}
-
 	})
 	return p
 }
@@ -1385,19 +1326,17 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("Transactions")
-		//count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
+		// count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"publickey": Publickey}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
 
 		if er != nil {
@@ -1426,17 +1365,15 @@ func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page in
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetAllTransactionForTdpId_Paginated(TdpId string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
@@ -1478,14 +1415,12 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1512,30 +1447,24 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 		if err1 != nil || err2 != nil || len(result.Transactions) == 0 {
 			// fmt.Println(err1)
 			reject(err1)
-
 		} else {
 			resolve(result)
-
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 	result := []model.Testimonial{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1552,25 +1481,21 @@ func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise.Promise {
 	result := []model.TestimonialOrganization{}
 	// p := promise.NewPromise()
 
-	var p = promise.New(func(resolve func(interface{}), reject func(error)) {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
-
 		if err != nil {
 			// fmt.Println(err)
 			reject(err)
-
 		}
 
 		defer session.EndSession(context.TODO())
@@ -1587,9 +1512,855 @@ func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise
 				resolve(result)
 			}
 		}
-
 	})
 
 	return p
+}
 
+// get proof protocol by proof name
+func (cd *Connection) GetProofProtocolByProofName(proofName string) *promise.Promise {
+	resultProtocolObj := model.ProofProtocol{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ProofProtocols")
+		err = c.FindOne(context.TODO(), bson.M{"proofname": proofName}).Decode(&resultProtocolObj)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(resultProtocolObj)
+		}
+	})
+	return p
+}
+
+// get all approved organizations with pagination
+func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page int) *promise.Promise {
+	result := []model.TestimonialOrganization{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("Organizations")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"status": model.Approved.String()})
+
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+
+		if count < int64(perPage) {
+			cursor, err1 := c.Find(context.TODO(), bson.M{})
+			err2 := cursor.All(context.TODO(), &result)
+
+			if err1 != nil || err2 != nil || len(result) == 0 {
+				log.Error("Error while f.All " + err1.Error())
+				reject(err1)
+			} else {
+				resolve(result)
+			}
+
+		}
+
+		offset := int64(page) * int64(perPage)
+		if count < offset {
+			pagelimit := perPage
+			perPage = int(count + int64(perPage) - offset)
+			if (offset - count) < int64(pagelimit) {
+				offset = count
+			}
+
+		}
+
+		collation := options.Collation{
+			Locale:    "en",
+			CaseLevel: true,
+		}
+
+		opts := options.Find().SetSort(bson.M{"name": -1}).SetSkip(count - offset).SetLimit(int64(perPage)).SetCollation(&collation)
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": model.Approved.String()}, opts)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+
+			if err2 != nil || len(result) == 0 {
+				log.Error("Error while getting organizations from db " + err.Error())
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue}).Decode(&result)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			if result.Identifier != "" {
+				resolve(result)
+			} else {
+				result.MapValue = mapValue
+				result.Identifier = mapValue
+				resolve(result)
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetMapValue(Identifier string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err = c.FindOne(context.TODO(), bson.M{"identifier": Identifier}).Decode(&result)
+		if err != nil {
+			log.Error("Error when fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRealIdentifierByMapValue(identifier string) *promise.Promise {
+	result := apiModel.IdentifierModel{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
+		if err1 != nil {
+			reject(err1)
+		} else {
+			result1 := []model.TransactionCollectionBody{}
+			session, err := cd.connect()
+			if err != nil {
+				reject(err)
+			}
+			defer session.EndSession(context.TODO())
+			c := session.Client().Database(dbName).Collection("Transactions")
+			cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": result.MapValue})
+
+			if err1 != nil {
+				reject(err1)
+			} else {
+				err2 := cursor.All(context.TODO(), &result1)
+				if err2 != nil || len(result1) == 0 {
+					reject(err2)
+				} else {
+					resolve(result1)
+				}
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRealIdentifiersByArtifactId(identifier []string) *promise.Promise {
+	// map identifiers objcet array
+	var mapIdentifiers []apiModel.IdentifierModel
+	// only map identifiers
+	var mapIdentifiersArray []string
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session1, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session1.EndSession(context.TODO())
+		c1 := session1.Client().Database(dbName).Collection("IdentifierMap")
+		// find map identifiers using real identifers
+		rst, err1 := c1.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", identifier}}}})
+		// check for errors in the finding
+		if err1 != nil {
+			reject(err1)
+		}
+		// read the douments and assign it to mapIdentifiers
+		if err2 := rst.All(context.TODO(), &mapIdentifiers); err != nil {
+			reject(err2)
+		}
+
+		// creating array using only map identifiers
+		for _, result := range mapIdentifiers {
+			mapIdentifiersArray = append(mapIdentifiersArray, result.MapValue)
+		}
+
+		result1 := []model.TransactionCollectionBody{}
+		session2, err3 := cd.connect()
+		if err3 != nil {
+			reject(err)
+		}
+		defer session2.EndSession(context.TODO())
+		c2 := session2.Client().Database(dbName).Collection("Transactions")
+		// find transacions using mapIdentifers in gateway
+		cursor, err4 := c2.Find(context.TODO(), bson.D{{"identifier", bson.D{{"$in", mapIdentifiersArray}}}})
+		if err4 != nil {
+			reject(err1)
+		}
+		err5 := cursor.All(context.TODO(), &result1)
+		if err5 != nil || len(result1) == 0 {
+			reject(err5)
+		} else {
+			resolve(result1)
+		}
+	})
+	p.Await()
+	return p
+}
+
+func (cd *Connection) GetNFTMinterPKSolana(ImageBase64 string, blockchain string) *promise.Promise {
+	result := model.NFTWithTransactionSolana{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTSolana")
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"nftissuingblockchain", blockchain}}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
+}
+
+func (cd *Connection) GetNFTTxnForStellar(ImageBase64 string, blockchain string) *promise.Promise {
+	result := model.NFTWithTransaction{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTStellar")
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"nftissuingblockchain", blockchain}}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
+}
+
+func (cd *Connection) GetAllSellingNFTStellar_Paginated(sellingStatus string, distributorPK string) *promise.Promise {
+	result := model.MarketPlaceNFTTrasactionWithCount{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
+		if er != nil {
+			log.Error("Error while get f.count " + err.Error())
+			reject(er)
+		}
+		if distributorPK != "withoutKey" {
+			cursor, er := c.Find(context.TODO(), bson.M{
+				"currentownernftpk": distributorPK,
+				"$or": []interface{}{
+					bson.M{"sellingstatus": "FORSALE"},
+					bson.M{"sellingstatus": "NOTFORSALE"},
+				},
+			})
+			if er != nil {
+				reject(er)
+			} else {
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		} else {
+			cursor, er := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"sellingstatus": sellingStatus}}})
+			if er != nil {
+				reject(er)
+			} else {
+				err2 := cursor.All(context.TODO(), &(result.MarketPlaceNFTItems))
+				result.Count = int64(count)
+				if err2 != nil || len(result.MarketPlaceNFTItems) == 0 {
+					reject(err2)
+				} else {
+					resolve(result)
+				}
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetNFTByNFTTxn(NFTTXNhash string) *promise.Promise {
+	result := model.MarketPlaceNFT{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		err1 := c.FindOne(context.TODO(), bson.M{"nfttxnhash": NFTTXNhash}).Decode(&result)
+		if err1 != nil {
+			log.Error("Error while getting NFT TXN Hash from db " + err.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetLastNFTbyInitialDistributorPK(InitialDistributorPK string) *promise.Promise {
+	result := []model.MarketPlaceNFT{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MarketPlaceNFT")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"initialdistributorpk": InitialDistributorPK})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+
+	return p
+}
+
+func (cd *Connection) GetNFTIssuerSK(isserPK string) *promise.Promise {
+	result := []model.NFTKeys{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTKeys")
+		cursor, err := dbclient.Find(context.TODO(), bson.M{"publickey": isserPK})
+		if err != nil {
+			reject(err)
+		} else {
+			err := cursor.All(context.TODO(), &(result))
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return promise
+}
+
+func (cd *Connection) GetFormulaMapID(formulaID string) *promise.Promise {
+	result := model.FormulaIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("FormulaIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetExpertMapID(expertID string) *promise.Promise {
+	result := model.ExpertIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ExpertIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"expertid": expertID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ExpertIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetValueMapID(valueID, formulaId string) *promise.Promise {
+	result := model.ValueIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID, "formulaid": formulaId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
+	result := model.UnitIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("UnitIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"unit": unit}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting UnitIdMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetRequestAmount(reqEntityType string, reqEntity string, fromTime time.Time, toTime time.Time) *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("APIThrottleCounter")
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"requestentitytype": reqEntityType, "requestentity": reqEntity, "timestamp": bson.M{"$gt": fromTime, "$lt": toTime}})
+		if err1 != nil {
+			log.Error("Error while retrieving request count from DB " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(count)
+		}
+	})
+	return p
+}
+
+// for checking the public keys against trust nwtwork
+func (cd *Connection) GetTrustNetworkKeyMap(publicKey string) *promise.Promise {
+	result := model.Expert{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		err1 := c.FindOne(context.TODO(), bson.M{"publicKey": publicKey}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting trust network key map from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetVariableDetails(formulaID string, key string, variableName string) *promise.Promise {
+	var valueDef model.ValueIDMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "key": key, "valuename": variableName}).Decode(&valueDef)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(valueDef)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetResourceMapID(resourceID string) *promise.Promise {
+	result := model.ResourceIdMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ResourceIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"resourceid": resourceID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ResourceIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetMetricMapID(metricID string) *promise.Promise {
+	result := model.MetricMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("MetricIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"metricid": metricID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ResourceIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTenentMapID(tenentUUID string) *promise.Promise {
+	result := model.TenentMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TenentIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"tenentid": tenentUUID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting tenent id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetActivityMapID(activityId string) *promise.Promise {
+	result := model.ActivityMapDetails{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ActivityIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"activityid": activityId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting activity id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetExpertFormulaCount(formulaID string) *promise.Promise {
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+		count, err1 := c.CountDocuments(context.TODO(), bson.M{"formulaid": formulaID, "status": "Success"})
+		if err1 != nil {
+			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(count)
+		}
+	})
+	return p
+}
+
+func (cd Connection) GetRSAPublicKeyBySHA256PK(sha256pk string) *promise.Promise {
+	result := []model.RSAPublickey{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PGPAccounts")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"pgppksha256": sha256pk})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+
+	return p
+}
+
+func (cd *Connection) GetWorkflowMapID(workflowId string) *promise.Promise {
+	result := model.WorkflowMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("WorkflowIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"workflowid": workflowId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting workflow id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetArtifactTemplateMapID(artifactId string) *promise.Promise {
+	result := model.ArtifactTemplateId{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("ArtifactTemplateIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting artifact id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetValueMapDetails(formulaID string, key string) *promise.Promise {
+	var valueDef model.ValueIDMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ValueIDMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "key": key}).Decode(&valueDef)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(valueDef)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetMetricStatus(metricId string) *promise.Promise {
+	var metricMap model.MetricBindingStore
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("MetricBinds")
+		err = c.FindOne(context.TODO(), bson.M{"metricid": metricId}).Decode(&metricMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(metricMap)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
+	var metricMap model.FormulaStore
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&metricMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(metricMap)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetBindKey(formulaID, key, metricId string) *promise.Promise {
+	var bindKey model.BindKeyMap
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("BindKeyMap")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "keyinblockchain": key, "metricId": metricId}).Decode(&bindKey)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(bindKey)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
+	result := model.ArtifactTemplateId{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PrimaryKeyIdMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting artifact id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
 }

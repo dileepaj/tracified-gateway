@@ -3,18 +3,21 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	log "github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
 	"strings"
 
+	log "github.com/sirupsen/logrus"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -27,6 +30,7 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 @params - ResponseWriter,Request
 */
 func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
+	
 	log.Debug("---------------------------------- SubmitTransfer -------------------------------")
 	var Done []bool
 	Done = append(Done, NotOrphan)
@@ -39,6 +43,21 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
+
+	client := horizonclient.DefaultTestNetClient
+	ar := horizonclient.AccountRequest{AccountID: publicKey}
+	account, err := client.AccountDetail(ar)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
 	// var result model.SubmitXDRResponse
 	var OrphanBoolArray []bool
 	var OrphanBool bool
@@ -153,26 +172,38 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
 
-				var PreviousTXNBuilder build.ManageDataBuilder
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				//var PreviousTXNBuilder txnbuild.ManageDataBuilder
+				//PreviousTXNBuilder = txnbuild.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				PreviousTXNBuilder := txnbuild.ManageData{
+					Name:  "PreviousTXN",
+					Value:  []byte(AP.TxnBody[i].PreviousTxnHash),
+				}
+				TypeTxnBuilder := txnbuild.ManageData{
+					Name:  "Type",
+					Value:  []byte("G"+AP.TxnBody[i].TxnType),
+				}
 
-				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					commons.GetHorizonNetwork(),
-					build.SourceAccount{publicKey},
-					build.AutoSequence{commons.GetHorizonClient()},
-					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				)
+				CurrentTXNBuilder := txnbuild.ManageData{
+					Name:  "CurrentTXN",
+					Value:[]byte(UserTxnHashes[i]),
+				}
+
+				// BUILD THE GATEWAY XDR
+				tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+					SourceAccount:        &account,
+					IncrementSequenceNum: true,
+					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
+					BaseFee:              txnbuild.MinBaseFee,
+					Memo:                 nil,
+					Preconditions:       txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				})
 
 				if err != nil{
 					log.Error("Error @ build.Transaction @SubmitTransfer " +err.Error())
 				}
 
-
 				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-				GatewayTXE, err := tx.Sign(secretKey)
+				GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 				if err != nil {
 					log.Error("Error @sign"+err.Error())
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]

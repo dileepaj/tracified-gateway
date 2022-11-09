@@ -4,14 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -48,9 +49,9 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
-	acc, _ := acceptBuild.Hash()
+	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
 
 	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
@@ -59,10 +60,10 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	rejectBuild,_ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
+	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	rej, _ := rejectBuild.Hash()
+	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
 
 	Obj.AcceptTxn = validAccept
@@ -183,9 +184,12 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 
@@ -235,9 +239,12 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			response := display.TDPInsert()
 
 			if response.Error.Code == 400 {
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				Obj.TxnHash = response.TXNID

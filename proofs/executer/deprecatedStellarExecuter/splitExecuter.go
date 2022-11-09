@@ -8,9 +8,12 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 
-	"github.com/stellar/go/build"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/txnbuild"
 )
 
 type ConcreteSplit struct {
@@ -26,24 +29,38 @@ type ConcreteSplit struct {
 
 func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 
-	// publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
+	publicKey := "GAEO4AVTWOD6YRC3WFYYXFR6EYYRD2MYKLBB6XTHC3YDUPIEXEIKD5C3"
 	secretKey := "SBSEIZJJXYL6SIC5Y2RDYEQYSBBSRTPSAPGBQPKXGLHC5TZZBC3TSYLC"
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		logrus.Error(err)
+	}
+	// netClient := commons.GetHorizonClient()
+	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+	// account, err := netClient.AccountDetail(accountRequest)
 
+	kp,_ := keypair.Parse(publicKey)
+	client := horizonclient.DefaultTestNetClient
+	accountRequest := horizonclient.AccountRequest{AccountID: kp.Address()}
+	account, err := client.AccountDetail(accountRequest)
+	
 	var response model.SplitProfileResponse
+	transactionTypeTXNBuilder := txnbuild.ManageData{Name: "TransactionType", Value: []byte(cd.SplitProfileStruct.Type)}
+	previousTXNIDTXNBuilder := txnbuild.ManageData{Name: "PreviousTXNID", Value: []byte(cd.SplitProfileStruct.PreviousTXNID)}
+	profileIDTXNBuilder := txnbuild.ManageData{Name: "ProfileID", Value: []byte(cd.SplitProfileStruct.ProfileID)}
+	identifierTXNBuilder := txnbuild.ManageData{Name: "Identifier", Value: []byte(cd.SplitProfileStruct.Identifier)}
+	assetsTXNBuilder := txnbuild.ManageData{Name: "Assets", Value: []byte(cd.CurAssets)}
+	codeTXNBuilder := txnbuild.ManageData{Name: "Code", Value: []byte(cd.SplitProfileStruct.Code)}
 
-	// save data
-	tx, err := build.Transaction(
-		commons.GetHorizonNetwork(),
-		build.SourceAccount{secretKey},
-		build.AutoSequence{commons.GetHorizonClient()},
-		build.SetData("TransactionType", []byte(cd.SplitProfileStruct.Type)),
-		build.SetData("PreviousTXNID", []byte(cd.SplitProfileStruct.PreviousTXNID)),
-		build.SetData("ProfileID", []byte(cd.SplitProfileStruct.ProfileID)),
-		build.SetData("Identifiers", []byte(cd.SplitProfileStruct.Identifier)),
-		build.SetData("Assets", []byte(cd.CurAssets)),
-		build.SetData("Code", []byte(cd.SplitProfileStruct.Code)),
-	)
-
+	// BUILD THE GATEWAY XDR
+	tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
+		SourceAccount:        &account,
+		IncrementSequenceNum: true,
+		Operations:           []txnbuild.Operation{&transactionTypeTXNBuilder, &previousTXNIDTXNBuilder, &profileIDTXNBuilder, &identifierTXNBuilder, &assetsTXNBuilder, &codeTXNBuilder},
+		BaseFee:              txnbuild.MinBaseFee,
+		Memo:                 nil,
+		Preconditions:        txnbuild.Preconditions{},
+	})
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -53,7 +70,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	}
 
 	// Sign the transaction to prove you are actually the person sending it.
-	txe, err := tx.Sign(secretKey)
+	txe, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -70,7 +87,7 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	}
 
 	// And finally, send it off to Stellar!
-	resp, err := commons.GetHorizonClient().SubmitTransaction(txeB64)
+	resp, err := commons.GetHorizonClient().SubmitTransactionXDR(txeB64)
 	if err != nil {
 		// panic(err)
 		response.Error.Code = http.StatusNotFound
@@ -88,5 +105,4 @@ func (cd *ConcreteSplit) InsertSplit() model.SplitProfileResponse {
 	response.PreviousTXNID = cd.SplitProfileStruct.PreviousTXNID
 
 	return response
-
 }

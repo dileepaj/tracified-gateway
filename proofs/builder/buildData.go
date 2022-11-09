@@ -3,18 +3,23 @@ package builder
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/stellar/go/support/log"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/stellar/go/clients/horizonclient"
+	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/support/log"
+	"github.com/stellar/go/txnbuild"
+
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
-	"github.com/stellar/go/build"
+
+	//"github.com/stellar/go/build"
 	"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -30,7 +35,8 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("============================= SubmitData ============================")
-	horizonClient := commons.GetHorizonClient()
+	// horizonClient := commons.GetHorizonClient()
+	// netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 
@@ -42,19 +48,23 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 	///HARDCODED CREDENTIALS
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
+	tracifiedAccount, err := keypair.ParseFull(secretKey)
+	if err != nil {
+		log.Error(err)
+	}
 	// var result model.SubmitXDRResponse
 	var OrphanBoolArray []bool
 	var OrphanBool bool
 
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
-		//decode the XDR
+		// decode the XDR
 		errx := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if errx != nil {
-			log.Debug("XDR : "+TxnBody.XDR)
-			log.Error("Error @SafeUnmarshalBase64 @SubmitData "+errx.Error())
+			log.Debug("XDR : " + TxnBody.XDR)
+			log.Error("Error @SafeUnmarshalBase64 @SubmitData " + errx.Error())
 		}
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
+		// GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
@@ -82,8 +92,8 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 	OrphanBool = checkBoolArray(OrphanBoolArray)
 
 	if OrphanBool {
-		for i, _ := range AP.TxnBody {
-			//INSERT THE TXN INTO THE BUFFER
+		for i := range AP.TxnBody {
+			// INSERT THE TXN INTO THE BUFFER
 			err := object.InsertToOrphan(AP.TxnBody[i])
 			if err != nil {
 				log.Error("Error while InsertToOrphan @SubmitData " + err.Error())
@@ -97,8 +107,8 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 			}
 		}
 	} else {
-		for i, _ := range AP.TxnBody {
-			//SUBMIT THE FIRST XDR SIGNED BY THE USER
+		for i := range AP.TxnBody {
+			// SUBMIT THE FIRST XDR SIGNED BY THE USER
 			display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
 			result1 := display.SubmitXDR(AP.TxnBody[i].TxnType)
 			UserTxnHashes = append(UserTxnHashes, result1.TXNID)
@@ -155,23 +165,55 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
 
-				var PreviousTXNBuilder build.ManageDataBuilder
-				PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				// var PreviousTXNBuilder build.ManageDataBuilder
+				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+				// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+				// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+				client := commons.GetHorizonClient()
+				pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+				pubaccount, err := client.AccountDetail(pubaccountRequest)
+				if err != nil {
+					log.Fatal(err)
+				}
 
-				//BUILD THE GATEWAY XDR
-				tx, err := build.Transaction(
-					commons.GetHorizonNetwork(),
-					build.SourceAccount{publicKey},
-					build.AutoSequence{horizonClient},
-					build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
-					PreviousTXNBuilder,
-					build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+				PreviousTXNBuilder := txnbuild.ManageData{
+					Name:  "PreviousTXN",
+					Value: []byte(AP.TxnBody[i].PreviousTxnHash),
+				}
+
+				TypeTXNBuilder := txnbuild.ManageData{
+					Name:  "Type",
+					Value: []byte("G" + AP.TxnBody[i].TxnType),
+				}
+
+				CurrentTXNBuilder := txnbuild.ManageData{
+					Name:  "CurrentTXN",
+					Value: []byte(UserTxnHashes[i]),
+				}
+
+				tx, err := txnbuild.NewTransaction(
+					txnbuild.TransactionParams{
+						SourceAccount:        &pubaccount,
+						IncrementSequenceNum: true,
+						Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTXNBuilder, &CurrentTXNBuilder},
+						BaseFee:              txnbuild.MinBaseFee,
+						Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					},
 				)
-				if err != nil{
+				// BUILD THE GATEWAY XDR
+				// tx, err := build.Transaction(
+				// 	commons.GetHorizonNetwork(),
+				// 	build.SourceAccount{publicKey},
+				// 	build.AutoSequence{horizonClient},
+				// 	build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
+				// 	PreviousTXNBuilder,
+				// 	build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
+				// )
+				if err != nil {
 					log.Error("Error while build Transaction @SubmitData " + err.Error())
 				}
-				//SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-				GatewayTXE, err := tx.Sign(secretKey)
+				// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
+				GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 				if err != nil {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
 					AP.TxnBody[i].Status = "Pending"
@@ -182,7 +224,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 						log.Error("Error while InsertTransaction @SubmitData " + err2.Error())
 					}
 				}
-				//CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
+				// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 				txeB64, err := GatewayTXE.Base64()
 				if err != nil {
 					log.Error("Error while converting GatewayTXE to Base64 @SubmitData " + err.Error())
@@ -196,9 +238,9 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 					}
 				}
 
-				//SUBMIT THE GATEWAY'S SIGNED XDR
+				// SUBMIT THE GATEWAY'S SIGNED XDR
 				display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
-				response1 := display1.SubmitXDR("G"+AP.TxnBody[i].TxnType)
+				response1 := display1.SubmitXDR("G" + AP.TxnBody[i].TxnType)
 
 				if response1.Error.Code == 400 {
 					AP.TxnBody[i].TxnHash = UserTxnHashes[i]
@@ -210,7 +252,7 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 						log.Error("Error while InsertTransaction @SubmitData " + err2.Error())
 					}
 				} else {
-					//UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+					// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 					AP.TxnBody[i].TxnHash = response1.TXNID
 					AP.TxnBody[i].Status = "done"
 
@@ -232,5 +274,4 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 }

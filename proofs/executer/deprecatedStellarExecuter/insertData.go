@@ -58,7 +58,7 @@ func (cd *ConcreteInsertData) InsertDataHash() model.SubmitXDRResponse {
 	// }
 
 	// And finally, send it off to Stellar!
-	resp, err := commons.GetHorizonClient().SubmitTransaction(cd.XDR)
+	resp, err := commons.GetHorizonClient().SubmitTransactionXDR(cd.XDR)
 	if err != nil {
 		// panic(err)
 		fmt.Println(err.Error())

@@ -4,14 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/gorilla/mux"
-	"github.com/stellar/go/build"
+	log "github.com/sirupsen/logrus"
+	"github.com/stellar/go/network"
+	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
@@ -49,9 +52,9 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	acceptBuild := build.TransactionBuilder{TX: &accept, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
-	acc, _ := acceptBuild.Hash()
+	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
 
 	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
@@ -59,9 +62,10 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	rejectBuild := build.TransactionBuilder{TX: &reject, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
+	rejectBuild,_ :=  txnbuild.TransactionFromXDR(Obj.RejectXDR)
 
-	rej, _ := rejectBuild.Hash()
+
+	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
 
 	Obj.AcceptTxn = validAccept
@@ -185,9 +189,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			fmt.Println(selection.SequenceNo)
 			if response.Error.Code == 400 {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 
@@ -239,9 +246,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 			if response.Error.Code == 400 {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-				w.WriteHeader(400)
-				result := apiModel.SubmitXDRSuccess{
-					Status: "Failed"}
+				w.WriteHeader(502)
+				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
+				result := map[string]interface{}{
+					"message":    "Failed to submit the Blockchain transaction",
+					"error_code": errors_string,
+				}
 				json.NewEncoder(w).Encode(result)
 			} else {
 				Obj.TxnHash = response.TXNID
@@ -310,4 +320,55 @@ func GetAllPendingAndRejectedOrganizations(w http.ResponseWriter, r *http.Reques
 		}
 		json.NewEncoder(w).Encode(result)
 	}
+}
+
+func GetAllOrganizations_Paginated(w http.ResponseWriter, r *http.Request) {
+
+	var response model.Error
+	key1, error := r.URL.Query()["perPage"]
+
+	if !error || len(key1[0]) < 1 {
+		log.Error("Url Parameter 'perPage' is missing")
+		return
+	}
+
+	key2, error := r.URL.Query()["page"]
+
+	if !error || len(key2[0]) < 1 {
+		log.Error("Url Parameter 'page' is missing")
+		return
+	}
+
+	perPage, err := strconv.Atoi(key1[0])
+	if err != nil {
+		log.Error("Query parameter error" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	page, err := strconv.Atoi(key2[0])
+	if err != nil {
+		log.Error("Query parameter error" + err.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response = model.Error{Code: http.StatusBadRequest, Message: "The parameter should be an integer " + err.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	object := dao.Connection{}
+	_, err = object.GetAllApprovedOrganizations_Paginated(perPage, page).Then(func(data interface{}) interface{} {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+		return data
+	}).Await()
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		w.WriteHeader(204)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "No Approved organizations were found",
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+
 }

@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/stellar/go/clients/horizon"
+	"github.com/stellar/go/clients/horizonclient"
 
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -24,7 +24,7 @@ type ConcreteSubmitXDR struct {
 @params - XDR
 */
 func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
-	log.Debug("=========================== submitXDR.go SubmitXDR =============================")
+	// log.Debug("=========================== submitXDR.go SubmitXDR =============================")
 	horizonClient := commons.GetHorizonClient()
 	var response model.SubmitXDRResponse
 	//s := time.Now().UTC().String()
@@ -37,18 +37,18 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 
 	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
-	resp, err := horizonClient.SubmitTransaction(cd.XDR)
+	resp, err := horizonClient.SubmitTransactionXDR(cd.XDR)
 	if err != nil {
 		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())
-		error1 := err.(*horizon.Error)
+		error1 := err.(*horizonclient.Error)
 		log.Error(error1.Problem.Detail)
 		TC, err := error1.ResultCodes()
 		if err != nil {
 			log.Error("Error while getting ResultCodes from horizon.Error")
 		}
-		for _, element := range TC.OperationCodes {
-			response.Error.Message = response.Error.Message + element + "? "
-		}
+
+		response.Error.Message = TC.TransactionCode
+
 		// log.SetOutput(f)
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)

@@ -1,7 +1,7 @@
 package model
 
 import (
-	"github.com/stellar/go/build"
+	"github.com/stellar/go/txnbuild"
 )
 
 type COCCollectionBody struct {
@@ -17,8 +17,13 @@ type COCCollectionBody struct {
 	Identifier string
 	Status     string
 }
+
+type TotalTransaction struct {
+	TotalTransactionCount int64
+}
 type TransactionCollectionBody struct {
 	Identifier           string
+	RealIdentifier       string
 	TdpId                string
 	SequenceNo           int64
 	ProfileID            string
@@ -27,6 +32,9 @@ type TransactionCollectionBody struct {
 	FromIdentifier1      string
 	FromIdentifier2      string
 	ToIdentifier         string
+	MapIdentifier1       string
+	MapIdentifier2       string
+	MapIdentifier        string
 	ItemCode             string
 	ItemAmount           string
 	PublicKey            string
@@ -68,7 +76,7 @@ type CertificateCollectionBody struct {
 	Status              string
 }
 type XDR struct {
-	XDR build.TransactionMutator
+	XDR txnbuild.Transaction
 }
 
 type LastTxnResponse struct {
@@ -89,26 +97,29 @@ type TransactionIds struct {
 }
 
 type PrevTxnResponse struct {
-	Status         string
-	Blockchain	   string
-	Txnhash        string
-	TxnType        string
-	SequenceNo     int64
-	Url            string
-	LabUrl         string
-	From           string
-	To             string
-	SourceAccount  string
-	Identifier     string
-	TdpId          string
-	Timestamp      string
-	Ledger         string
-	FeePaid        string
-	AvailableProof []string
-	DataHash       string
-	ProductName    string
-	Itemcount      string
-	AssetCode      string
+	Status          string
+	Blockchain      string
+	Txnhash         string
+	TxnType         string
+	SequenceNo      int64
+	Url             string
+	LabUrl          string
+	From            string
+	To              string
+	SourceAccount   string
+	Identifier      string
+	TdpId           string
+	Timestamp       string
+	Ledger          string
+	FeePaid         string
+	AvailableProof  []string
+	DataHash        string
+	ProductName     string
+	Itemcount       string
+	AssetCode       string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
 }
 
 type POCOCResponse struct {
@@ -274,13 +285,246 @@ const (
 	Rejected
 	Expired
 	Pending
+	Accepted
 )
 
 func (O Option) String() string {
-	return [...]string{"undefined", "approved", "rejected", "expired", "pending"}[O]
+	return [...]string{"undefined", "approved", "rejected", "expired", "pending", "accepted"}[O]
 }
 
 type TransactionCollectionBodyWithCount struct {
 	Count        int64
 	Transactions []TransactionCollectionBody
+}
+
+type Services struct {
+	ServiceName       string
+	ServiceURL        string
+	DocumentationLink string
+	// UIAutomationSteps	UIAutomationSteps
+}
+
+type ActionParams struct {
+	InputVariables  []string
+	OutputVariables []string
+	Services        Services
+}
+
+type Action struct {
+	ActionType       string
+	ActionParameters ActionParams
+}
+
+type Steps struct {
+	StepNo      int32
+	SegmentNo   string
+	Discription string
+	Action      Action
+}
+
+type ProofProtocol struct {
+	ProofName            string
+	ProofDescriptiveName string
+	NumberofSteps        string
+	// Segmants				Segmants
+	Steps []Steps
+}
+
+type TransactionHashWithIdentifier struct {
+	Status          string
+	Txnhash         string
+	TxnType         string
+	Identifier      string
+	FromIdentifier1 string
+	FromIdentifier2 string
+	ToIdentifier    string
+	AvailableProof  []string
+	ProductName     string
+	ProductID       string
+	Timestamp       string
+}
+
+type NFTSolana struct {
+	OwnerPK       string
+	Asset_code    string
+	NFTURL        string
+	Description   string
+	Collection    string
+	NFTBlockChain string
+	Tags          []string
+	Categories    string
+	Copies        string
+	NFTLinks      string
+	ArtistName    string
+	ArtistLink    string
+}
+
+type NFTWithTransactionSolana struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	MinterPK                         string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	Description                      string
+	Copies                           string
+	InitialDistributorPK             string
+}
+
+type MarketPlaceNFT struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
+	OriginPK                         string
+	SellingStatus                    string
+	Amount                           string
+	Price                            string
+	InitialDistributorPK             string
+	InitialIssuerPK                  string
+	MainAccountPK                    string
+	PreviousOwnerNFTPK               string
+	CurrentOwnerNFTPK                string
+}
+
+type NFTContracts struct {
+	NFTContract         string
+	MarketplaceContract string
+	MintNFTTxn          string
+	OwnerPK             string
+	Asset_code          string
+	NFTURL              string
+	Description         string
+	Collection          string
+	NFTBlockChain       string
+	Tags                []string
+	Categories          string
+	Copies              string
+	NFTLinks            string
+	ArtistName          string
+	ArtistLink          string
+	Identifier          string
+}
+
+type NFTWithTransactionContracts struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string `json:"imagebase64"`
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	NFTContract                      string
+	MarketplaceContract              string
+	OwnerPK                          string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	Description                      string
+	Copies                           string
+}
+
+type NFTCreactedResponse struct {
+	NFTTxnHash         string
+	TDPTxnHash         string
+	NFTName            string
+	NFTIssuerPublicKey string
+}
+
+type Minter struct {
+	NFTIssuerPK   string `json:"NFTIssuerPK"`
+	NFTTxnHash    string `json:"NFTTxnHash"`
+	NFTIdentifier string `json:"NFTIdentifier"`
+	CreatorUserID string `json:"CreatorUserID"`
+}
+
+type NFTWithTransaction struct {
+	Identifier                       string
+	Categories                       string
+	Collection                       string
+	ImageBase64                      string
+	NftTransactionExistingBlockchain string
+	NftIssuingBlockchain             string
+	NFTTXNhash                       string
+	Timestamp                        string
+	NftURL                           string
+	NftContentName                   string
+	NftContent                       string
+	CuurentIssuerPK                  string
+	MainAccountPK                    string
+	InitialDistributorPublickKey     string
+	InitialIssuerPK                  string
+	NFTArtistName                    string
+	NFTArtistURL                     string
+	TrustLineCreatedAt               string
+	Description                      string
+	Copies                           string
+}
+
+type TrustLineResponseNFT struct {
+	DistributorPublickKey string
+	IssuerPublicKey       string
+	Asset_code            string
+	NFTURL                string
+	Description           string
+	Collection            string
+	NFTBlockChain         string
+	Tags                  []string
+	Categories            string
+	Copies                string
+	NFTLinks              string
+	ArtistName            string
+	ArtistLink            string
+	Successfull           bool
+	TrustLineCreatedAt    string
+}
+
+type MarketPlaceNFTTrasactionWithCount struct {
+	Count               int64
+	MarketPlaceNFTItems []MarketPlaceNFT
+}
+
+type NFTKeys struct {
+	PublicKey string
+	SecretKey []byte
+}
+
+type NFTIssuerAccount struct {
+	NFTIssuerPK string
+}
+
+type StellarMintTXN struct {
+	NFTTxnHash string `json:"NFTTxnHash"`
+}
+
+type PublicKey struct {
+	PublicKey string `json:"PublicKey"`
+}
+
+type XDRRuri struct {
+	XDR string
 }
