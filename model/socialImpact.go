@@ -625,14 +625,15 @@ type Command struct {
 }
 
 type SendToQueue struct {
-	MetricBinding MetricBindingStore
-	ExpertFormula FormulaStore
-	Type          string
-	User          User
-	Memo          []byte
-	Status        string
-	Operations    []txnbuild.ManageData
-	ErrorMessage  string
+	MetricBinding         MetricBindingStore
+	ExpertFormula         FormulaStore
+	EthereumExpertFormula EthereumExpertFormula
+	Type                  string
+	User                  User
+	Memo                  []byte
+	Status                string
+	Operations            []txnbuild.ManageData
+	ErrorMessage          string
 }
 
 type ContractGeneral struct {

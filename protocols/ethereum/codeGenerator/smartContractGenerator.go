@@ -14,6 +14,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/oklog/ulid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/cases"
@@ -208,6 +209,30 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			}
 			logrus.Error("Error in writing the output file " + errInWritingOutput.Error())
 			commons.JSONErrorReturn(w, r, errInWritingOutput.Error(), http.StatusInternalServerError, "Error in writing the output file ")
+			return
+		}
+
+		buildQueueObj := model.SendToQueue{
+			EthereumExpertFormula: ethFormulaObj,
+			Type:                  "ETHEXPERTFORMULA",
+			User:                  formulaJSON.User,
+			Status:                "QUEUE",
+		}
+
+		//add to queue
+		errWhenSendingToQueue := services.SendToQueue(buildQueueObj)
+		if errWhenSendingToQueue != nil {
+			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.ErrorMessage = errWhenSendingToQueue.Error()
+			//call the DB insert method
+			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
+			if errWhenInsertingFormulaToDB != nil {
+				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
+				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
+				return
+			}
+			logrus.Error("Error when sending request to queue " + errWhenSendingToQueue.Error())
+			commons.JSONErrorReturn(w, r, errWhenSendingToQueue.Error(), http.StatusInternalServerError, "Error when sending request to queue ")
 			return
 		}
 

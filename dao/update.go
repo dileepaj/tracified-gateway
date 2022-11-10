@@ -860,3 +860,49 @@ func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, upda
 
 	return err
 }
+
+func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID string, update model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.EthereumExpertFormula{
+		FormulaID:           update.FormulaID,
+		FormulaName:         update.FormulaName,
+		ExecutionTemplate:   update.ExecutionTemplate,
+		MetricExpertFormula: update.MetricExpertFormula,
+		VariableCount:       update.VariableCount,
+		TemplateString:      update.TemplateString,
+		BINstring:           update.BINstring,
+		ABIstring:           update.ABIstring,
+		ContractAddress:     update.ContractAddress,
+		Status:              update.Status,
+		Timestamp:           update.Timestamp,
+		TransactionHash:     update.TransactionHash,
+		TransactionCost:     update.TransactionCost,
+		TransactionTime:     update.TransactionTime,
+		TransactionUUID:     update.TransactionUUID,
+		TransactionSender:   update.TransactionSender,
+		User:                update.User,
+		ErrorMessage:        update.ErrorMessage,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"formulaid": formulaID, "transactionuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
