@@ -648,3 +648,24 @@ type ContractGeneral struct {
 	MetadataDeclaration       string
 	ContractEnd               string
 }
+
+type EthereumExpertFormula struct {
+	FormulaID           string
+	FormulaName         string
+	ExecutionTemplate   ExecutionTemplate
+	MetricExpertFormula ExpertFormula
+	VariableCount       int32
+	TemplateString      string
+	BINstring           string
+	ABIstring           string
+	ContractAddress     string
+	Status              string
+	Timestamp           string
+	TransactionHash     string
+	TransactionCost     string
+	TransactionTime     string
+	TransactionUUID     string
+	TransactionSender   string
+	User                User
+	ErrorMessage        string
+}

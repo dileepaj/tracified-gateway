@@ -517,3 +517,16 @@ func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) err
 	return err
 }
 
+func (cd *Connection) InsertToEthFormulaDetails(ethFormulaMap model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	_, err = c.InsertOne(context.TODO(), ethFormulaMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula details to DB " + err.Error())
+	}
+	return err
+}
