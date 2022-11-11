@@ -90,16 +90,16 @@ Steps to contribute:
         In Local environment it should be
         RABBITUSER     = "guest"
         RABBITPASSWORD = "guest"
-        RABBITHOSTNAME = "rabbit-1"
+        RABBITMQ_SERVICE_HOST = "rabbit-1"
         RABBITPORT     = "5672"
 
-        // Both rabbitmq container host nema and container name, and env file's RABBITHOSTNAME should be same
+        // Both rabbitmq container host nema and container name, and env file's RABBITMQ_SERVICE_HOST should be same
 
         env variable with docker
-        RABBITHOSTNAME= "rabbit-1"
+        RABBITMQ_SERVICE_HOST= "rabbit-1"
 
         without docker local environment
-        RABBITHOSTNAME= "localhost"
+        RABBITMQ_SERVICE_HOST= "localhost"
 
 ```
     - old
