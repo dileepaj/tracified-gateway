@@ -28,7 +28,7 @@ func CheckTempOrphan() {
 	log.Debug("=================== CheckTempOrphan ==================")
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
-	//log.Info("PK count : " + strconv.Itoa(len(clientList)))
+	// log.Info("PK count : " + strconv.Itoa(len(clientList)))
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
@@ -39,7 +39,7 @@ func CheckTempOrphan() {
 		sourceAccount, err := client.AccountDetail(ar)
 
 		if err != nil {
-			//log.Error("Error while loading account from horizon " + err.Error())
+			// log.Error("Error while loading account from horizon " + err.Error())
 		} else {
 			// log.Println("Current Sequence for address:", address)
 			// log.Println(account.Sequence)
@@ -48,14 +48,24 @@ func CheckTempOrphan() {
 				log.Error("Error while convert string to int " + err.Error())
 			}
 			stop := false // for infinite loop
+
+			log.Info(" clientList PublicKey ", address, " Sequence number ", seq)
+
 			// loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
+
+				log.Info("Find tempOrphan by ", kp.Address(), "    -   ", i)
+
 				data, errorAsync := object.GetSpecialForPkAndSeq(kp.Address(), int64(i)).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 				if errorAsync != nil {
+
+					log.Info("GetSpecialForPkAndSeq find result ", errorAsync)
+
 					stop = true // to break loop
 				} else if data == nil {
+					log.Error("Can not find collections from GetSpecialForPkAndSeq")
 					stop = true
 				} else {
 					result := data.(model.TransactionCollectionBody)
@@ -66,17 +76,21 @@ func CheckTempOrphan() {
 					secretKey := constants.SecretKey
 					tracifiedAccount, err := keypair.ParseFull(secretKey)
 					if err != nil {
-						log.Error(err)
+						log.Error("Account loading issue ", err)
 					}
 					client := commons.GetHorizonClient()
 					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 					pubaccount, err := client.AccountDetail(pubaccountRequest)
-
+					log.Info("PublicKey key of XDR ", ar.AccountID)
+					log.Info("Sequence number ", i)
+					log.Info("Type of XDR ", result.TxnType)
 					switch result.TxnType {
 					case "0":
+
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
+						log.Info("type 0 submission ", response.Error)
 						if response.Error.Code == 400 {
 							log.Println("response.Error.Code 400 for SubmitXDR")
 							break
@@ -97,9 +111,7 @@ func CheckTempOrphan() {
 						// Get information about the account we just created
 						// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 						// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
-						if err != nil {
-							log.Println(err)
-						}
+
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 							SourceAccount:        &pubaccount,
@@ -110,7 +122,7 @@ func CheckTempOrphan() {
 							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 						})
 						if err != nil {
-							log.Println("Error while buliding XDR " + err.Error())
+							log.Println("Error while building XDR " + err.Error())
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -178,6 +190,7 @@ func CheckTempOrphan() {
 						}
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
+						log.Info("type 1 submission ", response.Error)
 						UserTxnHash = response.TXNID
 
 						CurrentTXNBuilder := txnbuild.ManageData{
