@@ -38,7 +38,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 	//log.SetOutput(f)
 	// log.Println("This is a test log entry")
 	resp, err := horizonClient.SubmitTransactionXDR(cd.XDR)
-	if err != nil {
+	if err != nil{
 		log.Error("Error while SubmitTransaction to stellar test net " + err.Error())
 		error1 := err.(*horizonclient.Error)
 		log.Error(error1.Problem.Detail)
@@ -46,13 +46,12 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		if err != nil {
 			log.Error("Error while getting ResultCodes from horizon.Error")
 		}
-
-		response.Error.Message = TC.TransactionCode
-
-		// log.SetOutput(f)
-
-		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
-		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
+        if TC != nil{
+			response.Error.Message = TC.TransactionCode
+		}
+		if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+			log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
+		}
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
 		response.Error.Code = http.StatusBadRequest
 		// response.Error.Message = err.Error()
@@ -60,8 +59,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 	}
 
 	// fmt.Println("Successful Transaction:")
-	// fmt.Println("Ledger:", resp.Ledger)
-	log.Info(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
+	log.Info("Ledger:", resp.Ledger)
 	log.Info(time.Now().UTC().String() + "- TXNType:" + tType + " Hash:" + resp.Hash)
 
 	response.Error.Code = http.StatusOK

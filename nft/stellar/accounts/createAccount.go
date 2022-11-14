@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -53,9 +54,9 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 		SourceAccount:        &issuerAccount,
 		IncrementSequenceNum: true,
 		Operations:           CreateAccount,
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	if err != nil {
 		log.Fatal("Error when build transaction : ", err)
