@@ -124,8 +124,8 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee: txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{},
+					BaseFee: constants.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 

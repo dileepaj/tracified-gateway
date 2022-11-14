@@ -152,8 +152,8 @@ func (AP *AbstractCertificateSubmiter) SubmitInsertCertificate(w http.ResponseWr
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTXNBuilder, &CurrentTXNBuilder},
-					BaseFee: txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{},
+					BaseFee: constants.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 

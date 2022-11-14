@@ -4,6 +4,7 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
@@ -65,9 +66,9 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 				SourceAccount:        &issuerAccount,
 				IncrementSequenceNum: true,
 				Operations:           payments,
-				BaseFee:              txnbuild.MinBaseFee,
+				BaseFee:              constants.MinBaseFee,
 				Memo:                 nil,
-				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 			},
 		)
 		if err != nil {
