@@ -90,5 +90,5 @@
             SOCILAIMPACTSEED: "{{ lookup('env','SOCILAIMPACTSEED') }}"
             RABBITUSER: "{{ lookup('env','RABBITUSER') }}"
             RABBITPASSWORD: "{{ lookup('env','RABBITPASSWORD') }}"
-            RABBITMQ_SERVICE_HOST: "{{ lookup('env','RABBITMQ_SERVICE_HOST') }}"
+            RABBITHOSTNAME: "{{ lookup('env','RABBITHOSTNAME') }}"
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"

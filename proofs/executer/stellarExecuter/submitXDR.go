@@ -50,10 +50,8 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		response.Error.Message = TC.TransactionCode
 
 		// log.SetOutput(f)
-
-		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
-		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
-		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
+		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
+		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message)
 		response.Error.Code = http.StatusBadRequest
 		// response.Error.Message = err.Error()
 		return response
