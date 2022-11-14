@@ -96,7 +96,7 @@ node {
                   credentialsId: 'aws-ecr-credentials',
                   secretKeyVariable: 'AWS_SECRET_ACCESS_KEY'
                 ]]) {
-                  ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/production.yml', extras: '-u ubuntu -e GATEWAY_PORT=$GATEWAY_PORT'
+                  // ansiblePlaybook inventory: 'deploy/hosts', playbook: 'deploy/production.yml', extras: '-u ubuntu -e GATEWAY_PORT=$GATEWAY_PORT'
                 }
               }
     }
