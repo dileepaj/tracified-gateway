@@ -67,35 +67,46 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 			valueInitializations = append(valueInitializations, comment)
 
 			// variable initialization
-			valueInitializer := "\t" + `Variable ` + keyNew + ` = Variable(Value("` 
-			valueInitializer= valueInitializer + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", 0, "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", ` + strconv.Itoa(int(selectedValue.Precision)) + `);` 
+			valueInitializer := "\t" + `Variable ` + keyNew + ` = Variable(Value("`
+			valueInitializer = valueInitializer + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", 0, "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", ` + strconv.Itoa(int(selectedValue.Precision)) + `);`
 			valueInitializations = append(valueInitializations, valueInitializer)
 
 			// variable setter
 			commentForSetter := "\n\t" + `// value setter for ` + selectedValue.Type + ` ` + keyNew + "\n"
-			valueSetter := "\t" + `function set` + keyNew + `(int _` + keyNew + `) public {` + "\n\t"
-			valueSetter = valueSetter + "\t" + keyNew + `.value.value = _` + keyNew + ";\n\t" + `}`
+			valueSetter := "\t" + `function set` + keyNew + `(int _` + keyNew + `, int _EXPONENT) public {` + "\n\t"
+			valueSetter = valueSetter + "\t" + keyNew + `.value.value = (_` + keyNew + ", _EXPONENT);\n\t" + `}`
 			valueSetters = append(valueSetters, commentForSetter)
 			valueSetters = append(valueSetters, valueSetter)
 
-		} else if selectedValue.Type == "SEMANTICCONSTANT" {
-			// adding comments
-			comment := "\n\t" + `// value initialization for ` + selectedValue.Type + ` -> ` + keyNew + "\n"
-			valueInitializations = append(valueInitializations, comment)
+		} else {
+			// convert the value to string anf then to float 
+			valueAsString := fmt.Sprintf("%g", selectedValue.Value)
+			exponentOfTheValueLen := 0
+			// make the constant values according to the format (m, n) where (m x 10^n)
+			if strings.Contains(valueAsString, ".") {
+				exponentOfTheValueLen = len(valueAsString[strings.Index(valueAsString, ".")+1:]) * -1
+				valueAsString = strings.Replace(valueAsString, ".", "", 1)
+				logrus.Info("Value as a whole number: ", valueAsString)
+				logrus.Info("Exponent of the value Len: ", exponentOfTheValueLen)
+			}
 
-			// constant initialization
-			valueAsString := fmt.Sprintf("%f", selectedValue.Value)
-			valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", ` + valueAsString + `, "` + selectedValue.Description + `"));`  
-			valueInitializations = append(valueInitializations, valueInitializer)
-		} else if selectedValue.Type == "REFERREDCONSTANT" {
-			// adding comments
-			comment := "\n\t" + `// value initialization for ` + selectedValue.Type + ` -> ` + keyNew + "\n"
-			valueInitializations = append(valueInitializations, comment)
+			if selectedValue.Type == "SEMANTICCONSTANT" {
+				// adding comments
+				comment := "\n\t" + `// value initialization for ` + selectedValue.Type + ` -> ` + keyNew + "\n"
+				valueInitializations = append(valueInitializations, comment)
 
-			// constant initialization
-			valueAsString := fmt.Sprintf("%f", selectedValue.Value)
-			valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", ` + valueAsString + `, "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", "` + selectedValue.MetricReference.Reference + `");` 
-			valueInitializations = append(valueInitializations, valueInitializer)
+				// constant initialization
+				valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", (` + valueAsString + `, ` + strconv.Itoa(exponentOfTheValueLen) + `), "` + selectedValue.Description + `"));`
+				valueInitializations = append(valueInitializations, valueInitializer)
+			} else if selectedValue.Type == "REFERREDCONSTANT" {
+				// adding comments
+				comment := "\n\t" + `// value initialization for ` + selectedValue.Type + ` -> ` + keyNew + "\n"
+				valueInitializations = append(valueInitializations, comment)
+
+				// constant initialization
+				valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", (` + valueAsString + `, ` + strconv.Itoa(exponentOfTheValueLen) + `), "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", "` + selectedValue.MetricReference.Reference + `");`
+				valueInitializations = append(valueInitializations, valueInitializer)
+			}
 		}
 	}
 

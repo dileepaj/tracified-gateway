@@ -5,33 +5,35 @@ import (
 )
 
 // returns -> start variable declarations, setter list, built equation, error
-func CommandBuilder(command model.Command) (string, error) {
+func CommandBuilder(command model.Command) (string, string, error) {
 
-	var commandString string = ""
+	var commandStringStart string = ""
+	var commandStringEnd string = ", "
 
 	// check the command type and get the operator as a string
 	if command.Ul_CommandType == 2100 {
-		commandString = " + "
+		commandStringStart = "Add("
 	} else if command.Ul_CommandType == 2101 {
-		commandString = " - "
+		commandStringStart = "Subtract("
 	} else if command.Ul_CommandType == 2102 {
-		commandString = " * "
+		commandStringStart = "Multiply("
 	} else if command.Ul_CommandType == 2103 {
-		commandString = " / "
+		commandStringStart = "Divide("
 	} else if command.Ul_CommandType == 10000 {
-		commandString = " * "
+		commandStringStart = "Multiply("
 	}
 
 	// check the whether the command has argument or not and call relevant function
 	if command.P_Arg.S_StartVarName != "" {
 		if command.P_Arg.Lst_Commands != nil {
 			strTemplate, _ := Template1Builder(command.P_Arg)
-			commandString += strTemplate
+			commandStringEnd = commandStringEnd + strTemplate
 		} else {
 			strTemplate, _ := Template2Builder(command.P_Arg)
-			commandString += strTemplate
+			commandStringEnd = commandStringEnd + strTemplate
 		}
+		commandStringEnd = commandStringEnd + ")"
 	}
 
-	return commandString, nil
+	return commandStringStart, commandStringEnd, nil
 }
