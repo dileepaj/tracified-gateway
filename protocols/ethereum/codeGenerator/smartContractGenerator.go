@@ -71,8 +71,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			FormulaName:         formulaJSON.MetricExpertFormula.Name,
 			MetricExpertFormula: formulaJSON.MetricExpertFormula,
 			VariableCount:       int32(fieldCount),
-			BINstring:           "",
-			ABIstring:           "",
 			ContractAddress:     "",
 			Timestamp:           time.Now().String(),
 			TransactionHash:     "",
@@ -219,10 +217,40 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		//generate the ABI file
-		deploy.GenerateABI()
+		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName)
+		if errWhenGeneratingABI != nil {
+			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
+			//call the DB insert method
+			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
+			if errWhenInsertingFormulaToDB != nil {
+				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
+				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
+				return
+			}
+			logrus.Info("Error when generating ABI file, ERROR : " + errWhenGeneratingABI.Error())
+			commons.JSONErrorReturn(w, r, errWhenGeneratingABI.Error(), http.StatusInternalServerError, "Error when generating ABI file, ERROR : ")
+			return
+		}
+		ethFormulaObj.ABIstring = abiString
 
 		//generate the BIN file
-		deploy.GenerateBIN()
+		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName)
+		if errWhenGeneratingBinFile != nil {
+			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
+			//call the DB insert method
+			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
+			if errWhenInsertingFormulaToDB != nil {
+				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
+				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
+				return
+			}
+			logrus.Info("Error when generating BIN file, ERROR : " + errWhenGeneratingBinFile.Error())
+			commons.JSONErrorReturn(w, r, errWhenGeneratingBinFile.Error(), http.StatusInternalServerError, "Error when generating BIN file, ERROR : ")
+			return
+		}
+		ethFormulaObj.ABIstring = binString
 
 		buildQueueObj := model.SendToQueue{
 			EthereumExpertFormula: ethFormulaObj,

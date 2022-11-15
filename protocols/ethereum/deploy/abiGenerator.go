@@ -4,32 +4,32 @@ import (
 	"bytes"
 	"fmt"
 	"os/exec"
+
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/sirupsen/logrus"
 )
 
 /*
 Generate the ABI file for the given smart contract
 */
-func GenerateABI() {
-	cmd := exec.Command("cmd", "/C", "cd protocols"+`\`+"ethereum"+`\`+"contracts")
+func GenerateABI(contractName string) (string, error) {
+	//TODO add the contract name as the sol name
 	var out bytes.Buffer
 	var stderr bytes.Buffer
-	cmd.Stdout = &out
-	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println("Error when changing the location")
-		fmt.Println(fmt.Sprint(err) + ": " + stderr.String())
-		return
-	}
-
-	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi UrbanWaterUsage.sol")
+	abiString := ""
+	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi Calculations.sol -o build")
+	cmdABIGen.Dir = commons.GoDotEnvVariable("CONTRACTLOCATION")
 	cmdABIGen.Stdout = &out
 	cmdABIGen.Stderr = &stderr
 	errWhenGettingABI := cmdABIGen.Run()
 	if errWhenGettingABI != nil {
-		fmt.Println("Error when getting the ABI file")
-		fmt.Println(fmt.Sprint(errWhenGettingABI) + ": " + stderr.String())
-		return
+		logrus.Info("Error when getting the ABI file")
+		logrus.Info(fmt.Sprint(errWhenGettingABI) + ": " + stderr.String())
+		return abiString, errWhenGettingABI
 	}
-	fmt.Println("Result : " + out.String())
+	logrus.Info("ABI file generated" + out.String())
+
+	//TODO read the abi file and pass the string to abistring
+
+	return abiString, nil
 }
