@@ -1,5 +1,7 @@
 package model
 
+import "go.mongodb.org/mongo-driver/bson/primitive"
+
 type RSAKeyPair struct {
 	Sha256PublicKey string `json:"sha256pk"`
 	Publickey       string `json:"publicKey"`
@@ -11,6 +13,7 @@ type RSAKeySaveSuccess struct {
 }
 
 type RSAPublickey struct {
+	ID               primitive.ObjectID `bson:"_id,omitempty"`
 	PgpPublickkey    string
 	PgpPksha256      string
 	StellarPublickey string

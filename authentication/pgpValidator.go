@@ -27,6 +27,7 @@ func PGPValidator(sha256hash, signature, originalMsg string) (error, bool) {
 		return errors.New("Public key does not exist in the gateway datastore for the hash " + sha256hash), false
 	}
 	publicKeyData := publicKeyDet.(model.RSAPublickey)
+	logrus.Info("PUBLIC KEY DATA ", publicKeyData.ID.Hex())
 	decodedPublicKey, err := base64.StdEncoding.DecodeString(publicKeyData.PgpPublickkey)
 	if err != nil {
 		logrus.Error("Open PGP, public key decoding error  ", err)
