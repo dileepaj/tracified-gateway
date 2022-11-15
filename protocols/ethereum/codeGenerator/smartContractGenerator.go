@@ -77,6 +77,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			TransactionCost:     "",
 			TransactionTime:     "",
 			TransactionUUID:     "",
+			GOstring:            "",
 			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
 			User:                formulaJSON.User,
 			ErrorMessage:        "",
@@ -251,6 +252,24 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 		ethFormulaObj.ABIstring = binString
+
+		//generating go file by converting the code to bas64
+		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
+		if errWhenGeneratingGoCode != nil {
+			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.ErrorMessage = errWhenGeneratingGoCode.Error()
+			//call the DB insert method
+			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
+			if errWhenInsertingFormulaToDB != nil {
+				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
+				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
+				return
+			}
+			logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
+			commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
+			return
+		}
+		ethFormulaObj.GOstring = goString
 
 		buildQueueObj := model.SendToQueue{
 			EthereumExpertFormula: ethFormulaObj,

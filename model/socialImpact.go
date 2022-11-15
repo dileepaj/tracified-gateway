@@ -639,7 +639,7 @@ type SendToQueue struct {
 type ContractGeneral struct {
 	License                   string
 	PragmaLine                string
-	ImportCalculationsSol	  string
+	ImportCalculationsSol     string
 	ContractStart             string
 	ResultVariable            string
 	MetaDataStructure         string
@@ -648,8 +648,8 @@ type ContractGeneral struct {
 	SemanticConstantStructure string
 	ReferredConstant          string
 	MetadataDeclaration       string
-	ResultDeclaration		  string
-	CalculationObject		  string
+	ResultDeclaration         string
+	CalculationObject         string
 	ContractEnd               string
 }
 
@@ -662,6 +662,7 @@ type EthereumExpertFormula struct {
 	TemplateString      string
 	BINstring           string
 	ABIstring           string
+	GOstring            string
 	ContractAddress     string
 	Status              string
 	Timestamp           string
