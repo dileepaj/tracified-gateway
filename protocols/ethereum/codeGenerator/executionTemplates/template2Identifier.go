@@ -10,5 +10,5 @@ import (
  */
 func Template2Builder(executionTemplate model.ExecutionTemplate) (string, error) {
 
-	return executionTemplate.S_StartVarName + `.value.value`, nil
+	return executionTemplate.S_StartVarName + `.value.value, ` + executionTemplate.S_StartVarName + `.value.exponent`, nil
 }

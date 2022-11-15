@@ -25,7 +25,7 @@ import (
 var (
 	contractName       = ``
 	contractBody       = ``
-	startOfTheExecutor = `function executeCalculation() public returns (int) {`
+	startOfTheExecutor = `function executeCalculation() public returns (int256, int256) {`
 	endOfTheExecutor   = "\n\t" + `}`
 )
 
@@ -111,6 +111,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		contractBody = contractBody + generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
+		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
 
 		//call the value builder and get the string for the variable initialization and setter
 		variableValues, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
@@ -165,15 +166,19 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 
+		// remove the substring from the last comma
+		lenOfLastCommand := len(", calculations.GetExponent()")
+		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
+
 		//setting up the executor (Result)
 		commentForExecutor := `// method to get the result of the calculation`
-		executorBody := "\t\n\t\t" + `if (result == -9999) {`
-		executorBody = executorBody + "\n\t\t\t" + `result` + " = " + executionTemplateString + ";" + "\n\t\t" + `}`
-		executorBody = executorBody + "\n\t\t" + `return result;`
+		executorBody := "\n\t\t" + `result.value` + " = " + executionTemplateString + ";" + "\n\t\t"
+		executorBody = executorBody + `result.exponent = calculations.GetExponent();` + "\n\t\t"
+		executorBody = executorBody + "\n\t\t" + `return (result.value, result.exponent);`
 		contractBody = contractBody + "\n\n\t" + commentForExecutor + "\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
 
 		// create the contract
-		template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
+		template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ImportCalculationsSol + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
 		//convert the template to base64
 		b64Template := base64.StdEncoding.EncodeToString([]byte(template))
 

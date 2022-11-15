@@ -32,7 +32,8 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	valueType := "\t\t" + `string valueType; //initialize at start` + "\n"
 	valueID := "\t\t" + `bytes32 valueID; //initialize at start` + "\n"
 	valueName := "\t\t" + `string valueName; //initialize at start` + "\n"
-	valueDef := "\t\t" + `int value; //initialize at start, added using setter` + "\n"
+	valueDef := "\t\t" + `int256 value; //initialize at start, added using setter` + "\n"
+	valueDef = valueDef + "\t\t" + `int256 exponent; //initialize at start, added using setter` + "\n"
 	valueDescription := "\t\t" + `string description; //initialize at start` + "\n"
 	valueDataStructEnd := "\t" + `}` + "\n"
 	valueDataStructStr := valueDataStructComment + valueDataStructHead + valueType + valueID + valueName + valueDef + valueDescription + valueDataStructEnd
@@ -66,17 +67,33 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	metaDataInitComment := "\t" + `//Metadata declaration` + "\n"
 	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.User.Publickey + `");` + "\n"
 
+	//Result structure
+	resultVariable := "\n\t" + `// Result structure` + 
+						"\n\t" + `struct Result {` + 
+						"\n\t\t" + `int256 value;` + 
+						"\n\t\t" + `int256 exponent;` + 
+						"\n\t" + `}` + "\n"
+
+	// Result initialization
+	resultDeclaration := "\n\t" + `// Result initialization` + "\n\t" + `Result result = Result(0, 0);` + "\n"
+
+	// Calculations object declaration
+	calculationObject := "\n\t" + `// Calculation object creation` + "\n\t" + `Calculations calculations = new Calculations();` + "\n"
+
 	generalBuilder := model.ContractGeneral{
 		License:                   `// SPDX-License-Identifier: MIT`,
 		PragmaLine:                `pragma solidity ^0.8.7;`,
+		ImportCalculationsSol:     `import './Calculations.sol';`,
 		ContractStart:             `contract ` + contractName + ` {`,
-		ResultVariable:            `int public result = -9999;` + "\n",
+		ResultVariable:            resultVariable,
 		MetaDataStructure:         metaDataStructStr,
 		ValueDataStructure:        valueDataStructStr,
 		VariableStructure:         variableStructStr,
 		SemanticConstantStructure: semanticStructStr,
 		ReferredConstant:          referredStructStr,
 		MetadataDeclaration:       metaDataInitComment + metaDataInit,
+		ResultDeclaration:         resultDeclaration,
+		CalculationObject:         calculationObject,
 		ContractEnd:               `}`,
 	}
 

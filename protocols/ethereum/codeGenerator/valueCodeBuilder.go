@@ -68,13 +68,20 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 
 			// variable initialization
 			valueInitializer := "\t" + `Variable ` + keyNew + ` = Variable(Value("`
-			valueInitializer = valueInitializer + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", 0, "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", ` + strconv.Itoa(int(selectedValue.Precision)) + `);`
+			valueInitializer = valueInitializer + 
+								selectedValue.Type + `", "` + 
+								selectedValue.ID + `", "` + 
+								selectedValue.Name + `", 0, 0, "` + 
+								selectedValue.Description + `"), "` + 
+								selectedValue.MeasurementUnit + `", ` + 
+								strconv.Itoa(int(selectedValue.Precision)) + `);`
 			valueInitializations = append(valueInitializations, valueInitializer)
 
 			// variable setter
 			commentForSetter := "\n\t" + `// value setter for ` + selectedValue.Type + ` ` + keyNew + "\n"
-			valueSetter := "\t" + `function set` + keyNew + `(int _` + keyNew + `, int _EXPONENT) public {` + "\n\t"
-			valueSetter = valueSetter + "\t" + keyNew + `.value.value = (_` + keyNew + ", _EXPONENT);\n\t" + `}`
+			valueSetter := "\t" + `function set` + keyNew + `(int256 _` + keyNew + `, int256 _EXPONENT) public {` + "\n\t"
+			valueSetter = valueSetter + "\t" + keyNew + `.value.value = _` + keyNew + ";\n\t"
+			valueSetter = valueSetter + "\t" + keyNew + `.value.exponent = _EXPONENT;` + "\n\t" + `}`
 			valueSetters = append(valueSetters, commentForSetter)
 			valueSetters = append(valueSetters, valueSetter)
 
@@ -96,7 +103,13 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 				valueInitializations = append(valueInitializations, comment)
 
 				// constant initialization
-				valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", (` + valueAsString + `, ` + strconv.Itoa(exponentOfTheValueLen) + `), "` + selectedValue.Description + `"));`
+				valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` + 
+																					selectedValue.Type + `", "` + 
+																					selectedValue.ID + `", "` + 
+																					selectedValue.Name + `", ` + 
+																					valueAsString + `, ` + 
+																					strconv.Itoa(exponentOfTheValueLen) + `, "` + 
+																					selectedValue.Description + `"));`
 				valueInitializations = append(valueInitializations, valueInitializer)
 			} else if selectedValue.Type == "REFERREDCONSTANT" {
 				// adding comments
@@ -104,7 +117,15 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 				valueInitializations = append(valueInitializations, comment)
 
 				// constant initialization
-				valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` + selectedValue.Type + `", "` + selectedValue.ID + `", "` + selectedValue.Name + `", (` + valueAsString + `, ` + strconv.Itoa(exponentOfTheValueLen) + `), "` + selectedValue.Description + `"), "` + selectedValue.MeasurementUnit + `", "` + selectedValue.MetricReference.Reference + `");`
+				valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` + 
+																					selectedValue.Type + `", "` + 
+																					selectedValue.ID + `", "` + 
+																					selectedValue.Name + `", ` + 
+																					valueAsString + `, ` + 
+																					strconv.Itoa(exponentOfTheValueLen) + `, "` + 
+																					selectedValue.Description + `"), "` + 
+																					selectedValue.MeasurementUnit + `", "` + 
+																					selectedValue.MetricReference.Reference + `");`
 				valueInitializations = append(valueInitializations, valueInitializer)
 			}
 		}

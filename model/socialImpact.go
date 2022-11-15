@@ -639,6 +639,7 @@ type SendToQueue struct {
 type ContractGeneral struct {
 	License                   string
 	PragmaLine                string
+	ImportCalculationsSol	  string
 	ContractStart             string
 	ResultVariable            string
 	MetaDataStructure         string
@@ -647,6 +648,8 @@ type ContractGeneral struct {
 	SemanticConstantStructure string
 	ReferredConstant          string
 	MetadataDeclaration       string
+	ResultDeclaration		  string
+	CalculationObject		  string
 	ContractEnd               string
 }
 
