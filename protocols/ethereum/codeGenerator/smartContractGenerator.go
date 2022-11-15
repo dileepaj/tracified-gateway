@@ -13,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/oklog/ulid"
@@ -216,6 +217,12 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			commons.JSONErrorReturn(w, r, errInWritingOutput.Error(), http.StatusInternalServerError, "Error in writing the output file ")
 			return
 		}
+
+		//generate the ABI file
+		deploy.GenerateABI()
+
+		//generate the BIN file
+		deploy.GenerateBIN()
 
 		buildQueueObj := model.SendToQueue{
 			EthereumExpertFormula: ethFormulaObj,
