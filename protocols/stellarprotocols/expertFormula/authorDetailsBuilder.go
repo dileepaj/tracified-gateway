@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -61,10 +62,13 @@ func (expertFormula ExpertFormula) BuildAuthorManageData(expertKey string) (txnb
 }
 
 func (expertFormula ExpertFormula) BuildPublicManageData(publicKeyHash string) (txnbuild.ManageData, error) {
+	publicKey := publicKeyHash
 	// check if the string is 64 characters
-	if configs.PGPkeyEnable && len(publicKeyHash) != 64 {
+	if configs.PGPkeyEnable && len(commons.ConvertBase64StringToHash256(publicKeyHash)) != 64 {
 		logrus.Error("Expert public key should be equal to 64 character limit, It is a sha256(authorDetailsBuilder.go)")
 		return txnbuild.ManageData{}, errors.New("expert public key should be equal to 64 character limit, It is a sha256 value")
+	} else {
+		publicKey = commons.ConvertBase64StringToHash256(publicKeyHash)
 	}
 	if !configs.PGPkeyEnable && len(publicKeyHash) > 64 {
 		logrus.Error("Expert public key should be less than 64 character limit, It is a stellar public key(authorDetailsBuilder.go)")
@@ -75,17 +79,17 @@ func (expertFormula ExpertFormula) BuildPublicManageData(publicKeyHash string) (
 		return txnbuild.ManageData{}, err
 	}
 	authorBuilder := txnbuild.ManageData{
-		Name:  publicKeyHash,
+		Name:  publicKey,
 		Value: decodedStrFutureUse,
 	}
 
 	// check the lengths of the key and value
-	if len(publicKeyHash) > 64 || len(decodedStrFutureUse) != 64 {
+	if len(publicKey) > 64 || len(decodedStrFutureUse) != 64 {
 		logrus.Error("Key string length : ", len(publicKeyHash))
 		logrus.Error("Value string length : ", len(decodedStrFutureUse))
 		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the author details building")
 	}
-	logrus.Info("Author detials key ", publicKeyHash)
+	logrus.Info("Author details key ", publicKey)
 	logrus.Info("Author details value ", decodedStrFutureUse)
 	return authorBuilder, nil
 }

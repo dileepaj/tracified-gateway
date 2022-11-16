@@ -17,18 +17,18 @@ import (
 BuildVariableDefinitionManageData
 des-Build the variable definition manage data
 variable definition and byte used
-	valueType - 1 byte defieded by protocol -2 for sementic constant
-	valueId  - 8 byte defieded by protocol
+	valueType - 1 byte defied by protocol -2 for sementic constant
+	valueId  - 8 byte defied by protocol
 	data type - 1 byte
-	value name - 20 byte defieded by protocol
+	value name - 20 byte defied by protocol
 	unit - 2 bytes
 	precision - 1
 	description - 40 bytes
-	sementicConstantDataType - 1 byte defieded by protocol -2 for flaot
+	sementicConstantDataType - 1 byte defied by protocol -2 for flaot
 	future use - 34 bytes
 
 Manage data
-	name 64 byte character - 	description - 64 byte defieded by protocol + future use
+	name 64 byte character - 	description - 64 byte defied by protocol + future use
 	value 64 byte managedata - valueType + valueId +  + value name + fetureused + data type + unit + precision
 */
 func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID string, element model.FormulaItemRequest) (txnbuild.ManageData, model.ValueDefOutParmas, error) {
@@ -108,8 +108,8 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 	// finally check if the 20 bytes are filled if not append 0s at end
 	if len(variableNameString) < 20 {
 		remain := 20 - len(variableNameString)
-		setReaminder := strings.Repeat("0", remain)
-		variableNameString = variableNameString + setReaminder
+		setRemainder := strings.Repeat("0", remain)
+		variableNameString = variableNameString + setRemainder
 	}
 	// depending on the data type decide the integer to be assigned
 	tempDataType, errInDataTypeConvert := stellarprotocols.Int8ToByteString(uint8(DATATYPE))
@@ -118,7 +118,7 @@ func (expertFormula ExpertFormula) BuildVariableDefinitionManageData(formulaID s
 		return txnbuild.ManageData{}, errorRespObj, errors.New("error when converting data type " + errInDataTypeConvert.Error())
 	}
 	dataTypeString = tempDataType
-	// depending on the unit type decide the integer to be asigned
+	// depending on the unit type decide the integer to be assigned
 	// convert unit type character -> byte -> bits
 	unitMap, errInUnitIdMap := object.GetUnitMapID(element.MeasurementUnit).Then(func(data interface{}) interface{} {
 		return data
