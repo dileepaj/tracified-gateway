@@ -727,7 +727,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	return err
 }
 
-//auto count sequence incrementer
+// auto count sequence incrementer
 func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 	var result model.Counters
 	session, err := cd.connect()
@@ -810,7 +810,6 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID, "txnuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
-
 }
 
 func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, update model.FormulaStore) error {
@@ -824,7 +823,7 @@ func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, upda
 
 	up := model.FormulaStore{
 		MetricExpertFormula: update.MetricExpertFormula,
-		User:                update.User,
+		Verify:              update.Verify,
 		FormulaID:           update.FormulaID,
 		FormulaMapID:        update.FormulaMapID,
 		VariableCount:       update.VariableCount,
