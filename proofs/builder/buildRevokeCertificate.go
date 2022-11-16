@@ -181,8 +181,8 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee: txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					BaseFee: constants.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 

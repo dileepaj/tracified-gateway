@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -58,9 +59,9 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
 			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &endSponsorship, &beginSponsorship1, &changeTrustOp, &endSponsorship1},
-			BaseFee:              txnbuild.MinBaseFee,
+			BaseFee:              constants.MinBaseFee,
 			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+			Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 		},
 	)
 	if err != nil {

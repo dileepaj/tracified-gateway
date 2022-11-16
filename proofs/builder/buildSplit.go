@@ -168,9 +168,9 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 				SourceAccount:        &account,
 				IncrementSequenceNum: true,
 				Operations:           []txnbuild.Operation{&previousTXNBuilder, &typeTXNBuilder, &currentTXNBuilder, &identifierTXNBuilder, &profileIDTXNBuilder, &PreviousProfileTXNBuilder},
-				BaseFee:              txnbuild.MinBaseFee,
+				BaseFee:              constants.MinBaseFee,
 				Memo:                 nil,
-				Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+				Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 			})
 
 			// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY

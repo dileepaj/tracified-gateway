@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
 )
 
-type StellarTrasaction struct {
+type StellarTransaction struct {
 	Operations []txnbuild.Operation
 	Memo       string
 	Type       string
@@ -20,7 +21,7 @@ type StellarTrasaction struct {
 des - common method to send a transaction to the blockchain
 */
 
-func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, string, int64, string, string) {
+func (transaction StellarTransaction) SubmitToStellarBlockchain() (error, int, string, int64, string, string) {
 	// load account
 	publicKey := commons.GoDotEnvVariable("SOCILAIMPACTPUBLICKKEY")
 	secretKey := commons.GoDotEnvVariable("SOCILAIMPACTSEED")
@@ -33,12 +34,12 @@ func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, st
 		SourceAccount:        &pubaccount,
 		IncrementSequenceNum: true,
 		Operations:           transaction.Operations,
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 txnbuild.MemoText(transaction.Memo),
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		Preconditions:        txnbuild.Preconditions{TimeBounds:constants.TransactionTimeOut},
 	})
 	if err != nil {
-		logrus.Println("Error while buliding XDR " + err.Error())
+		logrus.Println("Error while building XDR " + err.Error())
 		return err, http.StatusInternalServerError, "", 0, "", publicKey
 	}
 	// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY

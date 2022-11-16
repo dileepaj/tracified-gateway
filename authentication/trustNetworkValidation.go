@@ -24,7 +24,7 @@ func ValidateAgainstTrustNetwork(expertPK string) error {
 	}).Await()
 	if err != nil {
 		logrus.Error("Error while getting the trust network key map : ", err)
-		return errors.New("Expert is not in the trust network")
+		return errors.New("Error while getting the trust network key map")
 	}
 	if TrustNetworkKeyMap == nil {
 		return errors.New("Expert is not in the trust network")

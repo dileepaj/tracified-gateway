@@ -11,6 +11,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -52,9 +53,9 @@ func (cd *ConcreteInsertPOCert) InsertPOCertHash() model.InsertDataResponse {
 		SourceAccount:        &account,
 		IncrementSequenceNum: true,
 		Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &CertBodyTXNBuilder, &ValidityTXNBuilder,&IssuedTXNBuilder,&ExpiredTXNBuilder},
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	
 	// // save data

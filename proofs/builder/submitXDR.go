@@ -285,9 +285,9 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 					SourceAccount:        &account,
 					IncrementSequenceNum: true,
 					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee:              txnbuild.MinBaseFee,
+					BaseFee:              constants.MinBaseFee,
 					Memo:                 nil,
-					Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				})
 				if err != nil {
 					log.Error("Error @ builder @XDRSubmitter " + err.Error())

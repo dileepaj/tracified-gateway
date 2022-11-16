@@ -11,6 +11,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -48,9 +49,9 @@ func (cd *ConcreteInsertPOA) InsertPOAHash() model.InsertDataResponse {
 		SourceAccount:        &account,
 		IncrementSequenceNum: true,
 		Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &CertBodyTXNBuilder, &IdentifierTXNBuilder},
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	// save data
 	// tx, err := build.Transaction(

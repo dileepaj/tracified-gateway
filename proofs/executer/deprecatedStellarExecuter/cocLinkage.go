@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/sirupsen/logrus"
 
 	"github.com/stellar/go/clients/horizonclient"
@@ -59,9 +60,9 @@ func (cd *ConcreteCoCLinkage) CoCLinkage() string {
 		SourceAccount:        &account,
 		IncrementSequenceNum: true,
 		Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &ProfileIDTXNBuilder,&COCTxnIDTXNBuilder},
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	// paymentTx, err := build.Transaction(
 	// 	build.SourceAccount{signerSeed.Address()},

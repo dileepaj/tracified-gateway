@@ -18,13 +18,13 @@ import (
 var (
 	USER     = commons.GoDotEnvVariable("RABBITUSER")
 	PASSWORD = commons.GoDotEnvVariable("RABBITPASSWORD")
-	HOSTNAME = commons.GoDotEnvVariable("RABBITHOSTNAME")
+	HOSTNAME = commons.GoDotEnvVariable("RABBITMQ_SERVICE_HOST")
 	PORT     = commons.GoDotEnvVariable("RABBITPORT")
 )
 
-func ReciverRmq() error {
-	rabbitCoonection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
-	conn, err := amqp.Dial(rabbitCoonection)
+func ReceiverRmq() error {
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("Failed to connect to RabbitMQ ", err)
 		return err
@@ -77,8 +77,8 @@ func ReciverRmq() error {
 			if queue.Type == "METRICBIND" {
 				logrus.Info("Received mgs Type (METRICBIND)")
 				startTime := time.Now()
-				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
-				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
+				stellarprotocol := stellarprotocols.StellarTransaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
+				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
@@ -123,15 +123,15 @@ func ReciverRmq() error {
 			} else if queue.Type == "EXPERTFORMULA" {
 				logrus.Info("Received mgs Type (EXPERTFORMULA)")
 				startTime := time.Now()
-				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
-				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
+				stellarprotocol := stellarprotocols.StellarTransaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
+				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				expertFormulaStore := queue.ExpertFormula
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
 				expertFormulaStore = model.FormulaStore{
 					MetricExpertFormula: queue.ExpertFormula.MetricExpertFormula,
-					User:                queue.ExpertFormula.User,
+					Verify:              queue.ExpertFormula.Verify,
 					FormulaID:           queue.ExpertFormula.FormulaID,
 					FormulaMapID:        queue.ExpertFormula.FormulaMapID,
 					VariableCount:       queue.ExpertFormula.VariableCount,
@@ -158,7 +158,7 @@ func ReciverRmq() error {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
 					logrus.Info("Formula update called with failed status")
-					logrus.Error("Stellar transacion submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
+					logrus.Error("Stellar transactions submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
 					logrus.Println("XDR  ", xdr)
 				} else {
 					expertFormulaStore.SequenceNo = sequenceNo
@@ -169,7 +169,7 @@ func ReciverRmq() error {
 					}
 					logrus.Info("Formula update called with success status")
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
-					logrus.Info("Stellar transacion submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
+					logrus.Info("Stellar transaction submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			}

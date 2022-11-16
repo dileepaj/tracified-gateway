@@ -186,9 +186,9 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 					SourceAccount:        &account,
 					IncrementSequenceNum: true,
 					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee:              txnbuild.MinBaseFee,
+					BaseFee:              constants.MinBaseFee,
 					Memo:                 nil,
-					Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				})
 				if err != nil {
 					log.Error("Error @build.Transaction @SubmitXDR " + err.Error())

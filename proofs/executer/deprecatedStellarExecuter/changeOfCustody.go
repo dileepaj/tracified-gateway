@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"github.com/stellar/go/clients/horizonclient"
@@ -64,9 +65,9 @@ func (cd *ConcreteChangeOfCustody) ChangeOfCustody() model.COCResponse {
 		SourceAccount:        &account,
 		IncrementSequenceNum: true,
 		Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &ProfileIDTXNBuilder, &IdentifierTXNBuilder, &paymentTXNBuilder},
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	// paymentTx, err := build.Transaction(
 	// 	build.SourceAccount{cd.COC.Reciverkey},

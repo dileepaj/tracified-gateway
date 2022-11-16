@@ -250,8 +250,8 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder},
-					BaseFee: txnbuild.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					BaseFee: constants.MinBaseFee,
+					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 
