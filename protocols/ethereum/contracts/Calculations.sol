@@ -59,20 +59,20 @@ contract Calculations {
         int256 valueRes;
         int256 valueConvertedInBetween;
         int256 exponentRes;
-        int256 exponentDef;
+        int256 exponentDif;
         //check the maximum exponent value
         if (_opOneExponent > _opTwoExponent) {
-            exponentDef = _opOneExponent - _opTwoExponent;
+            exponentDif = _opOneExponent - _opTwoExponent;
             valueConvertedInBetween =
                 _opOneValue *
-                int256(10**uint256(exponentDef));
+                int256(10**uint256(exponentDif));
             valueRes = valueConvertedInBetween - _opTwoValue;
             exponentRes = _opTwoExponent;
         } else if (_opOneExponent < _opTwoExponent) {
-            exponentDef = _opTwoExponent - _opOneExponent;
+            exponentDif = _opTwoExponent - _opOneExponent;
             valueConvertedInBetween =
                 _opTwoValue *
-                int256(10**uint256(exponentDef));
+                int256(10**uint256(exponentDif));
             valueRes = _opOneValue - valueConvertedInBetween;
             exponentRes = _opOneExponent;
         } else {
@@ -95,20 +95,20 @@ contract Calculations {
         int256 valueRes;
         int256 valueConvertedInBetween;
         int256 exponentRes;
-        int256 exponentDef;
+        int256 exponentDif;
         //check the maximum exponent value
         if (_opOneExponent > _opTwoExponent) {
-            exponentDef = _opOneExponent - _opTwoExponent;
+            exponentDif = _opOneExponent - _opTwoExponent;
             valueConvertedInBetween =
                 _opOneValue *
-                int256(10**uint256(exponentDef));
+                int256(10**uint256(exponentDif));
             valueRes = valueConvertedInBetween + _opTwoValue;
             exponentRes = _opTwoExponent;
         } else if (_opOneExponent < _opTwoExponent) {
-            exponentDef = _opTwoExponent - _opOneExponent;
+            exponentDif = _opTwoExponent - _opOneExponent;
             valueConvertedInBetween =
                 _opTwoValue *
-                int256(10**uint256(exponentDef));
+                int256(10**uint256(exponentDif));
             valueRes = _opOneValue + valueConvertedInBetween;
             exponentRes = _opOneExponent;
         } else {

@@ -8,11 +8,11 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	build "github.com/dileepaj/tracified-gateway/protocols/ethereum/contracts/build"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/sirupsen/logrus"
 )
 
 /*

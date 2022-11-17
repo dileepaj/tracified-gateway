@@ -19,8 +19,6 @@ func CommandBuilder(command model.Command) (string, string, error) {
 		commandStringStart = "calculations.Multiply("
 	} else if command.Ul_CommandType == 2103 {
 		commandStringStart = "calculations.Divide("
-	} else if command.Ul_CommandType == 10000 {
-		commandStringStart = "calculations.Multiply("
 	}
 
 	// check the whether the command has argument or not and call relevant function
