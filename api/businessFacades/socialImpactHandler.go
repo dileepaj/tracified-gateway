@@ -14,10 +14,10 @@ import (
 
 /*
 BuildSocialImpactFormula
-des-This handler the expert formula bulding,
+des-This handler the expert formula building,
 	In side this handler
 	 * validate the JSON request body
-	 * changethe formual elemet type according to the protocol
+	 * change the formula element type according to the protocol
 	 * call the SocialImpactExpertFormula method to build the formula
 */
 
@@ -35,13 +35,12 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		authLayer := authentication.AuthLayer{
-			FormulaId:    formulaJSON.MetricExpertFormula.ID,
-			ExpertPK:     formulaJSON.User.Publickey,
-			ExpertUserID: formulaJSON.User.ID,
-			Signature:    formulaJSON.MetricExpertFormula.Signature,
-			Plaintext:    formulaJSON.MetricExpertFormula.FormulaAsQuery,
+			FormulaId: formulaJSON.MetricExpertFormula.ID,
+			ExpertPK:  formulaJSON.Verify.PublicKey,
+			Signature: formulaJSON.Verify.Signature,
+			Plaintext: formulaJSON.Verify.Payload,
 		}
-		err, errCode := authLayer.ValidateExpertRequest()
+		err, errCode, id := authLayer.ValidateExpertRequest()
 		if err != nil {
 			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Authentication Issue, ")
 			return
@@ -74,13 +73,14 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 				FormulaJSON:   formulaJSON,
 				FieldCount:    fieldCount,
 				VariableCount: variableCount,
+				ExpertId:      id,
 			}
 			socialImpactBuilder.SocialImpactExpertFormula(w, r)
 		}
 	}
 }
 
-// BindMetric method : binds the metric with mutiple formulas
+// BindMetric method : binds the metric with multiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if configs.JWTAuthEnableBindMetricEndpoint {
