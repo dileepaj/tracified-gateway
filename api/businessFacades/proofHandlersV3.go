@@ -3,7 +3,6 @@ package businessFacades
 import (
 	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -136,7 +135,8 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 
 	var response model.POE
 	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
-	url := constants.TracifiedBackend + "/api/v2/dataPackets/" + result.ProfileID + `/` + result.TdpId
+	url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
+
 	bearer := "Bearer " + constants.BackendToken
 
 	// Create a new request using http
@@ -159,17 +159,22 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
 	}
+	var raw2 map[string]interface{}
+	json.Unmarshal(body, &raw2)
+
 	h := sha256.New()
-	var TdpData model.TDPData
-	json.Unmarshal(body, &TdpData)
-
-	h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
-    dataHash := hex.EncodeToString(h.Sum(nil))
-
-	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dataHash}
+	lol := raw2["data"]
+	encodedString := raw2["data"].(string)
+	decodedString, err := base64.StdEncoding.DecodeString(encodedString)
+	var tdpJson TdpData
+	json.Unmarshal(decodedString, &tdpJson)
+	decodedIdentifier, err := base64.StdEncoding.DecodeString(tdpJson.TdpHeader.Identifiers[0])
+	var identifierObj Identifier
+	json.Unmarshal(decodedIdentifier, &identifierObj)
+	h.Write([]byte(fmt.Sprintf("%s", lol) + identifierObj.Id))
+	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: result.DataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE()
-
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
 	//var txe xdr.Transaction
