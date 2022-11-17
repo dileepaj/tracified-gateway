@@ -20,7 +20,7 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	//Meta data structure
 	metaDataStructComment := "\t" + `//Metadata structure` + "\n"
 	metaDataStructHead := "\t" + `struct Metadata {` + "\n"
-	metaDataFormulaID := "\t\t" + `bytes32 formulaID; //initialize at start` + "\n"
+	metaDataFormulaID := "\t\t" + `string formulaID; //initialize at start` + "\n"
 	metaDataFormulaName := "\t\t" + `string formulaName; //initialize at start` + "\n"
 	metaDataExpertPK := "\t\t" + `string expertPK; //initialize at start` + "\n"
 	metaDataStructEnd := "\t" + `}` + "\n"
@@ -68,11 +68,11 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.User.Publickey + `");` + "\n"
 
 	//Result structure
-	resultVariable := "\n\t" + `// Result structure` + 
-						"\n\t" + `struct Result {` + 
-						"\n\t\t" + `int256 value;` + 
-						"\n\t\t" + `int256 exponent;` + 
-						"\n\t" + `}` + "\n"
+	resultVariable := "\n\t" + `// Result structure` +
+		"\n\t" + `struct Result {` +
+		"\n\t\t" + `int256 value;` +
+		"\n\t\t" + `int256 exponent;` +
+		"\n\t" + `}` + "\n"
 
 	// Result initialization
 	resultDeclaration := "\n\t" + `// Result initialization` + "\n\t" + `Result result = Result(0, 0);` + "\n"

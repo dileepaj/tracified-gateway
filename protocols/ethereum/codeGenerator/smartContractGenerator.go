@@ -218,7 +218,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		//generate the ABI file
-		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName)
+		abiString, errWhenGeneratingABI := deploy.GenerateABI("Calculations")
 		if errWhenGeneratingABI != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
@@ -236,7 +236,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.ABIstring = abiString
 
 		//generate the BIN file
-		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName)
+		binString, errWhenGeneratingBinFile := deploy.GenerateBIN("Calculations")
 		if errWhenGeneratingBinFile != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
@@ -254,7 +254,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.ABIstring = binString
 
 		//generating go file by converting the code to bas64
-		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
+		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode("Calculations")
 		if errWhenGeneratingGoCode != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingGoCode.Error()

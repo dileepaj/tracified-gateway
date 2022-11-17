@@ -74,7 +74,7 @@ func DeployContract() (string, string, error) {
 	}
 
 	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address)
-	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", transactionHash)
+	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", hash.Hash().Hex())
 
 	contractAddress = address.Hex()
 	transactionHash = hash.Hash().Hex()

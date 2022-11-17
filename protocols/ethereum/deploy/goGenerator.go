@@ -13,11 +13,10 @@ import (
 Generate Go code from BIN and ABI files
 */
 func GenerateGoCode(contractName string) (string, error) {
-	//TODO add the contract name as the sol name
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	goString := ""
-	cmdGoGen := exec.Command("powershell", "/C", "./abigen --bin=Calculations_sol_Calculations.bin --abi=Calculations_sol_Calculations.abi --pkg=Calculations --out=Calculations.go")
+	cmdGoGen := exec.Command("powershell", "/C", "./abigen --bin="+contractName+"_sol_"+contractName+".bin --abi="+contractName+"_sol_"+contractName+".abi --pkg="+contractName+" --out="+contractName+".go")
 	cmdGoGen.Dir = commons.GoDotEnvVariable("BUILDLOCATION")
 	cmdGoGen.Stdout = &out
 	cmdGoGen.Stderr = &stderr

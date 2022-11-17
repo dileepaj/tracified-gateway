@@ -13,11 +13,10 @@ import (
 Generate the BIN file for the given smart contract
 */
 func GenerateBIN(contractName string) (string, error) {
-	//TODO pass the contract name as the sol file
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	binString := ""
-	cmdBINGen := exec.Command("cmd", "/C", "solcjs --bin Calculations.sol -o build")
+	cmdBINGen := exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
 	cmdBINGen.Dir = commons.GoDotEnvVariable("CONTRACTLOCATION")
 	cmdBINGen.Stdout = &out
 	cmdBINGen.Stderr = &stderr

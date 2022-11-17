@@ -13,11 +13,10 @@ import (
 Generate the ABI file for the given smart contract
 */
 func GenerateABI(contractName string) (string, error) {
-	//TODO add the contract name as the sol name
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	abiString := ""
-	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi Calculations.sol -o build")
+	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o build")
 	cmdABIGen.Dir = commons.GoDotEnvVariable("CONTRACTLOCATION")
 	cmdABIGen.Stdout = &out
 	cmdABIGen.Stderr = &stderr
