@@ -37,7 +37,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	object := dao.Connection{}
 	var deployStatus string
 
-	//TODO check the DB with the formula ID to see wether its a duplicate with the deploy and verify status
 	formulaDetails, errWhenGettingFormulaDetailsFromDB := object.GetEthFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -64,6 +63,9 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//deploy the contract another time
 		logrus.Info("Requested formula is in the failed status")
 		commons.JSONErrorReturn(w, r, "Status : "+deployStatus, 400, "Requested formula is in the failed status, redeploy")
+
+		//TODO handle the fail request to redeploy the smart contract
+
 		return
 	} else if deployStatus == "" {
 		ethFormulaObj := model.EthereumExpertFormula{
@@ -92,6 +94,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//setting up the contract name and starting the contract
 		contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 		contractName = strings.ReplaceAll(contractName, " ", "")
+		ethFormulaObj.ContractName = contractName
 
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippet := WriteGeneralCodeSnippets(formulaJSON, contractName)

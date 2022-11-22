@@ -1,13 +1,13 @@
-package deploy
+package build
 
 import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
 	"math/big"
+	"reflect"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	build "github.com/dileepaj/tracified-gateway/protocols/ethereum/contracts/build"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -18,7 +18,7 @@ import (
 /*
 	Deploy smart contract in Ethereum
 */
-func DeployContract() (string, string, error) {
+func DeployContract(contractName string) (string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
 
@@ -67,18 +67,44 @@ func DeployContract() (string, string, error) {
 	auth.GasLimit = uint64(1000000) // in units
 	auth.GasPrice = big.NewInt(int64(gasPrice))
 
-	address, hash, instance, errInDeploy := build.DeployCalculations(auth, client)
+	// functionName := "Deploy" + contractName
+
+	address, hash, instance, errInDeploy := DeployBuild(auth, client)
 	if errInDeploy != nil {
 		logrus.Error("Error when deploying the contract " + errInDeploy.Error())
 		return contractAddress, transactionHash, errors.New("Error when deploying the contract , ERROR : " + errInDeploy.Error())
 	}
 
-	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address)
+	_ = instance
+
+	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", hash.Hash().Hex())
 
 	contractAddress = address.Hex()
 	transactionHash = hash.Hash().Hex()
-	_ = instance
 
 	return contractAddress, transactionHash, nil
+}
+
+/*
+	Call the deploy method in a dynamic manner
+*/
+func InvokeDeploy(funcName string, auth *bind.TransactOpts, backend bind.ContractBackend) (string, string, error) {
+	type MethodCall struct{}
+	var m MethodCall
+
+	params := []reflect.Value{
+		reflect.ValueOf(auth),
+		reflect.ValueOf(backend),
+	}
+	result := reflect.ValueOf(&m).MethodByName(funcName).Call(params)
+	address := result[0].Interface()
+	hash := result[1].Interface()
+	errDeploy := result[3].Interface()
+	if errDeploy != nil {
+		logrus.Error("Error in the deployment method ", errDeploy.(error))
+		return "", "", errDeploy.(error)
+	}
+
+	return address.(string), hash.(string), nil
 }

@@ -43,7 +43,7 @@ contract UrbanWaterUseEth123 {
 		string refUrl; //initialize at start
 	}
 	//Metadata declaration
-	Metadata metadata = Metadata("631a0b4ad9241a9374f9f001EthTest48","Urban water use ETH123","GBOK5LA4FABVOK76XOZGYHXDF5XYMS5FQJ7XZNP6TTAG6NYS766TO7EF");
+	Metadata metadata = Metadata("631a0b4ad9241a9374f9f001EthTest61","Urban water use ETH123","GBOK5LA4FABVOK76XOZGYHXDF5XYMS5FQJ7XZNP6TTAG6NYS766TO7EF");
 
 	// Result initialization
 	Result result = Result(0, 0);

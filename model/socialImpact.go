@@ -659,6 +659,7 @@ type EthereumExpertFormula struct {
 	ExecutionTemplate   ExecutionTemplate
 	MetricExpertFormula ExpertFormula
 	VariableCount       int32
+	ContractName        string
 	TemplateString      string
 	BINstring           string
 	ABIstring           string

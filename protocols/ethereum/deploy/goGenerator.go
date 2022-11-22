@@ -16,7 +16,7 @@ func GenerateGoCode(contractName string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	goString := ""
-	cmdGoGen := exec.Command("powershell", "/C", "./abigen --bin="+contractName+"_sol_"+contractName+".bin --abi="+contractName+"_sol_"+contractName+".abi --pkg="+contractName+" --out="+contractName+".go")
+	cmdGoGen := exec.Command("powershell", "/C", "./abigen --bin="+contractName+"_sol_"+contractName+".bin --abi="+contractName+"_sol_"+contractName+".abi --pkg="+"build"+" --out="+contractName+".go")
 	cmdGoGen.Dir = commons.GoDotEnvVariable("BUILDLOCATION")
 	cmdGoGen.Stdout = &out
 	cmdGoGen.Stderr = &stderr
