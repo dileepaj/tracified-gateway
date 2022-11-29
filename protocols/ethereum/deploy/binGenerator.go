@@ -3,6 +3,7 @@ package deploy
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -28,7 +29,17 @@ func GenerateBIN(contractName string) (string, error) {
 	}
 	logrus.Info("BIN file generated" + out.String())
 
-	//TODO read the bin file and assign to binString
+	//build file name
+	fileName := contractName + "_sol_" + contractName + ".bin"
+	location := commons.GoDotEnvVariable("BUILDLOCATION") + "/" + fileName
+
+	binInByte, errWhenReadingFile := os.ReadFile(location)
+	if errWhenReadingFile != nil {
+		logrus.Info("Error when reading the ABI file")
+		return binString, errWhenReadingFile
+	}
+
+	binString = "0x" + string(binInByte)
 
 	return binString, nil
 }
