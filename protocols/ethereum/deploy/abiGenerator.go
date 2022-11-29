@@ -3,6 +3,7 @@ package deploy
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"os/exec"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -28,7 +29,17 @@ func GenerateABI(contractName string) (string, error) {
 	}
 	logrus.Info("ABI file generated" + out.String())
 
-	//TODO read the abi file and pass the string to abistring
+	//build the abi file name
+	fileName := contractName + "_sol_" + contractName + ".abi"
+	location := commons.GoDotEnvVariable("BUILDLOCATION") + "/" + fileName
+
+	abiInByte, errWhenReadingFile := os.ReadFile(location)
+	if errWhenReadingFile != nil {
+		logrus.Info("Error when reading the ABI file")
+		return abiString, errWhenReadingFile
+	}
+
+	abiString = string(abiInByte)
 
 	return abiString, nil
 }

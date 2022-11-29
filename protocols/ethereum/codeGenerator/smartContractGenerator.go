@@ -254,7 +254,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			commons.JSONErrorReturn(w, r, errWhenGeneratingBinFile.Error(), http.StatusInternalServerError, "Error when generating BIN file, ERROR : ")
 			return
 		}
-		ethFormulaObj.ABIstring = binString
+		ethFormulaObj.BINstring = binString
 
 		//generating go file by converting the code to bas64
 		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode("Calculations")
