@@ -36,36 +36,47 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := 0; i < len(obj.Destination); i++ {
+		log.Println("------------------------------- the element ", i)
 		subobj = model.Destination{
 			Source: obj.Destination[i].Source,
+			Sign:   obj.Destination[i].Sign,
 			Amount: obj.Destination[i].Amount,
 		}
 
 		log.Println("-------sub data", subobj)
 
-		var result, err1 = massbalance.Split(subobj.Source, subobj.Amount, obj.NFTName, obj.Sender, obj.Issuer, obj.Limit)
+		var result, err1 = massbalance.Split(subobj.Source, subobj.Sign, subobj.Amount, obj.NFTName, obj.Sender, obj.Issuer, obj.Limit)
 		if err1 != nil {
 			ErrorMessage := err1.Error()
 			log.Println(w, ErrorMessage)
 			return
 		} else {
-			var batchData = model.Batches{
-				NFTName:       obj.NFTName,
-				TXNHash:       result,
-				CurrentOwner:  subobj.Source,
-				PreviousOwner: obj.Sender,
-			}
+			var result1, err2 = massbalance.SplitPayment(subobj.Source, subobj.Sign, subobj.Amount, obj.NFTName, obj.Sender, obj.Issuer, obj.Limit)
+			if err2 != nil {
+				ErrorMessage := err2.Error()
+				log.Println(w, ErrorMessage)
+				return
+			} else {
+				var batchData = model.Batches{
+					NFTName:         obj.NFTName,
+					TXNHashTrust:    result,
+					TXNHashTransfer: result1,
+					CurrentOwner:    subobj.Source,
+					PreviousOwner:   obj.Sender,
+				}
 
-			var resultObj = object.BatchTrackingData(batchData)
-			w.WriteHeader(http.StatusOK)
-			err = json.NewEncoder(w).Encode(resultObj)
-			if err != nil {
-				log.Println(err)
+				var resultObj = object.BatchTrackingData(batchData)
+				w.WriteHeader(http.StatusOK)
+				err = json.NewEncoder(w).Encode(resultObj)
+				if err != nil {
+					log.Println(err)
+				}
+
 			}
-			return
 		}
-
 	}
+	log.Println("done with for loop")
+	return
 }
 
 func MergeBatches(w http.ResponseWriter, r *http.Request) {
@@ -109,10 +120,11 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 			return
 		} else {
 			var batchData = model.Batches{
-				NFTName:       obj.NFTName,
-				TXNHash:       result,
-				CurrentOwner:  obj.Destination,
-				PreviousOwner: subobj.Source,
+				NFTName:         obj.NFTName,
+				TXNHashTrust:    result,
+				TXNHashTransfer: "",
+				CurrentOwner:    obj.Destination,
+				PreviousOwner:   subobj.Source,
 			}
 
 			var resultObj = object.BatchTrackingData(batchData)

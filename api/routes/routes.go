@@ -519,4 +519,10 @@ var routes = Routes{
 		"/socialimapact/metricbinding",
 		businessFacades.BindMetric,
 	},
+	Route{
+		"Split Batches",
+		"POST",
+		"/splits/batches",
+		businessFacades.SplitBatches,
+	},
 }

@@ -22,14 +22,16 @@ type Merges struct {
 
 type Destination struct {
 	Source string `json:"Source" bson:"Source" validate:"required"`
+	Sign   string `json:"Sign" bson:"Sign" validate:"required"`
 	Amount string `json:"Amount" bson:"Amount" validate:"required"`
 }
 
 type Batches struct {
-	NFTName       string `json:"NFTName" bson:"NFTName" validate:"required"`
-	TXNHash       string `json:"TXNHash" bson:"TXNHash" validate:"required"`
-	CurrentOwner  string `json:"CurrentOwner" bson:"CurrentOwner" validate:"required"`
-	PreviousOwner string `json:"PreviousOwner" bson:"PreviousOwner" validate:"required"`
+	NFTName         string `json:"NFTName" bson:"NFTName" validate:"required"`
+	TXNHashTrust    string `json:"TXNHashTrust" bson:"TXNHashTrust" validate:"required"`
+	TXNHashTransfer string `json:"TXNHashTransfer" bson:"TXNHashTransfer" validate:"required"`
+	CurrentOwner    string `json:"CurrentOwner" bson:"CurrentOwner" validate:"required"`
+	PreviousOwner   string `json:"PreviousOwner" bson:"PreviousOwner" validate:"required"`
 }
 
 type Conversions struct {
