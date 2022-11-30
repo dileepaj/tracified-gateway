@@ -177,7 +177,7 @@ func ReciverRmq() error {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
 				startTime := time.Now()
 				//Call the deploy method
-				address, txnHash, errWhenDeploying := build.DeployContract("Calculations")
+				address, txnHash, errWhenDeploying := build.DeployContract(queue.EthereumExpertFormula.ABIstring, queue.EthereumExpertFormula.BINstring)
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethExpertFormulaObj := model.EthereumExpertFormula{

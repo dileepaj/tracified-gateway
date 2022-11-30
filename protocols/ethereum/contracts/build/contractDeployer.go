@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
@@ -18,7 +19,7 @@ import (
 /*
 	Deploy smart contract in Ethereum
 */
-func DeployContract(contractName string) (string, string, error) {
+func DeployContract(abi string, bin string) (string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
 
@@ -64,24 +65,41 @@ func DeployContract(contractName string) (string, string, error) {
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)      // in wei
-	auth.GasLimit = uint64(1000000) // in units
+	auth.GasLimit = uint64(3000000) // in units
 	auth.GasPrice = big.NewInt(int64(gasPrice))
 
-	// functionName := "Deploy" + contractName
-
-	address, hash, instance, errInDeploy := DeployBuild(auth, client)
-	if errInDeploy != nil {
-		logrus.Error("Error when deploying the contract " + errInDeploy.Error())
-		return contractAddress, transactionHash, errors.New("Error when deploying the contract , ERROR : " + errInDeploy.Error())
+	//assign metadata for the contract
+	var BuildData = &bind.MetaData{
+		ABI: abi,
+		Bin: bin,
 	}
 
-	_ = instance
+	//var ContractABI = BuildData.ABI
+	var ContractBIN = BuildData.Bin
 
-	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
-	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", hash.Hash().Hex())
+	parsed, errWhenGettingABI := BuildData.GetAbi()
+	if errWhenGettingABI != nil {
+		logrus.Error("Error when getting abi from passed ABI string " + errWhenGettingABI.Error())
+		return contractAddress, transactionHash, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
+	}
+
+	if parsed == nil {
+		logrus.Info("GetABI returned nil")
+		return contractAddress, transactionHash, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
+	}
+
+	address, tx, contract, errWhenDeployingContract := bind.DeployContract(auth, *parsed, common.FromHex(ContractBIN), client)
+	if errWhenDeployingContract != nil {
+		logrus.Info("Error when deploying contract " + errWhenDeployingContract.Error())
+		return contractAddress, transactionHash, errors.New("Error when deploying contract, ERROR : " + errWhenDeployingContract.Error())
+	}
 
 	contractAddress = address.Hex()
-	transactionHash = hash.Hash().Hex()
+	transactionHash = tx.Hash().Hex()
+	_ = contract
+
+	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
+	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
 	return contractAddress, transactionHash, nil
 }

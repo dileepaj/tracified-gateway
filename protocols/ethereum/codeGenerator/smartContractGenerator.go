@@ -94,7 +94,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//setting up the contract name and starting the contract
 		contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 		contractName = strings.ReplaceAll(contractName, " ", "")
-		ethFormulaObj.ContractName = contractName
 
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippet := WriteGeneralCodeSnippets(formulaJSON, contractName)
@@ -221,7 +220,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		//generate the ABI file
-		abiString, errWhenGeneratingABI := deploy.GenerateABI("Calculations")
+		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName)
 		if errWhenGeneratingABI != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
@@ -239,7 +238,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.ABIstring = abiString
 
 		//generate the BIN file
-		binString, errWhenGeneratingBinFile := deploy.GenerateBIN("Calculations")
+		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName)
 		if errWhenGeneratingBinFile != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
@@ -257,22 +256,24 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.BINstring = binString
 
 		//generating go file by converting the code to bas64
-		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode("Calculations")
-		if errWhenGeneratingGoCode != nil {
-			ethFormulaObj.Status = "FAILED"
-			ethFormulaObj.ErrorMessage = errWhenGeneratingGoCode.Error()
-			//call the DB insert method
-			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
-			if errWhenInsertingFormulaToDB != nil {
-				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
-				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
-				return
-			}
-			logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
-			commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
-			return
-		}
-		ethFormulaObj.GOstring = goString
+		// goString, errWhenGeneratingGoCode := deploy.GenerateGoCode("Calculations")
+		// if errWhenGeneratingGoCode != nil {
+		// 	ethFormulaObj.Status = "FAILED"
+		// 	ethFormulaObj.ErrorMessage = errWhenGeneratingGoCode.Error()
+		// 	//call the DB insert method
+		// 	errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
+		// 	if errWhenInsertingFormulaToDB != nil {
+		// 		logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
+		// 		commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
+		// 		return
+		// 	}
+		// 	logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
+		// 	commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
+		// 	return
+		// }
+		// ethFormulaObj.GOstring = goString
+
+		ethFormulaObj.ContractName = contractName
 
 		buildQueueObj := model.SendToQueue{
 			EthereumExpertFormula: ethFormulaObj,
