@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator"
+	ethereumExpertFormula "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
 	"github.com/sirupsen/logrus"
@@ -31,7 +31,7 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 	if soacialImpact.Blockchain == "STELLAR" {
 		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
 	} else if soacialImpact.Blockchain == "ETHEREUM" {
-		codeGenerator.SmartContractGeneratorForFormula(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
+		ethereumExpertFormula.SmartContractGeneratorForFormula(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)

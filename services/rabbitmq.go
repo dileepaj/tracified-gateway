@@ -9,7 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	build "github.com/dileepaj/tracified-gateway/protocols/ethereum/contracts/build"
+	deploy "github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
@@ -177,7 +177,7 @@ func ReciverRmq() error {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
 				startTime := time.Now()
 				//Call the deploy method
-				address, txnHash, errWhenDeploying := build.DeployContract(queue.EthereumExpertFormula.ABIstring, queue.EthereumExpertFormula.BINstring)
+				address, txnHash, errWhenDeploying := deploy.DeployContract(queue.EthereumExpertFormula.ABIstring, queue.EthereumExpertFormula.BINstring)
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethExpertFormulaObj := model.EthereumExpertFormula{

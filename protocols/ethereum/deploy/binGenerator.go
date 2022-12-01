@@ -14,11 +14,12 @@ import (
 Generate the BIN file for the given smart contract
 */
 func GenerateBIN(contractName string) (string, error) {
+	//TODO check the request type Metric or Expert and then call the relevant contract and build location
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	binString := ""
 	cmdBINGen := exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
-	cmdBINGen.Dir = commons.GoDotEnvVariable("CONTRACTLOCATION")
+	cmdBINGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
 	cmdBINGen.Stdout = &out
 	cmdBINGen.Stderr = &stderr
 	errWhenGettingBIN := cmdBINGen.Run()
@@ -31,7 +32,7 @@ func GenerateBIN(contractName string) (string, error) {
 
 	//build file name
 	fileName := contractName + "_sol_" + contractName + ".bin"
-	location := commons.GoDotEnvVariable("BUILDLOCATION") + "/" + fileName
+	location := commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
 
 	binInByte, errWhenReadingFile := os.ReadFile(location)
 	if errWhenReadingFile != nil {

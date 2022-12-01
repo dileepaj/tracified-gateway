@@ -12,7 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/executionTemplates"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula/executionTemplates"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/services"
@@ -187,7 +187,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.TemplateString = b64Template
 
 		// write the contract to a solidity file
-		fo, errInOutput := os.Create(`protocols/ethereum/contracts/` + contractName + `.sol`)
+		fo, errInOutput := os.Create(commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION") + "/" + contractName + `.sol`)
 		if errInOutput != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errInOutput.Error()

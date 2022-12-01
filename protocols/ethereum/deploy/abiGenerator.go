@@ -14,11 +14,12 @@ import (
 Generate the ABI file for the given smart contract
 */
 func GenerateABI(contractName string) (string, error) {
+	//TODO check the request type Metric or Expert and then call the relevant contract and build location
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	abiString := ""
 	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o build")
-	cmdABIGen.Dir = commons.GoDotEnvVariable("CONTRACTLOCATION")
+	cmdABIGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
 	cmdABIGen.Stdout = &out
 	cmdABIGen.Stderr = &stderr
 	errWhenGettingABI := cmdABIGen.Run()
@@ -31,7 +32,7 @@ func GenerateABI(contractName string) (string, error) {
 
 	//build the abi file name
 	fileName := contractName + "_sol_" + contractName + ".abi"
-	location := commons.GoDotEnvVariable("BUILDLOCATION") + "/" + fileName
+	location := commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
 
 	abiInByte, errWhenReadingFile := os.ReadFile(location)
 	if errWhenReadingFile != nil {
