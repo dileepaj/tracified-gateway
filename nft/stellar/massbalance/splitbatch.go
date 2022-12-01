@@ -44,10 +44,6 @@ func Split(destination string, sign string, amount string, nftname string, sende
 		log.Fatal("Error while trying to build tranaction: ", err)
 	}
 
-	// issuerSK := "SBZAXSIYUW4YENKKKFTXCJUDYVOBTRCVLF6DEDL2YT34IINN4OVWXC6P"
-	// issuerKeypair, _ := keypair.ParseFull(issuerSK)
-	// log.Println("-----------keypairs 111-------------  ", issuerKeypair)
-
 	destSK := sign
 	destKeypair, _ := keypair.ParseFull(destSK)
 	log.Println("-----------keypairs 222-------------  ", destKeypair)

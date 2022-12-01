@@ -106,38 +106,47 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for i := 0; i < len(obj.Sender); i++ {
+		log.Println("---------------element ", i)
 		subobj = model.Destination{
 			Source: obj.Sender[i].Source,
+			Sign:   obj.Sender[i].Sign,
 			Amount: obj.Sender[i].Amount,
 		}
 
 		log.Println("-------sub data", subobj)
 
-		var result, err1 = massbalance.Merge(subobj.Source, subobj.Amount, obj.NFTName, obj.Destination, obj.Issuer, obj.Limit)
+		var result, err1 = massbalance.Merge(subobj.Source, subobj.Sign, subobj.Amount, obj.NFTName, obj.Destination, obj.Issuer, obj.Limit)
 		if err1 != nil {
 			ErrorMessage := err1.Error()
 			log.Println(w, ErrorMessage)
 			return
 		} else {
-			var batchData = model.Batches{
-				NFTName:         obj.NFTName,
-				TXNHashTrust:    result,
-				TXNHashTransfer: "",
-				CurrentOwner:    obj.Destination,
-				PreviousOwner:   subobj.Source,
-			}
+			var result1, err2 = massbalance.TransferMerge(subobj.Source, subobj.Sign, subobj.Amount, obj.NFTName, obj.Destination, obj.Issuer, obj.Limit)
+			if err2 != nil {
+				ErrorMessage := err2.Error()
+				log.Println(w, ErrorMessage)
+				return
+			} else {
+				var batchData = model.Batches{
+					NFTName:         obj.NFTName,
+					TXNHashTrust:    result,
+					TXNHashTransfer: result1,
+					CurrentOwner:    obj.Destination,
+					PreviousOwner:   subobj.Source,
+				}
 
-			var resultObj = object.BatchTrackingData(batchData)
-			w.WriteHeader(http.StatusOK)
-			err = json.NewEncoder(w).Encode(resultObj)
-			if err != nil {
-				log.Println(err)
+				var resultObj = object.BatchTrackingData(batchData)
+				w.WriteHeader(http.StatusOK)
+				err = json.NewEncoder(w).Encode(resultObj)
+				if err != nil {
+					log.Println(err)
+				}
+
 			}
-			return
 		}
-
 	}
-
+	log.Println("done with for loop")
+	return
 }
 
 func Conversions(w http.ResponseWriter, r *http.Request) {

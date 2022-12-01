@@ -525,4 +525,10 @@ var routes = Routes{
 		"/splits/batches",
 		businessFacades.SplitBatches,
 	},
+	Route{
+		"Merges Batches",
+		"POST",
+		"/merges/batches",
+		businessFacades.MergeBatches,
+	},
 }

@@ -3,13 +3,14 @@ package massbalance
 import (
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
-func Merge(sender string, amount string, nftname string, destination string, issuer string, limit string) (string, error) {
+func Merge(sender string, sign string, amount string, nftname string, destination string, issuer string, limit string) (string, error) {
 	client := horizonclient.DefaultTestNetClient
 
 	asset, err := txnbuild.CreditAsset{Code: nftname, Issuer: issuer}.ToChangeTrustAsset()
@@ -22,6 +23,47 @@ func Merge(sender string, amount string, nftname string, destination string, iss
 		Limit:         limit,
 		SourceAccount: destination,
 	}
+
+	accountRequest := horizonclient.AccountRequest{AccountID: destination}
+	sourceAccount, err := client.AccountDetail(accountRequest)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tx, err := txnbuild.NewTransaction(
+		txnbuild.TransactionParams{
+			SourceAccount:        &sourceAccount,
+			IncrementSequenceNum: true,
+			Operations:           []txnbuild.Operation{&changeTrustOp},
+			BaseFee:              txnbuild.MinBaseFee,
+			Memo:                 nil,
+			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		},
+	)
+	if err != nil {
+		log.Fatal("Error while trying to build tranaction: ", err)
+	}
+
+	senderSK := "SBZAXSIYUW4YENKKKFTXCJUDYVOBTRCVLF6DEDL2YT34IINN4OVWXC6P"
+	senderKeypair, _ := keypair.ParseFull(senderSK)
+
+	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
+	if err != nil {
+		hError := err.(*horizonclient.Error)
+		log.Fatal("Error when submitting the transaction : ", hError)
+	}
+
+	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
+	if err != nil {
+		log.Fatal("Error submitting transaction:", err)
+		panic(err)
+	}
+	log.Println("txxxxn trust---------------------", respn.Hash)
+	return respn.Hash, nil
+}
+
+func TransferMerge(sender string, sign string, amount string, nftname string, destination string, issuer string, limit string) (string, error) {
+	client := horizonclient.DefaultTestNetClient
 
 	paymentOp := txnbuild.Payment{
 		Destination: destination,
@@ -41,7 +83,7 @@ func Merge(sender string, amount string, nftname string, destination string, iss
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&changeTrustOp, &paymentOp},
+			Operations:           []txnbuild.Operation{&paymentOp},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
@@ -51,7 +93,7 @@ func Merge(sender string, amount string, nftname string, destination string, iss
 		log.Fatal("Error while trying to build tranaction: ", err)
 	}
 
-	senderSK := ""
+	senderSK := sign
 	senderKeypair, _ := keypair.ParseFull(senderSK)
 
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
@@ -60,10 +102,12 @@ func Merge(sender string, amount string, nftname string, destination string, iss
 		log.Fatal("Error when submitting the transaction : ", hError)
 	}
 
-	txe, err := txe64.Base64()
+	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
+		log.Fatal("Error submitting transaction:", err)
 		panic(err)
 	}
+	log.Println("txxxxn- transfer--------------------", respn.Hash)
+	return respn.Hash, nil
 
-	return txe, nil
 }
