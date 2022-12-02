@@ -2366,6 +2366,29 @@ func (cd *Connection) GetEthFormulaMapID(formulaID string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetEthMetricStatus(metricID string) *promise.Promise {
+	var ethMetric model.EthereumMetricBind
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err = c.FindOne(context.TODO(), bson.M{"metricid": metricID}).Decode(&ethMetric)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(ethMetric)
+		}
+	})
+	return p
+}
+
 func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 	result := model.EthereumExpertFormula{}
 	// p := promise.NewPromise()

@@ -426,7 +426,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 
 	} else {
 		logrus.Info("Invalid formula status " + deployStatus)
-		commons.JSONErrorReturn(w, r, deployStatus, http.StatusInternalServerError, "Invalid formula status ")
+		commons.JSONErrorReturn(w, r, deployStatus, http.StatusInternalServerError, "Invalid formula status : ")
 		return
 	}
 

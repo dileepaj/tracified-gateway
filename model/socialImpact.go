@@ -680,3 +680,22 @@ type EthFormulaIDMap struct {
 	FormulaID string
 	MapID     uint64
 }
+type EthereumMetricBind struct {
+	MetricID          string
+	MetricName        string
+	Metric            MetricReq
+	ContractName      string
+	TemplateString    string
+	BINstring         string
+	ABIstring         string
+	Timestamp         string
+	ContractAddress   string
+	TransactionHash   string
+	TransactionCost   string
+	TransactionTime   string
+	TransactionUUID   string
+	TransactionSender string
+	User              User
+	ErrorMessage      string
+	Status            string
+}

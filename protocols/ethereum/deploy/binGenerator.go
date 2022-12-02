@@ -14,7 +14,7 @@ import (
 Generate the BIN file for the given smart contract
 */
 func GenerateBIN(contractName string) (string, error) {
-	//TODO check the request type Metric or Expert and then call the relevant contract and build location
+	//TODO check the request type Metric or Expert and then call the relevant contract location and build location(with build folder name)
 	var out bytes.Buffer
 	var stderr bytes.Buffer
 	binString := ""
