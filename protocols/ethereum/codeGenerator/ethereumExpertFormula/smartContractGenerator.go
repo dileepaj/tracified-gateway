@@ -37,6 +37,19 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	object := dao.Connection{}
 	var deployStatus string
 
+	// check if the contract name is already present in the database with the status SUCCESS
+	existingFormula, errInCheckingDuplicateNames := object.GetEthFormulaByName(formulaJSON.MetricExpertFormula.Name).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errInCheckingDuplicateNames != nil {
+		logrus.Error("An error occurred when checking duplicate formula names, ERROR: ", errInCheckingDuplicateNames)
+	}
+	if existingFormula != nil {
+		logrus.Info("Contract for formula " + formulaJSON.MetricExpertFormula.Name + " already exists")
+		commons.JSONErrorReturn(w, r, "", 400, "Requested contract name already exists")
+		return
+	}
+
 	formulaDetails, errWhenGettingFormulaDetailsFromDB := object.GetEthFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -60,6 +73,13 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		commons.JSONErrorReturn(w, r, "Status : "+deployStatus, 400, "Requested formula is in the queue, please try again")
 		return
 	} else if deployStatus == "" || deployStatus == "FAILED" {
+		// insert to map or get the mapped formula ID
+		formulaMapID, errWhenMapping := MapFormulaID(formulaJSON.MetricExpertFormula.ID, deployStatus) 
+		if errWhenMapping != nil {
+			logrus.Error("An error occurred when mapping formula ID, ERROR : ", errWhenMapping)
+		}
+		logrus.Info("Formula map ID : ", formulaMapID)
+		
 		if deployStatus == "FAILED" {
 			logrus.Info("Requested formula is in the failed status, trying to redeploy")
 		} else {

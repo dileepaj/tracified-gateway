@@ -530,3 +530,17 @@ func (cd *Connection) InsertToEthFormulaDetails(ethFormulaMap model.EthereumExpe
 	}
 	return err
 }
+
+func (cd *Connection) InsertEthFormulaIDMap(formulaIDMap model.EthFormulaIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumFormulaIDMap")
+	_, err = c.InsertOne(context.TODO(), formulaIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula id to DB " + err.Error())
+	}
+	return err
+}

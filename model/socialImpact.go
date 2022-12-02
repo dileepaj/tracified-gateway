@@ -675,3 +675,8 @@ type EthereumExpertFormula struct {
 	User                User
 	ErrorMessage        string
 }
+
+type EthFormulaIDMap struct {
+	FormulaID string
+	MapID     uint64
+}

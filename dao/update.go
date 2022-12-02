@@ -879,6 +879,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		BINstring:           update.BINstring,
 		ABIstring:           update.ABIstring,
 		ContractAddress:     update.ContractAddress,
+		ContractName: 	  	 update.ContractName,
 		Status:              update.Status,
 		Timestamp:           update.Timestamp,
 		TransactionHash:     update.TransactionHash,
