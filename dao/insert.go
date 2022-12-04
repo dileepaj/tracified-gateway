@@ -488,7 +488,6 @@ func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
 	return err
 }
 
-
 func (cd *Connection) InsertToWorkflowIDMap(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -543,4 +542,20 @@ func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) e
 		logrus.Info("Error when inserting artifact id to DB " + err.Error())
 	}
 	return err
+}
+
+func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+		return "", err
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TrustNetwork")
+	result, err1 := c.InsertOne(context.TODO(), user)
+	if err1 != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		return "", err1
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }

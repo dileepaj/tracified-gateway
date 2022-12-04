@@ -532,4 +532,40 @@ var routes = Routes{
 		"/pgp/{sha256pk}",
 		businessFacades.GetRSAPublicKeyBySHA256PK,
 	},
+	Route{
+		"Save Trust Network User",
+		"POST",
+		"/trustnetwork",
+		businessFacades.SaveTrustNetworkUser,
+	},
+	Route{
+		"Get trust networkuser by ID",
+		"GET",
+		"/trustnetwork/{id}",
+		businessFacades.GetTrustNetWorkUserbyID,
+	},
+	Route{
+		"Endorse User",
+		"PUT",
+		"/trustnetwork",
+		businessFacades.EndorseTrustNetworkUser,
+	},
+	Route{
+		"Login User",
+		"POST",
+		"/trustnetwork/login",
+		businessFacades.ValidateTrustNetworkUser,
+	},
+	Route{
+		"Get User endorsement count",
+		"GET",
+		"/trustnetwork/endorsements/{id}",
+		businessFacades.GetTrustNetworkUserEndorsmentCount,
+	},
+	Route{
+		"Get all trust network users",
+		"GET",
+		"/trustnetwork",
+		businessFacades.GetAllTrustNetworkUsers,
+	},
 }

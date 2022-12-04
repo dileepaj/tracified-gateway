@@ -12,7 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
+/*
+UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -75,7 +76,8 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
-/*UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
+/*
+UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
@@ -205,7 +207,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	return err
 }
 
-/*UpdateCertificate Update a Certificate Object from CertificateCollection in DB
+/*
+UpdateCertificate Update a Certificate Object from CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -727,7 +730,7 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	return err
 }
 
-//auto count sequence incrementer
+// auto count sequence incrementer
 func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 	var result model.Counters
 	session, err := cd.connect()
@@ -857,6 +860,44 @@ func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, upda
 
 	c := session.Client().Database(dbName).Collection("ExpertFormula")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"formulaid": formulaID, "txnuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateTrustNetworkUserEndorsment(pkhash string, update model.TrustNetWorkUser) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := model.TrustNetWorkUser{
+		Name:               update.Name,
+		Company:            update.Company,
+		Email:              update.Email,
+		Password:           update.Password,
+		Contact:            update.Contact,
+		Industry:           update.Industry,
+		StellerPK:          update.StellerPK,
+		PGPPK:              update.PGPPK,
+		PGPPKHash:          update.PGPPKHash,
+		DigitalSignature:   update.DigitalSignature,
+		Signaturehash:      update.Signaturehash,
+		Date:               update.Date,
+		Endorsments:        update.Endorsments,
+		TXNOrgRegistration: update.TXNOrgRegistration,
+	}
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("TrustNetwork")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
 }
