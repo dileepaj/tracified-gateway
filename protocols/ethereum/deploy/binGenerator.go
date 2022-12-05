@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,13 +14,22 @@ import (
 /*
 Generate the BIN file for the given smart contract
 */
-func GenerateBIN(contractName string) (string, error) {
-	//TODO check the request type Metric or Expert and then call the relevant contract location and build location(with build folder name)
+func GenerateBIN(contractName string, reqType string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
+	var cmdBINGen *exec.Cmd
+	var location string
 	binString := ""
-	cmdBINGen := exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
-	cmdBINGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
+	if reqType == "EXPERT" {
+		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
+		cmdBINGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
+	} else if reqType == "METRIC" {
+		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o metricbuild")
+		cmdBINGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
+	} else {
+		logrus.Error("Invalid request type for BIN generator , TYPE : ", reqType)
+		return binString, errors.New("Invalid request type for BIN generator , TYPE : " + reqType)
+	}
 	cmdBINGen.Stdout = &out
 	cmdBINGen.Stderr = &stderr
 	errWhenGettingBIN := cmdBINGen.Run()
@@ -32,11 +42,18 @@ func GenerateBIN(contractName string) (string, error) {
 
 	//build file name
 	fileName := contractName + "_sol_" + contractName + ".bin"
-	location := commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
+	if reqType == "EXPERT" {
+		location = commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
+	} else if reqType == "METRIC" {
+		location = commons.GoDotEnvVariable("METRICBUILDLOCATION") + "/" + fileName
+	} else {
+		logrus.Error("Invalid request type for BIN reader , TYPE : ", reqType)
+		return binString, errors.New("Invalid request type for BIN reader , TYPE : " + reqType)
+	}
 
 	binInByte, errWhenReadingFile := os.ReadFile(location)
 	if errWhenReadingFile != nil {
-		logrus.Info("Error when reading the ABI file")
+		logrus.Info("Error when reading the BIN file")
 		return binString, errWhenReadingFile
 	}
 

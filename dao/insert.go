@@ -488,7 +488,6 @@ func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
 	return err
 }
 
-
 func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -541,6 +540,20 @@ func (cd *Connection) InsertEthFormulaIDMap(formulaIDMap model.EthFormulaIDMap) 
 	_, err = c.InsertOne(context.TODO(), formulaIDMap)
 	if err != nil {
 		logrus.Info("Error when inserting formula id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToEthMetricDetails(ethMetricDetails model.EthereumMetricBind) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	_, err = c.InsertOne(context.TODO(), ethMetricDetails)
+	if err != nil {
+		logrus.Info("Error when inserting metric details to DB " + err.Error())
 	}
 	return err
 }

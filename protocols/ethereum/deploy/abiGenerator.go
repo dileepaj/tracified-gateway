@@ -2,6 +2,7 @@ package deploy
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -13,13 +14,22 @@ import (
 /*
 Generate the ABI file for the given smart contract
 */
-func GenerateABI(contractName string) (string, error) {
-	//TODO check the request type Metric or Expert and then call the relevant contract location and build location(with build folder name)
+func GenerateABI(contractName string, reqType string) (string, error) {
 	var out bytes.Buffer
 	var stderr bytes.Buffer
+	var cmdABIGen *exec.Cmd
+	var location string
 	abiString := ""
-	cmdABIGen := exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o build")
-	cmdABIGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
+	if reqType == "EXPERT" {
+		cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o build")
+		cmdABIGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
+	} else if reqType == "METRIC" {
+		cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o metricbuild")
+		cmdABIGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
+	} else {
+		logrus.Error("Invalid request type for ABI generator , TYPE : ", reqType)
+		return abiString, errors.New("Invalid request type for ABI generator , TYPE : " + reqType)
+	}
 	cmdABIGen.Stdout = &out
 	cmdABIGen.Stderr = &stderr
 	errWhenGettingABI := cmdABIGen.Run()
@@ -32,7 +42,14 @@ func GenerateABI(contractName string) (string, error) {
 
 	//build the abi file name
 	fileName := contractName + "_sol_" + contractName + ".abi"
-	location := commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
+	if reqType == "EXPERT" {
+		location = commons.GoDotEnvVariable("EXPERTBUILDLOCATION") + "/" + fileName
+	} else if reqType == "METRIC" {
+		location = commons.GoDotEnvVariable("METRICBUILDLOCATION") + "/" + fileName
+	} else {
+		logrus.Error("Invalid request type for ABI reader , TYPE : ", reqType)
+		return abiString, errors.New("Invalid request type for ABI reader , TYPE : " + reqType)
+	}
 
 	abiInByte, errWhenReadingFile := os.ReadFile(location)
 	if errWhenReadingFile != nil {
