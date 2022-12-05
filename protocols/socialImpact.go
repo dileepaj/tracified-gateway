@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	ethereuemmetricbind "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind"
 	ethereumExpertFormula "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
@@ -44,6 +45,8 @@ func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Resp
 func (soacialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
 	if soacialImpact.Blockchain == "STELLAR" {
 		metricBinding.StellarMetricBinding(w, r, soacialImpact.MetricBindJSON)
+	} else if soacialImpact.Blockchain == "ETHEREUM" {
+		ethereuemmetricbind.SmartContractGeneratorForMetric(w, r, soacialImpact.MetricBindJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)

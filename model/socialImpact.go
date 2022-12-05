@@ -699,3 +699,20 @@ type EthereumMetricBind struct {
 	ErrorMessage      string
 	Status            string
 }
+
+type MetricContractGeneral struct {
+	License                   string
+	PragmaLine                string
+	ContractStart             string
+	MetaDataStructure         string
+	FormulaStructure		  string
+	ValueDataStructure        string
+	MetadataDeclaration       string
+	ValueMap 				  string
+	FormulaMap 			  	  string
+	FormulaDetails 			  string
+	AddValueFunction		  string
+	AddFormulaFunction		  string
+	GetFormulaDetailsFunction string
+	ContractEnd               string
+}
