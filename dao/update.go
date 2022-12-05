@@ -879,7 +879,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		BINstring:           update.BINstring,
 		ABIstring:           update.ABIstring,
 		ContractAddress:     update.ContractAddress,
-		ContractName: 	  	 update.ContractName,
+		ContractName:        update.ContractName,
 		Status:              update.Status,
 		Timestamp:           update.Timestamp,
 		TransactionHash:     update.TransactionHash,
@@ -904,6 +904,51 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 
 	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"formulaid": formulaID, "transactionuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string, update model.EthereumMetricBind) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.EthereumMetricBind{
+		MetricID:          update.MetricID,
+		MetricName:        update.MetricName,
+		Metric:            update.Metric,
+		TemplateString:    update.TemplateString,
+		BINstring:         update.BINstring,
+		ABIstring:         update.ABIstring,
+		ContractAddress:   update.ContractAddress,
+		ContractName:      update.ContractName,
+		Status:            update.Status,
+		Timestamp:         update.Timestamp,
+		TransactionHash:   update.TransactionHash,
+		TransactionCost:   update.TransactionCost,
+		TransactionTime:   update.TransactionTime,
+		TransactionUUID:   update.TransactionUUID,
+		TransactionSender: update.TransactionSender,
+		User:              update.User,
+		ErrorMessage:      update.ErrorMessage,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID, "transactionuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
 }
