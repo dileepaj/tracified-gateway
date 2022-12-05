@@ -36,6 +36,7 @@ Generate the smart contract for the solidity formula definitions
 func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	object := dao.Connection{}
 	var deployStatus string
+	reqType := "EXPERT"
 
 	// check if the contract name is already present in the database with the status SUCCESS
 	existingFormula, errInCheckingDuplicateNames := object.GetEthFormulaByName(formulaJSON.MetricExpertFormula.Name).Then(func(data interface{}) interface{} {
@@ -74,12 +75,12 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 	} else if deployStatus == "" || deployStatus == "FAILED" {
 		// insert to map or get the mapped formula ID
-		formulaMapID, errWhenMapping := MapFormulaID(formulaJSON.MetricExpertFormula.ID, deployStatus) 
+		formulaMapID, errWhenMapping := MapFormulaID(formulaJSON.MetricExpertFormula.ID, deployStatus)
 		if errWhenMapping != nil {
 			logrus.Error("An error occurred when mapping formula ID, ERROR : ", errWhenMapping)
 		}
 		logrus.Info("Formula map ID : ", formulaMapID)
-		
+
 		if deployStatus == "FAILED" {
 			logrus.Info("Requested formula is in the failed status, trying to redeploy")
 		} else {
@@ -292,7 +293,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		//generate the ABI file
-		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName)
+		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName, reqType)
 		if errWhenGeneratingABI != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
@@ -318,7 +319,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.ABIstring = abiString
 
 		//generate the BIN file
-		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName)
+		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName, reqType)
 		if errWhenGeneratingBinFile != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
