@@ -628,6 +628,7 @@ type SendToQueue struct {
 	MetricBinding         MetricBindingStore
 	ExpertFormula         FormulaStore
 	EthereumExpertFormula EthereumExpertFormula
+	EthereumMetricBind    EthereumMetricBind
 	Type                  string
 	User                  User
 	Memo                  []byte
@@ -705,14 +706,14 @@ type MetricContractGeneral struct {
 	PragmaLine                string
 	ContractStart             string
 	MetaDataStructure         string
-	FormulaStructure		  string
+	FormulaStructure          string
 	ValueDataStructure        string
 	MetadataDeclaration       string
-	ValueMap 				  string
-	FormulaMap 			  	  string
-	FormulaDetails 			  string
-	AddValueFunction		  string
-	AddFormulaFunction		  string
+	ValueMap                  string
+	FormulaMap                string
+	FormulaDetails            string
+	AddValueFunction          string
+	AddFormulaFunction        string
 	GetFormulaDetailsFunction string
 	ContractEnd               string
 }
