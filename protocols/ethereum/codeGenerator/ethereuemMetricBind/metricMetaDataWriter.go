@@ -52,12 +52,12 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	// Value structure
 	valueDataStructComment := "\t" + `// Value structure` + "\n"
 	valueDataStructHead := "\t" + `struct Value {` + "\n"
-	valueDataStructValueID := "\t\t" + `string valueID; // mapped ID` + "\n"
+	valueDataStructValueID := "\t\t" + `string valueID;` + "\n"
 	valueDataStructValueName := "\t\t" + `string valueName;` + "\n"
 	valueDataStructWorkflowID := "\t\t" + `string workflowID;` + "\n"
 	valueDataStructStageID := "\t\t" + `string stageID;` + "\n"
 	valueDataStructTDPType := "\t\t" + `string tdpType;` + "\n"
-	valueDataStructBindingType := "\t\t" + `string bindingType;` + "\n"
+	valueDataStructBindingType := "\t\t" + `int bindingType;` + "\n"
 	valueDataStructArtifactID := "\t\t" + `string artifactID;` + "\n"
 	valueDataStructPrimaryKeyRowID := "\t\t" + `string primaryKeyRowID;` + "\n"
 	valueDataStructArtifactTemplateName := "\t\t" + `string artifactTemplateName; // converted value to bytes` + "\n"
@@ -88,7 +88,7 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 
 	// AddValue function
 	addValueFunctionComment := "\t" + `// AddValue function` + "\n"
-	addValueFunctionHead := "\t" + `function addValue(string memory _valueID, string memory _valueName, string memory _workflowID, string memory _stageID, string memory _TDPType, string memory _bindingType, string memory _artifactID, string memory _primaryKeyRowID, string memory _artifactTemplateName, string memory _fieldKey, string memory _fieldName) internal {` + "\n"
+	addValueFunctionHead := "\t" + `function addValue(string memory _valueID, string memory _valueName, string memory _workflowID, string memory _stageID, string memory _TDPType, int _bindingType, string memory _artifactID, string memory _primaryKeyRowID, string memory _artifactTemplateName, string memory _fieldKey, string memory _fieldName) internal {` + "\n"
 	addValueFunctionBodyComment := "\t\t" + `// Add the value to the map` + "\n"
 	addValueFunctionBody := "\t\t" + `allValues[_valueID] = Value(_valueID, _valueName, _workflowID, _stageID, _TDPType, _bindingType, _artifactID, _primaryKeyRowID, _artifactTemplateName, _fieldKey, _fieldName);` + "\n"
 	addValueFunctionEnd := "\t" + `}` + "\n"

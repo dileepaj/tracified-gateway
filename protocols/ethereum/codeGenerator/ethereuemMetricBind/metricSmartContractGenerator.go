@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"math/rand"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -85,7 +86,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			logrus.Info("TXN UUID : ", id)
 			ethMetricObj.TransactionUUID = id.String()
 		} else {
-			ethMetricObj.TransactionUUID = metricDetails.(model.EthereumExpertFormula).TransactionUUID
+			ethMetricObj.TransactionUUID = metricDetails.(model.EthereumMetricBind).TransactionUUID
 		}
 
 		//setting up the contract name and starting the contract
@@ -95,11 +96,43 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//TODO Contract writer components
 
 		template := ""
+
+		// get the general code snippets (metadata)
+		generalValues, errInGettingCodeSnippets := WriteMetricGeneralCodeSnippets(metricBindJson, contractName)
+		if errInGettingCodeSnippets != nil {
+			logrus.Error("Error in getting code snippets ", errInGettingCodeSnippets)
+			commons.JSONErrorReturn(w, r, "Error in getting code snippets ", http.StatusInternalServerError, "Error in getting code snippets ")
+			return
+		}
+
+		// get the addDetails function code snippet
+		addDetailsFunctionStr, errInGettingAddDetailsFunction := WriteAddDetailsFunction(metricBindJson)
+		if errInGettingAddDetailsFunction != nil {
+			logrus.Error("Error in getting addDetails function ", errInGettingAddDetailsFunction)
+			commons.JSONErrorReturn(w, r, "Error in getting addDetails function ", http.StatusInternalServerError, "Error in getting addDetails function ")
+			return
+		}
+
+		template = template + generalValues.License + generalValues.PragmaLine + generalValues.ContractStart + generalValues.MetaDataStructure + generalValues.FormulaStructure + generalValues.ValueDataStructure + generalValues.ValueMap + generalValues.FormulaMap + generalValues.FormulaDetails + generalValues.MetadataDeclaration + generalValues.AddValueFunction + generalValues.AddFormulaFunction + addDetailsFunctionStr + generalValues.GetFormulaDetailsFunction + generalValues.ContractEnd
 		b64Template := base64.StdEncoding.EncodeToString([]byte(template))
 		ethMetricObj.TemplateString = b64Template
 
 		//Write contract template into a file
-		//fo, errInOutput := os.Create(commons.GoDotEnvVariable("METRICCONTRACTLOCATION") + "/" + contractName + `.sol`)
+		fo, errInOutput := os.Create(commons.GoDotEnvVariable("METRICCONTRACTLOCATION") + "/" + contractName + `.sol`)
+		if errInOutput != nil {
+			// Todo: handle error, change status
+			logrus.Error("Error in writing contract template into a file ", errInOutput)
+			commons.JSONErrorReturn(w, r, "Error in writing contract template into a file ", http.StatusInternalServerError, "Error in writing contract template into a file ")
+			return
+		}
+		defer fo.Close()
+		_, errInWritingOutput := fo.Write([]byte(template))
+		if errInWritingOutput != nil {
+			// Todo: handle error, change status
+			logrus.Error("Error in writing contract template into a file ", errInWritingOutput)
+			commons.JSONErrorReturn(w, r, "Error in writing contract template into a file ", http.StatusInternalServerError, "Error in writing contract template into a file ")
+			return
+		}
 
 		//call the ABI generator
 		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName, reqType)
