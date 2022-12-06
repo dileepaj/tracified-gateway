@@ -2,53 +2,78 @@ package ethereuemmetricbind
 
 import (
 	"strconv"
+	"strings"
 
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum"
 )
 
 /*
-	TODO:
-		* get the mapped formula ID from the DB
-		* get the contract address from the DB
-		* get the valueIDs as a string
-		* check the request data with variables in the contract
-*/
+ * This function is used to write the addFormula() method call
+ */
 
-func WriteAddFormula(formula model.MetricDataBindActivityRequest, formulaCount int) (string, error) {
+func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount int) (string, error) {
 	addFormulaStr := ``
+	object := dao.Connection{}
 
-	//object := dao.Connection{}
 	// get the mapped FormulaID
-	//formulaMapID, err := object.GetEthFormulaMapID(formula.MetricFormula.ID).Then(func(data interface{}) interface{} {
-	//	return data
-	//}).Await()
-	//if err != nil {
-	//	return ``, err
-	//}
-	//formulaMapData := formulaMapID.(model.EthFormulaIDMap)
-	//formulaMapIDInt := formulaMapData.MapID
+	formulaMapID, err := object.GetEthFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		return ``, err
+	}
+	formulaMapData := formulaMapID.(model.EthFormulaIDMap)
+	formulaMapIDInt := formulaMapData.MapID
 
-	// get the contract address of the formula
-	// TOdo: get the contract address from the DB
-	contract := "0xC0f4DC75c610bC621CB27c6616a44013B6888DDc"
+	// get the contract address of the formula from DB
+	contract := ""
+	formulaDet, errInGettingFormulaDet := object.GetEthFormulaStatus(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errInGettingFormulaDet != nil {
+		return ``, errInGettingFormulaDet
+	}
+	formulaDetData := formulaDet.(model.EthereumExpertFormula)
+	contract = formulaDetData.ContractAddress
 
-	// get the valueIDs as a string
 	valueIDs := ""
-
-	addFormulaStr += "\t\t addFormula(" + strconv.FormatUint(uint64(formulaCount), 10) + `, "` + formula.MetricFormula.ID + `", address(` + contract + `), ` + strconv.Itoa(len(formula.MetricFormula.Formula)) + `, "` + formula.ActivityFormulaDefinitionManageData.ActivityID + `", "` + ethereum.StringToHexString(formula.ActivityNameMangeData.ActivityName) + `", "` + ethereum.StringToHexString(valueIDs) + `", "` + ethereum.StringToHexString(formula.Stage.Name) + `", "`+ ethereum.StringToHexString(formula.ActivityFormulaDefinitionManageData.Key) + `");` + "\n"
-
 	valueCount := 0
-	for _, value := range formula.MetricFormula.Formula {
+	valueIDArray := []string{}	// to store the value IDs
+	addValueStrings := ``		// to get all the addValues() method strings of the formula
+
+	// loop through all the values and get the method call string
+	for _, value := range activity.MetricFormula.Formula {
 		valueCount++
-		valueComment := "\t\t // add value " + strconv.Itoa(valueCount) + " for formula " + strconv.Itoa(formulaCount) + "\n"
-		addValueStr, errInGettingValueDetails := WriteAddValue(value, valueCount)
+		valueComment := "\t\t// add value " + strconv.Itoa(valueCount) + " for formula " + strconv.Itoa(formulaCount) + "\n"
+		addValueStr, errInGettingValueDetails := WriteAddValue(activity.MetricFormula.MetricExpertFormula.ID, value, valueCount, activity.Stage.StageID, activity.Stage.Name, activity.WorkflowID, activity.MetricFormula.PivotFields)
 		if errInGettingValueDetails != nil {
 			return ``, errInGettingValueDetails
 		}
+		valueIDArray = append(valueIDArray, value.ID)
 
-		addFormulaStr += valueComment + addValueStr
+		addValueStrings += valueComment + addValueStr
 	}
+	// get the value IDs a string
+	valueIDs = strings.Join(valueIDArray, ", ")
+
+	// add the addFormula() method call string
+	addFormulaStr += "\t\taddFormula(" + 
+								strconv.FormatUint(uint64(formulaMapIDInt), 10) + `, "` + 
+								activity.MetricFormula.MetricExpertFormula.ID + `", address(` + 
+								contract + `), ` + 
+								strconv.Itoa(len(activity.MetricFormula.Formula)) + `, "` + 
+								activity.ID + `", "` + 
+								ethereum.StringToHexString(activity.Name) + `", "` + 
+								valueIDs + `");` + "\n"
+
+	addFormulaStr += "\t\t// add formula id and contract address to array" + "\n"
+	addFormulaStr += "\t\tformulaDetails.push(" + `'{` + 
+												`"formulaId": ` + strconv.FormatUint(uint64(formulaMapIDInt), 10) + 
+												`, "contractAddress": "` + contract +  
+												`"}'` + ");" + "\n"
+	addFormulaStr += addValueStrings
 
 	return addFormulaStr, nil
 }

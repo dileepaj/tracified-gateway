@@ -44,10 +44,8 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	formulaStructActivityID := "\t\t" + `string activityID;` + "\n"
 	formulaStructActivityName := "\t\t" + `string activityName; // converted value to bytes` + "\n"
 	formulaStructValueIDs := "\t\t" + `string valueIDs;` + "\n"
-	formulaStructStageName := "\t\t" + `string stageName; // converted value to bytes` + "\n"
-	formulaStructKeyName := "\t\t" + `string keyName; // converted value to bytes` + "\n"
 	formulaStructEnd := "\t" + `}` + "\n"
-	formulaStructStr := formulaStructComment + formulaStructHead + formulaStructFormulaID + formulaStructActualID + formulaStructContractAddress + formulaStructNoOfValues + formulaStructActivityID + formulaStructActivityName + formulaStructValueIDs + formulaStructStageName + formulaStructKeyName + formulaStructEnd
+	formulaStructStr := formulaStructComment + formulaStructHead + formulaStructFormulaID + formulaStructActualID + formulaStructContractAddress + formulaStructNoOfValues + formulaStructActivityID + formulaStructActivityName + formulaStructValueIDs + formulaStructEnd
 
 	// Value structure
 	valueDataStructComment := "\t" + `// Value structure` + "\n"
@@ -56,6 +54,8 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	valueDataStructValueName := "\t\t" + `string valueName;` + "\n"
 	valueDataStructWorkflowID := "\t\t" + `string workflowID;` + "\n"
 	valueDataStructStageID := "\t\t" + `string stageID;` + "\n"
+	valueDataStructStageName := "\t\t" + `string stageName; // converted value to bytes` + "\n"
+	valueDataStructKeyName := "\t\t" + `string keyName; // converted value to bytes` + "\n"
 	valueDataStructTDPType := "\t\t" + `string tdpType;` + "\n"
 	valueDataStructBindingType := "\t\t" + `int bindingType;` + "\n"
 	valueDataStructArtifactID := "\t\t" + `string artifactID;` + "\n"
@@ -64,7 +64,7 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	valueDataStructFieldKey := "\t\t" + `string fieldKey; // converted value to bytes` + "\n"
 	valueDataStructFieldName := "\t\t" + `string fieldName; // converted value to bytes` + "\n"
 	valueDataStructEnd := "\t" + `}` + "\n"
-	valueDataStructStr := valueDataStructComment + valueDataStructHead + valueDataStructValueID + valueDataStructValueName + valueDataStructWorkflowID + valueDataStructStageID + valueDataStructTDPType + valueDataStructBindingType + valueDataStructArtifactID + valueDataStructPrimaryKeyRowID + valueDataStructArtifactTemplateName + valueDataStructFieldKey + valueDataStructFieldName + valueDataStructEnd
+	valueDataStructStr := valueDataStructComment + valueDataStructHead + valueDataStructValueID + valueDataStructValueName + valueDataStructWorkflowID + valueDataStructStageID + valueDataStructStageName + valueDataStructKeyName + valueDataStructTDPType + valueDataStructBindingType + valueDataStructArtifactID + valueDataStructPrimaryKeyRowID + valueDataStructArtifactTemplateName + valueDataStructFieldKey + valueDataStructFieldName + valueDataStructEnd
 
 	// Metadata declaration
 	metaDataInitComment := "\t" + `// Metadata declaration` + "\n"
@@ -88,17 +88,17 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 
 	// AddValue function
 	addValueFunctionComment := "\t" + `// AddValue function` + "\n"
-	addValueFunctionHead := "\t" + `function addValue(string memory _valueID, string memory _valueName, string memory _workflowID, string memory _stageID, string memory _TDPType, int _bindingType, string memory _artifactID, string memory _primaryKeyRowID, string memory _artifactTemplateName, string memory _fieldKey, string memory _fieldName) internal {` + "\n"
+	addValueFunctionHead := "\t" + `function addValue(string memory _valueID, string memory _valueName, string memory _workflowID, string memory _stageID, string memory _stageName, string memory _keyName, string memory _TDPType, int _bindingType, string memory _artifactID, string memory _primaryKeyRowID, string memory _artifactTemplateName, string memory _fieldKey, string memory _fieldName) internal {` + "\n"
 	addValueFunctionBodyComment := "\t\t" + `// Add the value to the map` + "\n"
-	addValueFunctionBody := "\t\t" + `allValues[_valueID] = Value(_valueID, _valueName, _workflowID, _stageID, _TDPType, _bindingType, _artifactID, _primaryKeyRowID, _artifactTemplateName, _fieldKey, _fieldName);` + "\n"
+	addValueFunctionBody := "\t\t" + `allValues[_valueID] = Value(_valueID, _valueName, _workflowID, _stageID, _stageName, _keyName, _TDPType, _bindingType, _artifactID, _primaryKeyRowID, _artifactTemplateName, _fieldKey, _fieldName);` + "\n"
 	addValueFunctionEnd := "\t" + `}` + "\n"
 	addValueFunction := addValueFunctionComment + addValueFunctionHead + addValueFunctionBodyComment + addValueFunctionBody + addValueFunctionEnd
 
 	// AddFormula function
 	addFormulaFunctionComment := "\t" + `// AddFormula function` + "\n"
-	addFormulaFunctionHead := "\t" + `function addFormula(uint256 _formulaID, string memory _actualFormulaID, address _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList, string memory _stageName, string memory _keyName) internal {` + "\n"
+	addFormulaFunctionHead := "\t" + `function addFormula(uint256 _formulaID, string memory _actualFormulaID, address _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
 	addFormulaBodyComment := "\t\t" + `// Add the formula to the map` + "\n"
-	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _actualFormulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList, _stageName, _keyName);` + "\n"
+	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _actualFormulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList);` + "\n"
 	addFormulaFunctionEnd := "\t" + `}` + "\n"
 	addFormulaFunction := addFormulaFunctionComment + addFormulaFunctionHead + addFormulaBodyComment + addFormulaBody + addFormulaFunctionEnd
 

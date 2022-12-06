@@ -352,7 +352,7 @@ type MetricFormulaReq struct {
 	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula `json:"MetricExpertFormula" bson:"metricexpertformula" validate:"required"`
 	TenantID            string              `json:"TenantID" bson:"tenantid" validate:"required"`
-	PivotField          PivotField
+	PivotFields          []PivotField
 	Active              bool `json:"Active" bson:"active"`
 }
 
