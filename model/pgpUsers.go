@@ -38,12 +38,13 @@ type LoggedInTrustNetworkUser struct {
 }
 
 type AcceptUserEndorsment struct {
-	EndorserPKHash string      `json:"endoserpkhash"`
+	EndorseePKHash string      `json:"endoserpkhash"`
 	EndorsmentData Endorsments `json:"endorsmentData"`
 }
 
 type Endorsments struct {
 	UserID              primitive.ObjectID `json:"userID"`
+	EndorserPK          string             `json:"endorserPK"`
 	EndorsmentsStatus   string             `json:"status"`
 	TxnVerificationHash string             `json:"txnSigVerify"`
 }

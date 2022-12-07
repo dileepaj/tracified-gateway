@@ -2469,3 +2469,27 @@ func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
 	})
 	return p
 }
+
+func (cd *Connection) GetTrustNetWorkUserbyEncryptedPW(id string) *promise.Promise {
+	var useredorsments []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"password": id})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &useredorsments)
+			if err2 != nil {
+				reject(err2)
+			} else {
+				resolve(useredorsments[len(useredorsments)-1])
+			}
+		}
+	})
+	return p
+}

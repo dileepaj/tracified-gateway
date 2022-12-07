@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -65,6 +66,30 @@ func GetTrustNetWorkUserbyID(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
+func GetTrustNetWorkUserbyEncryptedPW(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	vars := mux.Vars(r)
+	dbcon := dao.Connection{}
+	objID := (vars["password"])
+	fmt.Println("------pw ", objID)
+	p := dbcon.GetTrustNetWorkUserbyEncryptedPW(objID)
+	p.Then(func(data interface{}) interface{} {
+		result := data.(model.LoggedInTrustNetworkUser)
+		return result
+	}).Catch(func(error error) error {
+		return error
+	})
+	result, err1 := p.Await()
+	if err1 != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "User does not exist"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(result)
+}
+
 func EndorseTrustNetworkUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var updateRequest model.AcceptUserEndorsment
@@ -76,7 +101,7 @@ func EndorseTrustNetworkUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	dbcon := dao.Connection{}
-	p := dbcon.GetTrustNetworkUserEndorsment(updateRequest.EndorserPKHash)
+	p := dbcon.GetTrustNetworkUserEndorsment(updateRequest.EndorseePKHash)
 	p.Then(func(data interface{}) interface{} {
 		result := data.(model.TrustNetWorkUser)
 		return result
@@ -128,7 +153,7 @@ func EndorseTrustNetworkUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	updateError := dbcon.UpdateTrustNetworkUserEndorsment(updateRequest.EndorserPKHash, toUpdate)
+	updateError := dbcon.UpdateTrustNetworkUserEndorsment(updateRequest.EndorseePKHash, toUpdate)
 	if updateError != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "Failed to Update User Endorsment"}

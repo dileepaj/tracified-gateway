@@ -545,6 +545,12 @@ var routes = Routes{
 		businessFacades.GetTrustNetWorkUserbyID,
 	},
 	Route{
+		"Get trust networkuser by encryptedpassword",
+		"GET",
+		"/trustnetwork/validate/{password}",
+		businessFacades.GetTrustNetWorkUserbyEncryptedPW,
+	},
+	Route{
 		"Endorse User",
 		"PUT",
 		"/trustnetwork",
