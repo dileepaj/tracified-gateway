@@ -503,6 +503,12 @@ var routes = Routes{
 		businessFacades.GetSponsorAccountXDR, //Calls the GetSponsorAccountXDR in the StellarHandler
 	},
 	Route{
+		"GetSponsorAccount",
+		"GET",
+		"/trustnetwork/sponsor",
+		businessFacades.SponsorAccount, //Calls the GetSponsorAccountXDR in the StellarHandler
+	},
+	Route{
 		"GetSponsorTrustXDR",
 		"GET",
 		"/nft/sponsortrust",
