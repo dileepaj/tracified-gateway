@@ -252,7 +252,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			commons.JSONErrorReturn(w, r, errWhenGeneratingBIN.Error(), http.StatusInternalServerError, "Error when generating BIN file, ERROR : ")
 			return
 		}
-		ethMetricObj.ABIstring = binString
+		ethMetricObj.BINstring = binString
 		ethMetricObj.ContractName = contractName
 
 		//send the request to queue
