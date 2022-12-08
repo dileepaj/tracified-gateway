@@ -19,7 +19,7 @@ func SponsorAccount(userPK string) (string, error) {
 
 	createAccount := txnbuild.CreateAccount{
 		Destination:   userPK,
-		Amount:        "1.2",
+		Amount:        "10",
 		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
 	}
 

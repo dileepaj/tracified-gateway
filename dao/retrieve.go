@@ -2376,10 +2376,10 @@ func (cd *Connection) GetTrustNetWorkUserbyID(id primitive.ObjectID) *promise.Pr
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("TrustNetwork")
-		opts := options.Find().SetProjection(bson.D{
-			{Key: "password", Value: 0},
-		})
-		cursor, err1 := c.Find(context.TODO(), bson.M{"_id": id}, opts)
+		// opts := options.Find().SetProjection(bson.D{
+		// 	{Key: "password", Value: 0},
+		// })
+		cursor, err1 := c.Find(context.TODO(), bson.M{"_id": id})
 		if err1 != nil {
 			reject(err1)
 		} else {

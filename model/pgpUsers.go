@@ -25,6 +25,7 @@ type LoggedInTrustNetworkUser struct {
 	Name               string             `json:"name"`
 	Company            string             `json:"company"`
 	Email              string             `json:"email"`
+	Password           string             `json:"password"`
 	Contact            string             `json:"contact"`
 	Industry           string             `json:"industry"`
 	StellerPK          string             `json:"stellarPK"`
