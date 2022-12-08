@@ -15,41 +15,42 @@ import (
 type AuthLayer struct {
 	FormulaId    string
 	ExpertPK     string
-	ExpertUserID string
 	Signature    string
 	Plaintext    string
 }
 
-func (authObject AuthLayer) ValidateExpertRequest() (error, int) {
-	if configs.ValidateAgaintTrustNetworkExpertFormulaEnable {
-		// validation againt trust network
-		errInTrustNetworkValidation := ValidateAgainstTrustNetwork(authObject.ExpertPK)
+func (authObject AuthLayer) ValidateExpertRequest() (error, int, string) {
+	expertId := ""
+	if configs.ValidateAgainstTrustNetworkExpertFormulaEnable {
+		// validation against trust network
+		errInTrustNetworkValidation := ValidateAgainstTrustNetwork(commons.ConvertBase64StringToHash256(authObject.ExpertPK))
 		if errInTrustNetworkValidation != nil {
 			logrus.Error("Expert is not in the trust network ", errInTrustNetworkValidation)
-			return errInTrustNetworkValidation, http.StatusBadRequest
+			return errInTrustNetworkValidation, http.StatusBadRequest, ""
 		}
 	}
 	// PGP validator
 	if configs.DigitalSIgnatureValidationEnabled {
-		errWhenValidatingDigitalSignature, isValidated := PGPValidator(authObject.ExpertPK, authObject.Signature, authObject.Plaintext)
+		errWhenValidatingDigitalSignature, isValidated, id := PGPValidator(authObject.ExpertPK, authObject.Signature, authObject.Plaintext)
 		if errWhenValidatingDigitalSignature != nil {
 			logrus.Error("Digital signature validation issue ", errWhenValidatingDigitalSignature)
-			return errWhenValidatingDigitalSignature, http.StatusUnauthorized
+			return errWhenValidatingDigitalSignature, http.StatusUnauthorized, ""
 		}
 		if !isValidated {
 			logrus.Error("Signature validation failed, incorrect credentials")
-			return errors.New("Signature validation failed, incorrect credentials"), http.StatusUnauthorized
+			return errors.New("Signature validation failed, incorrect credentials"), http.StatusUnauthorized, ""
 		}
+		expertId = id
 	}
 	err1, code1 := authObject.isExceedRequestLimitPerDay()
 	if err1 != nil {
-		return err1, code1
+		return err1, code1, ""
 	} else {
 		err1, code1 := authObject.isExceedRequestLimitPerWeek()
 		if err1 != nil {
-			return err1, code1
+			return err1, code1, ""
 		}
-		return err1, code1
+		return err1, code1, expertId
 	}
 }
 

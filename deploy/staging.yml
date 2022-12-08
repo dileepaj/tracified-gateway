@@ -92,3 +92,4 @@
             RABBITPASSWORD: "{{ lookup('env','RABBITPASSWORD') }}"
             RABBITHOSTNAME: "{{ lookup('env','RABBITHOSTNAME') }}"
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
+            LOGSTYPE: "{{ lookup('env','LOGSTYPE') }}"

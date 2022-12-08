@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -58,9 +59,9 @@ func (cd *ConcreteTrustline) CreateTrustline() string {
 			// 	Limit:         cd.TrustlineStruct.Limit,
 			// 	SourceAccount: "",
 			// }},
-			BaseFee:       txnbuild.MinBaseFee,
+			BaseFee:       constants.MinBaseFee,
 			Memo:          nil,
-			Preconditions: txnbuild.Preconditions{},
+			Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 		},
 	)
 	// // Create an object to represent the new asset

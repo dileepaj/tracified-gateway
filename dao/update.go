@@ -813,7 +813,6 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID, "txnuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
-
 }
 
 func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, update model.FormulaStore) error {
@@ -827,7 +826,7 @@ func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, upda
 
 	up := model.FormulaStore{
 		MetricExpertFormula: update.MetricExpertFormula,
-		User:                update.User,
+		Verify:              update.Verify,
 		FormulaID:           update.FormulaID,
 		FormulaMapID:        update.FormulaMapID,
 		VariableCount:       update.VariableCount,

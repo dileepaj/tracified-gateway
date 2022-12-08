@@ -1,6 +1,9 @@
 package commons
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 
@@ -37,4 +40,11 @@ func ChunkSlice(slice []txnbuild.ManageData, chunkSize int) [][]txnbuild.ManageD
 		chunks = append(chunks, slice[i:end])
 	}
 	return chunks
+}
+
+func ConvertBase64StringToHash256(s string) string {
+	decodedKey, _ := base64.StdEncoding.DecodeString(s)
+	h := sha256.New()
+	h.Write(decodedKey)
+	return hex.EncodeToString(h.Sum(nil))
 }
