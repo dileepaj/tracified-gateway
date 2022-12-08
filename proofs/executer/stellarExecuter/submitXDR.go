@@ -46,13 +46,15 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		if err != nil {
 			log.Error("Error while getting ResultCodes from horizon.Error")
 		}
-        if TC != nil{
+
+    if TC != nil{
 			response.Error.Message = TC.TransactionCode
 		}
 		if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
 			log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
 		}
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
+
 		response.Error.Code = http.StatusBadRequest
 		// response.Error.Message = err.Error()
 		return response

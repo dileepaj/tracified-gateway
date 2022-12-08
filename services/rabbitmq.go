@@ -18,7 +18,7 @@ import (
 var (
 	USER     = commons.GoDotEnvVariable("RABBITUSER")
 	PASSWORD = commons.GoDotEnvVariable("RABBITPASSWORD")
-	HOSTNAME = commons.GoDotEnvVariable("RABBITMQ_SERVICE_HOST")
+	HOSTNAME = commons.GoDotEnvVariable("RABBITHOSTNAME")
 	PORT     = commons.GoDotEnvVariable("RABBITPORT")
 )
 
