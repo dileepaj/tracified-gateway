@@ -13,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/chebyrash/promise"
@@ -2360,6 +2361,134 @@ func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetWorkUserbyID(id primitive.ObjectID) *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		// opts := options.Find().SetProjection(bson.D{
+		// 	{Key: "password", Value: 0},
+		// })
+		cursor, err1 := c.Find(context.TODO(), bson.M{"_id": id})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetworkUserEndorsment(pkHash string) *promise.Promise {
+	var useredorsments []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"pgppkhash": pkHash})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &useredorsments)
+			if err2 != nil {
+				reject(err2)
+			} else {
+				resolve(useredorsments[len(useredorsments)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email, "password": password})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		opts := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
+		cursor, err1 := c.Find(context.TODO(), bson.M{}, opts)
+		if err1 != nil {
+			reject(err1)
+		} else {
+			for cursor.Next(context.TODO()) {
+				var user model.LoggedInTrustNetworkUser
+				decodeErr := cursor.Decode(&user)
+				if decodeErr != nil {
+					reject(decodeErr)
+				}
+				result = append(result, user)
+			}
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetWorkUserbyEncryptedPW(id string) *promise.Promise {
+	var useredorsments []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"password": id})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &useredorsments)
+			if err2 != nil {
+				reject(err2)
+			} else {
+				resolve(useredorsments[len(useredorsments)-1])
+			}
 		}
 	})
 	return p
