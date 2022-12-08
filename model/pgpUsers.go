@@ -39,15 +39,15 @@ type LoggedInTrustNetworkUser struct {
 }
 
 type AcceptUserEndorsment struct {
-	EndorseePKHash string      `json:"endoserpkhash"`
+	EndorseePKHash string      `json:"pgppkhash"`
 	EndorsmentData Endorsments `json:"endorsmentData"`
 }
 
 type Endorsments struct {
-	UserID              primitive.ObjectID `json:"userID"`
-	EndorserPK          string             `json:"endorserPK"`
-	EndorsmentsStatus   string             `json:"status"`
-	TxnVerificationHash string             `json:"txnSigVerify"`
+	UserID              primitive.ObjectID `json:"userid"`
+	EndorserPK          string             `json:"endorserpk"`
+	EndorsmentsStatus   string             `json:"endorsmentsstatus"`
+	TxnVerificationHash string             `json:"txnverificationhash"`
 }
 
 type UserLogin struct {
