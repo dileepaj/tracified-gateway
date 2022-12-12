@@ -2432,7 +2432,7 @@ func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *p
 			reject(err1)
 		} else {
 			err2 := cursor.All(context.TODO(), &result)
-			if err2 != nil || len(result) == 0 {
+			if err2 != nil || (result) == nil {
 				reject(err2)
 			} else {
 				resolve(result[len(result)-1])
