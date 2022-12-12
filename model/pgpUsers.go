@@ -13,6 +13,8 @@ type TrustNetWorkUser struct {
 	StellerPK          string             `json:"stellarPK"`
 	PGPPK              string             `json:"pgppk"`
 	PGPPKHash          string             `json:"pgppkhash"`
+	PgpSecret          string             `json:"pgpseceret"`
+	StellarSecret      string             `json:"stellarsecret"`
 	DigitalSignature   string             `json:"signature"`
 	Signaturehash      string             `json:"signaturehash"`
 	Date               string             `json:"regDate"`
@@ -31,6 +33,8 @@ type LoggedInTrustNetworkUser struct {
 	StellerPK          string             `json:"stellarPK"`
 	PGPPK              string             `json:"pgppk"`
 	PGPPKHash          string             `json:"pgppkhash"`
+	PgpSecret          string             `json:"pgpseceret"`
+	StellarSecret      string             `json:"stellarsecret"`
 	DigitalSignature   string             `json:"signature"`
 	Signaturehash      string             `json:"signaturehash"`
 	Date               string             `json:"regDate"`
