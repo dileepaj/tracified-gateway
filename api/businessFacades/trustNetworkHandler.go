@@ -160,7 +160,7 @@ func EndorseTrustNetworkUser(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	response := model.EndorsmentUpdateSuccess{Message: "Endorsment Added Successfully"}
 	json.NewEncoder(w).Encode(response)
 
