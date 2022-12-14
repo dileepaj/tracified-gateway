@@ -176,10 +176,24 @@ func ReciverRmq() error {
 			} else if queue.Type == "ETHEXPERTFORMULA" {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
 				startTime := time.Now()
+				//Get the account balance before deploying the contract
+				balanceBeforeDeployment, errInGettingBalance1 := deploy.CheckBalance()
+				if errInGettingBalance1 != nil {
+					logrus.Error("Error in getting the balance before deploying the contract: ", errInGettingBalance1)
+				}
 				//Call the deploy method
 				address, txnHash, errWhenDeploying := deploy.DeployContract(queue.EthereumExpertFormula.ABIstring, queue.EthereumExpertFormula.BINstring)
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
+
+				time.Sleep(15 * time.Second)
+				//Get the account balance after deploying the contract
+				balanceAfterDeployment, errInGettingBalance2 := deploy.CheckBalance()
+				if errInGettingBalance2 != nil {
+					logrus.Error("Error in getting the balance after deploying the contract: ", errInGettingBalance2)
+				}
+				deploymentCost := float64(balanceBeforeDeployment - balanceAfterDeployment)
+				costAsAString := fmt.Sprintf("%g", deploymentCost)
 				ethExpertFormulaObj := model.EthereumExpertFormula{
 					FormulaID:           queue.EthereumExpertFormula.FormulaID,
 					FormulaName:         queue.EthereumExpertFormula.FormulaName,
@@ -194,7 +208,7 @@ func ReciverRmq() error {
 					ContractAddress:     address,
 					Timestamp:           time.Now().String(),
 					TransactionHash:     txnHash,
-					TransactionCost:     "", //add after deploy
+					TransactionCost:     costAsAString, //add after deploy
 					TransactionTime:     convertedTime,
 					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
@@ -231,10 +245,24 @@ func ReciverRmq() error {
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
 				startTime := time.Now()
+				//Get the account balance before deploying the contract
+				balanceBeforeDeployment, errInGettingBalance1 := deploy.CheckBalance()
+				if errInGettingBalance1 != nil {
+					logrus.Error("Error in getting the balance before deploying the contract: ", errInGettingBalance1)
+				}
 				//Call the deploy method
 				address, txnHash, errWhenDeploying := deploy.DeployContract(queue.EthereumMetricBind.ABIstring, queue.EthereumMetricBind.BINstring)
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
+
+				time.Sleep(15 * time.Second)
+				//Get the account balance after deploying the contract
+				balanceAfterDeployment, errInGettingBalance2 := deploy.CheckBalance()
+				if errInGettingBalance2 != nil {
+					logrus.Error("Error in getting the balance after deploying the contract: ", errInGettingBalance2)
+				}
+				deploymentCost := float64(balanceBeforeDeployment - balanceAfterDeployment)
+				costAsAString := fmt.Sprintf("%g", deploymentCost)
 				ethMetricObj := model.EthereumMetricBind{
 					MetricID:          queue.EthereumMetricBind.MetricID,
 					MetricName:        queue.EthereumMetricBind.MetricName,
@@ -246,7 +274,7 @@ func ReciverRmq() error {
 					Timestamp:         time.Now().String(),
 					ContractAddress:   address,
 					TransactionHash:   txnHash,
-					TransactionCost:   "",
+					TransactionCost:   costAsAString,
 					TransactionTime:   convertedTime,
 					TransactionUUID:   queue.EthereumMetricBind.TransactionUUID,
 					TransactionSender: queue.EthereumMetricBind.TransactionSender,
