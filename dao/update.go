@@ -880,6 +880,8 @@ func (cd *Connection) UpdateTrustNetworkUserEndorsment(pkhash string, update mod
 		StellerPK:          update.StellerPK,
 		PGPPK:              update.PGPPK,
 		PGPPKHash:          update.PGPPKHash,
+		PgpSecret:          update.PgpSecret,
+		StellarSecret:      update.StellarSecret,
 		DigitalSignature:   update.DigitalSignature,
 		Signaturehash:      update.Signaturehash,
 		Date:               update.Date,
