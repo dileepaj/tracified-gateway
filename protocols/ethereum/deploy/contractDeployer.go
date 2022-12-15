@@ -4,8 +4,11 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
+	"fmt"
+	"math"
 	"math/big"
 	"reflect"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/ethereum/go-ethereum"
@@ -19,22 +22,23 @@ import (
 /*
 	Deploy smart contract in Ethereum
 */
-func DeployContract(abi string, bin string) (string, string, error) {
+func DeployContract(abi string, bin string) (string, string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
+	transactionCost := ""
 
 	//Dial infura client
 	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("SPOLIALINK"))
 	if errWhenDialingEthClinet != nil {
 		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClinet.Error())
-		return contractAddress, transactionHash, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClinet.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClinet.Error())
 	}
 
 	//load ECDSA private key
 	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
 	if errWhenGettingECDSAKey != nil {
 		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
-		return contractAddress, transactionHash, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
 	}
 
 	//get the public key
@@ -43,7 +47,7 @@ func DeployContract(abi string, bin string) (string, string, error) {
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
 		logrus.Error("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-		return contractAddress, transactionHash, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+		return contractAddress, transactionHash, transactionCost, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	}
 
 	//get nonce
@@ -51,14 +55,14 @@ func DeployContract(abi string, bin string) (string, string, error) {
 	nonce, errWhenGettingNonce := client.PendingNonceAt(context.Background(), fromAddress)
 	if errWhenGettingNonce != nil {
 		logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
-		return contractAddress, transactionHash, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 	}
 
 	//get the gas price
 	gasPrice, errWhenGettingGasPrice := client.EstimateGas(context.Background(), ethereum.CallMsg{})
 	if errWhenGettingGasPrice != nil {
 		logrus.Error("Error when getting gas price " + errWhenGettingGasPrice.Error())
-		return contractAddress, transactionHash, errors.New("Error when getting gas price , ERROR : " + errWhenGettingGasPrice.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price , ERROR : " + errWhenGettingGasPrice.Error())
 	}
 
 	//create the keyed transactor
@@ -80,18 +84,18 @@ func DeployContract(abi string, bin string) (string, string, error) {
 	parsed, errWhenGettingABI := BuildData.GetAbi()
 	if errWhenGettingABI != nil {
 		logrus.Error("Error when getting abi from passed ABI string " + errWhenGettingABI.Error())
-		return contractAddress, transactionHash, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
 	}
 
 	if parsed == nil {
 		logrus.Info("GetABI returned nil")
-		return contractAddress, transactionHash, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
 	}
 
 	address, tx, contract, errWhenDeployingContract := bind.DeployContract(auth, *parsed, common.FromHex(ContractBIN), client)
 	if errWhenDeployingContract != nil {
 		logrus.Info("Error when deploying contract " + errWhenDeployingContract.Error())
-		return contractAddress, transactionHash, errors.New("Error when deploying contract, ERROR : " + errWhenDeployingContract.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when deploying contract, ERROR : " + errWhenDeployingContract.Error())
 	}
 
 	contractAddress = address.Hex()
@@ -101,7 +105,19 @@ func DeployContract(abi string, bin string) (string, string, error) {
 	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
-	return contractAddress, transactionHash, nil
+	//wait for the transaction to be completed
+	time.Sleep(15 * time.Second)
+
+	//get the receipt of the transaction to get the amount of gas used
+	receipt, errorInGettingReceipt := client.TransactionReceipt(context.Background(), tx.Hash())
+	if errorInGettingReceipt != nil {
+		logrus.Error("Error in getting receipt: Error: " + errorInGettingReceipt.Error())
+	} else {
+		costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), big.NewInt(int64(gasPrice)))
+		cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
+		transactionCost = fmt.Sprintf("%g", cost) + " ETH"
+	}
+	return contractAddress, transactionHash, transactionCost, nil
 }
 
 /*
