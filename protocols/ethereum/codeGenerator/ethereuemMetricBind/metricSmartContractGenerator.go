@@ -94,9 +94,9 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//setting up the contract name and starting the contract
 		contractName = cases.Title(language.English).String(metricBindJson.Metric.Name)
 		contractName = strings.ReplaceAll(contractName, " ", "")
+		contractName = contractName + "_" + metricBindJson.Metric.ID
 
-		//TODO Contract writer components
-
+		//Starting contract writer components
 		template := ""
 
 		// get the general code snippets (metadata)

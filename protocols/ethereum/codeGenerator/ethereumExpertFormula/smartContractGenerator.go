@@ -38,19 +38,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 	var deployStatus string
 	reqType := "EXPERT"
 
-	// check if the contract name is already present in the database with the status SUCCESS
-	existingFormula, errInCheckingDuplicateNames := object.GetEthFormulaByName(formulaJSON.MetricExpertFormula.Name).Then(func(data interface{}) interface{} {
-		return data
-	}).Await()
-	if errInCheckingDuplicateNames != nil {
-		logrus.Error("An error occurred when checking duplicate formula names, ERROR: ", errInCheckingDuplicateNames)
-	}
-	if existingFormula != nil {
-		logrus.Info("Contract for formula " + formulaJSON.MetricExpertFormula.Name + " already exists")
-		commons.JSONErrorReturn(w, r, "", 400, "Requested contract name already exists")
-		return
-	}
-
 	formulaDetails, errWhenGettingFormulaDetailsFromDB := object.GetEthFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -117,6 +104,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//setting up the contract name and starting the contract
 		contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 		contractName = strings.ReplaceAll(contractName, " ", "")
+		contractName = contractName + "_" + formulaJSON.MetricExpertFormula.ID
 
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippet := WriteGeneralCodeSnippets(formulaJSON, contractName)
