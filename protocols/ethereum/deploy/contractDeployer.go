@@ -8,7 +8,6 @@ import (
 	"math"
 	"math/big"
 	"reflect"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/ethereum/go-ethereum"
@@ -105,17 +104,19 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 	logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 	logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
-	//wait for the transaction to be completed
-	time.Sleep(15 * time.Second)
-
-	//get the receipt of the transaction to get the amount of gas used
-	receipt, errorInGettingReceipt := client.TransactionReceipt(context.Background(), tx.Hash())
-	if errorInGettingReceipt != nil {
-		logrus.Error("Error in getting receipt: Error: " + errorInGettingReceipt.Error())
+	// Wait for the transaction to be mined and calculate the cost
+	receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
+	if errInGettingReceipt != nil {
+		logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 	} else {
 		costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), big.NewInt(int64(gasPrice)))
 		cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
 		transactionCost = fmt.Sprintf("%g", cost) + " ETH"
+
+		if receipt.Status == 0 {
+			logrus.Error("Transaction failed.")
+			return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
+		}
 	}
 	return contractAddress, transactionHash, transactionCost, nil
 }
