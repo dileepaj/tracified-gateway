@@ -12,10 +12,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error) {
+func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []string, error) {
 	valueList := formulaJSON.MetricExpertFormula.Formula // list of values in the formula
 	var valueInitializations []string                    // list of initializations for the values
 	var valueSetters []string                            // list of setters for the values(only for variables)
+	var setterNames []string                             // list of setter names for the values(only for variables)
 
 	/* loop through the values in the formula and generate the initializations and setters
 	   for each variable -> initialize the variable and setter
@@ -40,7 +41,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 			data, errInGettingNextSequence := object.GetNextSequenceValue("VALUEID")
 			if errInGettingNextSequence != nil {
 				logrus.Info("Unable to connect to gateway datastore(valueCodeGenerator) ", errInGettingNextSequence)
-				return "", errors.New("Unable to connect to gateway datastore(valueCodeGenerator) Error: " + errInGettingNextSequence.Error() + "\n")
+				return "", setterNames, errors.New("Unable to connect to gateway datastore(valueCodeGenerator) Error: " + errInGettingNextSequence.Error() + "\n")
 			}
 			valueIdMap := model.ValueIDMap{
 				ValueId:   selectedValue.ID,
@@ -55,7 +56,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 			err := object.InsertToValueIDMap(valueIdMap)
 			if err != nil {
 				logrus.Info("Unable to connect to gateway datastore(valueCodeGenerator) ", err)
-				return "", errors.New("Unable to connect to gateway datastore(valueCodeGenerator) Error: " + err.Error() + "\n")
+				return "", setterNames, errors.New("Unable to connect to gateway datastore(valueCodeGenerator) Error: " + err.Error() + "\n")
 			}
 		}
 
@@ -84,6 +85,9 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 			valueSetter = valueSetter + "\t" + keyNew + `.value.exponent = _EXPONENT;` + "\n\t" + `}`
 			valueSetters = append(valueSetters, commentForSetter)
 			valueSetters = append(valueSetters, valueSetter)
+
+			// add the setter name to the list
+			setterNames = append(setterNames, "set"+keyNew)
 
 		} else {
 			// convert the value to string anf then to float 
@@ -145,5 +149,5 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, error
 		valueCode = valueCode + value
 	}
 
-	return valueCode, nil
+	return valueCode, setterNames, nil
 }

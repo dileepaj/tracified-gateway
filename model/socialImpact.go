@@ -665,6 +665,7 @@ type EthereumExpertFormula struct {
 	BINstring           string
 	ABIstring           string
 	GOstring            string
+	SetterNames		 	[]string
 	ContractAddress     string
 	Status              string
 	Timestamp           string

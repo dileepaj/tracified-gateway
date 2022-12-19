@@ -255,6 +255,25 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		ethMetricObj.BINstring = binString
 		ethMetricObj.ContractName = contractName
 
+		//generating go file by converting the code to bas64
+//		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
+//		if errWhenGeneratingGoCode != nil {
+//			ethMetricObj.Status = "FAILED"
+//			ethMetricObj.ErrorMessage = errWhenGeneratingGoCode.Error()
+//			//call the DB insert method
+//			errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
+//			if errWhenInsertingMetricToDB != nil {
+//				logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
+//				commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
+//				return
+//			}
+//			logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
+//			commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
+//			return
+//		}
+//
+//		logrus.Info("Go file generated successfully: " + goString)
+
 		//send the request to queue
 		buildQueueObj := model.SendToQueue{
 			EthereumMetricBind: ethMetricObj,

@@ -190,6 +190,7 @@ func ReciverRmq() error {
 					BINstring:           queue.EthereumExpertFormula.BINstring,
 					ABIstring:           queue.EthereumExpertFormula.ABIstring,
 					GOstring:            queue.EthereumExpertFormula.GOstring,
+					SetterNames: 	   	 queue.EthereumExpertFormula.SetterNames,
 					ContractName:        queue.EthereumExpertFormula.ContractName,
 					ContractAddress:     address,
 					Timestamp:           time.Now().String(),

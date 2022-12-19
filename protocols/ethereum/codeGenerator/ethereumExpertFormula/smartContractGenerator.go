@@ -136,7 +136,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
 
 		//call the value builder and get the string for the variable initialization and setter
-		variableValues, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
+		variableValues, setterNames, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
 		if errInGeneratingValues != nil {
 			ethFormulaObj.Status = "FAILED"
 			ethFormulaObj.ErrorMessage = errInGeneratingValues.Error()
@@ -160,6 +160,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 		contractBody = contractBody + variableValues
+		ethFormulaObj.SetterNames = setterNames
 
 		//pass the query to the FCL and get the execution template
 		executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
