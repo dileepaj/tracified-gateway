@@ -26,7 +26,7 @@ import (
 var (
 	contractName       = ``
 	contractBody       = ``
-	startOfTheExecutor = `function executeCalculation() public returns (int256, int256) {`
+	startOfTheExecutor = `function executeCalculation() public {`
 	endOfTheExecutor   = "\n\t" + `}`
 )
 
@@ -220,8 +220,14 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		commentForExecutor := `// method to get the result of the calculation`
 		executorBody := "\n\t\t" + `result.value` + " = " + executionTemplateString + ";" + "\n\t\t"
 		executorBody = executorBody + `result.exponent = calculations.GetExponent();` + "\n\t\t"
-		executorBody = executorBody + "\n\t\t" + `return (result.value, result.exponent);`
-		contractBody = contractBody + "\n\n\t" + commentForExecutor + "\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor
+		contractBody = contractBody + "\n\n\t" + commentForExecutor + "\n\t" + startOfTheExecutor + executorBody + endOfTheExecutor + "\n"
+
+		//getter method
+		commentForGetter := "\n\t" + `//get value and exponent`
+		getterBody := "\n\t" + `function getValues() public view returns (int256, int256) {`
+		getterBody = getterBody + "\n\t\t" + `return (result.value, result.exponent);`
+		getterBody = getterBody + "\n\t" + `}` + "\n"
+		contractBody = contractBody + commentForGetter + getterBody
 
 		// create the contract
 		template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ImportCalculationsSol + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
@@ -333,7 +339,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		ethFormulaObj.BINstring = binString
 
 		//generating go file by converting the code to bas64
-		// goString, errWhenGeneratingGoCode := deploy.GenerateGoCode("Calculations")
+		// goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
 		// if errWhenGeneratingGoCode != nil {
 		// 	ethFormulaObj.Status = "FAILED"
 		// 	ethFormulaObj.ErrorMessage = errWhenGeneratingGoCode.Error()
