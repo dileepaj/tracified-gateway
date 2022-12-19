@@ -551,7 +551,7 @@ func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string,
 		return "", err
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("TrustNetwork")
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 	result, err1 := c.InsertOne(context.TODO(), user)
 	if err1 != nil {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())

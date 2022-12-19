@@ -559,7 +559,7 @@ var routes = Routes{
 	Route{
 		"Endorse User",
 		"PUT",
-		"/trustnetwork",
+		"/trustnetwork/endorse",
 		businessFacades.EndorseTrustNetworkUser,
 	},
 	Route{
@@ -579,5 +579,17 @@ var routes = Routes{
 		"GET",
 		"/trustnetwork",
 		businessFacades.GetAllTrustNetworkUsers,
+	},
+	Route{
+		"Reset Trust Network pasword",
+		"PUT",
+		"/trustnetwork/reset",
+		businessFacades.Resetpassword,
+	},
+	Route{
+		"Update Password",
+		"PUT",
+		"/trustnetwork",
+		businessFacades.UpdatePassword,
 	},
 }
