@@ -8,6 +8,7 @@ type TrustNetWorkUser struct {
 	Company            string             `json:"company"`
 	Email              string             `json:"email"`
 	Password           string             `json:"password"`
+	PasswordResetCode  []byte             `json:"pwdresetcode"`
 	Contact            string             `json:"contact"`
 	Industry           string             `json:"industry"`
 	StellerPK          string             `json:"stellarPK"`
@@ -27,7 +28,7 @@ type LoggedInTrustNetworkUser struct {
 	Name               string             `json:"name"`
 	Company            string             `json:"company"`
 	Email              string             `json:"email"`
-	Password           string             `json:"password"`
+	PasswordResetCode  []byte             `json:"pwdresetcode"`
 	Contact            string             `json:"contact"`
 	Industry           string             `json:"industry"`
 	StellerPK          string             `json:"stellarPK"`
@@ -67,4 +68,14 @@ type TrustNetworkUserEndorsmentCount struct {
 	Totalendorsements   int `json:"totalendorsements"`
 	FullEndorsements    int `json:"fullendorsement"`
 	PartialEndorsements int `json:"partialendorsement"`
+}
+
+type UpdateTrustNetworkUserPassword struct {
+	Email             string `json:"email"`
+	PasswordResetCode string `json:"pwdresetcode"`
+	Password          string `json:"password"`
+}
+
+type ResetPsswordRequest struct {
+	Email string `json:"email"`
 }
