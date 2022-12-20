@@ -30,7 +30,7 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	valueDataStructComment := "\t" + `//Parent value structure` + "\n"
 	valueDataStructHead := "\t" + `struct Value {` + "\n"
 	valueType := "\t\t" + `string valueType; //initialize at start` + "\n"
-	valueID := "\t\t" + `bytes32 valueID; //initialize at start` + "\n"
+	valueID := "\t\t" + `string valueID; //initialize at start` + "\n"
 	valueName := "\t\t" + `string valueName; //initialize at start` + "\n"
 	valueDef := "\t\t" + `int256 value; //initialize at start, added using setter` + "\n"
 	valueDef = valueDef + "\t\t" + `int256 exponent; //initialize at start, added using setter` + "\n"
