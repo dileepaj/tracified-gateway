@@ -2375,10 +2375,7 @@ func (cd *Connection) GetTrustNetWorkUserbyID(id primitive.ObjectID) *promise.Pr
 		}
 
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TrustNetwork")
-		// opts := options.Find().SetProjection(bson.D{
-		// 	{Key: "password", Value: 0},
-		// })
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 		cursor, err1 := c.Find(context.TODO(), bson.M{"_id": id})
 		if err1 != nil {
 			reject(err1)
@@ -2402,7 +2399,7 @@ func (cd *Connection) GetTrustNetworkUserEndorsment(pkHash string) *promise.Prom
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 		cursor, err1 := c.Find(context.TODO(), bson.M{"pgppkhash": pkHash})
 		if err1 != nil {
 			reject(err1)
@@ -2426,7 +2423,7 @@ func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *p
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email, "password": password})
 		if err1 != nil {
 			reject(err1)
@@ -2441,7 +2438,29 @@ func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *p
 	})
 	return p
 }
-
+func (cd *Connection) GetTrustNetworkUserResetPassword(email string, password []byte) *promise.Promise {
+	result := []model.TrustNetWorkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || (result) == nil {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
 func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
 	result := []model.LoggedInTrustNetworkUser{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -2450,7 +2469,7 @@ func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 		opts := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
 		cursor, err1 := c.Find(context.TODO(), bson.M{}, opts)
 		if err1 != nil {
@@ -2478,7 +2497,7 @@ func (cd *Connection) GetTrustNetWorkUserbyEncryptedPW(id string) *promise.Promi
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("TrustNetwork")
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 		cursor, err1 := c.Find(context.TODO(), bson.M{"password": id})
 		if err1 != nil {
 			reject(err1)
@@ -2488,6 +2507,30 @@ func (cd *Connection) GetTrustNetWorkUserbyEncryptedPW(id string) *promise.Promi
 				reject(err2)
 			} else {
 				resolve(useredorsments[len(useredorsments)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise {
+	var pwdResetuser []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &pwdResetuser)
+			if err2 != nil || (pwdResetuser) == nil {
+				reject(err2)
+			} else {
+				resolve(pwdResetuser[len(pwdResetuser)-1])
 			}
 		}
 	})
