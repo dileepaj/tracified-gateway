@@ -87,72 +87,161 @@ func DecodeTrustnetworkResetPassword(userPassword string) (string, error) {
 
 func getEmail(password string) string {
 	var emailTemplate = `<table border="0" cellpadding="0" cellspacing="0" width="100%">
-    <!-- LOGO -->
-    <tr>
-        <td bgcolor="#021d28" align="center">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-                <tr>
-                    <td align="center" valign="top" style="padding: 40px 10px 40px 10px;"> </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-    <tr>
-        <td bgcolor="#021d28" align="center" style="padding: 0px 10px 0px 10px;">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-                <tr>
-                   <td style="padding: 40px 20px 20px; border-radius: 4px 4px 0px 0px; color: #111111; font-family: Lato, Helvetica, Arial, sans-serif; font-size: 40px; font-weight: 400; letter-spacing: 4px; line-height: 48px; height: 31px;" align="center" valign="top" bgcolor="#ffffff">
-				   <!-- BC MEETUP LOGO -->
-				   <img style="width: 3em;" src="https://tracified-profile-images.s3.ap-south-1.amazonaws.com/RURI+1.png">
-				   </td>
-                </tr>
-            </table>
-        </td>
-    </tr>
-    <tr>
-        <td bgcolor="#f4f4f4" align="center" style="padding: 0px 10px 0px 10px;">
-            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="max-width: 600px;">
-              <tr>
-      <td style="padding: 20px 30px 15px 20px; color: #666666; font-family: Lato, Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px; width: 100%;" align="left" bgcolor="#ffffff">
-      <p style="margin: 0;">Hi<br />Please use the follwing password to complete your password reset process</p>
-      </td>
-      <tr>
-                    <td bgcolor="#ffffff" align="left">
-                        <table width="100%" border="0" cellspacing="0" cellpadding="0">
-                            <tr>
-                                <td bgcolor="#ffffff" align="center" style="padding: 2px 30px 10px 30px;">
-                                    <table border="0" cellspacing="0" cellpadding="0">
-                                        <tr>
-                                            <td align="center" style="border-radius: 3px;" bgcolor="#00466a"><div style="font-size: 20px; font-family: Helvetica, Arial, sans-serif; color: #62FFA3; text-decoration: none; color: #62FFA3; text-decoration: none; padding: 15px 25px; border-radius: 2px; border: 1px solid #00466a; display: inline-block; text-align:center">` + password + `</a></td>
-                                        </tr>
-                                    </table>
-                                </td>
-                            </tr>
-                        </table>
-                    </td>
-                <tr>
-                    
-                </tr>
-        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 10px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;">
-          <p style="margin: 0;"> <strong>Note - </strong>Please note that the One Time Password is valid for a period of one month only.
-                    </td>						
-      </tr>
-                <tr>
-        <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 10px 30px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;">
-          <p style="margin: 0;">Enjoy your NFT !
-                    </td>						
-      </tr>
-                <tr>
-                    <td bgcolor="#ffffff" align="left" style="padding: 0px 30px 40px 30px; border-radius: 0px 0px 4px 4px; color: #666666; font-family: 'Lato', Helvetica, Arial, sans-serif; font-size: 16px; font-weight: 400; line-height: 25px;">
-                        <p style="margin: 0;">Cheers,<br>Team RURI</p>
-                        <hr style="background-color: #D9D9D9; ">
-                        <p style="color: #878787;"><center>Powered by</center></p>
-                        <center><img src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/Tracified-NFT-v2.png" style="width:20em"></center>
-                    </td>
-                </tr>
-            </table>
-        </td>
-    </tr>        
-  </table>`
+	<tr bgcolor="#2f3440">
+	  <td style="height: 70px"></td>
+	  <td style="height: 70px"></td>
+	  <td style="height: 70px"></td>
+	</tr>
+	<tr bgcolor="#2f3440">
+	  <td style="height: 190px"></td>
+	  <td bgcolor="#2f3440" style="height: 190px; width: 60%" align="center">
+		<table border="0" cellpadding="0" cellspacing="0" width="100%">
+		  <tr>
+			<td
+			  style="
+				border-radius: 20px 20px 0px 0px;
+				height: 190px;
+				box-shadow: 0px 4px 31px 3px rgba(0, 0, 0, 0.15);
+			  "
+			  align="center"
+			  bgcolor="#ffffff"
+			>
+			  <img
+				style="width: 20em; max-width: 80%"
+				src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/Tracified-Blockchain-Meetup-Logo-v2-02+1.png"
+			  />
+			</td>
+		  </tr>
+		</table>
+	  </td>
+	  <td style="height: 190px"></td>
+	</tr>
+	<tr bgcolor="#f0f0f0">
+	  <td></td>
+	  <td
+		bgcolor="#f0f0f0"
+		style="width: 60%; padding-bottom: 70px"
+		align="center"
+	  >
+		<table border="0" cellpadding="0" cellspacing="0" width="100%">
+		  <tr>
+			<td
+			  style="
+				padding: 20px 40px 0px 40px;
+				box-shadow: 0px 25px 31px 3px rgba(0, 0, 0, 0.15);
+			  "
+			  align="center"
+			  bgcolor="#ffffff"
+			>
+			  <p
+				style="
+				  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap');
+				  word-wrap: break-word;
+				  font-family: 'Inter', sans-serif;
+				  font-style: normal;
+				  font-weight: 400;
+				  font-size: 20px;
+				  line-height: 180.02%;
+				  text-align: left;
+				"
+			  >
+				Hi,<br /><br />
+				We have received a request to change the password for your Trust
+				Network account. <br />
+				Please use this code to reset the password: <br />
+				` + password + `<br /><br />
+				If you did not request a password reset, you can safely ignore
+				this email.
+				<br /><br />
+				Cheers,<br />
+				<strong>Tracified Team</strong>
+			  </p>
+			</td>
+		  </tr>
+		  <tr>
+			<td
+			  style="
+				border-radius: 0px 0px 20px 20px;
+				padding: 0px 40px 20px 40px;
+				box-shadow: 0px 25px 31px 3px rgba(0, 0, 0, 0.15);
+			  "
+			  align="center"
+			  bgcolor="#ffffff"
+			>
+			  <div
+				style="
+				  background: #d9d9d9;
+				  height: 1px;
+				  width: 100%;
+				  margin: 35px 0px 35px 0px;
+				"
+			  ></div>
+			  <img
+				src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/tracified-logo+(1).png"
+				style="width: 210px; height: 44px; text-align: center"
+			  />
+			  <div
+				style="
+				  width: 100%;
+				  margin-top: 20px;
+				  margin-bottom: 20px;
+				  text-align: center;
+				"
+			  >
+				<p style="display: inline; padding: 50px 12px 4px 12px">
+				  <a
+					href="https://www.facebook.com/tracified/?ref=page_internal"
+					target="_blank"
+					><img
+					  style="filter: opacity(0.3) drop-shadow(0 0 0 #acacac)"
+					  src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/NFT_Market/Facebook.png"
+				  /></a>
+				</p>
+				<p style="display: inline; padding: 50px 12px 4px 12px">
+				  <a href="https://twitter.com/Tracified1" target="_blank"
+					><img
+					  style="filter: opacity(0.3) drop-shadow(0 0 0 #acacac)"
+					  src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/NFT_Market/Twitter.png"
+				  /></a>
+				</p>
+				<p style="display: inline; padding: 50px 12px 4px 12px">
+				  <a
+					href="https://www.instagram.com/tracified_official/"
+					target="_blank"
+					><img
+					  style="filter: opacity(0.3) drop-shadow(0 0 0 #acacac)"
+					  src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/NFT_Market/Instagram.png"
+				  /></a>
+				</p>
+				<p style="display: inline; padding: 50px 12px 4px 12px">
+				  <a
+					href="https://www.instagram.com/tracified_official/"
+					target="_blank"
+					><img
+					  style="filter: opacity(0.3) drop-shadow(0 0 0 #acacac)"
+					  src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/NFT_Market/LinkedIn.png"
+				  /></a>
+				</p>
+				<p style="display: inline; padding: 50px 12px 4px 12px">
+				  <a href="#"
+					><img
+					  style="filter: opacity(0.3) drop-shadow(0 0 0 #acacac)"
+					  src="https://tracified-platform-images.s3.ap-south-1.amazonaws.com/NFT_Market/YouTube.png"
+				  /></a>
+				</p>
+			  </div>
+			</td>
+		  </tr>
+		</table>
+	  </td>
+	  <td></td>
+	</tr>
+	<tr bgcolor="#f0f0f0">
+	  <td style="height: 70px"></td>
+	  <td style="height: 70px"></td>
+	  <td style="height: 70px"></td>
+	</tr>
+  </table>
+  `
 	return emailTemplate
 }
