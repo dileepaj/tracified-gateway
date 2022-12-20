@@ -17,6 +17,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 	var valueInitializations []string                    // list of initializations for the values
 	var valueSetters []string                            // list of setters for the values(only for variables)
 	var setterNames []string                             // list of setter names for the values(only for variables)
+	var convertedValueToString string
 
 	/* loop through the values in the formula and generate the initializations and setters
 	   for each variable -> initialize the variable and setter
@@ -69,13 +70,13 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 
 			// variable initialization
 			valueInitializer := "\t" + `Variable ` + keyNew + ` = Variable(Value("`
-			valueInitializer = valueInitializer + 
-								selectedValue.Type + `", "` + 
-								selectedValue.ID + `", "` + 
-								selectedValue.Name + `", 0, 0, "` + 
-								selectedValue.Description + `"), "` + 
-								selectedValue.MeasurementUnit + `", ` + 
-								strconv.Itoa(int(selectedValue.Precision)) + `);`
+			valueInitializer = valueInitializer +
+				selectedValue.Type + `", "` +
+				selectedValue.ID + `", "` +
+				selectedValue.Name + `", 0, 0, "` +
+				selectedValue.Description + `"), "` +
+				selectedValue.MeasurementUnit + `", ` +
+				strconv.Itoa(int(selectedValue.Precision)) + `);`
 			valueInitializations = append(valueInitializations, valueInitializer)
 
 			// variable setter
@@ -90,14 +91,20 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 			setterNames = append(setterNames, "set"+keyNew)
 
 		} else {
-			// convert the value to string anf then to float 
+			// convert the value to string anf then to float
 			valueAsString := fmt.Sprintf("%g", selectedValue.Value)
 			exponentOfTheValueLen := 0
 			// make the constant values according to the format (m, n) where (m x 10^n)
 			if strings.Contains(valueAsString, ".") {
 				exponentOfTheValueLen = len(valueAsString[strings.Index(valueAsString, ".")+1:]) * -1
 				valueAsString = strings.Replace(valueAsString, ".", "", 1)
-				logrus.Info("Value as a whole number: ", valueAsString)
+				convertedValueToInt, errWhenConvertingValueToInt := strconv.Atoi(valueAsString)
+				if errWhenConvertingValueToInt != nil {
+					logrus.Error("Error when converting value string to int , ", errWhenConvertingValueToInt)
+					return "", setterNames, errors.New("Error when converting value string to int : Error : " + errWhenConvertingValueToInt.Error())
+				}
+				convertedValueToString = strconv.Itoa(convertedValueToInt)
+				logrus.Info("Value as a whole number: ", convertedValueToString)
 				logrus.Info("Exponent of the value Len: ", exponentOfTheValueLen)
 			}
 
@@ -107,13 +114,13 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 				valueInitializations = append(valueInitializations, comment)
 
 				// constant initialization
-				valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` + 
-																					selectedValue.Type + `", "` + 
-																					selectedValue.ID + `", "` + 
-																					selectedValue.Name + `", ` + 
-																					valueAsString + `, ` + 
-																					strconv.Itoa(exponentOfTheValueLen) + `, "` + 
-																					selectedValue.Description + `"));`
+				valueInitializer := "\t" + `SemanticConstant ` + keyNew + ` = SemanticConstant(Value("` +
+					selectedValue.Type + `", "` +
+					selectedValue.ID + `", "` +
+					selectedValue.Name + `", ` +
+					convertedValueToString + `, ` +
+					strconv.Itoa(exponentOfTheValueLen) + `, "` +
+					selectedValue.Description + `"));`
 				valueInitializations = append(valueInitializations, valueInitializer)
 			} else if selectedValue.Type == "REFERREDCONSTANT" {
 				// adding comments
@@ -121,15 +128,15 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 				valueInitializations = append(valueInitializations, comment)
 
 				// constant initialization
-				valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` + 
-																					selectedValue.Type + `", "` + 
-																					selectedValue.ID + `", "` + 
-																					selectedValue.Name + `", ` + 
-																					valueAsString + `, ` + 
-																					strconv.Itoa(exponentOfTheValueLen) + `, "` + 
-																					selectedValue.Description + `"), "` + 
-																					selectedValue.MeasurementUnit + `", "` + 
-																					selectedValue.MetricReference.Reference + `");`
+				valueInitializer := "\t" + `ReferredConstant ` + keyNew + ` = ReferredConstant(Value("` +
+					selectedValue.Type + `", "` +
+					selectedValue.ID + `", "` +
+					selectedValue.Name + `", ` +
+					convertedValueToString + `, ` +
+					strconv.Itoa(exponentOfTheValueLen) + `, "` +
+					selectedValue.Description + `"), "` +
+					selectedValue.MeasurementUnit + `", "` +
+					selectedValue.MetricReference.Reference + `");`
 				valueInitializations = append(valueInitializations, valueInitializer)
 			}
 		}
