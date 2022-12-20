@@ -317,7 +317,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					if len(activity.MetricFormula.PivotFields) > 0 {
 						for _, pivot := range activity.MetricFormula.PivotFields {
 							//! variable used as a constant(using pivot)
-							if artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && artifactTemplate.Field == pivot.Field &&
+							if artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && pivot.ArtifactDataId != "" &&
 								pivot.Condition == "EQUAL" {
 								primaryKeyMapId, err := InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
 								if err != nil {
