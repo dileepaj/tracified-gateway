@@ -164,12 +164,11 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &TdpData)
 
 	h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
-    dataHash := hex.EncodeToString(h.Sum(nil))
+ 	dataHash := hex.EncodeToString(h.Sum(nil))
 
 	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE()
-
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
 	//var txe xdr.Transaction
