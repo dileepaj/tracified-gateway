@@ -98,6 +98,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 			if strings.Contains(valueAsString, ".") {
 				exponentOfTheValueLen = len(valueAsString[strings.Index(valueAsString, ".")+1:]) * -1
 				valueAsString = strings.Replace(valueAsString, ".", "", 1)
+				valueAsString = strings.TrimLeft(valueAsString, "0")
 				parts = strings.Split(valueAsString, "e")
 				logrus.Info("Value as a whole number: ", parts[0])
 				logrus.Info("Exponent of the value Len: ", exponentOfTheValueLen)
