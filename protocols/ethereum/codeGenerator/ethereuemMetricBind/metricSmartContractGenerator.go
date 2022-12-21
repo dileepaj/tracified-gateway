@@ -6,7 +6,6 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -16,8 +15,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/oklog/ulid"
 	"github.com/sirupsen/logrus"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 var (
@@ -92,9 +89,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		}
 
 		//setting up the contract name and starting the contract
-		contractName = cases.Title(language.English).String(metricBindJson.Metric.Name)
-		contractName = strings.ReplaceAll(contractName, " ", "")
-		contractName = contractName + "_" + metricBindJson.Metric.ID
+		contractName = "Metric_" + metricBindJson.Metric.ID
 
 		//Starting contract writer components
 		template := ""
