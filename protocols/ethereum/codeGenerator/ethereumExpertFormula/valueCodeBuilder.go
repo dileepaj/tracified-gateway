@@ -17,7 +17,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 	var valueInitializations []string                    // list of initializations for the values
 	var valueSetters []string                            // list of setters for the values(only for variables)
 	var setterNames []string                             // list of setter names for the values(only for variables)
-	var convertedValueToString string
+	var parts []string
 
 	/* loop through the values in the formula and generate the initializations and setters
 	   for each variable -> initialize the variable and setter
@@ -98,13 +98,8 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 			if strings.Contains(valueAsString, ".") {
 				exponentOfTheValueLen = len(valueAsString[strings.Index(valueAsString, ".")+1:]) * -1
 				valueAsString = strings.Replace(valueAsString, ".", "", 1)
-				convertedValueToInt, errWhenConvertingValueToInt := strconv.Atoi(valueAsString)
-				if errWhenConvertingValueToInt != nil {
-					logrus.Error("Error when converting value string to int , ", errWhenConvertingValueToInt)
-					return "", setterNames, errors.New("Error when converting value string to int : Error : " + errWhenConvertingValueToInt.Error())
-				}
-				convertedValueToString = strconv.Itoa(convertedValueToInt)
-				logrus.Info("Value as a whole number: ", convertedValueToString)
+				parts = strings.Split(valueAsString, "e")
+				logrus.Info("Value as a whole number: ", parts[0])
 				logrus.Info("Exponent of the value Len: ", exponentOfTheValueLen)
 			}
 
@@ -118,7 +113,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 					selectedValue.Type + `", "` +
 					selectedValue.ID + `", "` +
 					selectedValue.Name + `", ` +
-					convertedValueToString + `, ` +
+					parts[0] + `, ` +
 					strconv.Itoa(exponentOfTheValueLen) + `, "` +
 					selectedValue.Description + `"));`
 				valueInitializations = append(valueInitializations, valueInitializer)
@@ -132,7 +127,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 					selectedValue.Type + `", "` +
 					selectedValue.ID + `", "` +
 					selectedValue.Name + `", ` +
-					convertedValueToString + `, ` +
+					parts[0] + `, ` +
 					strconv.Itoa(exponentOfTheValueLen) + `, "` +
 					selectedValue.Description + `"), "` +
 					selectedValue.MeasurementUnit + `", "` +

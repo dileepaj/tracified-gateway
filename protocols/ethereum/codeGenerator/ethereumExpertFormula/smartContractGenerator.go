@@ -54,11 +54,23 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 
 	if deployStatus == "SUCCESS" {
 		logrus.Info("Contract for formula " + formulaJSON.MetricExpertFormula.Name + " has been added to the blockchain")
-		commons.JSONErrorReturn(w, r, "Status : "+deployStatus, 400, "Requested formula is in the blockchain")
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.SuccessResponseExpertFormula{
+			Code:      http.StatusBadRequest,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
+			Message:   "Requested formula is in the blockchain :  Status : " + deployStatus,
+		}
+		json.NewEncoder(w).Encode(response)
 		return
 	} else if deployStatus == "QUEUE" {
 		logrus.Info("Requested formula is in the queue, please try again")
-		commons.JSONErrorReturn(w, r, "Status : "+deployStatus, 400, "Requested formula is in the queue, please try again")
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.SuccessResponseExpertFormula{
+			Code:      http.StatusBadRequest,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
+			Message:   "Requested formula is in the queue :  Status : " + deployStatus,
+		}
+		json.NewEncoder(w).Encode(response)
 		return
 	} else if deployStatus == "" || deployStatus == "FAILED" {
 		// insert to map or get the mapped formula ID
