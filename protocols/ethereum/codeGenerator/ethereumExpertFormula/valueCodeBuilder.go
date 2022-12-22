@@ -100,6 +100,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 				valueAsString = strings.Replace(valueAsString, ".", "", 1)
 				valueAsString = strings.TrimLeft(valueAsString, "0")
 				parts = strings.Split(valueAsString, "e")
+				valueAsString = parts[0]
 				logrus.Info("Value as a whole number: ", parts[0])
 				logrus.Info("Exponent of the value Len: ", exponentOfTheValueLen)
 			}
@@ -114,7 +115,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 					selectedValue.Type + `", "` +
 					selectedValue.ID + `", "` +
 					selectedValue.Name + `", ` +
-					parts[0] + `, ` +
+					valueAsString + `, ` +
 					strconv.Itoa(exponentOfTheValueLen) + `, "` +
 					selectedValue.Description + `"));`
 				valueInitializations = append(valueInitializations, valueInitializer)
@@ -128,7 +129,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 					selectedValue.Type + `", "` +
 					selectedValue.ID + `", "` +
 					selectedValue.Name + `", ` +
-					parts[0] + `, ` +
+					valueAsString + `, ` +
 					strconv.Itoa(exponentOfTheValueLen) + `, "` +
 					selectedValue.Description + `"), "` +
 					selectedValue.MeasurementUnit + `", "` +
