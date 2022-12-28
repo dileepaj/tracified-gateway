@@ -17,16 +17,6 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 	addFormulaStr := ``
 	object := dao.Connection{}
 
-	// get the mapped FormulaID
-	formulaMapID, err := object.GetEthFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
-		return data
-	}).Await()
-	if err != nil {
-		return ``, err
-	}
-	formulaMapData := formulaMapID.(model.EthFormulaIDMap)
-	formulaMapIDInt := formulaMapData.MapID
-
 	// get the contract address of the formula from DB
 	contract := ""
 	formulaDet, errInGettingFormulaDet := object.GetEthFormulaStatus(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -59,8 +49,7 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 	valueIDs = strings.Join(valueIDArray, ", ")
 
 	// add the addFormula() method call string
-	addFormulaStr += "\t\taddFormula(" + 
-								strconv.FormatUint(uint64(formulaMapIDInt), 10) + `, "` + 
+	addFormulaStr += "\t\taddFormula(" + `"` +
 								activity.MetricFormula.MetricExpertFormula.ID + `", address(` + 
 								contract + `), ` + 
 								strconv.Itoa(len(activity.MetricFormula.Formula)) + `, "` + 
@@ -69,10 +58,6 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 								valueIDs + `");` + "\n"
 
 	addFormulaStr += "\t\t// add formula id and contract address to array" + "\n"
-	addFormulaStr += "\t\tformulaDetails.push(" + `'{` + 
-												`"formulaId": ` + strconv.FormatUint(uint64(formulaMapIDInt), 10) + 
-												`, "contractAddress": "` + contract +  
-												`"}'` + ");" + "\n"
 	addFormulaStr += addValueStrings
 
 	return addFormulaStr, nil

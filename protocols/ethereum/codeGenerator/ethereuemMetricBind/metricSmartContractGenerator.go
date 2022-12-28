@@ -144,7 +144,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			return
 		}
 
-		template = template + generalValues.License + generalValues.PragmaLine + generalValues.ContractStart + generalValues.MetaDataStructure + generalValues.FormulaStructure + generalValues.ValueDataStructure + generalValues.ValueMap + generalValues.FormulaMap + generalValues.FormulaDetails + generalValues.MetadataDeclaration + generalValues.AddValueFunction + generalValues.AddFormulaFunction + addDetailsFunctionStr + generalValues.GetFormulaDetailsFunction + generalValues.ContractEnd
+		template = template + generalValues.License + generalValues.PragmaLine + generalValues.ContractStart + generalValues.MetaDataStructure + generalValues.FormulaStructure + generalValues.ValueDataStructure + generalValues.ValueMap + generalValues.FormulaMap + generalValues.MetadataDeclaration + generalValues.AddValueFunction + generalValues.AddFormulaFunction + addDetailsFunctionStr + generalValues.GetFormulaDetailsFunction + generalValues.GetValueDetailsFunction + generalValues.ContractEnd
 		b64Template := base64.StdEncoding.EncodeToString([]byte(template))
 		ethMetricObj.TemplateString = b64Template
 

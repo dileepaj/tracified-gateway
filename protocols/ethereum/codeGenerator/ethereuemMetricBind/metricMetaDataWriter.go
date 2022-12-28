@@ -37,15 +37,14 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	// Formula structure
 	formulaStructComment := "\t" + `// Formula structure` + "\n"
 	formulaStructHead := "\t" + `struct Formula {` + "\n"
-	formulaStructFormulaID := "\t\t" + `uint256 formulaID; // mapped ID` + "\n"
-	formulaStructActualID := "\t\t" + `string actualFormulaID; // actual formula ID` + "\n"
+	formulaStructActualID := "\t\t" + `string formulaID; // actual formula ID` + "\n"
 	formulaStructContractAddress := "\t\t" + `address contractAddress;` + "\n"
 	formulaStructNoOfValues := "\t\t" + `uint noOfValues;` + "\n"
 	formulaStructActivityID := "\t\t" + `string activityID;` + "\n"
 	formulaStructActivityName := "\t\t" + `string activityName; // converted value to bytes` + "\n"
 	formulaStructValueIDs := "\t\t" + `string valueIDs;` + "\n"
 	formulaStructEnd := "\t" + `}` + "\n"
-	formulaStructStr := formulaStructComment + formulaStructHead + formulaStructFormulaID + formulaStructActualID + formulaStructContractAddress + formulaStructNoOfValues + formulaStructActivityID + formulaStructActivityName + formulaStructValueIDs + formulaStructEnd
+	formulaStructStr := formulaStructComment + formulaStructHead + formulaStructActualID + formulaStructContractAddress + formulaStructNoOfValues + formulaStructActivityID + formulaStructActivityName + formulaStructValueIDs + formulaStructEnd
 
 	// Value structure
 	valueDataStructComment := "\t" + `// Value structure` + "\n"
@@ -78,13 +77,8 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 
 	// Map to store all the formulas
 	formulaMapComment := "\t" + `// Map to store all the formulas` + "\n"
-	formulaMapHead := "\t" + `mapping(uint256 => Formula) private allFormulas;` + "\n"
+	formulaMapHead := "\t" + `mapping(string => Formula) private allFormulas;` + "\n"
 	formulaMap := formulaMapComment + formulaMapHead
-
-	// Array declaration to store all the formula details as a string
-	formulaArrayComment := "\t" + `// Array declaration to store all the formula details as a string` + "\n"
-	formulaArrayHead := "\t" + `string[] private formulaDetails;` + "\n"
-	formulaArray := formulaArrayComment + formulaArrayHead
 
 	// AddValue function
 	addValueFunctionComment := "\t" + `// AddValue function` + "\n"
@@ -96,18 +90,25 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 
 	// AddFormula function
 	addFormulaFunctionComment := "\t" + `// AddFormula function` + "\n"
-	addFormulaFunctionHead := "\t" + `function addFormula(uint256 _formulaID, string memory _actualFormulaID, address _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
+	addFormulaFunctionHead := "\t" + `function addFormula(string memory _formulaID, address _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
 	addFormulaBodyComment := "\t\t" + `// Add the formula to the map` + "\n"
-	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _actualFormulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList);` + "\n"
+	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList);` + "\n"
 	addFormulaFunctionEnd := "\t" + `}` + "\n"
 	addFormulaFunction := addFormulaFunctionComment + addFormulaFunctionHead + addFormulaBodyComment + addFormulaBody + addFormulaFunctionEnd
 
-	// GetFormula function to get the formula details as array
-	getFormulaFunctionComment := "\t" + `// GetFormula function to get the formula details as array` + "\n"
-	getFormulaFunctionHead := "\t" + `function getFormulaDetails() public view returns (string[] memory) {` + "\n"
-	getFormulaFunctionBody := "\t\t" + `return formulaDetails;` + "\n"
+	// GetFormula function to get the formula details by ID
+	getFormulaFunctionComment := "\t" + `// Getter to get the formula details by ID` + "\n"
+	getFormulaFunctionHead := "\t" + `function getFormulaDetails(string memory _id) public view returns (Formula memory) {` + "\n"
+	getFormulaFunctionBody := "\t\t" + `Formula memory formula = allFormulas[_id];` + "\n" + "" + "\t\t" + `return formula;` + "\n"
 	getFormulaFunctionEnd := "\t" + `}` + "\n"
 	getFormulaFunction := getFormulaFunctionComment + getFormulaFunctionHead + getFormulaFunctionBody + getFormulaFunctionEnd
+
+	// GetValue function to get the value details by ID
+	getValueFunctionComment := "\t" + `// Getter to get the value details by ID` + "\n"
+	getValueFunctionHead := "\t" + `function getValueDetails(string memory _id) public view returns (Value memory) {` + "\n"
+	getValueFunctionBody := "\t\t" + `Value memory value = allValues[_id];` + "\n" + "" + "\t\t" + `return value;` + "\n"
+	getValueFunctionEnd := "\t" + `}` + "\n"
+	getValueFunction := getValueFunctionComment + getValueFunctionHead + getValueFunctionBody + getValueFunctionEnd
 
 	generalBuilder := model.MetricContractGeneral{
 		License:                   `// SPDX-License-Identifier: MIT` + "\n\n",
@@ -119,10 +120,10 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 		MetadataDeclaration:       metaDataDeclaration + "\n",
 		ValueMap:                  valueMap + "\n",
 		FormulaMap:                formulaMap + "\n",
-		FormulaDetails:            formulaArray + "\n",
 		AddValueFunction:          addValueFunction + "\n",
 		AddFormulaFunction:        addFormulaFunction + "\n",
 		GetFormulaDetailsFunction: getFormulaFunction + "\n",
+		GetValueDetailsFunction:   getValueFunction,
 		ContractEnd:               `}`,
 	}
 

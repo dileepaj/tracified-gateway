@@ -712,9 +712,9 @@ type MetricContractGeneral struct {
 	MetadataDeclaration       string
 	ValueMap                  string
 	FormulaMap                string
-	FormulaDetails            string
 	AddValueFunction          string
 	AddFormulaFunction        string
 	GetFormulaDetailsFunction string
+	GetValueDetailsFunction   string
 	ContractEnd               string
 }
