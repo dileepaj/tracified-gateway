@@ -38,7 +38,7 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	formulaStructComment := "\t" + `// Formula structure` + "\n"
 	formulaStructHead := "\t" + `struct Formula {` + "\n"
 	formulaStructActualID := "\t\t" + `string formulaID; // actual formula ID` + "\n"
-	formulaStructContractAddress := "\t\t" + `address contractAddress;` + "\n"
+	formulaStructContractAddress := "\t\t" + `string contractAddress;` + "\n"
 	formulaStructNoOfValues := "\t\t" + `uint noOfValues;` + "\n"
 	formulaStructActivityID := "\t\t" + `string activityID;` + "\n"
 	formulaStructActivityName := "\t\t" + `string activityName; // converted value to bytes` + "\n"
@@ -90,7 +90,7 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 
 	// AddFormula function
 	addFormulaFunctionComment := "\t" + `// AddFormula function` + "\n"
-	addFormulaFunctionHead := "\t" + `function addFormula(string memory _formulaID, address _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
+	addFormulaFunctionHead := "\t" + `function addFormula(string memory _formulaID, string memory _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
 	addFormulaBodyComment := "\t\t" + `// Add the formula to the map` + "\n"
 	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList);` + "\n"
 	addFormulaFunctionEnd := "\t" + `}` + "\n"

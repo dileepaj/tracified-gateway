@@ -115,7 +115,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 				}
 			}
 			logrus.Error("Error in getting code snippets ", errInGettingCodeSnippets)
-			commons.JSONErrorReturn(w, r, "Error in getting code snippets ", http.StatusInternalServerError, "Error in getting code snippets ")
+			commons.JSONErrorReturn(w, r, errInGettingCodeSnippets.Error(), http.StatusInternalServerError, "Error in getting code snippets ")
 			return
 		}
 
@@ -140,7 +140,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 				}
 			}
 			logrus.Error("Error in getting addDetails function ", errInGettingAddDetailsFunction)
-			commons.JSONErrorReturn(w, r, "Error in getting addDetails function ", http.StatusInternalServerError, "Error in getting addDetails function ")
+			commons.JSONErrorReturn(w, r, errInGettingAddDetailsFunction.Error(), http.StatusInternalServerError, "Error in getting addDetails function ")
 			return
 		}
 
@@ -193,7 +193,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 				}
 			}
 			logrus.Error("Error in writing contract template into a file ", errInWritingOutput)
-			commons.JSONErrorReturn(w, r, "Error in writing contract template into a file ", http.StatusInternalServerError, "Error in writing contract template into a file ")
+			commons.JSONErrorReturn(w, r, errInWritingOutput.Error(), http.StatusInternalServerError, "Error in writing contract template into a file ")
 			return
 		}
 
@@ -251,23 +251,23 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		ethMetricObj.ContractName = contractName
 
 		//generating go file by converting the code to bas64
-//		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
-//		if errWhenGeneratingGoCode != nil {
-//			ethMetricObj.Status = "FAILED"
-//			ethMetricObj.ErrorMessage = errWhenGeneratingGoCode.Error()
-//			//call the DB insert method
-//			errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
-//			if errWhenInsertingMetricToDB != nil {
-//				logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
-//				commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
-//				return
-//			}
-//			logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
-//			commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
-//			return
-//		}
-//
-//		logrus.Info("Go file generated successfully: " + goString)
+		//		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
+		//		if errWhenGeneratingGoCode != nil {
+		//			ethMetricObj.Status = "FAILED"
+		//			ethMetricObj.ErrorMessage = errWhenGeneratingGoCode.Error()
+		//			//call the DB insert method
+		//			errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
+		//			if errWhenInsertingMetricToDB != nil {
+		//				logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
+		//				commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
+		//				return
+		//			}
+		//			logrus.Info("Error when generating Go file, ERROR : " + errWhenGeneratingGoCode.Error())
+		//			commons.JSONErrorReturn(w, r, errWhenGeneratingGoCode.Error(), http.StatusInternalServerError, "Error when generating Go file, ERROR : ")
+		//			return
+		//		}
+		//
+		//		logrus.Info("Go file generated successfully: " + goString)
 
 		//send the request to queue
 		buildQueueObj := model.SendToQueue{
@@ -322,9 +322,9 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//success response
 		w.WriteHeader(http.StatusOK)
 		response := model.SuccessResponseMetricBinding{
-			Code:      http.StatusOK,
-			MetricID: 	ethMetricObj.MetricID,
-			Message:   "Metric binding request sent to queue",
+			Code:     http.StatusOK,
+			MetricID: ethMetricObj.MetricID,
+			Message:  "Metric binding request sent to queue",
 		}
 		json.NewEncoder(w).Encode(response)
 		return

@@ -30,8 +30,8 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 
 	valueIDs := ""
 	valueCount := 0
-	valueIDArray := []string{}	// to store the value IDs
-	addValueStrings := ``		// to get all the addValues() method strings of the formula
+	valueIDArray := []string{} // to store the value IDs
+	addValueStrings := ``      // to get all the addValues() method strings of the formula
 
 	// loop through all the values and get the method call string
 	for _, value := range activity.MetricFormula.Formula {
@@ -50,12 +50,12 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 
 	// add the addFormula() method call string
 	addFormulaStr += "\t\taddFormula(" + `"` +
-								activity.MetricFormula.MetricExpertFormula.ID + `", address(` + 
-								contract + `), ` + 
-								strconv.Itoa(len(activity.MetricFormula.Formula)) + `, "` + 
-								activity.ID + `", "` + 
-								ethereum.StringToHexString(activity.Name) + `", "` + 
-								valueIDs + `");` + "\n"
+		activity.MetricFormula.MetricExpertFormula.ID + `", "` +
+		contract + `", ` +
+		strconv.Itoa(len(activity.MetricFormula.Formula)) + `, "` +
+		activity.ID + `", "` +
+		ethereum.StringToHexString(activity.Name) + `", "` +
+		valueIDs + `");` + "\n"
 
 	addFormulaStr += "\t\t// add formula id and contract address to array" + "\n"
 	addFormulaStr += addValueStrings
