@@ -28,7 +28,7 @@ func CheckTempOrphan() {
 	log.Debug("=================== CheckTempOrphan ==================")
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
-	// log.Info("PK count : " + strconv.Itoa(len(clientList)))
+	//log.Info("PK count : " + strconv.Itoa(len(clientList)))
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
@@ -37,7 +37,7 @@ func CheckTempOrphan() {
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
 		if err != nil {
-			// log.Error("Error while loading account from horizon " + err.Error())
+			//log.Error("Error while loading account from horizon " + err.Error())
 		} else {
 			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
 			if err != nil {
@@ -65,7 +65,7 @@ func CheckTempOrphan() {
 					secretKey := constants.SecretKey
 					tracifiedAccount, err := keypair.ParseFull(secretKey)
 					if err != nil {
-						log.Error("Account loading issue ", err)
+						log.Error(err)
 					}
 					client := commons.GetHorizonClient()
 					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
@@ -76,9 +76,9 @@ func CheckTempOrphan() {
 					log.Info("Sequence number ", i)
 					log.Info("Type of XDR ", result.TxnType)
 					}
+
 					switch result.TxnType {
 					case "0":
-
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
@@ -102,6 +102,13 @@ func CheckTempOrphan() {
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
+
+						// Get information about the account we just created
+						// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
+						// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
+						if err != nil {
+							log.Println(err)
+						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 							SourceAccount:        &pubaccount,
@@ -112,7 +119,7 @@ func CheckTempOrphan() {
 							Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 						})
 						if err != nil {
-							log.Println("Error while building XDR " + err.Error())
+							log.Println("Error while buliding XDR " + err.Error())
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
