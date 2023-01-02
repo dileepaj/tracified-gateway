@@ -111,7 +111,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 		manageDataOpArray = append(manageDataOpArray, metricName)
 
 		// 2. Metric publisher public key definition (Compulsory MDO) 64 byte  hash256 of PGP's public key
-		publisherIdentity, err := stellarProtocol.BuildPublicManageData(metricBindJson.User.Publickey)
+		publisherIdentity, err := stellarProtocol.BuildPublicKeyManageData(metricBindJson.User.Publickey)
 		if err != nil {
 			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
