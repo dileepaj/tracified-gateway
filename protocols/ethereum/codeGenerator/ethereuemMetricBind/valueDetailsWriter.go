@@ -28,14 +28,14 @@ func WriteAddValue(formulaId string, value model.FormulaDetails, valueCount int,
 
 	// get the value name from DB
 	valueName := ""
-	variableDefMap, errWhenGettingVariableData := object.GetValueMapID(value.ID, formulaId).Then(func(data interface{}) interface{} {
+	variableDefMap, errWhenGettingVariableData := object.EthereumGetValueMapID(value.ID, formulaId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenGettingVariableData != nil {
 		logrus.Error("Unable to connect to gateway datastore ", errWhenGettingVariableData)
 	}
 	if variableDefMap == nil {
-		logrus.Error("Formula Id ",formulaId)
+		logrus.Error("Formula Id ", formulaId)
 		logrus.Error("Requested variable " + value.ID + " does not exists in the gateway DB")
 		return "", errors.New("Requested variable " + value.ID + " does not exists in the gateway DB")
 	} else {
@@ -43,7 +43,7 @@ func WriteAddValue(formulaId string, value model.FormulaDetails, valueCount int,
 		valueName = valueMapData.ValueName
 	}
 
-	// get the primary key row ID 
+	// get the primary key row ID
 	primaryKeyRowID := ""
 	if len(pivotFields) > 0 {
 		for _, pivot := range pivotFields {
@@ -54,19 +54,19 @@ func WriteAddValue(formulaId string, value model.FormulaDetails, valueCount int,
 	}
 
 	// add the addValue function call string
-	addValueStr += "\t\taddValue(" + `"` + value.ID + `", "` + 
-											valueName + `", "` + 
-											workflowID + `", "` + 
-											stageID + `", "` + 
-											ethereum.StringToHexString(stageName) + `", "` + 
-											ethereum.StringToHexString(value.Key) + `", "` + 
-											strconv.Itoa(value.Type) + `", ` + 
-											strconv.Itoa(bindDataType) + `, "` + 
-											value.ArtifactTemplate.ID + `", "` + 
-											primaryKeyRowID + `", "` + 
-											ethereum.StringToHexString(value.ArtifactTemplate.Name) + `", "` + 
-											ethereum.StringToHexString(value.Field) + `", "` + 
-											ethereum.StringToHexString(value.ArtifactTemplate.FieldName) + `");` + "\n"
+	addValueStr += "\t\taddValue(" + `"` + value.ID + `", "` +
+		valueName + `", "` +
+		workflowID + `", "` +
+		stageID + `", "` +
+		ethereum.StringToHexString(stageName) + `", "` +
+		ethereum.StringToHexString(value.Key) + `", "` +
+		strconv.Itoa(value.Type) + `", ` +
+		strconv.Itoa(bindDataType) + `, "` +
+		value.ArtifactTemplate.ID + `", "` +
+		primaryKeyRowID + `", "` +
+		ethereum.StringToHexString(value.ArtifactTemplate.Name) + `", "` +
+		ethereum.StringToHexString(value.Field) + `", "` +
+		ethereum.StringToHexString(value.ArtifactTemplate.FieldName) + `");` + "\n"
 
 	return addValueStr, nil
 }

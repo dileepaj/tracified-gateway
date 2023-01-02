@@ -29,7 +29,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 	for _, selectedValue := range valueList {
 
 		// check if the value is mapped in the DB and retrieve existing valueID or create a new valueID
-		valueMapId, errGettingValueMap := object.GetValueMapID(selectedValue.ID, formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
+		valueMapId, errGettingValueMap := object.EthereumGetValueMapID(selectedValue.ID, formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if errGettingValueMap != nil {
@@ -54,7 +54,7 @@ func ValueCodeGenerator(formulaJSON model.FormulaBuildingRequest) (string, []str
 			}
 
 			// insert the valueID map into the DB
-			err := object.InsertToValueIDMap(valueIdMap)
+			err := object.EthereumInsertToValueIDMap(valueIdMap)
 			if err != nil {
 				logrus.Info("Unable to connect to gateway datastore(valueCodeGenerator) ", err)
 				return "", setterNames, errors.New("Unable to connect to gateway datastore(valueCodeGenerator) Error: " + err.Error() + "\n")
