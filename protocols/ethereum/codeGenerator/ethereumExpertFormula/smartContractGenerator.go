@@ -73,13 +73,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		json.NewEncoder(w).Encode(response)
 		return
 	} else if deployStatus == "" || deployStatus == "FAILED" {
-		// insert to map or get the mapped formula ID
-		formulaMapID, errWhenMapping := MapFormulaID(formulaJSON.MetricExpertFormula.ID, deployStatus)
-		if errWhenMapping != nil {
-			logrus.Error("An error occurred when mapping formula ID, ERROR : ", errWhenMapping)
-		}
-		logrus.Info("Formula map ID : ", formulaMapID)
-
 		if deployStatus == "FAILED" {
 			logrus.Info("Requested formula is in the failed status, trying to redeploy")
 		} else {

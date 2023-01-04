@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"math"
 	"math/big"
-	"reflect"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/ethereum/go-ethereum"
@@ -119,27 +118,4 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 		}
 	}
 	return contractAddress, transactionHash, transactionCost, nil
-}
-
-/*
-	Call the deploy method in a dynamic manner
-*/
-func InvokeDeploy(funcName string, auth *bind.TransactOpts, backend bind.ContractBackend) (string, string, error) {
-	type MethodCall struct{}
-	var m MethodCall
-
-	params := []reflect.Value{
-		reflect.ValueOf(auth),
-		reflect.ValueOf(backend),
-	}
-	result := reflect.ValueOf(&m).MethodByName(funcName).Call(params)
-	address := result[0].Interface()
-	hash := result[1].Interface()
-	errDeploy := result[3].Interface()
-	if errDeploy != nil {
-		logrus.Error("Error in the deployment method ", errDeploy.(error))
-		return "", "", errDeploy.(error)
-	}
-
-	return address.(string), hash.(string), nil
 }
