@@ -700,6 +700,8 @@ type EthereumMetricBind struct {
 	User              User
 	ErrorMessage      string
 	Status            string
+	FormulaIDs		  []string
+	ValueIDs		  []string
 }
 
 type MetricContractGeneral struct {

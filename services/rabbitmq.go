@@ -254,6 +254,8 @@ func ReciverRmq() error {
 					User:              queue.EthereumMetricBind.User,
 					ErrorMessage:      "",
 					Status:            "SUCCESS",
+					FormulaIDs: 	   queue.EthereumMetricBind.FormulaIDs,
+					ValueIDs: 		   queue.EthereumMetricBind.ValueIDs,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status

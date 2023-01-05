@@ -119,8 +119,8 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			return
 		}
 
-		// get the addDetails function code snippet
-		addDetailsFunctionStr, errInGettingAddDetailsFunction := WriteAddDetailsFunction(metricBindJson)
+		// get the addDetails function code snippet and the valueIDs and formulaIDs
+		formulaIDs, valueIDs, addDetailsFunctionStr, errInGettingAddDetailsFunction := WriteAddDetailsFunction(metricBindJson)
 		if errInGettingAddDetailsFunction != nil {
 			ethMetricObj.Status = "FAILED"
 			ethMetricObj.ErrorMessage = errInGettingAddDetailsFunction.Error()
@@ -143,6 +143,9 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			commons.JSONErrorReturn(w, r, errInGettingAddDetailsFunction.Error(), http.StatusInternalServerError, "Error in getting addDetails function ")
 			return
 		}
+
+		ethMetricObj.FormulaIDs = formulaIDs
+		ethMetricObj.ValueIDs = valueIDs
 
 		template = template + generalValues.License + generalValues.PragmaLine + generalValues.ContractStart + generalValues.MetaDataStructure + generalValues.FormulaStructure + generalValues.ValueDataStructure + generalValues.ValueMap + generalValues.FormulaMap + generalValues.MetadataDeclaration + generalValues.AddValueFunction + generalValues.AddFormulaFunction + addDetailsFunctionStr + generalValues.GetFormulaDetailsFunction + generalValues.GetValueDetailsFunction + generalValues.ContractEnd
 		b64Template := base64.StdEncoding.EncodeToString([]byte(template))

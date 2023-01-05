@@ -13,7 +13,7 @@ import (
  * This function is used to write the addFormula() method call
  */
 
-func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount int) (string, error) {
+func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount int) ([]string, string, error) {
 	addFormulaStr := ``
 	object := dao.Connection{}
 
@@ -23,7 +23,7 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 		return data
 	}).Await()
 	if errInGettingFormulaDet != nil {
-		return ``, errInGettingFormulaDet
+		return []string{}, ``, errInGettingFormulaDet
 	}
 	formulaDetData := formulaDet.(model.EthereumExpertFormula)
 	contract = formulaDetData.ContractAddress
@@ -39,7 +39,7 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 		valueComment := "\t\t// add value " + strconv.Itoa(valueCount) + " for formula " + strconv.Itoa(formulaCount) + "\n"
 		addValueStr, errInGettingValueDetails := WriteAddValue(activity.MetricFormula.MetricExpertFormula.ID, value, valueCount, activity.Stage.StageID, activity.Stage.Name, activity.WorkflowID, activity.MetricFormula.PivotFields)
 		if errInGettingValueDetails != nil {
-			return ``, errInGettingValueDetails
+			return []string{}, ``, errInGettingValueDetails
 		}
 		valueIDArray = append(valueIDArray, value.ID)
 
@@ -60,5 +60,5 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 	addFormulaStr += "\t\t// add formula id and contract address to array" + "\n"
 	addFormulaStr += addValueStrings
 
-	return addFormulaStr, nil
+	return valueIDArray, addFormulaStr, nil
 }
