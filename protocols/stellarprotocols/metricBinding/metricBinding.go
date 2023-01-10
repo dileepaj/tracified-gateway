@@ -314,25 +314,25 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					//! primaryKey--->artifactID
 					var primaryKeyMapID uint64 = 0
 					// check the pivot filter array
-					// if len(activity.MetricFormula.PivotFields) > 0 {
-					// 	for _, pivot := range activity.MetricFormula.PivotFields {
-					// 		//! variable used as a constant(using pivot)
-					// 		if artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && artifactTemplate.Field == pivot.Field &&
-					// 			pivot.Condition == "EQUAL" {
-					// 			primaryKeyMapId, err := InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
-					// 			if err != nil {
-					// 				metricBindingStore.ErrorMessage = err.Error()
-					// 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					// 				if errResult != nil {
-					// 					logrus.Error("Error while inserting the primary key formula into DB: ", errResult)
-					// 				}
-					// 				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
-					// 				return
-					// 			}
-					// 			primaryKeyMapID = primaryKeyMapId
-					// 		}
-					// 	}
-					// }
+					if len(activity.MetricFormula.PivotFields) > 0 {
+						for _, pivot := range activity.MetricFormula.PivotFields {
+							//! variable used as a constant(using pivot)
+							if pivot.ArtifactTemplateId != "" && artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && artifactTemplate.Field == pivot.Field &&
+								pivot.Condition == "EQUAL" {
+								primaryKeyMapId, err := InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
+								if err != nil {
+									metricBindingStore.ErrorMessage = err.Error()
+									_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+									if errResult != nil {
+										logrus.Error("Error while inserting the primary key formula into DB: ", errResult)
+									}
+									commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+									return
+								}
+								primaryKeyMapID = primaryKeyMapId
+							}
+						}
+					}
 					// General master data info builder
 					generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactTemplateMapId, primaryKeyMapID, uint(formula.Type))
 					if errInGeneralInfoBuilder != nil {
@@ -390,6 +390,105 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 					manageDataOpArray = append(manageDataOpArray, fieldNameBuilder)
 				}
 			}
+			// Pivot need be put
+			if len(activity.MetricFormula.PivotFields) > 0 {
+				for _, pivot := range activity.MetricFormula.PivotFields {
+					var artifactId uint64 = 0
+					var artifactTemplateId uint64 = 0
+					if pivot.ArtifactDataId != "" {
+						artifactId, err = InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
+						if err != nil {
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the artifactId into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+							return
+						}
+					}
+					if pivot.ArtifactDataId != "" {
+						artifactTemplateId, err = InsertAndFindArtifactTemplateID(pivot.ArtifactTemplateId)
+						if err != nil {
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the artifactTemplateId into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+							return
+						}
+					}
+					pivotFilterDefinition, errPivotFilterDefinition := metricBinding.PivotFieldDefinition(artifactTemplateId, artifactId, pivot.Condition)
+					if errPivotFilterDefinition != nil {
+						metricBindingStore.ErrorMessage = errPivotFilterDefinition.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the pivotFilterDefinition into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errPivotFilterDefinition.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, pivotFilterDefinition)
+					if pivot.Name != "" {
+						pivotName, err := metricBinding.CommonStringBuilder(pivot.Name, "Pivot Name")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotName)
+					}
+					if pivot.Value != "" {
+						pivotValue, err := metricBinding.CommonStringBuilder(pivot.Value, "Pivot Value")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotValue)
+					}
+					if pivot.Field != "" {
+						pivotField, err := metricBinding.CommonStringBuilder(pivot.Field, "Pivot Key")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotField)
+					}
+					if pivot.Key != "" {
+						pivotKey, err := metricBinding.CommonStringBuilder(pivot.Key, "Pivot Key")
+						if err != nil {
+							logrus.Error("Building Key name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotKey)
+					}
+
+				}
+			}
 		}
 		// split manage data in to 25 length sub arrays
 		manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
@@ -439,11 +538,12 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
 			buildMetricBind := model.SendToQueue{
-				MetricBinding: metricBindingStore,
-				Type:          "METRICBIND",
-				User:          metricBindJson.User,
-				Memo:          []byte(memo),
-				Operations:    managedDataOperationArray,
+				MetricBinding:    metricBindingStore,
+				TransactionCount: i,
+				Type:             "METRICBIND",
+				User:             metricBindJson.User,
+				Memo:             []byte(memo),
+				Operations:       managedDataOperationArray,
 			}
 			err := services.SendToQueue(buildMetricBind)
 			if err != nil {
