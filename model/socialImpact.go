@@ -600,6 +600,7 @@ type PivotField struct {
 	Name               string
 	Condition          string
 	Value              string
+	Key                string
 	Field              string
 	ArtifactDataId     string
 	ArtifactTemplateId string
@@ -635,15 +636,16 @@ type Command struct {
 }
 
 type SendToQueue struct {
-	MetricBinding MetricBindingStore
-	ExpertFormula FormulaStore
-	Type          string
-	Verify        Verify
-	User          User
-	Memo          []byte
-	Status        string
-	Operations    []txnbuild.ManageData
-	ErrorMessage  string
+	MetricBinding    MetricBindingStore
+	ExpertFormula    FormulaStore
+	TransactionCount int
+	Type             string
+	Verify           Verify
+	User             User
+	Memo             []byte
+	Status           string
+	Operations       []txnbuild.ManageData
+	ErrorMessage     string
 }
 
 type BindKeyMap struct {
