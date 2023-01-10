@@ -9,7 +9,6 @@ import (
 	"math/big"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -56,11 +55,10 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 	}
 
-	//get the gas price
-	gasPrice, errWhenGettingGasPrice := client.EstimateGas(context.Background(), ethereum.CallMsg{})
+	gasPrice, errWhenGettingGasPrice := GetCurrentGasPrice()
 	if errWhenGettingGasPrice != nil {
 		logrus.Error("Error when getting gas price " + errWhenGettingGasPrice.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price , ERROR : " + errWhenGettingGasPrice.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price, ERROR : " + errWhenGettingGasPrice.Error())
 	}
 
 	//create the keyed transactor
