@@ -92,14 +92,14 @@ func ReceiverRmq() error {
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
-				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
+				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn+1))
 				metricBindingStore := model.MetricBindingStore{
 					MetricId:            queue.MetricBinding.Metric.ID,
 					MetricMapID:         queue.MetricBinding.MetricMapID,
 					Metric:              queue.MetricBinding.Metric,
 					User:                queue.MetricBinding.User,
-					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData,
-					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn + 1,
+					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData + (queue.MetricBinding.TotalNoOfManageData / 25) + 1,
+					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn + 1, // with previous transaction back-link
 					TransactionTime:     convertedTime,
 					TransactionCost:     convertedCost,
 					Memo:                queue.Memo,
