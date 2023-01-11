@@ -65,50 +65,60 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	valueDataStructEnd := "\t" + `}` + "\n"
 	valueDataStructStr := valueDataStructComment + valueDataStructHead + valueDataStructValueID + valueDataStructValueName + valueDataStructWorkflowID + valueDataStructStageID + valueDataStructStageName + valueDataStructKeyName + valueDataStructTDPType + valueDataStructBindingType + valueDataStructArtifactID + valueDataStructPrimaryKeyRowID + valueDataStructArtifactTemplateName + valueDataStructFieldKey + valueDataStructFieldName + valueDataStructEnd
 
+	// PivotField structure
+	pivotFieldDataStructComment := "\t" + `// PivotField structure` + "\n"
+	pivotFieldDataStructHead := "\t" + `struct PivotField {` + "\n"
+	pivotFieldDataStructName := "\t\t" + `string name;` + "\n"
+	pivotFieldDataStructKey := "\t\t" + `string key; // converted value to bytes` + "\n"
+	pivotFieldDataStructField := "\t\t" + `string field;` + "\n"
+	pivotFieldDataStructCondition := "\t\t" + `string condition;` + "\n"
+	pivotFieldDataStructValue := "\t\t" + `string value;` + "\n"
+	pivotFieldDataStructArtifactTemplateID := "\t\t" + `string artifactTemplateID;` + "\n"
+	pivotFieldDataStructArtifactDataID := "\t\t" + `string artifactDataID;` + "\n"
+	pivotFieldDataStructFormulaID := "\t\t" + `string formulaID;` + "\n"
+	pivotFieldDataStructEnd := "\t" + `}` + "\n"
+	pivotFieldDataStructStr := pivotFieldDataStructComment + pivotFieldDataStructHead + pivotFieldDataStructName + pivotFieldDataStructKey + pivotFieldDataStructField + pivotFieldDataStructCondition + pivotFieldDataStructValue + pivotFieldDataStructArtifactTemplateID + pivotFieldDataStructArtifactDataID + pivotFieldDataStructFormulaID + pivotFieldDataStructEnd
+
 	// Metadata declaration
 	metaDataInitComment := "\t" + `// Metadata declaration` + "\n"
 	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.Metric.ID + `", "` + element.Metric.Name + `", "` + element.User.TenantID + `", ` + strconv.Itoa(len(element.Metric.Activities)) + `, "` + element.User.Publickey + `");` + "\n"
 	metaDataDeclaration := metaDataInitComment + metaDataInit
 
-	// Map to store all the values
-	valueMapComment := "\t" + `// Map to store all the values` + "\n"
-	valueMapHead := "\t" + `mapping(string => Value) private allValues;` + "\n"
-	valueMap := valueMapComment + valueMapHead
+	// Array to store all the values
+	valueMapComment := "\t" + `// Array to store all the values` + "\n"
+	valueMapHead := "\t" + `Value[] private allValues;` + "\n"
+	valueList := valueMapComment + valueMapHead
 
-	// Map to store all the formulas
-	formulaMapComment := "\t" + `// Map to store all the formulas` + "\n"
-	formulaMapHead := "\t" + `mapping(string => Formula) private allFormulas;` + "\n"
-	formulaMap := formulaMapComment + formulaMapHead
+	// Array to store all the formulas
+	formulaMapComment := "\t" + `// Array to store all the formulas` + "\n"
+	formulaMapHead := "\t" + `Formula[] private allFormulas;` + "\n"
+	formulaList := formulaMapComment + formulaMapHead
 
-	// AddValue function
-	addValueFunctionComment := "\t" + `// AddValue function` + "\n"
-	addValueFunctionHead := "\t" + `function addValue(string memory _valueID, string memory _valueName, string memory _workflowID, string memory _stageID, string memory _stageName, string memory _keyName, string memory _TDPType, int _bindingType, string memory _artifactID, string memory _primaryKeyRowID, string memory _artifactTemplateName, string memory _fieldKey, string memory _fieldName) internal {` + "\n"
-	addValueFunctionBodyComment := "\t\t" + `// Add the value to the map` + "\n"
-	addValueFunctionBody := "\t\t" + `allValues[_valueID] = Value(_valueID, _valueName, _workflowID, _stageID, _stageName, _keyName, _TDPType, _bindingType, _artifactID, _primaryKeyRowID, _artifactTemplateName, _fieldKey, _fieldName);` + "\n"
-	addValueFunctionEnd := "\t" + `}` + "\n"
-	addValueFunction := addValueFunctionComment + addValueFunctionHead + addValueFunctionBodyComment + addValueFunctionBody + addValueFunctionEnd
+	// Array to store all the pivot fields
+	pivotFieldMapComment := "\t" + `// Array to store all the pivot fields` + "\n"
+	pivotFieldMapHead := "\t" + `PivotField[] private allPivotFields;` + "\n"
+	pivotFieldsList := pivotFieldMapComment + pivotFieldMapHead
 
-	// AddFormula function
-	addFormulaFunctionComment := "\t" + `// AddFormula function` + "\n"
-	addFormulaFunctionHead := "\t" + `function addFormula(string memory _formulaID, string memory _contractAddress, uint256 _noOfVariables, string memory _activityID, string memory _activityName, string memory _valueList) internal {` + "\n"
-	addFormulaBodyComment := "\t\t" + `// Add the formula to the map` + "\n"
-	addFormulaBody := "\t\t" + `allFormulas[_formulaID] = Formula(_formulaID, _contractAddress, _noOfVariables, _activityID, _activityName, _valueList);` + "\n"
-	addFormulaFunctionEnd := "\t" + `}` + "\n"
-	addFormulaFunction := addFormulaFunctionComment + addFormulaFunctionHead + addFormulaBodyComment + addFormulaBody + addFormulaFunctionEnd
-
-	// GetFormula function to get the formula details by ID
-	getFormulaFunctionComment := "\t" + `// Getter to get the formula details by ID` + "\n"
-	getFormulaFunctionHead := "\t" + `function getFormulaDetails(string memory _id) public view returns (Formula memory) {` + "\n"
-	getFormulaFunctionBody := "\t\t" + `Formula memory formula = allFormulas[_id];` + "\n" + "" + "\t\t" + `return formula;` + "\n"
+	// getFormulaDetails function to get the formula details
+	getFormulaFunctionComment := "\t" + `// Getter for formulas` + "\n"
+	getFormulaFunctionHead := "\t" + `function getFormulaDetails() public view returns (Formula[] memory) {` + "\n"
+	getFormulaFunctionBody := "\t\t" + `Formula[] memory formulas = allFormulas;` + "\n" + "" + "\t\t" + `return formulas;` + "\n"
 	getFormulaFunctionEnd := "\t" + `}` + "\n"
 	getFormulaFunction := getFormulaFunctionComment + getFormulaFunctionHead + getFormulaFunctionBody + getFormulaFunctionEnd
 
-	// GetValue function to get the value details by ID
-	getValueFunctionComment := "\t" + `// Getter to get the value details by ID` + "\n"
-	getValueFunctionHead := "\t" + `function getValueDetails(string memory _id) public view returns (Value memory) {` + "\n"
-	getValueFunctionBody := "\t\t" + `Value memory value = allValues[_id];` + "\n" + "" + "\t\t" + `return value;` + "\n"
+	// getValueDetails function to get the value details
+	getValueFunctionComment := "\t" + `// Getter for values` + "\n"
+	getValueFunctionHead := "\t" + `function getValueDetails() public view returns (Value[] memory) {` + "\n"
+	getValueFunctionBody := "\t\t" + `Value[] memory values = allValues;` + "\n" + "" + "\t\t" + `return values;` + "\n"
 	getValueFunctionEnd := "\t" + `}` + "\n"
 	getValueFunction := getValueFunctionComment + getValueFunctionHead + getValueFunctionBody + getValueFunctionEnd
+
+	// getPivotFieldDetails function to get the pivot fields
+	getPivotFieldFunctionComment := "\t" + `// Getter for pivot fields` + "\n"
+	getPivotFieldFunctionHead := "\t" + `function getPivotFieldDetails() public view returns (PivotField[] memory) {` + "\n"
+	getPivotFieldFunctionBody := "\t\t" + `PivotField[] memory pivotFields = allPivotFields;` + "\n" + "" + "\t\t" + `return pivotFields;` + "\n"
+	getPivotFieldFunctionEnd := "\t" + `}` + "\n"
+	getPivotFieldFunction := getPivotFieldFunctionComment + getPivotFieldFunctionHead + getPivotFieldFunctionBody + getPivotFieldFunctionEnd
 
 	generalBuilder := model.MetricContractGeneral{
 		License:                   `// SPDX-License-Identifier: MIT` + "\n\n",
@@ -117,13 +127,14 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 		MetaDataStructure:         metaDataStructStr + "\n",
 		FormulaStructure:          formulaStructStr + "\n",
 		ValueDataStructure:        valueDataStructStr + "\n",
+		PivotFieldStructure:       pivotFieldDataStructStr + "\n",
 		MetadataDeclaration:       metaDataDeclaration + "\n",
-		ValueMap:                  valueMap + "\n",
-		FormulaMap:                formulaMap + "\n",
-		AddValueFunction:          addValueFunction + "\n",
-		AddFormulaFunction:        addFormulaFunction + "\n",
+		ValueList:                 valueList + "\n",
+		FormulaList:               formulaList + "\n",
+		PivotFieldList:            pivotFieldsList + "\n",
 		GetFormulaDetailsFunction: getFormulaFunction + "\n",
-		GetValueDetailsFunction:   getValueFunction,
+		GetValueDetailsFunction:   getValueFunction + "\n",
+		GetPivotFieldDetails:      getPivotFieldFunction + "\n",
 		ContractEnd:               `}`,
 	}
 

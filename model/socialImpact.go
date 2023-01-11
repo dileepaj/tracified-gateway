@@ -593,6 +593,7 @@ type PivotField struct {
 	Field              string
 	ArtifactDataId     string
 	ArtifactTemplateId string
+	Key                string
 }
 
 type Activity struct {
@@ -711,12 +712,13 @@ type MetricContractGeneral struct {
 	MetaDataStructure         string
 	FormulaStructure          string
 	ValueDataStructure        string
+	PivotFieldStructure       string
 	MetadataDeclaration       string
-	ValueMap                  string
-	FormulaMap                string
-	AddValueFunction          string
-	AddFormulaFunction        string
+	ValueList                 string
+	FormulaList               string
+	PivotFieldList            string
 	GetFormulaDetailsFunction string
 	GetValueDetailsFunction   string
+	GetPivotFieldDetails      string
 	ContractEnd               string
 }

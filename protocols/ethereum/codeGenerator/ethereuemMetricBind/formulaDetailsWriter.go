@@ -36,28 +36,30 @@ func WriteAddFormula(activity model.MetricDataBindActivityRequest, formulaCount 
 	// loop through all the values and get the method call string
 	for _, value := range activity.MetricFormula.Formula {
 		valueCount++
-		valueComment := "\t\t// add value " + strconv.Itoa(valueCount) + " for formula " + strconv.Itoa(formulaCount) + "\n"
 		addValueStr, errInGettingValueDetails := WriteAddValue(activity.MetricFormula.MetricExpertFormula.ID, value, valueCount, activity.Stage.StageID, activity.Stage.Name, activity.WorkflowID, activity.MetricFormula.PivotFields)
 		if errInGettingValueDetails != nil {
 			return []string{}, ``, errInGettingValueDetails
 		}
 		valueIDArray = append(valueIDArray, value.ID)
 
-		addValueStrings += valueComment + addValueStr
+		// add the codes for adding values if the addValueStr is not empty
+		if addValueStr != `` {
+			valueComment := "\t\t// add value " + strconv.Itoa(valueCount) + " for formula " + strconv.Itoa(formulaCount) + "\n"
+			addValueStrings += valueComment + addValueStr
+		}
 	}
 	// get the value IDs a string
 	valueIDs = strings.Join(valueIDArray, ", ")
 
 	// add the addFormula() method call string
-	addFormulaStr += "\t\taddFormula(" + `"` +
+	addFormulaStr += "\t\tallFormulas.push(Formula(" + `"` +
 		activity.MetricFormula.MetricExpertFormula.ID + `", "` +
 		contract + `", ` +
 		strconv.Itoa(len(activity.MetricFormula.Formula)) + `, "` +
 		activity.ID + `", "` +
 		ethereum.StringToHexString(activity.Name) + `", "` +
-		valueIDs + `");` + "\n"
+		valueIDs + `"));` + "\n"
 
-	addFormulaStr += "\t\t// add formula id and contract address to array" + "\n"
 	addFormulaStr += addValueStrings
 
 	return valueIDArray, addFormulaStr, nil

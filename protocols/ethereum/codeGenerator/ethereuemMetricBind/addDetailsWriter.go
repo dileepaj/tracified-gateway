@@ -24,18 +24,32 @@ func WriteAddDetailsFunction(element model.MetricDataBindingRequest) ([]string, 
 		// add the formula ID to the array
 		formulaIDs = append(formulaIDs, activity.MetricFormula.MetricExpertFormula.ID)
 		formulaCount++
-		formulaComment := "\t\t// add formula " + strconv.Itoa(formulaCount) + "\n"
 		// get the method call string for the formula and the value IDs
 		valueIdList, addFormulaStr, errInGettingFormulaString := WriteAddFormula(activity, formulaCount)
 		if errInGettingFormulaString != nil {
 			return []string{}, []string{}, ``, errInGettingFormulaString
 		}
+		// add the codes for adding formula if the addFormulaStr is not empty
+		if addFormulaStr != "" {
+			formulaComment := "\t\t// add formula " + strconv.Itoa(formulaCount) + "\n"
+			functionStr += formulaComment + addFormulaStr + "\n"
+		}
 
-		functionStr += formulaComment + addFormulaStr + "\n"
+		// get the string for adding the pivot fields
+		addPivotFieldsStr, errInGettingPivotFields := WriteAddPivotField(activity)
+		if errInGettingPivotFields != nil {
+			return []string{}, []string{}, ``, errInGettingPivotFields
+		}
+		// add the codes for adding pivot fields if the addPivotFieldsStr is not empty
+		if addPivotFieldsStr != "" {
+			addPivotFieldComment := "\t\t// add pivot fields related to the formula " + strconv.Itoa(formulaCount) + " to the array" + "\n"
+			functionStr += addPivotFieldComment + addPivotFieldsStr + "\n"
+		}
+
 		valueIDs = append(valueIDs, valueIdList...)
 	}
 
-	functionStr += "\t" + `}` + "\n\n"	
+	functionStr += "\t" + `}` + "\n\n"
 
 	return formulaIDs, valueIDs, functionStr, nil
 }

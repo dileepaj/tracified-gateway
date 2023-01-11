@@ -54,7 +54,7 @@ func WriteAddValue(formulaId string, value model.FormulaDetails, valueCount int,
 	}
 
 	// add the addValue function call string
-	addValueStr += "\t\taddValue(" + `"` + value.ID + `", "` +
+	addValueStr += "\t\tallValues.push(Value(" + `"` + value.ID + `", "` +
 		valueName + `", "` +
 		workflowID + `", "` +
 		stageID + `", "` +
@@ -66,7 +66,7 @@ func WriteAddValue(formulaId string, value model.FormulaDetails, valueCount int,
 		primaryKeyRowID + `", "` +
 		ethereum.StringToHexString(value.ArtifactTemplate.Name) + `", "` +
 		ethereum.StringToHexString(value.Field) + `", "` +
-		ethereum.StringToHexString(value.ArtifactTemplate.FieldName) + `");` + "\n"
+		ethereum.StringToHexString(value.ArtifactTemplate.FieldName) + `"));` + "\n"
 
 	return addValueStr, nil
 }
