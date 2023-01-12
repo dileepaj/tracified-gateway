@@ -16,7 +16,8 @@ type Route struct {
 // Routes An Array of type Route
 type Routes []Route
 
-/*routes contains all the routes
+/*
+routes contains all the routes
 @author Azeem Ashraf, Jajeththanan Sabapathipillai
 */
 var routes = Routes{
@@ -502,6 +503,12 @@ var routes = Routes{
 		businessFacades.GetSponsorAccountXDR, //Calls the GetSponsorAccountXDR in the StellarHandler
 	},
 	Route{
+		"GetSponsorAccount",
+		"GET",
+		"/trustnetwork/sponsor",
+		businessFacades.SponsorAccount, //Calls the GetSponsorAccountXDR in the StellarHandler
+	},
+	Route{
 		"GetSponsorTrustXDR",
 		"GET",
 		"/nft/sponsortrust",
@@ -518,6 +525,72 @@ var routes = Routes{
 		"POST",
 		"/socialimapact/metricbinding",
 		businessFacades.BindMetric,
+	},
+	Route{
+		"save PGP key",
+		"POST",
+		"/pgp",
+		businessFacades.SavePGPKey,
+	},
+	Route{
+		"retrieve PGP publickey",
+		"GET",
+		"/pgp/{sha256pk}",
+		businessFacades.GetRSAPublicKeyBySHA256PK,
+	},
+	Route{
+		"Save Trust Network User",
+		"POST",
+		"/trustnetwork",
+		businessFacades.SaveTrustNetworkUser,
+	},
+	Route{
+		"Get trust networkuser by ID",
+		"GET",
+		"/trustnetwork/{id}",
+		businessFacades.GetTrustNetWorkUserbyID,
+	},
+	Route{
+		"Get trust networkuser by encryptedpassword",
+		"GET",
+		"/trustnetwork/validate/{password}",
+		businessFacades.GetTrustNetWorkUserbyEncryptedPW,
+	},
+	Route{
+		"Endorse User",
+		"PUT",
+		"/trustnetwork/endorse",
+		businessFacades.EndorseTrustNetworkUser,
+	},
+	Route{
+		"Login User",
+		"POST",
+		"/trustnetwork/login",
+		businessFacades.ValidateTrustNetworkUser,
+	},
+	Route{
+		"Get User endorsement count",
+		"GET",
+		"/trustnetwork/endorsements/{id}",
+		businessFacades.GetTrustNetworkUserEndorsmentCount,
+	},
+	Route{
+		"Get all trust network users",
+		"GET",
+		"/trustnetwork",
+		businessFacades.GetAllTrustNetworkUsers,
+	},
+	Route{
+		"Reset Trust Network pasword",
+		"PUT",
+		"/trustnetwork/reset",
+		businessFacades.Resetpassword,
+	},
+	Route{
+		"Update Password",
+		"PUT",
+		"/trustnetwork",
+		businessFacades.UpdatePassword,
 	},
 	Route{
 		"Saving PGP Account details",

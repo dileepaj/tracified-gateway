@@ -1,6 +1,9 @@
 package commons
 
 import (
+	"crypto/sha256"
+	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"net/http"
 
@@ -25,8 +28,8 @@ func JSONErrorReturn(w http.ResponseWriter, r *http.Request, err string, errorCo
 	return
 }
 
-func ChunkSlice(slice []txnbuild.Operation, chunkSize int) [][]txnbuild.Operation {
-	var chunks [][]txnbuild.Operation
+func ChunkSlice(slice []txnbuild.ManageData, chunkSize int) [][]txnbuild.ManageData {
+	var chunks [][]txnbuild.ManageData
 	for i := 0; i < len(slice); i += chunkSize {
 		end := i + chunkSize
 		// necessary check to avoid slicing beyond
@@ -37,4 +40,11 @@ func ChunkSlice(slice []txnbuild.Operation, chunkSize int) [][]txnbuild.Operatio
 		chunks = append(chunks, slice[i:end])
 	}
 	return chunks
+}
+
+func ConvertBase64StringToHash256(s string) string {
+	decodedKey, _ := base64.StdEncoding.DecodeString(s)
+	h := sha256.New()
+	h.Write(decodedKey)
+	return hex.EncodeToString(h.Sum(nil))
 }

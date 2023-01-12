@@ -180,8 +180,8 @@ func (AP *AbstractCertificateSubmiter) SubmitRenewCertificate(w http.ResponseWri
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
 					Operations: []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee: txnbuild.MinBaseFee,
-					Preconditions:txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					BaseFee: constants.MinBaseFee,
+					Preconditions:txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 

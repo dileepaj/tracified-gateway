@@ -11,17 +11,20 @@ import (
 	"github.com/stellar/go/txnbuild"
 )
 
-type StellarTrasaction struct {
-	PublicKey  string
-	SecretKey  string
+type StellarTransaction struct {
 	Operations []txnbuild.Operation
 	Memo       string
+	Type       string
 }
 
-func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, string) {
+/*
+des - common method to send a transaction to the blockchain
+*/
+
+func (transaction StellarTransaction) SubmitToStellarBlockchain() (error, int, string, int64, string, string) {
 	// load account
-	publicKey := constants.PublicKey
-	secretKey := constants.SecretKey
+	publicKey := commons.GoDotEnvVariable("SOCILAIMPACTPUBLICKKEY")
+	secretKey := commons.GoDotEnvVariable("SOCILAIMPACTSEED")
 	tracifiedAccount, err := keypair.ParseFull(secretKey)
 	client := commons.GetHorizonClient()
 	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
@@ -31,24 +34,26 @@ func (transaction StellarTrasaction) SubmitToStellerBlockchain() (error, int, st
 		SourceAccount:        &pubaccount,
 		IncrementSequenceNum: true,
 		Operations:           transaction.Operations,
-		BaseFee:              txnbuild.MinBaseFee,
+		BaseFee:              constants.MinBaseFee,
 		Memo:                 txnbuild.MemoText(transaction.Memo),
-		Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+		Preconditions:        txnbuild.Preconditions{TimeBounds:constants.TransactionTimeOut},
 	})
 	if err != nil {
-		logrus.Println("Error while buliding XDR " + err.Error())
+		logrus.Println("Error while building XDR " + err.Error())
+		return err, http.StatusInternalServerError, "", 0, "", publicKey
 	}
 	// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
-	GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
+	gatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
+	xdrBase64, err := gatewayTXE.Base64()
 	if err != nil {
 		logrus.Error("Error while signing the XDR by secretKey  ", err)
-		return err, http.StatusInternalServerError, ""
+		return err, http.StatusInternalServerError, "", 0, xdrBase64, publicKey
 	}
 	// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
-	resp, err := client.SubmitTransaction(GatewayTXE)
+	resp, err := client.SubmitTransaction(gatewayTXE)
 	if err != nil {
 		logrus.Error("XDR submitting issue  ", err)
-		return err, http.StatusInternalServerError, ""
+		return err, http.StatusInternalServerError, "", 0, xdrBase64, publicKey
 	}
-	return nil, 200, resp.Hash
+	return nil, 200, resp.Hash, resp.AccountSequence, xdrBase64, publicKey
 }

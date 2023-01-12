@@ -12,7 +12,7 @@ import (
  For retrieving mapped tenant id from DB or creating a new one with the next sequence value
 */
 
-func InsertAndFindTenentID(tenentUUID string) (uint64, error) {
+func InsertAndFindTenantID(tenentUUID string) (uint64, error) {
 	var tenentMapID uint64
 	object := dao.Connection{}
 
@@ -31,7 +31,7 @@ func InsertAndFindTenentID(tenentUUID string) (uint64, error) {
 		data, errWhenGettingTheSequence := object.GetNextSequenceValue("TENENTID")
 		if errWhenGettingTheSequence != nil {
 			logrus.Error("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
-			return 0, errors.New("Error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
+			return 0, errors.New("error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
 		}
 
 		insertTenentDetails := model.TenentMapDetails{
@@ -42,7 +42,7 @@ func InsertAndFindTenentID(tenentUUID string) (uint64, error) {
 		errWhenInsertingTenentDetails := object.InsertTenentMapID(insertTenentDetails)
 		if errWhenInsertingTenentDetails != nil {
 			logrus.Error("Inserting to tenent map ID was failed" + errWhenInsertingTenentDetails.Error())
-			return 0, errors.New("Inserting to tenent map ID was failed")
+			return 0, errors.New("inserting to tenent map ID was failed" + errWhenInsertingTenentDetails.Error())
 		}
 
 		tenentMapID = data.SequenceValue

@@ -8,6 +8,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 
@@ -67,9 +68,9 @@ func (cd *ConcreteMerge) InsertMerge() model.MergeProfileResponse {
 				SourceAccount:        &account,
 				IncrementSequenceNum: true,
 				Operations:           []txnbuild.Operation{&typeTXNBuilder, &CertTypeTXNBuilder, &CertBodyTXNBuilder, &IdentifierTXNBuilder, &MergingTXNTXNBuilder, &AssetsTXNBuilder, &CodeTXNBuilder},
-				BaseFee:              txnbuild.MinBaseFee,
+				BaseFee:              constants.MinBaseFee,
 				Memo:                 nil,
-				Preconditions:        txnbuild.Preconditions{},
+				Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 			})
 			// tx, err := txnbuild.Transaction(
 			// 	commons.GetHorizonNetwork(),

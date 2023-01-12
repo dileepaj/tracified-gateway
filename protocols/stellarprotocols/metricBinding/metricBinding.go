@@ -1,15 +1,18 @@
 package metricBinding
 
 import (
+	"encoding/base64"
 	"encoding/json"
+	"math/rand"
 	"net/http"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
+	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/oklog/ulid"
 	"github.com/stellar/go/txnbuild"
 
 	"github.com/sirupsen/logrus"
@@ -17,19 +20,17 @@ import (
 
 /*
 StellarMetricBinding
-des- This method build stellar trasaction for metric binding
-
+des- This method build stellar transactions for metric binding
 	 steps
 		* map the metric id and retrieve the mapped id
-		* map the tenent id and retrieve the mapped id
+		* map the tenant id and retrieve the mapped id
 		* build memo for the transaction
 		* build publisher identity manage data operation
 		* build formula definition manage data operation
 			* map the activity id and retrieve the mapped id
 		* loop through the formulaArray to build the value definition manage data operation
 			* map the stage id and retrieve the mapped id
-		* load stellar account,build and sing the XDR
-		* put XDR to stellar blockchain
+		* put managed data array to rabbitmq server
 */
 
 var manageDataPerMetricBindingRequest int = 25
@@ -37,79 +38,57 @@ var manageDataPerMetricBindingRequest int = 25
 func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson model.MetricDataBindingRequest) {
 	metricBinding := MetricBinding{}
 	stellarProtocol := expertformula.ExpertFormula{}
-	var manageDataOpArray []txnbuild.Operation
+	var manageDataOpArray []txnbuild.ManageData
+	var metStatus string
 	object := dao.Connection{}
-	metricBindingStore := metricBindJson
-	metricBindingStore.Metric.Status = "Failed"
-	// building memo
-	// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32
-	metricMapID, errCode, err := InsertAndFindMetricID(metricBindJson.Metric.ID, metricBindJson.Metric.Name)
-	if err != nil {
-		metricBindingStore.Metric.ErrorMessage = err.Error()
-		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-		}
-		commons.JSONErrorReturn(w, r, err.Error(), errCode, "InsertAndFindMetricID ")
-		return
+	// find -> status -> Queue fail(retry) -> fail pass on -> success error and drop
+	// get the metric current status from the DB
+	metricMapDetails, errIGettingMetricStatus := object.GetMetricStatus(metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errIGettingMetricStatus != nil {
+		logrus.Error("An error occurred when getting metric status ", errIGettingMetricStatus)
 	}
-	tenantMapId, err := InsertAndFindTenentID(metricBindJson.Metric.TenantId)
-	if err != nil {
-		metricBindingStore.Metric.ErrorMessage = err.Error()
-		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-		}
-		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
-		return
+	if metricMapDetails == nil {
+		metStatus = ""
+	}
+	if metricMapDetails != nil {
+		metricMapDet := metricMapDetails.(model.MetricBindingStore)
+		metStatus = metricMapDet.Status
+		logrus.Info("Status recorded : ", metStatus)
 	}
 
-	// 1. Metric Name Definition (Compulsory MDO) metric name builder
-	metricName, errWhenBuildingMetricName := metricBinding.BuildMetricNameManageData(metricBindJson.Metric.Name, "Metric name")
-	if errWhenBuildingMetricName != nil {
-		metricBindingStore.Metric.ErrorMessage = errWhenBuildingMetricName.Error()
-		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-		}
-		commons.JSONErrorReturn(w, r, errWhenBuildingMetricName.Error(), http.StatusInternalServerError, "")
+	// check the status of the metric status
+	if metStatus == "QUEUE" {
+		// ask user to try again
+		logrus.Info("Requested metric is in the queue, please try again")
+		commons.JSONErrorReturn(w, r, metStatus, 400, "Requested metric is in the queue, please try again")
 		return
-	}
-	manageDataOpArray = append(manageDataOpArray, &metricName)
-
-	// 2. Metric publisher public key definition (Compulsory MDO) 64 byte  hash256 of PGP's public key
-	publisherIdentity, err := stellarProtocol.BuildPublisherManageData(metricBindJson.User.Publickey)
-	if err != nil {
-		metricBindingStore.Metric.ErrorMessage = err.Error()
-		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+	} else if metStatus == "FAILED" || metStatus == "" {
+		logrus.Info("Requested metric id status is failed or a new binding request")
+		// pass on the transaction
+		metricBindingStore := model.MetricBindingStore{
+			MetricId:  metricBindJson.Metric.ID,
+			Metric:    metricBindJson.Metric,
+			User:      metricBindJson.User,
+			Timestamp: time.Now().String(),
+			Status:    "FAILED",
 		}
-		commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildAuthorManageData ")
-		return
-	}
-	manageDataOpArray = append(manageDataOpArray, &publisherIdentity)
-	// manage data opration order counter
-	//! Formula definitions magane data strat
-	c := 2
-	for i, activity := range metricBindJson.Metric.Activities {
-		// checked whether given formulaID already in the database or not
-		formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
-			return data
-		}).Await()
-		formulaDetails := formulaMapID.(model.FormulaIDMap)
+		// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32
+		metricMapID, errCode, err := InsertAndFindMetricID(metricBindJson.Metric.ID, metricBindJson.Metric.Name)
 		if err != nil {
-			metricBindingStore.Metric.ErrorMessage = err.Error()
+			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
-			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula in database ")
+			commons.JSONErrorReturn(w, r, err.Error(), errCode, " InsertAndFindMetricID ")
 			return
 		}
-		activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
+		metricBindingStore.MetricMapID = metricMapID
+		tenantMapId, err := InsertAndFindTenantID(metricBindJson.Metric.TenantId)
 		if err != nil {
-			metricBindingStore.Metric.ErrorMessage = err.Error()
+			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
@@ -117,393 +96,486 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
 			return
 		}
-		// 3. Formula definition with metadata (Compulsory MDO for each formula)
-		formulaDefinition, keyFD, valueFD, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.Activities)))
+
+		// 1. Metric Name Definition (Compulsory MDO) metric name builder
+		metricName, errWhenBuildingMetricName := metricBinding.CommonStringBuilder(metricBindJson.Metric.Name, "Metric name")
+		if errWhenBuildingMetricName != nil {
+			metricBindingStore.ErrorMessage = errWhenBuildingMetricName.Error()
+			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+			if errResult != nil {
+				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+			}
+			commons.JSONErrorReturn(w, r, errWhenBuildingMetricName.Error(), http.StatusInternalServerError, "")
+			return
+		}
+		manageDataOpArray = append(manageDataOpArray, metricName)
+
+		// 2. Metric publisher public key definition (Compulsory MDO) 64 byte  hash256 of PGP's public key
+		publisherIdentity, err := stellarProtocol.BuildPublicKeyManageData(metricBindJson.User.Publickey)
 		if err != nil {
-			metricBindingStore.Metric.ErrorMessage = err.Error()
+			metricBindingStore.ErrorMessage = err.Error()
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
-			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildAuthorManageData ")
 			return
 		}
-		c++
-		metricBindingStore.Metric.Activities[i].ActivityFormulaDefinitionManageData = model.ActivityFormulaDefinitionManageData{
-			ManageDataOrder:     c,
-			ManageDataType:      "FORMULA DEFINITION",
-			FormulaMapID:        formulaDetails.MapID,
-			FormulaID:           activity.MetricFormula.MetricExpertFormula.ID,
-			ActivityMapID:       activityMapId,
-			ActivityID:          activity.ID,
-			NoOfDynamicVariable: uint32(len(activity.MetricFormula.Formula)),
-			Key:                 keyFD,
-			Value:               valueFD,
-		}
-		manageDataOpArray = append(manageDataOpArray, &formulaDefinition)
-		// 4. Activity Name Definition (Compulsory MDO) metric name builder
-		activityName, err := metricBinding.BuildMetricNameManageData(activity.Name, "Activity name")
-		if err != nil {
-			metricBindingStore.Metric.ErrorMessage = err.Error()
-			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-			if errResult != nil {
-				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-			}
-			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "")
-			return
-		}
-		c++
-		metricBindingStore.Metric.Activities[i].ActivityNameMangeData = model.ManageDataActivityName{
-			ManageDataOrder: c,
-			ManageDataType:  "MATRIC NAME",
-			ActivityName:    metricBindJson.Metric.Name,
-			Name:            activityName.Name,
-			Value:           activityName.Value,
-		}
-		manageDataOpArray = append(manageDataOpArray, &activityName)
-		for j, formula := range activity.MetricFormula.Formula {
-			if formula.ArtifactTemplateID == "" {
-				bindValue := model.ValueBuilder{
-					ValueUUID:           formula.ID,
-					WorkflowID:          activity.WorkflowID,
-					StageID:             activity.StageID,
-					TracabilityDataType: uint(formula.Type),
-					BindingType:         1,
-				}
-				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
-				if err != nil {
-					metricBindingStore.Metric.ErrorMessage = err.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData = model.BindManageData{
-					ManageDataOrder: c,
-					ManageDataType:  "STAGE BIND DATA",
-					BindData:        bindValue,
-					Key:             keyVD,
-					Value:           valueVD,
-				}
-				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
-
-				// 6. stage name builder
-				stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
-				if errInStageNameBuilder != nil {
-					logrus.Error("Buidling stage name failed ", errInStageNameBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInStageNameBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Stage = model.ManageDataStageName{
-					ManageDataOrder: c,
-					ManageDataType:  "SATAGE NAME",
-					StageName:       activity.Stage.Name,
-					Name:            stageNameBuilder.Name,
-					Value:           stageNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &stageNameBuilder)
-
-				// 7. Key name manage data(workflow → revision number→ stage[] → stage id → traceability data → “key name” )
-				keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
-				if errInKeyNameBuilder != nil {
-					logrus.Error("Buidling key name failed ", errInKeyNameBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInKeyNameBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInKeyNameBuilder.Error(), http.StatusInternalServerError, "BuildKeyName ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.KeyName = model.ManageDataKeyName{
-					ManageDataOrder: c,
-					ManageDataType:  "KEY NAME (WORKFLOW)",
-					KeyName:         formula.Key,
-					Name:            keyNameBuilder.Name,
-					Value:           keyNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &keyNameBuilder)
-
-			} else {
-				// For Master data type Bind
-				bindValue := model.ValueBuilder{
-					ValueUUID:           formula.ID,
-					WorkflowID:          activity.WorkflowID,
-					StageID:             activity.StageID,
-					TracabilityDataType: uint(formula.Type),
-					BindingType:         2,
-				}
-				// 5. General value definition
-				valueDefinition, keyVD, valueVD, err := metricBinding.BuildGeneralValueManageData(bindValue)
-				if err != nil {
-					metricBindingStore.Metric.ErrorMessage = err.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData = model.BindManageData{
-					ManageDataOrder: c,
-					ManageDataType:  "MASTER BIND DATA",
-					BindData:        bindValue,
-					Key:             keyVD,
-					Value:           valueVD,
-				}
-				manageDataOpArray = append(manageDataOpArray, &valueDefinition)
-
-				// 6. stage name builder
-				stageNameBuilder, errInStageNameBuilder := metricBinding.BuildMetricNameManageData(activity.Stage.Name, "Stage Name")
-				if errInStageNameBuilder != nil {
-					logrus.Error("Buidling stage name failed ", errInStageNameBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInStageNameBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Stage = model.ManageDataStageName{
-					ManageDataOrder: c,
-					ManageDataType:  "SATAGE NAME",
-					StageName:       activity.Stage.Name,
-					Name:            stageNameBuilder.Name,
-					Value:           stageNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &stageNameBuilder)
-
-				// 7. key name builder
-				keyNameBuilder, errInKeyNameBuilder := metricBinding.BuildMetricNameManageData(formula.Key, "Key Name")
-				if errInKeyNameBuilder != nil {
-					logrus.Error("Buidling key name failed ", errInKeyNameBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInKeyNameBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInKeyNameBuilder.Error(), http.StatusInternalServerError, "BuildKeyName ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.KeyName = model.ManageDataKeyName{
-					ManageDataOrder: c,
-					ManageDataType:  "KEY NAME (WORKFLOW)",
-					KeyName:         formula.Key,
-					Name:            keyNameBuilder.Name,
-					Value:           keyNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &keyNameBuilder)
-
-				// Artifact ID Map
-				artifactMapId, err := InsertAndFindArtifactID(metricBindJson.Metric.Activities[i].MetricFormula.Formula[j].ArtifactTemplateID)
-				if err != nil {
-					metricBindingStore.Metric.ErrorMessage = err.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindArtifactID ")
-					return
-				}
-				// General master data info builder
-				generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactMapId, uint(formula.Type))
-				if errInGeneralInfoBuilder != nil {
-					logrus.Error("Buidling general master data info failed ", errInGeneralInfoBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInGeneralInfoBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInGeneralInfoBuilder.Error(), http.StatusInternalServerError, "BuildGeneralMasterDataInfo ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Master = model.ManageDataMasterDetails{
-					ManageDataOrder:      c,
-					ManageDataType:       "GENERAL MASTER DATA INFO",
-					ArtifactID:           formula.ArtifactTemplateID,
-					TracabilityDataType:  uint(formula.Type),
-					Name:                 generalInfoBuilder.Name,
-					Value:                generalInfoBuilder.Value,
-					ArtifactTemplateName: model.ManageDataArtifactTemplateName{},
-					ArtifactFieldKey:     model.ManageDataFieldKey{},
-					ArtifactFieldName:    model.ManageDataFieldName{},
-				}
-				manageDataOpArray = append(manageDataOpArray, &generalInfoBuilder)
-
-				// Metadata/ Artifact template name / Table name builder
-				ArtifactNameBuilder, errInMetaDataBuilder := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.Name, "Artifact template name")
-				if errInMetaDataBuilder != nil {
-					logrus.Error("Buidling metadata failed ", errInMetaDataBuilder.Error())
-					metricBindingStore.Metric.ErrorMessage = errInMetaDataBuilder.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errInMetaDataBuilder.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Master = model.ManageDataMasterDetails{
-					ManageDataOrder: c,
-					ManageDataType:  "ARTIFACT TEMPLATE NAME",
-					ArtifactID:      formula.ArtifactTemplateID,
-					Name:            ArtifactNameBuilder.Name,
-					Value:           ArtifactNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &ArtifactNameBuilder)
-
-				// Field key builder ---> Atrifact field key (which column) → key of field array in artifact template
-				fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.BuildMetricNameManageData(formula.Field, "Atrifact field key")
-				if errWhenBuildingFieldKey != nil {
-					logrus.Error("Buidling field key failed ", errWhenBuildingFieldKey.Error())
-					metricBindingStore.Metric.ErrorMessage = errWhenBuildingFieldKey.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errWhenBuildingFieldKey.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Master.ArtifactFieldKey = model.ManageDataFieldKey{
-					ManageDataOrder: c,
-					ManageDataType:  "ARTIFACT TEMPLATE FIELD Key",
-					FieldKey:        formula.Field,
-					Name:            fieldKeyBuilder.Name,
-					Value:           fieldKeyBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &fieldKeyBuilder)
-
-				// Field name builder  Field name (which column) → name in field array in artifact template
-				fieldNameBuilder, errWhenBuildingFieldName := metricBinding.BuildMetricNameManageData(formula.ArtifactTemplate.FieldName, "Atrifact field name")
-				if errWhenBuildingFieldName != nil {
-					logrus.Error("Buidling field name failed ", errWhenBuildingFieldName.Error())
-					metricBindingStore.Metric.ErrorMessage = errWhenBuildingFieldName.Error()
-					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-					if errResult != nil {
-						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-					}
-					commons.JSONErrorReturn(w, r, errWhenBuildingFieldName.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
-					return
-				}
-				c++
-				metricBindingStore.Metric.Activities[i].MetricFormula.Formula[j].BindManageData.Master.ArtifactFieldKey = model.ManageDataFieldKey{
-					ManageDataOrder: c,
-					ManageDataType:  "ARTIFACT TEMPLATE FIELD NAME",
-					FieldKey:        formula.ArtifactTemplate.FieldName,
-					Name:            fieldNameBuilder.Name,
-					Value:           fieldNameBuilder.Value,
-				}
-				manageDataOpArray = append(manageDataOpArray, &fieldNameBuilder)
-			}
-		}
-	}
-	metricBindingStore.Metric.Transactions = model.TransacionDetailsMetricBinding{
-		MetricID:    metricBindJson.Metric.ID,
-		MtericMapId: metricMapID,
-		TenantMapId: uint32(tenantMapId),
-		MetricName:  metricBindJson.Metric.Name,
-		MetricNameMangeData: model.ManageDataMetricName{
-			ManageDataOrder: 1,
-			ManageDataType:  "MEREIC NAME",
-			MetricName:      metricBindJson.Metric.Name,
-			Name:            metricName.Name,
-			Value:           metricName.Value,
-		},
-		NoOfActivityFormula:         len(metricBindJson.Metric.Activities),
-		PublisherIdentityManageData: model.PublisherIdentity{ManageDataOrder: 2, ManageDataType: "PUBLISHER IDENTITY", UserID: metricBindJson.User.ID, PublicKeyHash: metricBindJson.User.Publickey, ManageDataKey: publisherIdentity.Name, ManageDataValue: publisherIdentity.Value},
-		TotalNumberOfManageData:     len(manageDataOpArray),
-		MaxNumOfManageDatePerHash:   manageDataPerMetricBindingRequest,
-	}
-	// split manage data in to 25 length sub arrays
-	manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
-	var errorInXDR error
-	// loop the manage data opration2d array and build trasacion
-	for i, manadataOperationArray := range manageData2dArray {
-		// initial trasacion memo
-		memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(manageDataPerMetricBindingRequest))
-		if errInMemoBuilder != nil {
-			metricBindingStore.Metric.ErrorMessage = errInMemoBuilder.Error()
-			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-			if errResult != nil {
-				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-			}
-			commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
-			return
-		}
-		stellarprotocol := stellarprotocols.StellarTrasaction{PublicKey: constants.PublicKey, SecretKey: constants.SecretKey, Operations: manadataOperationArray, Memo: memo0}
-		transaction := model.TransactionHash{Order: i, Memo: []byte(memo0)}
-		if i != 0 {
-			memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.Activities)), uint8(len(manadataOperationArray)))
-			if errInMemoBuilder != nil {
-				metricBindingStore.Metric.ErrorMessage = errInMemoBuilder.Error()
+		manageDataOpArray = append(manageDataOpArray, publisherIdentity)
+		// manage data operation order counter
+		//! Formula definitions manage data start
+		for i, activity := range metricBindJson.Metric.MetricActivities {
+			// checked whether given formulaID already in the database or not
+			formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+			if err != nil {
+				metricBindingStore.ErrorMessage = err.Error()
 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
 				if errResult != nil {
 					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 				}
-				commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Can not find the Formula Id in the database ")
 				return
 			}
-			stellarprotocol.Memo = memo1
-			transaction.Memo = []byte(memo1)
+			formulaDetails := formulaMapID.(model.FormulaIDMap)
+			activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
+			if err != nil {
+				metricBindingStore.ErrorMessage = err.Error()
+				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+				if errResult != nil {
+					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+				}
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindMetricID ")
+				return
+			}
+			// 3. Formula definition with metadata (Compulsory MDO for each formula)
+			formulaDefinition, _, _, err := metricBinding.BuildFormulaDefinition(formulaDetails.MapID, activityMapId, uint16(len(metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula)))
+			if err != nil {
+				metricBindingStore.ErrorMessage = err.Error()
+				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+				if errResult != nil {
+					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+				}
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+				return
+			}
+			manageDataOpArray = append(manageDataOpArray, formulaDefinition)
+			// 4. Activity Name Definition (Compulsory MDO) metric name builder
+			activityName, err := metricBinding.CommonStringBuilder(activity.Name, "Activity name")
+			if err != nil {
+				metricBindingStore.ErrorMessage = err.Error()
+				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+				if errResult != nil {
+					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+				}
+				commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "")
+				return
+			}
+			manageDataOpArray = append(manageDataOpArray, activityName)
+			for j, formula := range activity.MetricFormula.Formula {
+				keyBase64 := base64.StdEncoding.EncodeToString([]byte(base64.StdEncoding.EncodeToString([]byte(formula.Key))))
+				keyInBlockchain := keyBase64
+				if len(keyBase64) > 127 {
+					keyInBlockchain = keyInBlockchain[0:127]
+				}
+				bindKeyMap, err := object.GetBindKey(activity.MetricFormula.MetricExpertFormula.ID, keyInBlockchain, metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if err != nil {
+					logrus.Error("Error while inserting the bind Key into DB: ", formula.Key, "", activity.MetricFormula.MetricExpertFormula.ID)
+				}
+				if bindKeyMap == nil {
+
+					bindKey := model.BindKeyMap{
+						FormulaId:          activity.MetricFormula.MetricExpertFormula.ID,
+						Key:                formula.Key,
+						KeyInBlockchain:    keyInBlockchain,
+						Id:                 formula.ID,
+						ArtifactTemplateId: formula.ArtifactTemplateID,
+					}
+
+					_, errResult := object.InsertBindKey(bindKey)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+				}
+				if formula.ArtifactTemplateID == "" {
+					bindValue := model.ValueBuilder{
+						ValueUUID:           formula.ID,
+						WorkflowID:          activity.WorkflowID,
+						StageID:             activity.StageID,
+						TracabilityDataType: uint(formula.Type),
+						BindingType:         1,
+					}
+					// 5. General value definition
+					valueDefinition, _, _, err := metricBinding.BuildGeneralValueManageData(bindValue, activity.MetricFormula.MetricExpertFormula.ID)
+					if err != nil {
+						metricBindingStore.ErrorMessage = err.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, valueDefinition)
+
+					// 6. stage name builder
+					stageNameBuilder, errInStageNameBuilder := metricBinding.CommonStringBuilder(activity.Stage.Name, "Stage Name")
+					if errInStageNameBuilder != nil {
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
+
+					// 7. Key name manage data(workflow → revision number→ stage[] → stage id → traceability data → “key name” )
+					keyNameBuilder, errInKeyNameBuilder := metricBinding.CommonStringBuilder(formula.Key, "Key Name")
+					if errInKeyNameBuilder != nil {
+						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInKeyNameBuilder.Error(), http.StatusInternalServerError, "BuildKeyName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, keyNameBuilder)
+
+				} else {
+					// For Master data type Bind
+					bindValue := model.ValueBuilder{
+						ValueUUID:           formula.ID,
+						WorkflowID:          activity.WorkflowID,
+						StageID:             activity.StageID,
+						TracabilityDataType: uint(formula.Type),
+						BindingType:         2,
+					}
+					// 5. General value definition
+					valueDefinition, _, _, err := metricBinding.BuildGeneralValueManageData(bindValue, activity.MetricFormula.MetricExpertFormula.ID)
+					if err != nil {
+						metricBindingStore.ErrorMessage = err.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, valueDefinition)
+
+					// 6. stage name builder
+					stageNameBuilder, errInStageNameBuilder := metricBinding.CommonStringBuilder(activity.Stage.Name, "Stage Name")
+					if errInStageNameBuilder != nil {
+						logrus.Error("Building stage name failed ", errInStageNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInStageNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInStageNameBuilder.Error(), http.StatusInternalServerError, "BuildStageName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, stageNameBuilder)
+
+					// 7. key name builder
+					keyNameBuilder, errInKeyNameBuilder := metricBinding.CommonStringBuilder(formula.Key, "Key Name")
+					if errInKeyNameBuilder != nil {
+						logrus.Error("Building key name failed ", errInKeyNameBuilder.Error())
+						metricBindingStore.ErrorMessage = errInKeyNameBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInKeyNameBuilder.Error(), http.StatusInternalServerError, "BuildKeyName ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, keyNameBuilder)
+					artifactTemplate := metricBindJson.Metric.MetricActivities[i].MetricFormula.Formula[j]
+					// Artifact ID Map
+					artifactTemplateMapId, err := InsertAndFindArtifactTemplateID(artifactTemplate.ArtifactTemplateID)
+					if err != nil {
+						metricBindingStore.ErrorMessage = err.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindArtifactID ")
+						return
+					}
+					// there is no pivot filter
+					//! primaryKey--->artifactID
+					var primaryKeyMapID uint64 = 0
+					// check the pivot filter array
+					if len(activity.MetricFormula.PivotFields) > 0 {
+						for _, pivot := range activity.MetricFormula.PivotFields {
+							//! variable used as a constant(using pivot)
+							if pivot.ArtifactTemplateId != "" && artifactTemplate.ArtifactTemplateID == pivot.ArtifactTemplateId && artifactTemplate.Field == pivot.Field &&
+								pivot.Condition == "EQUAL" {
+								primaryKeyMapId, err := InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
+								if err != nil {
+									metricBindingStore.ErrorMessage = err.Error()
+									_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+									if errResult != nil {
+										logrus.Error("Error while inserting the primary key formula into DB: ", errResult)
+									}
+									commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+									return
+								}
+								primaryKeyMapID = primaryKeyMapId
+							}
+						}
+					}
+					// General master data info builder
+					generalInfoBuilder, errInGeneralInfoBuilder := metricBinding.BuildGeneralMasterDataInfo(artifactTemplateMapId, primaryKeyMapID, uint(formula.Type))
+					if errInGeneralInfoBuilder != nil {
+						logrus.Error("Building general master data info failed ", errInGeneralInfoBuilder.Error())
+						metricBindingStore.ErrorMessage = errInGeneralInfoBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInGeneralInfoBuilder.Error(), http.StatusInternalServerError, "BuildGeneralMasterDataInfo ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, generalInfoBuilder)
+
+					// Metadata/ Artifact template name / Table name builder
+					ArtifactNameBuilder, errInMetaDataBuilder := metricBinding.CommonStringBuilder(formula.ArtifactTemplate.Name, "Artifact template name")
+					if errInMetaDataBuilder != nil {
+						logrus.Error("Building metadata failed ", errInMetaDataBuilder.Error())
+						metricBindingStore.ErrorMessage = errInMetaDataBuilder.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errInMetaDataBuilder.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, ArtifactNameBuilder)
+
+					// Field key builder ---> Artifact field key (which column) → key of field array in artifact template
+					fieldKeyBuilder, errWhenBuildingFieldKey := metricBinding.CommonStringBuilder(formula.Field, "Artifact field key")
+					if errWhenBuildingFieldKey != nil {
+						logrus.Error("Building field key failed ", errWhenBuildingFieldKey.Error())
+						metricBindingStore.ErrorMessage = errWhenBuildingFieldKey.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errWhenBuildingFieldKey.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, fieldKeyBuilder)
+
+					// Field name builder  Field name (which column) → name in field array in artifact template
+					fieldNameBuilder, errWhenBuildingFieldName := metricBinding.CommonStringBuilder(formula.ArtifactTemplate.FieldName, "Artifact field name")
+					if errWhenBuildingFieldName != nil {
+						logrus.Error("Building field name failed ", errWhenBuildingFieldName.Error())
+						metricBindingStore.ErrorMessage = errWhenBuildingFieldName.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errWhenBuildingFieldName.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, fieldNameBuilder)
+				}
+			}
+			// Pivot need be put
+			if len(activity.MetricFormula.PivotFields) > 0 {
+				for _, pivot := range activity.MetricFormula.PivotFields {
+					var artifactId uint64 = 0
+					var artifactTemplateId uint64 = 0
+					if pivot.ArtifactDataId != "" {
+						artifactId, err = InsertAndFindPrimaryKeyID(pivot.ArtifactDataId)
+						if err != nil {
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the artifactId into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+							return
+						}
+					}
+					if pivot.ArtifactDataId != "" {
+						artifactTemplateId, err = InsertAndFindArtifactTemplateID(pivot.ArtifactTemplateId)
+						if err != nil {
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the artifactTemplateId into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+							return
+						}
+					}
+					pivotFilterDefinition, errPivotFilterDefinition := metricBinding.PivotFieldDefinition(artifactTemplateId, artifactId, pivot.Condition)
+					if errPivotFilterDefinition != nil {
+						metricBindingStore.ErrorMessage = errPivotFilterDefinition.Error()
+						_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+						if errResult != nil {
+							logrus.Error("Error while inserting the pivotFilterDefinition into DB: ", errResult)
+						}
+						commons.JSONErrorReturn(w, r, errPivotFilterDefinition.Error(), http.StatusInternalServerError, "InsertAndFindPrimaryKeyID")
+						return
+					}
+					manageDataOpArray = append(manageDataOpArray, pivotFilterDefinition)
+					if pivot.Name != "" {
+						pivotName, err := metricBinding.CommonStringBuilder(pivot.Name, "Pivot Name")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotName)
+					}
+					if pivot.Value != "" {
+						pivotValue, err := metricBinding.CommonStringBuilder(pivot.Value, "Pivot Value")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotValue)
+					}
+					if pivot.Field != "" {
+						pivotField, err := metricBinding.CommonStringBuilder(pivot.Field, "Pivot Key")
+						if err != nil {
+							logrus.Error("Building field name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotField)
+					}
+					if pivot.Key != "" {
+						pivotKey, err := metricBinding.CommonStringBuilder(pivot.Key, "Pivot Key")
+						if err != nil {
+							logrus.Error("Building Key name failed ", err.Error())
+							metricBindingStore.ErrorMessage = err.Error()
+							_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+							if errResult != nil {
+								logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+							}
+							commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "BuildFormulaDefinition ")
+							return
+						}
+						manageDataOpArray = append(manageDataOpArray, pivotKey)
+					}
+
+				}
+			}
 		}
-		err, errCode, hash := stellarprotocol.SubmitToStellerBlockchain()
-		errorInXDR = err
-		if err != nil {
-			// status = "Failed"
-			metricBindingStore.Metric.ErrorMessage = err.Error()
-			_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+		// split manage data in to 25 length sub arrays
+		manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
+		// loop the manage data operation 2d array and build transaction
+		var memo string
+		for i, managedDataOperationArray := range manageData2dArray {
+			// initial transaction memo
+			if i == 0 {
+				memo0, errInMemoBuilder := metricBinding.BuildMemo(0, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.MetricActivities)), uint8(len(managedDataOperationArray)))
+				if errInMemoBuilder != nil {
+					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
+					return
+				}
+				memo = memo0
+			}
+
+			if i != 0 {
+				memo1, errInMemoBuilder := metricBinding.BuildMemo(1, metricMapID, uint32(tenantMapId), uint16(len(metricBindJson.Metric.MetricActivities)), uint8(len(managedDataOperationArray)))
+				if errInMemoBuilder != nil {
+					metricBindingStore.ErrorMessage = errInMemoBuilder.Error()
+					_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+					if errResult != nil {
+						logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+					}
+					commons.JSONErrorReturn(w, r, errInMemoBuilder.Error(), http.StatusInternalServerError, "")
+					return
+				}
+				memo = memo1
+			}
+
+			timeNow := time.Now().UTC()
+			entropy := rand.New(rand.NewSource(timeNow.UnixNano()))
+			id := ulid.MustNew(ulid.Timestamp(timeNow), entropy)
+			logrus.Info("TXN UUID : ", id)
+			metricBindingStore.TxnUUID = id.String()
+			metricBindingStore.MetricMapID = metricMapID
+			metricBindingStore.NoOfManageDataInTxn = len(managedDataOperationArray)
+			metricBindingStore.TotalNoOfManageData = len(manageDataOpArray)
+			metricBindingStore.Status = "QUEUE"
+			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) // update
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
 			}
-			logrus.Error("Error when submitting transaction to blockchain  ", err)
-			w.WriteHeader(errCode)
-			response := model.Error{Code: errCode, Message: "Error when submitting transaction to blockchain  " + err.Error()}
-			json.NewEncoder(w).Encode(response)
-			return
-		}
-		transaction.Hash = hash
-		metricBindingStore.Metric.Transactions.TXNHashes = append(metricBindingStore.Metric.Transactions.TXNHashes, transaction)
-		logrus.Info("Transaction Hash ", hash)
-	}
-	if errorInXDR != nil {
-		metricBindingStore.Metric.ErrorMessage = err.Error()
-		_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
-		}
-		commons.JSONErrorReturn(w, r, errorInXDR.Error(), http.StatusInternalServerError, "Error when submitting transaction to blockchain ")
-		return
-	} else {
-		metricBindingStore.Metric.Status = "SAVED IN BLOCKCHAIN"
-		id, errResult := object.InsertMetricBindingFormula(metricBindingStore)
-		if errResult != nil {
-			logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+			buildMetricBind := model.SendToQueue{
+				MetricBinding:    metricBindingStore,
+				TransactionCount: i,
+				Type:             "METRICBIND",
+				User:             metricBindJson.User,
+				Memo:             []byte(memo),
+				Operations:       managedDataOperationArray,
+			}
+			err := services.SendToQueue(buildMetricBind)
+			if err != nil {
+				metricBindingStore.ErrorMessage = err.Error()
+				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
+				if errResult != nil {
+					logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)
+				}
+				logrus.Error("Error when submitting managed data to queue  ", err)
+				w.WriteHeader(errCode)
+				response := model.Error{Code: errCode, Message: "Error when submitting manage data to queue  " + err.Error()}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
 		}
 		w.WriteHeader(http.StatusOK)
 		response := model.SuccessResponseMetricBinding{
-			Code:              http.StatusOK,
-			ID:                id,
-			MetricID:          metricBindJson.Metric.ID,
-			TransactionHashes: metricBindingStore.Metric.Transactions.TXNHashes,
+			Code:     http.StatusOK,
+			MetricID: metricBindJson.Metric.ID,
+			Message:  "Metric bind request send to queue",
 		}
 		json.NewEncoder(w).Encode(response)
+		return
+
+	} else if metStatus == "SUCCESS" {
+		logrus.Info("Metic is already recorded in the blockchain and the gateway DB")
+		// response indicating that metric is already recorded
+		commons.JSONErrorReturn(w, r, metStatus, 400, "Metic is already recorded in the blockchain and the gateway DB")
+		return
+	} else {
+		logrus.Info("Metric bind status is invalid : ", metStatus)
+		commons.JSONErrorReturn(w, r, metStatus, 504, "Metric bind status is invalid, status : ")
 		return
 	}
 }

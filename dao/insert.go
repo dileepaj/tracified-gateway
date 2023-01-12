@@ -460,7 +460,7 @@ func (cd *Connection) InsertActivityID(activityDetails model.ActivityMapDetails)
 	return err
 }
 
-func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBindingRequest) (string, error) {
+func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricBindingStore) (string, error) {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
@@ -474,13 +474,27 @@ func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricDataBind
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
 
-func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error {
+func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("RSAKeys")
+	_, err = c.InsertOne(context.TODO(), rsaKey)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToWorkflowIDMap(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("WorkflowIDMAP")
+	c := session.Client().Database(dbName).Collection("WorkflowIDMap")
 	_, err = c.InsertOne(context.TODO(), tenentIDMap)
 	if err != nil {
 		logrus.Info("Error when inserting workflow id to DB " + err.Error())
@@ -488,18 +502,62 @@ func (cd *Connection) InsertToWorkflowIDMAP(tenentIDMap model.WorkflowMap) error
 	return err
 }
 
-func (cd *Connection) InsertToArtifactIDMAP(artifactMap model.ArtifactIDMap) error {
+func (cd *Connection) InsertToArtifactTemplateIDMap(artifactMap model.ArtifactTemplateId) error {
 	session, err := cd.connect()
 	if err != nil {
 		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("ArtifactIDMAP")
+	c := session.Client().Database(dbName).Collection("ArtifactTemplateIDMap")
 	_, err = c.InsertOne(context.TODO(), artifactMap)
 	if err != nil {
 		logrus.Info("Error when inserting artifact id to DB " + err.Error())
 	}
 	return err
+}
+
+func (cd *Connection) InsertBindKey(bindKey model.BindKeyMap) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("BindKeyMap")
+	result, err := c.InsertOne(context.TODO(), bindKey)
+	if err != nil {
+		logrus.Info("Error when inserting MetricBinding to DB " + err.Error())
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PrimaryKeyIdMap")
+	_, err = c.InsertOne(context.TODO(), artifactMap)
+	if err != nil {
+		logrus.Info("Error when inserting artifact id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+		return "", err
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	result, err1 := c.InsertOne(context.TODO(), user)
+	if err1 != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		return "", err1
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
 
 func (cd *Connection) InsertPGPAccount(pgpAccount model.PGPAccount) error {
