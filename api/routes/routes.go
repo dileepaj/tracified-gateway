@@ -592,4 +592,17 @@ var routes = Routes{
 		"/trustnetwork",
 		businessFacades.UpdatePassword,
 	},
+
+	Route{
+		"Saving PGP Account details",
+		"POST",
+		"/pgp/",
+		businessFacades.SavePGPAccount,
+	},
+	Route{
+		"Get PGP Public Key and Username",
+		"GET",
+		"/pgp/getaccounts/{stellarPublicKey}",
+		businessFacades.GetPGPAccountByStellarPK,
+	},
 }

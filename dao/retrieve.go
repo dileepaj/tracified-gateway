@@ -2536,3 +2536,28 @@ func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise 
 	})
 	return p
 }
+
+
+func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
+	result := model.PGPAccount{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PGPAccounts")
+		err1 := c.FindOne(context.TODO(), bson.M{"stellarpublickey": StellarPK}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting PGP Account from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
