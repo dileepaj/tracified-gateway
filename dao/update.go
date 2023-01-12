@@ -770,6 +770,26 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	return nil
 }
 
+
+func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("Organizations")
+	filter := bson.D{{"sequenceno", data.SequenceNo}}
+	update := bson.D{{"$set", bson.D{{"pgpdata", data.PGPData}, {"status", data.Status}, {"sequenceno", data.SequenceNo}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		log.Println(err.Error())
+		return errWhenUpdate
+	}
+	return nil
+	//end of function
+}
+
+
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
 	session, err := cd.connect()
 	if err != nil {

@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"strconv"
 	"strings"
@@ -21,19 +22,21 @@ import (
 func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 	var Obj model.TestimonialOrganization
-
-	err := json.NewDecoder(r.Body).Decode(&Obj)
+	b, err := ioutil.ReadAll(r.Body)
+	log.Println("request body:", r.Body)
+	defer r.Body.Close()
+	//err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil {
-		fmt.Println(err)
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
+		http.Error(w, err.Error(), 500)
 		return
 	}
-
+	errjson := json.Unmarshal(b, &Obj)
+	if errjson != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	log.Println("Decoded Object: ", Obj)
+	log.Println("PGP info", Obj.PGPData)
 	if Obj.Status != model.Pending.String() {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
@@ -52,7 +55,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
+	acceptBuild, _ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
 	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
@@ -62,8 +65,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	rejectBuild,_ :=  txnbuild.TransactionFromXDR(Obj.RejectXDR)
-
+	rejectBuild, _ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
 
 	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
@@ -167,8 +169,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 	var Obj model.TestimonialOrganization
 	var selection model.TestimonialOrganization
+	b, err := ioutil.ReadAll(r.Body)
+	log.Println("request body:", r.Body)
+	defer r.Body.Close()
+	//err := json.NewDecoder(r.Body).Decode(&Obj)
 
-	err := json.NewDecoder(r.Body).Decode(&Obj)
+	log.Println("-----------------end------------------------")
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
@@ -176,9 +182,15 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(Obj)
+	errjson := json.Unmarshal(b, &Obj)
+	if errjson != nil {
+		http.Error(w, err.Error(), 500)
+		return
+	}
+	log.Println("Decoded obj: ", Obj)
 	object := dao.Connection{}
-
+	log.Println("case STATUS: ", Obj.Status)
+	log.Println("APPROVED STATUS: ", model.Approved.String())
 	switch Obj.Status {
 	case model.Approved.String():
 
@@ -201,7 +213,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				Obj.TxnHash = response.TXNID
 				fmt.Println(response.TXNID)
 
-				err1 := object.Updateorganization(selection, Obj)
+				err1 := object.UpdateOrganizationInfo(Obj)
 
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -255,7 +267,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 			} else {
 				Obj.TxnHash = response.TXNID
-				err1 := object.Updateorganization(selection, Obj)
+				err1 := object.UpdateOrganizationInfo(Obj)
 
 				if err1 == nil {
 

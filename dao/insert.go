@@ -559,3 +559,18 @@ func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string,
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
+
+func (cd *Connection) InsertPGPAccount(pgpAccount model.PGPAccount) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PGPAccounts")
+	_, err = c.InsertOne(context.TODO(), pgpAccount)
+	if err != nil {
+		logrus.Info("Error when inserting pgpAccount id to DB " + err.Error())
+	}
+	return err
+}
+
