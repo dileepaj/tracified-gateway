@@ -20,6 +20,7 @@ type RSAPublickey struct {
 	Username         string
 }
 
+
 //proof of POE
 type PGPAccount struct {
 	PGPPublickKey    string `json:"pgppublickkey"`

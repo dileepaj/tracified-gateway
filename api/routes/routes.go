@@ -592,6 +592,7 @@ var routes = Routes{
 		"/trustnetwork",
 		businessFacades.UpdatePassword,
 	},
+
 	Route{
 		"Saving PGP Account details",
 		"POST",

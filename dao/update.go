@@ -770,6 +770,7 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	return nil
 }
 
+
 func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -787,6 +788,7 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 	return nil
 	//end of function
 }
+
 
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
 	session, err := cd.connect()

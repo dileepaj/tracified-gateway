@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
+
 func SavePGPKey(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var keypair model.RSAKeyPair
@@ -84,3 +85,4 @@ func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rst)
 
 }
+

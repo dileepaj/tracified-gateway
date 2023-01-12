@@ -2251,6 +2251,7 @@ func (cd *Connection) GetArtifactTemplateMapID(artifactId string) *promise.Promi
 	})
 	return p
 }
+
 func (cd *Connection) GetValueMapDetails(formulaID string, key string) *promise.Promise {
 	var valueDef model.ValueIDMap
 
@@ -2536,6 +2537,7 @@ func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise 
 	return p
 }
 
+
 func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
 	result := model.PGPAccount{}
 
@@ -2558,3 +2560,4 @@ func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promis
 	})
 	return p
 }
+
