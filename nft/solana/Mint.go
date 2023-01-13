@@ -3,6 +3,7 @@ package solana
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
@@ -146,7 +147,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 		if got.Value.Err != nil {
-			panic(errors.New("transaction confirmation failed"))
+			log.Println(errors.New("transaction confirmation failed"))
 		} else {
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}

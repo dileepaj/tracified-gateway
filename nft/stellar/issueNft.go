@@ -10,7 +10,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -25,7 +24,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 		return data
 	}).Await()
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 		return "", "", err
 	} else {
 		nftKeys := data.([]model.NFTKeys)
@@ -33,7 +32,6 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 		decrpytNftissuerSecretKey := commons.Decrypt(nftKeys[0].SecretKey)
 		if data == nil {
 			logrus.Error("PublicKey is not found in gateway datastore")
-			panic(data)
 		}
 		var nftConten = []byte(svg)
 
@@ -72,19 +70,18 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			},
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			return "", "", err
 		}
 
-		signedTx, err := tx.Sign(network.PublicNetworkPassphrase, issuerSign)
+		signedTx, err := tx.Sign(commons.GetStellarNetwork(), issuerSign)
 		if err != nil {
 			return "", "", err
 		}
 		// submit transaction
 		respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
 		if err != nil {
-			log.Fatal("Error submitting transaction:", err)
-			panic(err)
+			log.Println("Error submitting transaction:", err)
 		}
 		return respn.Hash, string(nftConten), nil
 	}
