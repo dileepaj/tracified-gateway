@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
@@ -23,7 +24,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
 
-	c := client.NewClient(rpc.DevnetRPCEndpoint)
+	c := client.NewClient(commons.GetSolanaNetwork())
 
 	mint := types.NewAccount()
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
@@ -130,7 +131,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		return nil, nil, nil, nil, err
 	}
 
-	wsClient, err := ws.Connect(context.Background(), rp.DevNet_WS)
+	wsClient, err := ws.Connect(context.Background(), commons.GetSolanaRPC())
 	sub, err := wsClient.SignatureSubscribe(
 		solana.MustSignatureFromBase58(sign),
 		rp.CommitmentFinalized,
