@@ -3,7 +3,6 @@ package solana
 import (
 	"context"
 	"errors"
-	"log"
 
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
@@ -22,12 +21,10 @@ import (
 func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
-	log.Println("---------secret-------", (fromWallet))
 
 	c := client.NewClient(rpc.DevnetRPCEndpoint)
 
 	mint := types.NewAccount()
-
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -67,10 +64,12 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					Space:    tokenprog.MintAccountSize,
 				}),
 				tokenprog.InitializeMint(tokenprog.InitializeMintParam{
-					Decimals: 0,
-					Mint:     mint.PublicKey,
-					MintAuth: fromWallet.PublicKey,
+					Decimals:   0,
+					Mint:       mint.PublicKey,
+					MintAuth:   fromWallet.PublicKey,
+					FreezeAuth: &fromWallet.PublicKey,
 				}),
+
 				tokenmeta.CreateMetadataAccount(tokenmeta.CreateMetadataAccountParam{
 					Metadata:                tokenMetadataPubkey,
 					Mint:                    mint.PublicKey,
@@ -105,7 +104,8 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					Auth:   fromWallet.PublicKey,
 					Amount: 1,
 				}),
-				tokenmeta.CreateMasterEdition(tokenmeta.CreateMasterEditionParam{
+
+				tokenmeta.CreateMasterEditionV3(tokenmeta.CreateMasterEditionParam{
 					Edition:         tokenMasterEditionPubkey,
 					Mint:            mint.PublicKey,
 					UpdateAuthority: fromWallet.PublicKey,

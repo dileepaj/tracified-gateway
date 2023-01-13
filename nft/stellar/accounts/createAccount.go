@@ -63,7 +63,7 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 		panic(err)
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
+	signedTx, err := tx.Sign(network.PublicNetworkPassphrase, issuerSign)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", nil, err

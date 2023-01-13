@@ -76,7 +76,7 @@ func IssueNft(CurrentIssuerPK string, distributerPK string, assetcode string, sv
 			return "", "", err
 		}
 
-		signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
+		signedTx, err := tx.Sign(network.PublicNetworkPassphrase, issuerSign)
 		if err != nil {
 			return "", "", err
 		}
