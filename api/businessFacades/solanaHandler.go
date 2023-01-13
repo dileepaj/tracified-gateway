@@ -28,7 +28,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	log.Println(TrustLineResponseNFT)
 	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
