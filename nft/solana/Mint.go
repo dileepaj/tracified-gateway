@@ -23,7 +23,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
 
-	c := client.NewClient(rpc.DevnetRPCEndpoint)
+	c := client.NewClient(rpc.MainnetRPCEndpoint)
 
 	mint := types.NewAccount()
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
@@ -130,7 +130,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		return nil, nil, nil, nil, err
 	}
 
-	wsClient, err := ws.Connect(context.Background(), rp.DevNet_WS)
+	wsClient, err := ws.Connect(context.Background(), rp.MainNetBeta_WS)
 	sub, err := wsClient.SignatureSubscribe(
 		solana.MustSignatureFromBase58(sign),
 		rp.CommitmentFinalized,
