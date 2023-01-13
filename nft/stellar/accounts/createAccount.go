@@ -8,7 +8,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -21,8 +20,7 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 	// generate new issuer keypair
 	pair, err := keypair.Random()
 	if err != nil {
-		log.Fatal(err)
-		panic(err)
+		log.Println(err)
 	}
 	// NFT issuer keys
 	nftIssuerPK := pair.Address()
@@ -59,11 +57,10 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	if err != nil {
-		log.Fatal("Error when build transaction : ", err)
-		panic(err)
+		log.Println("Error when build transaction : ", err)
 	}
 
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), issuerSign)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", nil, err
@@ -71,13 +68,12 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 	// submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
-		panic(err)
+		log.Println("Error submitting transaction:", err)
 	}
 	// encrypt the issuer secret key
 	encryptedSK, err := Encrypt(nftIssuerSK, NFTAccountKeyEncodedPassword)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	log.Println("Transaction Hash for new Account creation: ", respn.Hash)
 	return nftIssuerPK, encryptedSK, encSK, err
