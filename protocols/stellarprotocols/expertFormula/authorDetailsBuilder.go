@@ -61,19 +61,51 @@ func (expertFormula ExpertFormula) BuildAuthorManageData(expertKey string) (txnb
 	return authorBuilder1, authorBuilder2, nil
 }
 
-func (expertFormula ExpertFormula) BuildPublicManageData(publicKeyHash string) (txnbuild.ManageData, error) {
+func (expertFormula ExpertFormula) BuildExpertKeyManageData(publicKeyHash string) (txnbuild.ManageData, error) {
 	publicKey := publicKeyHash
-	// check if the string is 64 characters
-	if configs.PGPkeyEnable && len(commons.ConvertBase64StringToHash256(publicKeyHash)) != 64 {
-		logrus.Error("Expert public key should be equal to 64 character limit, It is a sha256(authorDetailsBuilder.go)")
-		return txnbuild.ManageData{}, errors.New("expert public key should be equal to 64 character limit, It is a sha256 value")
-	} else {
-		publicKey = commons.ConvertBase64StringToHash256(publicKeyHash)
-	}
-	if !configs.PGPkeyEnable && len(publicKeyHash) > 64 {
+
+	if !configs.PGPkeyEnableExpertFormula && len(publicKeyHash) > 64 {
 		logrus.Error("Expert public key should be less than 64 character limit, It is a stellar public key(authorDetailsBuilder.go)")
 		return txnbuild.ManageData{}, errors.New("expert public key should be less than 64 character limit, It is a stellar public key")
 	}
+	// check if thePGPkeyEnable
+	if configs.PGPkeyEnableExpertFormula {
+		publicKey = commons.ConvertBase64StringToHash256(publicKeyHash)
+	}
+
+	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0128d", 0))
+	if err != nil {
+		return txnbuild.ManageData{}, err
+	}
+	authorBuilder := txnbuild.ManageData{
+		Name:  publicKey,
+		Value: decodedStrFutureUse,
+	}
+
+	// check the lengths of the key and value
+	if len(publicKey) > 64 || len(decodedStrFutureUse) != 64 {
+		logrus.Error("Key string length : ", len(publicKeyHash))
+		logrus.Error("Value string length : ", len(decodedStrFutureUse))
+		return txnbuild.ManageData{}, errors.New("length issue on key or value fields on the author details building")
+	}
+	logrus.Info("Author details key ", publicKey)
+	logrus.Info("Author details value ", decodedStrFutureUse)
+	return authorBuilder, nil
+}
+
+func (expertFormula ExpertFormula) BuildPublicKeyManageData(publicKeyHash string) (txnbuild.ManageData, error) {
+	publicKey := publicKeyHash
+
+	if !configs.PGPkeyEnableMetricBind && len(publicKeyHash) > 64 {
+		logrus.Error("Expert public key should be less than 64 character limit, It is a stellar public key(authorDetailsBuilder.go)")
+		return txnbuild.ManageData{}, errors.New("expert public key should be less than 64 character limit, It is a stellar public key")
+	}
+
+	// check if thePGPkeyEnable
+	if configs.PGPkeyEnableMetricBind {
+		publicKey = commons.ConvertBase64StringToHash256(publicKeyHash)
+	}
+
 	decodedStrFutureUse, err := hex.DecodeString(fmt.Sprintf("%0128d", 0))
 	if err != nil {
 		return txnbuild.ManageData{}, err

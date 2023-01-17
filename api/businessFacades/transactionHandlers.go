@@ -397,7 +397,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 		return
 
 	}
-	fmt.Println(TDP)
+	logrus.Info(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitMerge(w, r)

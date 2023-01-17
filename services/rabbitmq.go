@@ -23,6 +23,7 @@ var (
 )
 
 func ReceiverRmq() error {
+	previousTxnHash := ""
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
@@ -64,16 +65,26 @@ func ReceiverRmq() error {
 
 	go func() {
 		for d := range msgs {
+
 			object := dao.Connection{}
 			var queue model.SendToQueue
 			var manageDataOprations []txnbuild.Operation
 			if err := json.Unmarshal(d.Body, &queue); err != nil {
 				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
 			}
+			if queue.TransactionCount == 0 {
+				previousTxnHash = ""
+			}
 			for i := range queue.Operations {
 				manageDataOprations = append(manageDataOprations, &queue.Operations[i])
 			}
 			logrus.Info("Received to queue")
+			previousTxnHashBuilder := txnbuild.ManageData{
+				Name:  "PREVIOUS TRANSACTION",
+				Value: []byte(previousTxnHash),
+			}
+			manageDataOprations = append(manageDataOprations, &previousTxnHashBuilder)
+
 			if queue.Type == "METRICBIND" {
 				logrus.Info("Received mgs Type (METRICBIND)")
 				startTime := time.Now()
@@ -81,14 +92,14 @@ func ReceiverRmq() error {
 				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
-				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
+				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn+1))
 				metricBindingStore := model.MetricBindingStore{
 					MetricId:            queue.MetricBinding.Metric.ID,
 					MetricMapID:         queue.MetricBinding.MetricMapID,
 					Metric:              queue.MetricBinding.Metric,
 					User:                queue.MetricBinding.User,
-					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData,
-					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn,
+					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData + (queue.MetricBinding.TotalNoOfManageData / 25) + 1,
+					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn + 1, // with previous transaction back-link
 					TransactionTime:     convertedTime,
 					TransactionCost:     convertedCost,
 					Memo:                queue.Memo,
@@ -111,6 +122,7 @@ func ReceiverRmq() error {
 				} else {
 					metricBindingStore.SequenceNo = sequenceNo
 					metricBindingStore.TxnHash = hash
+					previousTxnHash = hash
 					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore)
 					if errWhenUpdatingMetricBind != nil {
 						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
@@ -163,6 +175,7 @@ func ReceiverRmq() error {
 				} else {
 					expertFormulaStore.SequenceNo = sequenceNo
 					expertFormulaStore.TxnHash = hash
+					previousTxnHash = hash
 					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) // update
 					if errWhenUpdateingFormulaSatus != nil {
 						logrus.Error("Error while updating the expert formula into DB: ", err)

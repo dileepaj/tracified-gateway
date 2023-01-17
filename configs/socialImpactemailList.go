@@ -6,7 +6,9 @@ var JWTAuthEnableBindMetricEndpoint = false
 
 var ValidateAgainstTrustNetworkExpertFormulaEnable = true
 
-var PGPkeyEnable = true
+var PGPkeyEnableExpertFormula = true
+
+var PGPkeyEnableMetricBind = false
 
 var DefaultBlockchain = "STELLAR"
 
