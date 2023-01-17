@@ -244,12 +244,15 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			// 	build.SetData("CurrentTXN", []byte(UserMergeTxnHashes[i])),
 			// 	MergeIDBuilder,
 			// )
-
+			CurrentTXN := txnbuild.ManageData{
+				Name: "CurrentTXN",
+				Value: []byte(UserMergeTxnHashes[i]),
+			}
 			tx, err := txnbuild.NewTransaction(
 				txnbuild.TransactionParams{
 					SourceAccount: &pubaccount,
 					IncrementSequenceNum: true,
-					Operations: []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder},
+					Operations: []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder, &CurrentTXN},
 					BaseFee: constants.MinBaseFee,
 					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
