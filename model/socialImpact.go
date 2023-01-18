@@ -352,7 +352,7 @@ type MetricFormulaReq struct {
 	Formula             []FormulaDetails
 	MetricExpertFormula MetricExpertFormula `json:"MetricExpertFormula" bson:"metricexpertformula" validate:"required"`
 	TenantID            string              `json:"TenantID" bson:"tenantid" validate:"required"`
-	PivotFields          []PivotField
+	PivotFields         []PivotField
 	Active              bool `json:"Active" bson:"active"`
 }
 
@@ -650,6 +650,7 @@ type ContractGeneral struct {
 	SemanticConstantStructure string
 	ReferredConstant          string
 	MetadataDeclaration       string
+	MetadataGetter            string
 	ResultDeclaration         string
 	CalculationObject         string
 	ContractEnd               string
@@ -666,7 +667,7 @@ type EthereumExpertFormula struct {
 	BINstring           string
 	ABIstring           string
 	GOstring            string
-	SetterNames		 	[]string
+	SetterNames         []string
 	ContractAddress     string
 	Status              string
 	Timestamp           string
@@ -701,8 +702,8 @@ type EthereumMetricBind struct {
 	User              User
 	ErrorMessage      string
 	Status            string
-	FormulaIDs		  []string
-	ValueIDs		  []string
+	FormulaIDs        []string
+	ValueIDs          []string
 }
 
 type MetricContractGeneral struct {

@@ -80,6 +80,15 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 	// Calculations object declaration
 	calculationObject := "\n\t" + `// Calculation object creation` + "\n\t" + `Calculations calculations = new Calculations();` + "\n"
 
+	//Metadata getter
+	metadataGetterComment := "\n\t" + `// Metadata getter`
+	metadataGetterSignature := "\n\t" + `function metadataGetter() public view returns(Metadata memory) {`
+	metadataGetterCopying := "\n\t\t" + `Metadata memory out = metadata;`
+	metadataGetterReturning := "\n\t\t" + `return out;`
+	metadataGetterEnd := "\n\t" + `}`
+
+	metadataGetterObj := metadataGetterComment + metadataGetterSignature + metadataGetterCopying + metadataGetterReturning + metadataGetterEnd
+
 	generalBuilder := model.ContractGeneral{
 		License:                   `// SPDX-License-Identifier: MIT`,
 		PragmaLine:                `pragma solidity ^0.8.7;`,
@@ -94,6 +103,7 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 		MetadataDeclaration:       metaDataInitComment + metaDataInit,
 		ResultDeclaration:         resultDeclaration,
 		CalculationObject:         calculationObject,
+		MetadataGetter:            metadataGetterObj,
 		ContractEnd:               `}`,
 	}
 

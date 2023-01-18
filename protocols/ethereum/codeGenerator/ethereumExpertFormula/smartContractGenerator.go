@@ -138,7 +138,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
-		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
+		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject + generalValues.MetadataGetter
 
 		//call the value builder and get the string for the variable initialization and setter
 		variableValues, setterNames, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
