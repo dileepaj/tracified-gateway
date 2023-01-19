@@ -2364,9 +2364,11 @@ func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
 	})
 	return p
 }
-
-func (cd *Connection) GetIdentifMap(mapvalue string) *promise.Promise {
-	result := apiModel.IdentifierModel{}
+// GET pass numbered identifiers and get real identifers
+// mapvalues - numbered identifiers
+// identifers - real identifier
+func (cd *Connection) GetIdentifierMap(mapIdentifiers []string) *promise.Promise {
+	var identifiers []apiModel.IdentifierModel
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
@@ -2374,11 +2376,14 @@ func (cd *Connection) GetIdentifMap(mapvalue string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err1 := c.FindOne(context.TODO(), bson.M{"mapvalue": mapvalue}).Decode(&result)
+		rst, err1 := c.Find(context.TODO(), bson.D{{"mapvalue", bson.D{{"$in", mapIdentifiers}}}})
+		if err2 := rst.All(context.TODO(), &identifiers); err != nil {
+			reject(err2)
+		}
 		if err1 != nil {
 			reject(err1)
 		} else {
-			resolve(result)
+			resolve(identifiers)
 		}
 	})
 	return p

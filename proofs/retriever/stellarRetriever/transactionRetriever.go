@@ -10,11 +10,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 )
 
@@ -102,7 +99,6 @@ func mapAPIOperations(txe *model.TransactionCollectionBody, sp model.StellarOper
 }
 		
 func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, dataValue string, isBase64Value bool) (*model.TransactionCollectionBody) {
-	object := dao.Connection{} 
 	if isBase64Value {
 		decoded, err := base64.StdEncoding.DecodeString(dataValue)
 		if err == nil {
@@ -114,17 +110,8 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 			re := regexp.MustCompile("[0-9]+")
 			txe.TxnType = re.FindAllString(dataValue, -1)[0]
 			break
-		case "identifier":
-			p:=object.GetIdentifMap(dataValue);
-			p.Then(func(data interface{}) interface{} {
-				mapIdentifier:=data.(apiModel.IdentifierModel)
-				txe.Identifier =mapIdentifier.Identifier
-				return nil
-			}).Catch(func(error error) error {
+		case "identifier": 
 				txe.Identifier = dataValue
-				logrus.Error("Identifier is not in the identierMap DB",error)
-				return nil
-			}).Await()
 			break
 		case "productname": 
 			txe.ProductName = dataValue
