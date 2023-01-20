@@ -3,6 +3,7 @@ package solana
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/gagliardetto/solana-go"
