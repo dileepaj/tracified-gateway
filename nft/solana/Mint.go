@@ -3,6 +3,7 @@ package solana
 import (
 	"context"
 	"errors"
+	"log"
 
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
