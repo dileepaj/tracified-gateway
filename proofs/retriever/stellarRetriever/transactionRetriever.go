@@ -98,7 +98,7 @@ func mapAPIOperations(txe *model.TransactionCollectionBody, sp model.StellarOper
 	return txe
 }
 		
-func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, dataValue string, isBase64Value bool) (*model.TransactionCollectionBody) { 
+func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, dataValue string, isBase64Value bool) (*model.TransactionCollectionBody) {
 	if isBase64Value {
 		decoded, err := base64.StdEncoding.DecodeString(dataValue)
 		if err == nil {
@@ -111,7 +111,7 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 			txe.TxnType = re.FindAllString(dataValue, -1)[0]
 			break
 		case "identifier": 
-			txe.Identifier = dataValue
+				txe.Identifier = dataValue
 			break
 		case "productname": 
 			txe.ProductName = dataValue

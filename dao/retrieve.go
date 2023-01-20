@@ -2561,3 +2561,27 @@ func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promis
 	return p
 }
 
+// GET pass numbered identifiers and get real identifers
+// mapvalues - numbered identifiers
+// identifers - real identifier
+func (cd *Connection) GetIdentifierMap(mapIdentifiers []string) *promise.Promise {
+	var identifiers []apiModel.IdentifierModel
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		rst, err1 := c.Find(context.TODO(), bson.D{{"mapvalue", bson.D{{"$in", mapIdentifiers}}}})
+		if err2 := rst.All(context.TODO(), &identifiers); err != nil {
+			reject(err2)
+		}
+		if err1 != nil {
+			reject(err1)
+		} else {
+			resolve(identifiers)
+		}
+	})
+	return p
+}
