@@ -5,6 +5,8 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	ethereuemmetricbind "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind"
+	ethereumExpertFormula "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
 	"github.com/sirupsen/logrus"
@@ -30,7 +32,9 @@ des-This method check the blockchain Type and call the relevant method according
 */
 func (socialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	if socialImpact.Blockchain == "STELLAR" {
-		expertFormula.StellarExpertFormulaBuilder(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount, socialImpact.VariableCount,socialImpact.ExpertId)
+		expertFormula.StellarExpertFormulaBuilder(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount, socialImpact.VariableCount, socialImpact.ExpertId)
+	} else if socialImpact.Blockchain == "ETHEREUM" {
+		ethereumExpertFormula.SmartContractGeneratorForFormula(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)
@@ -43,6 +47,8 @@ func (socialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Respo
 func (socialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
 	if socialImpact.Blockchain == "STELLAR" {
 		metricBinding.StellarMetricBinding(w, r, socialImpact.MetricBindJSON)
+	} else if socialImpact.Blockchain == "ETHEREUM" {
+		ethereuemmetricbind.SmartContractGeneratorForMetric(w, r, socialImpact.MetricBindJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)

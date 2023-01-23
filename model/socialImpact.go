@@ -636,16 +636,18 @@ type Command struct {
 }
 
 type SendToQueue struct {
-	MetricBinding    MetricBindingStore
-	ExpertFormula    FormulaStore
-	TransactionCount int
-	Type             string
-	Verify           Verify
-	User             User
-	Memo             []byte
-	Status           string
-	Operations       []txnbuild.ManageData
-	ErrorMessage     string
+	MetricBinding         MetricBindingStore
+	ExpertFormula         FormulaStore
+	EthereumExpertFormula EthereumExpertFormula
+	EthereumMetricBind    EthereumMetricBind
+	TransactionCount      int
+	Type                  string
+	Verify                Verify
+	User                  User
+	Memo                  []byte
+	Status                string
+	Operations            []txnbuild.ManageData
+	ErrorMessage          string
 }
 
 type BindKeyMap struct {
@@ -654,4 +656,90 @@ type BindKeyMap struct {
 	KeyInBlockchain    string
 	Id                 string
 	ArtifactTemplateId string
+}
+
+type ContractGeneral struct {
+	License                   string
+	PragmaLine                string
+	ImportCalculationsSol     string
+	ContractStart             string
+	ResultVariable            string
+	MetaDataStructure         string
+	ValueDataStructure        string
+	VariableStructure         string
+	SemanticConstantStructure string
+	ReferredConstant          string
+	MetadataDeclaration       string
+	MetadataGetter            string
+	ResultDeclaration         string
+	CalculationObject         string
+	ContractEnd               string
+}
+
+type EthereumExpertFormula struct {
+	FormulaID           string
+	FormulaName         string
+	ExecutionTemplate   ExecutionTemplate
+	MetricExpertFormula ExpertFormula
+	VariableCount       int32
+	ContractName        string
+	TemplateString      string
+	BINstring           string
+	ABIstring           string
+	GOstring            string
+	SetterNames         []string
+	ContractAddress     string
+	Status              string
+	Timestamp           string
+	TransactionHash     string
+	TransactionCost     string
+	TransactionTime     string
+	TransactionUUID     string
+	TransactionSender   string
+	User                string
+	ErrorMessage        string
+}
+
+type EthFormulaIDMap struct {
+	FormulaID string
+	MapID     uint64
+}
+type EthereumMetricBind struct {
+	MetricID          string
+	MetricName        string
+	Metric            MetricReq
+	ContractName      string
+	TemplateString    string
+	BINstring         string
+	ABIstring         string
+	Timestamp         string
+	ContractAddress   string
+	TransactionHash   string
+	TransactionCost   string
+	TransactionTime   string
+	TransactionUUID   string
+	TransactionSender string
+	User              User
+	ErrorMessage      string
+	Status            string
+	FormulaIDs        []string
+	ValueIDs          []string
+}
+
+type MetricContractGeneral struct {
+	License                   string
+	PragmaLine                string
+	ContractStart             string
+	MetaDataStructure         string
+	FormulaStructure          string
+	ValueDataStructure        string
+	PivotFieldStructure       string
+	MetadataDeclaration       string
+	ValueList                 string
+	FormulaList               string
+	PivotFieldList            string
+	GetFormulaDetailsFunction string
+	GetValueDetailsFunction   string
+	GetPivotFieldDetails      string
+	ContractEnd               string
 }
