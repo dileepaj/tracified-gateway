@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/gagliardetto/solana-go"
 	rp "github.com/gagliardetto/solana-go/rpc"
 	"github.com/gagliardetto/solana-go/rpc/ws"
@@ -22,12 +23,10 @@ import (
 func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
-	log.Println("---------secret-------", (fromWallet))
 
-	c := client.NewClient(rpc.TestnetRPCEndpoint)
+	c := client.NewClient(commons.GetSolanaNetwork())
 
 	mint := types.NewAccount()
-
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
@@ -67,10 +66,12 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					Space:    tokenprog.MintAccountSize,
 				}),
 				tokenprog.InitializeMint(tokenprog.InitializeMintParam{
-					Decimals: 0,
-					Mint:     mint.PublicKey,
-					MintAuth: fromWallet.PublicKey,
+					Decimals:   0,
+					Mint:       mint.PublicKey,
+					MintAuth:   fromWallet.PublicKey,
+					FreezeAuth: &fromWallet.PublicKey,
 				}),
+
 				tokenmeta.CreateMetadataAccount(tokenmeta.CreateMetadataAccountParam{
 					Metadata:                tokenMetadataPubkey,
 					Mint:                    mint.PublicKey,
@@ -105,7 +106,8 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					Auth:   fromWallet.PublicKey,
 					Amount: 1,
 				}),
-				tokenmeta.CreateMasterEdition(tokenmeta.CreateMasterEditionParam{
+
+				tokenmeta.CreateMasterEditionV3(tokenmeta.CreateMasterEditionParam{
 					Edition:         tokenMasterEditionPubkey,
 					Mint:            mint.PublicKey,
 					UpdateAuthority: fromWallet.PublicKey,
@@ -129,7 +131,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		return nil, nil, nil, nil, err
 	}
 
-	wsClient, err := ws.Connect(context.Background(), rp.TestNet_WS)
+	wsClient, err := ws.Connect(context.Background(), commons.GetSolanaRPC())
 	sub, err := wsClient.SignatureSubscribe(
 		solana.MustSignatureFromBase58(sign),
 		rp.CommitmentFinalized,
@@ -146,7 +148,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 		if got.Value.Err != nil {
-			panic(errors.New("transaction confirmation failed"))
+			log.Println(errors.New("transaction confirmation failed"))
 		} else {
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}

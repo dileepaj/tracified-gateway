@@ -12,7 +12,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-/*UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
+/*
+UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -75,7 +76,8 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 	return err
 }
 
-/*UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
+/*
+UpdateCOC Update a COC Object from COCCollection in DB on the basis of the status
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
@@ -205,7 +207,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 	return err
 }
 
-/*UpdateCertificate Update a Certificate Object from CertificateCollection in DB
+/*
+UpdateCertificate Update a Certificate Object from CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
@@ -767,6 +770,26 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	return nil
 }
 
+
+func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("Organizations")
+	filter := bson.D{{"sequenceno", data.SequenceNo}}
+	update := bson.D{{"$set", bson.D{{"pgpdata", data.PGPData}, {"status", data.Status}, {"sequenceno", data.SequenceNo}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		log.Println(err.Error())
+		return errWhenUpdate
+	}
+	return nil
+	//end of function
+}
+
+
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -908,6 +931,45 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 	return err
 }
 
+func (cd *Connection) UpdateTrustNetworkUserEndorsment(pkhash string, update model.TrustNetWorkUser) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := model.TrustNetWorkUser{
+		Name:               update.Name,
+		Company:            update.Company,
+		Email:              update.Email,
+		Password:           update.Password,
+		Contact:            update.Contact,
+		Industry:           update.Industry,
+		StellerPK:          update.StellerPK,
+		PGPPK:              update.PGPPK,
+		PGPPKHash:          update.PGPPKHash,
+		PgpSecret:          update.PgpSecret,
+		StellarSecret:      update.StellarSecret,
+		DigitalSignature:   update.DigitalSignature,
+		Signaturehash:      update.Signaturehash,
+		Date:               update.Date,
+		Endorsments:        update.Endorsments,
+		TXNOrgRegistration: update.TXNOrgRegistration,
+	}
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
 func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string, update model.EthereumMetricBind) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -951,6 +1013,86 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 
 	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID, "transactionuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+func (cd *Connection) UpdateTrustNetworkUserPassword(pkhash string, update model.TrustNetWorkUser, newPassword string) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := model.TrustNetWorkUser{
+		Name:               update.Name,
+		Company:            update.Company,
+		Email:              update.Email,
+		Password:           newPassword,
+		PasswordResetCode:  nil,
+		Contact:            update.Contact,
+		Industry:           update.Industry,
+		StellerPK:          update.StellerPK,
+		PGPPK:              update.PGPPK,
+		PGPPKHash:          update.PGPPKHash,
+		PgpSecret:          update.PgpSecret,
+		StellarSecret:      update.StellarSecret,
+		DigitalSignature:   update.DigitalSignature,
+		Signaturehash:      update.Signaturehash,
+		Date:               update.Date,
+		Endorsments:        update.Endorsments,
+		TXNOrgRegistration: update.TXNOrgRegistration,
+	}
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+func (cd *Connection) UpdateTrustNetworkResetUserPassword(pkhash string, update model.TrustNetWorkUser, ResetPassword []byte) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+	up := model.TrustNetWorkUser{
+		Name:               update.Name,
+		Company:            update.Company,
+		Email:              update.Email,
+		Password:           update.Password,
+		PasswordResetCode:  ResetPassword,
+		Contact:            update.Contact,
+		Industry:           update.Industry,
+		StellerPK:          update.StellerPK,
+		PGPPK:              update.PGPPK,
+		PGPPKHash:          update.PGPPKHash,
+		PgpSecret:          update.PgpSecret,
+		StellarSecret:      update.StellarSecret,
+		DigitalSignature:   update.DigitalSignature,
+		Signaturehash:      update.Signaturehash,
+		Date:               update.Date,
+		Endorsments:        update.Endorsments,
+		TXNOrgRegistration: update.TXNOrgRegistration,
+	}
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
 }

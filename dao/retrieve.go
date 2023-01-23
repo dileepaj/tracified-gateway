@@ -13,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/chebyrash/promise"
@@ -2407,6 +2408,200 @@ func (cd Connection) GetEthFormulaMapID(formulaID string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetTrustNetWorkUserbyID(id primitive.ObjectID) *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"_id": id})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetworkUserEndorsment(pkHash string) *promise.Promise {
+	var useredorsments []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"pgppkhash": pkHash})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &useredorsments)
+			if err2 != nil {
+				reject(err2)
+			} else {
+				resolve(useredorsments[len(useredorsments)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email, "password": password})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || (result) == nil {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
+func (cd *Connection) GetTrustNetworkUserResetPassword(email string, password []byte) *promise.Promise {
+	result := []model.TrustNetWorkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || (result) == nil {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+	return p
+}
+func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
+	result := []model.LoggedInTrustNetworkUser{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		opts := options.Find().SetSort(bson.D{{Key: "_id", Value: -1}})
+		cursor, err1 := c.Find(context.TODO(), bson.M{}, opts)
+		if err1 != nil {
+			reject(err1)
+		} else {
+			for cursor.Next(context.TODO()) {
+				var user model.LoggedInTrustNetworkUser
+				decodeErr := cursor.Decode(&user)
+				if decodeErr != nil {
+					reject(decodeErr)
+				}
+				result = append(result, user)
+			}
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetWorkUserbyEncryptedPW(id string) *promise.Promise {
+	var useredorsments []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"password": id})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &useredorsments)
+			if err2 != nil {
+				reject(err2)
+			} else {
+				resolve(useredorsments[len(useredorsments)-1])
+			}
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise {
+	var pwdResetuser []model.TrustNetWorkUser
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"email": email})
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &pwdResetuser)
+			if err2 != nil || (pwdResetuser) == nil {
+				reject(err2)
+			} else {
+				resolve(pwdResetuser[len(pwdResetuser)-1])
+			}
+		}
+	})
+	return p
+}
+
+
+func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
+	result := model.PGPAccount{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PGPAccounts")
+		err1 := c.FindOne(context.TODO(), bson.M{"stellarpublickey": StellarPK}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting PGP Account from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
 func (cd *Connection) GetEthMetricStatus(metricID string) *promise.Promise {
 	var ethMetric model.EthereumMetricBind
 
@@ -2471,6 +2666,30 @@ func (cd *Connection) EthereumGetValueMapID(valueID, formulaId string) *promise.
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+	return p
+}
+// GET pass numbered identifiers and get real identifers
+// mapvalues - numbered identifiers
+// identifers - real identifier
+func (cd *Connection) GetIdentifierMap(mapIdentifiers []string) *promise.Promise {
+	var identifiers []apiModel.IdentifierModel
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IdentifierMap")
+		rst, err1 := c.Find(context.TODO(), bson.D{{"mapvalue", bson.D{{"$in", mapIdentifiers}}}})
+		if err2 := rst.All(context.TODO(), &identifiers); err != nil {
+			reject(err2)
+		}
+		if err1 != nil {
+			reject(err1)
+		} else {
+			resolve(identifiers)
 		}
 	})
 	return p

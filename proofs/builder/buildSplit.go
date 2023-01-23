@@ -147,7 +147,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		for i, TxnBody := range AP.TxnBody {
 
 			previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXN", Value: []byte(PreviousTxn)}
-			typeTXNBuilder := txnbuild.ManageData{Name: "Tyepe", Value: []byte("G" + TxnBody.TxnType)}
+			typeTXNBuilder := txnbuild.ManageData{Name: "Type", Value: []byte("G" + TxnBody.TxnType)}
 			currentTXNBuilder := txnbuild.ManageData{Name: "CurrentTXN", Value: []byte(UserSplitTxnHashes[i])}
 			identifierTXNBuilder := txnbuild.ManageData{Name: "Identifier", Value: []byte(AP.TxnBody[i].Identifier)}
 			profileIDTXNBuilder := txnbuild.ManageData{Name: "ProfileID", Value: []byte(AP.TxnBody[i].ProfileID)}
