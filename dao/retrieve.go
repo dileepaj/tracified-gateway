@@ -2323,7 +2323,6 @@ func (cd *Connection) GetFormulaStatus(formulaID string) *promise.Promise {
 
 func (cd *Connection) GetBindKey(formulaID, key, metricId string) *promise.Promise {
 	var bindKey model.BindKeyMap
-
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
@@ -2331,7 +2330,6 @@ func (cd *Connection) GetBindKey(formulaID, key, metricId string) *promise.Promi
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-
 		c := session.Client().Database(dbName).Collection("BindKeyMap")
 		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID, "keyinblockchain": key, "metricId": metricId}).Decode(&bindKey)
 		if err != nil {
@@ -2339,6 +2337,27 @@ func (cd *Connection) GetBindKey(formulaID, key, metricId string) *promise.Promi
 			reject(err)
 		} else {
 			resolve(bindKey)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetEthFormulaStatus(formulaID string) *promise.Promise {
+	var ethFormulaMap model.EthereumExpertFormula
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&ethFormulaMap)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(ethFormulaMap)
 		}
 	})
 	return p
@@ -2358,6 +2377,29 @@ func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
 		err1 := c.FindOne(context.TODO(), bson.M{"artifactid": artifactId}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting artifact id from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd Connection) GetEthFormulaMapID(formulaID string) *promise.Promise {
+	result := model.EthFormulaIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumFormulaIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting FormulaIDMap from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -2540,7 +2582,6 @@ func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise 
 
 func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
 	result := model.PGPAccount{}
-
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -2561,6 +2602,74 @@ func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promis
 	return p
 }
 
+func (cd *Connection) GetEthMetricStatus(metricID string) *promise.Promise {
+	var ethMetric model.EthereumMetricBind
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err = c.FindOne(context.TODO(), bson.M{"metricid": metricID}).Decode(&ethMetric)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(ethMetric)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
+	result := model.EthereumExpertFormula{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": "SUCCESS"}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting contract name from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) EthereumGetValueMapID(valueID, formulaId string) *promise.Promise {
+	result := model.ValueIDMap{}
+	// p := promise.NewPromise()
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthValueIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"valueid": valueID, "formulaid": formulaId}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting ValueIDMap from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
 // GET pass numbered identifiers and get real identifers
 // mapvalues - numbered identifiers
 // identifers - real identifier
