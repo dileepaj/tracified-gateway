@@ -3,6 +3,7 @@ package solana
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -47,7 +48,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		return nil, nil, nil, nil, err
 	}
 
-	recentBlockhashResponse, err := c.GetRecentBlockhash(context.Background())
+	recentBlockhashResponse, err := c.GetLatestBlockhash(context.Background())
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -114,7 +115,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					MintAuthority:   fromWallet.PublicKey,
 					Metadata:        tokenMetadataPubkey,
 					Payer:           fromWallet.PublicKey,
-					MaxSupply:       pointer.Uint64(0),
+					MaxSupply:       pointer.Get[uint64](0),
 				}),
 			},
 		}),
@@ -150,6 +151,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		if got.Value.Err != nil {
 			log.Println(errors.New("transaction confirmation failed"))
 		} else {
+			fmt.Println("trav ata: ", &ata)
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 	}

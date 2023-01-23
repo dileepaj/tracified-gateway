@@ -418,6 +418,11 @@ type MarketPlaceNFT struct {
 	CurrentOwnerNFTPK                string
 }
 
+type NFTTransfer struct {
+	Source      string
+	Destination string
+	MintPubKey  string
+}
 type NFTContracts struct {
 	NFTContract         string
 	MarketplaceContract string
