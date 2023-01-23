@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -63,8 +64,9 @@ func TransformMerge(code1 string, limit1 string, code2 string, limit2 string, co
 		SourceAccount:        &account,
 		IncrementSequenceNum: true,
 		Operations:           []txnbuild.Operation{&paymentTXNBuilder1, &paymentTXNBuilder2, &paymentTXNBuilder3, &paymentTXNBuilder4},
+		BaseFee: constants.MinBaseFee,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 	// // Second, the issuing account actually sends a payment using the asset
 	// paymentTx, err := build.Transaction(
@@ -234,7 +236,8 @@ func (cd *ConcreteTransform) TransformMerge() string {
 		IncrementSequenceNum: true,
 		Operations:           muts,
 		Memo:                 nil,
-		Preconditions:        txnbuild.Preconditions{},
+		BaseFee: constants.MinBaseFee,
+		Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 	})
 
 	if err != nil {

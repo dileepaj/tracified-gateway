@@ -14,10 +14,10 @@ import (
 
 /*
 BuildSocialImpactFormula
-des-This handler the expert formula bulding,
+des-This handler the expert formula building,
 	In side this handler
 	 * validate the JSON request body
-	 * changethe formual elemet type according to the protocol
+	 * change the formula element type according to the protocol
 	 * call the SocialImpactExpertFormula method to build the formula
 */
 
@@ -35,49 +35,52 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 		return
 	} else {
 		authLayer := authentication.AuthLayer{
-			FormulaId:    formulaJSON.MetricExpertFormula.ID,
-			ExpertPK:     formulaJSON.User.Publickey,
-			ExpertUserID: formulaJSON.User.ID,
-			CiperText:    formulaJSON.MetricExpertFormula.CiperText,
-			Plaintext:    formulaJSON.MetricExpertFormula.Formula,
+			FormulaId: formulaJSON.MetricExpertFormula.ID,
+			ExpertPK:  formulaJSON.Verify.PublicKey,
+			Signature: formulaJSON.Verify.Signature,
+			Plaintext: formulaJSON.Verify.Payload,
 		}
-		err, errCode := authLayer.ValidateExpertRequest()
+		err, errCode, id := authLayer.ValidateExpertRequest()
 		if err != nil {
 			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Authentication Issue, ")
 			return
-		}
-
-		formulaArray := formulaJSON.MetricExpertFormula.Formula
-		fieldCount := 0
-		for i, element := range formulaJSON.MetricExpertFormula.Formula {
-			if element.Type == "DATA" {
-				formulaArray[i].Type = "VARIABLE"
-			} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
-				formulaArray[i].Type = "REFERREDCONSTANT"
-			} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
-				formulaArray[i].Type = "SEMANTICCONSTANT"
+		} else {
+			formulaArray := formulaJSON.MetricExpertFormula.Formula
+			fieldCount := 0
+			variableCount := 0
+			for i, element := range formulaJSON.MetricExpertFormula.Formula {
+				if element.Type == "DATA" {
+					formulaArray[i].Type = "VARIABLE"
+					variableCount++
+				} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
+					formulaArray[i].Type = "REFERREDCONSTANT"
+				} else if element.Type == "CONSTANT" && element.MetricReferenceId == "" {
+					formulaArray[i].Type = "SEMANTICCONSTANT"
+				}
+				if element.Type != "OPERATOR" {
+					fieldCount++
+				}
 			}
-			if element.Type != "OPERATOR" {
-				fieldCount++
-			}
-		}
-		formulaJSON.MetricExpertFormula.Formula = formulaArray
+			formulaJSON.MetricExpertFormula.Formula = formulaArray
 
-		// if the blockchain is not provided in the request, then use the default blockchain
-		if formulaJSON.MetricExpertFormula.Blockchain == "" {
-			formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
+			// if the blockchain is not provided in the request, then use the default blockchain
+			if formulaJSON.MetricExpertFormula.Blockchain == "" {
+				formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
+			}
+			// build the abstract struct and call the SocialImpactExpertFormula
+			socialImpactBuilder := protocols.AbstractSocialImpact{
+				Blockchain:    formulaJSON.MetricExpertFormula.Blockchain,
+				FormulaJSON:   formulaJSON,
+				FieldCount:    fieldCount,
+				VariableCount: variableCount,
+				ExpertId:      id,
+			}
+			socialImpactBuilder.SocialImpactExpertFormula(w, r)
 		}
-		// build the abstract struct and call the SocialImpactExpertFormula
-		socialImpactBuilder := protocols.AbstractSocialImpact{
-			Blockchain:  formulaJSON.MetricExpertFormula.Blockchain,
-			FormulaJSON: formulaJSON,
-			FieldCount:  fieldCount,
-		}
-		socialImpactBuilder.SocialImpactExpertFormula(w, r)
 	}
 }
 
-// BindMetric method : binds the metric with mutiple formulas
+// BindMetric method : binds the metric with multiple formulas
 func BindMetric(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if configs.JWTAuthEnableBindMetricEndpoint {

@@ -28,21 +28,17 @@ func CheckTempOrphan() {
 	log.Debug("=================== CheckTempOrphan ==================")
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
-	//log.Info("PK count : " + strconv.Itoa(len(clientList)))
+	// log.Info("PK count : " + strconv.Itoa(len(clientList)))
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
 		kp, _ := keypair.Parse(address)
-
 		client := commons.GetHorizonClient()
 		ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 		sourceAccount, err := client.AccountDetail(ar)
-
 		if err != nil {
-			//log.Error("Error while loading account from horizon " + err.Error())
+			// log.Error("Error while loading account from horizon " + err.Error())
 		} else {
-			// log.Println("Current Sequence for address:", address)
-			// log.Println(account.Sequence)
 			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
 			if err != nil {
 				log.Error("Error while convert string to int " + err.Error())
@@ -50,6 +46,9 @@ func CheckTempOrphan() {
 			stop := false // for infinite loop
 			// loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
+				if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+				log.Info("Find tempOrphan by ", kp.Address(), "    -   ", i)
+				}
 				data, errorAsync := object.GetSpecialForPkAndSeq(kp.Address(), int64(i)).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
@@ -66,17 +65,26 @@ func CheckTempOrphan() {
 					secretKey := constants.SecretKey
 					tracifiedAccount, err := keypair.ParseFull(secretKey)
 					if err != nil {
-						log.Error(err)
+						log.Error("Account loading issue ", err)
 					}
 					client := commons.GetHorizonClient()
 					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 					pubaccount, err := client.AccountDetail(pubaccountRequest)
-
+					if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+					log.Info(" clientList PublicKey ", address, " Sequence number ", seq)
+					log.Info("PublicKey key of XDR ", ar.AccountID)
+					log.Info("Sequence number ", i)
+					log.Info("Type of XDR ", result.TxnType)
+					}
 					switch result.TxnType {
 					case "0":
+
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
+						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+						log.Info("type 0 submission ", response)
+						}
 						if response.Error.Code == 400 {
 							log.Println("response.Error.Code 400 for SubmitXDR")
 							break
@@ -94,23 +102,17 @@ func CheckTempOrphan() {
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
-						// Get information about the account we just created
-						// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-						// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
-						if err != nil {
-							log.Println(err)
-						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
 							SourceAccount:        &pubaccount,
 							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-							BaseFee:              txnbuild.MinBaseFee,
+							BaseFee:              constants.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 						})
 						if err != nil {
-							log.Println("Error while buliding XDR " + err.Error())
+							log.Println("Error while building XDR " + err.Error())
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
@@ -147,13 +149,6 @@ func CheckTempOrphan() {
 							}
 						}
 					case "2":
-
-						// PreviousTXNBuilder := txnbuild.ManageData{
-						// 	Name:  "",
-						// 	Value: []byte(""),
-						// }
-
-						// var PreviousTxn string
 						data, errorLastTXN := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
 							return data
 						}).Await()
@@ -178,6 +173,9 @@ func CheckTempOrphan() {
 						}
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
+						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+						log.Info("type 1 submission ", response)
+						}
 						UserTxnHash = response.TXNID
 
 						CurrentTXNBuilder := txnbuild.ManageData{
@@ -193,9 +191,9 @@ func CheckTempOrphan() {
 							SourceAccount:        &pubaccount,
 							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-							BaseFee:              txnbuild.MinBaseFee,
+							BaseFee:              constants.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 						})
 						if err != nil {
 							log.Println("Error while buliding XDR " + err.Error())
@@ -223,7 +221,6 @@ func CheckTempOrphan() {
 							log.Println("Error response code 400 while SubmitXDR")
 							break
 						}
-
 						result.TxnHash = response1.TXNID
 						result.Status = "done"
 						///INSERT INTO TRANSACTION COLLECTION
@@ -239,7 +236,6 @@ func CheckTempOrphan() {
 							}
 						}
 					case "9":
-
 						var PreviousTXNBuilder txnbuild.ManageData
 						// var PreviousTxn string
 						data, errorLastTXN := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
@@ -260,17 +256,14 @@ func CheckTempOrphan() {
 							}
 							result.PreviousTxnHash = res.TxnHash
 						}
-
 						TypeTxnBuilder := txnbuild.ManageData{
 							Name:  "Type",
 							Value: []byte("G" + result.TxnType),
 						}
-
 						CurrentTXNBuilder := txnbuild.ManageData{
 							Name:  "CurrentTXN",
 							Value: []byte(UserTxnHash),
 						}
-
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
@@ -283,9 +276,9 @@ func CheckTempOrphan() {
 							SourceAccount:        &pubaccount,
 							IncrementSequenceNum: true,
 							Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-							BaseFee:              txnbuild.MinBaseFee,
+							BaseFee:              constants.MinBaseFee,
 							Memo:                 nil,
-							Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+							Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 						})
 						if err != nil {
 							log.Println("Error while buliding XDR " + err.Error())
@@ -304,16 +297,16 @@ func CheckTempOrphan() {
 							log.Println("Error while converting to base64 " + err.Error())
 							break
 						}
-
 						// SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 						response1 := display1.SubmitXDR("G" + result.TxnType)
-
+						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+							log.Info("type 9 submission ", response1)
+						}
 						if response1.Error.Code == 400 {
 							log.Println("400 from SubmitXDR")
 							break
 						}
-
 						result.TxnHash = response1.TXNID
 						result.Status = "done"
 						///INSERT INTO TRANSACTION COLLECTION

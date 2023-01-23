@@ -1,12 +1,14 @@
 package configs
 
-var NotificationEmails = [2]string{"shanuka.bps@gmail.com", "ishinik@tracified.com"}
+var NotificationEmails = [2]string{"bhawanthas@tracified.com", "ishinik@tracified.com"}
 
 var JWTAuthEnableBindMetricEndpoint = false
 
-var ValidateAgaintTrustNetworkExpertFormulaEnable = false
+var ValidateAgainstTrustNetworkExpertFormulaEnable = true
 
-var PGPkeyEnable = false
+var PGPkeyEnableExpertFormula = true
+
+var PGPkeyEnableMetricBind = false
 
 var DefaultBlockchain = "STELLAR"
 

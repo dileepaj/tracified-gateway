@@ -57,3 +57,9 @@ type RetrievePrevious struct {
 type POC struct {
 	RetrievePOC RetrievePOC
 }
+
+type TDPData struct {
+	Data       string
+	Identifier string
+	Error      string
+}

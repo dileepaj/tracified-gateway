@@ -50,7 +50,7 @@ func ValidateFields(element model.FormulaItemRequest) error {
 		}
 	} else if element.Type == "CONSTANT" && element.MetricReferenceId != "" {
 		// check the referred contant type validations
-		if element.Name == "" || element.MetricReference.Description == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" {
+		if element.Name == "" || element.Key == "" || element.MetricReferenceId == "" || element.MeasurementUnit == "" || element.MetricReference.Name == "" || element.MetricReference.MeasurementUnit == "" {
 			return errors.New("Incorrect referred constant type fields")
 		}
 	}
@@ -157,9 +157,9 @@ func ValidateMetricObject(element model.MetricReq) error {
 		return err
 	}
 
-	for i := 0; i < len(element.Activities); i++ {
+	for i := 0; i < len(element.MetricActivities); i++ {
 		// Validate activity array
-		errWHenValidatingActivity := ValidateActivityArray(element.Activities[i])
+		errWHenValidatingActivity := ValidateActivityArray(element.MetricActivities[i])
 		if errWHenValidatingActivity != nil {
 			return errWHenValidatingActivity
 		}
@@ -185,12 +185,6 @@ func ValidateActivityArray(element model.MetricDataBindActivityRequest) error {
 	errWhenValidatingMetricFormula := ValidateMetricFormulaReq(element.MetricFormula)
 	if errWhenValidatingMetricFormula != nil {
 		return errWhenValidatingMetricFormula
-	}
-
-	// validate ActivityFormulaDefinitionManageData
-	errWhenValidatingActivityFormulaDefinitionManageData := ValidateActivityFormulaDefinitionManageData(element.ActivityFormulaDefinitionManageData)
-	if errWhenValidatingActivityFormulaDefinitionManageData != nil {
-		return errWhenValidatingActivityFormulaDefinitionManageData
 	}
 	return nil
 }

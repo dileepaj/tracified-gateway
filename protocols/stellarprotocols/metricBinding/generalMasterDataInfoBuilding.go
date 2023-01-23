@@ -19,7 +19,8 @@ import (
  *  	 - 55 byte - Future use
  */
 
-func (metric *MetricBinding) BuildGeneralMasterDataInfo(artifactID uint64, traceabilityDataType uint) (txnbuild.ManageData, error) {
+func (metric *MetricBinding) BuildGeneralMasterDataInfo(artifactTemplateID, artifactID uint64, traceabilityDataType uint) (txnbuild.ManageData, error) {
+	fmt.Println(artifactTemplateID, artifactID)
 
 	key := "MASTER DATA DEFINITION"
 	// check the lengths and append 0s if needed
@@ -37,19 +38,19 @@ func (metric *MetricBinding) BuildGeneralMasterDataInfo(artifactID uint64, trace
 		return txnbuild.ManageData{}, errors.New("error when converting traceability data type " + errInTDPTypeConvert.Error())
 	}
 
-	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%0110d", 0))
+	decodedStrFutureUsed, err := hex.DecodeString(fmt.Sprintf("%094d", 0))
 	if err != nil {
 		logrus.Error("Error in decoding the future use string(generalMasterDataInfoBuilding.go)")
 		return txnbuild.ManageData{}, errors.New("error in decoding the future use string")
 	}
 	futureUse := string(decodedStrFutureUsed)
-
+	fmt.Println(stellarprotocols.UInt64ToByteString(artifactTemplateID) + stellarprotocols.UInt64ToByteString(artifactID))
 	keyString := key
-	valueString := stellarprotocols.UInt64ToByteString(artifactID) + tdType + futureUse
+	valueString := stellarprotocols.UInt64ToByteString(artifactTemplateID) + stellarprotocols.UInt64ToByteString(artifactID) + tdType + futureUse
 
 	logrus.Info("General master data info - Key : ", keyString)
 	logrus.Info("General master data info - Value : ", valueString)
-	
+
 	generalInfoBuilder := txnbuild.ManageData{
 		Name:  keyString,
 		Value: []byte(valueString),

@@ -193,9 +193,9 @@ func (AP *AbstractXDRSubmiter) SubmitTransfer(w http.ResponseWriter, r *http.Req
 					SourceAccount:        &account,
 					IncrementSequenceNum: true,
 					Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTxnBuilder, &CurrentTXNBuilder},
-					BaseFee:              txnbuild.MinBaseFee,
+					BaseFee:              constants.MinBaseFee,
 					Memo:                 nil,
-					Preconditions:       txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
+					Preconditions:       txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				})
 
 				if err != nil{

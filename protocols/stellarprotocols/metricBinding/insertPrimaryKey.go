@@ -11,36 +11,36 @@ import (
 /*
  For retrieving mapped artifact id from DB or creating a new one with the next sequence value
 */
-func InsertAndFindArtifactTemplateID(artifactID string) (uint64, error) {
-	var artifactMapID uint64
+func InsertAndFindPrimaryKeyID(primaryKeyId string) (uint64, error) {
+	var primaryKeyIdMapValue uint64
 	object := dao.Connection{}
-	artifactMap, errInArtifactMap := object.GetArtifactTemplateMapID(artifactID).Then(func(data interface{}) interface{} {
+	artifactMap, errInArtifactMap := object.GetPrimaryKeyMapID(primaryKeyId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errInArtifactMap != nil {
 		logrus.Info("Error when retrieving artifact id from DB(insertArtifactDetails.go) " + errInArtifactMap.Error())
 	}
 	if artifactMap == nil {
-		logrus.Error("Artifact ID " + artifactID + " is not recorded in the DB(insertArtifactDetails.go)")
-		data, errWhenGettingTheSequence := object.GetNextSequenceValue("ARTIFACTTEMPLATEID")
+		logrus.Error("Artifact ID " + primaryKeyId + " is not recorded in the DB(insertArtifactDetails.go)")
+		data, errWhenGettingTheSequence := object.GetNextSequenceValue("PRIMARYKEYID")
 		if errWhenGettingTheSequence != nil {
 			logrus.Error("Error when taking the sequence number(insertArtifactDetails.go) Error : " + errWhenGettingTheSequence.Error())
 			return 0, errors.New("error when taking the sequence no Error : " + errWhenGettingTheSequence.Error())
 		}
-		insertArtifactMap := model.ArtifactTemplateId{
-			ArtifactID:   artifactID,
-			MapID:      data.SequenceValue,
+		insertArtifactMap := model.PrimaryKeyMap{
+			PrimaryKeyID: primaryKeyId,
+			MapID:        data.SequenceValue,
 		}
-		errWhenInsertingToResourceMap := object.InsertToArtifactTemplateIDMap(insertArtifactMap)
+		errWhenInsertingToResourceMap := object.InsertToPrimaryKeyIdMap(insertArtifactMap)
 		if errWhenInsertingToResourceMap != nil {
-			logrus.Error("Inserting to artifact map ID was failed(insertArtifactDetails.go)" + errWhenInsertingToResourceMap.Error())
+			logrus.Error("Inserting to primary key map ID was failed(insertArtifactDetails.go)" + errWhenInsertingToResourceMap.Error())
 			return 0, errors.New("inserting to artifact map ID was failed")
 		}
-		artifactMapID = data.SequenceValue
+		primaryKeyIdMapValue = data.SequenceValue
 	} else {
-		logrus.Info("Artifact ID " + artifactID + " is recorded in the DB")
+		logrus.Info("Primary key ID " + primaryKeyId + " is recorded in the DB")
 		artifactMapData := artifactMap.(model.ArtifactTemplateId)
-		artifactMapID = artifactMapData.MapID
+		primaryKeyIdMapValue = artifactMapData.MapID
 	}
-	return artifactMapID, nil
+	return primaryKeyIdMapValue, nil
 }

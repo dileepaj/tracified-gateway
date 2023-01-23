@@ -19,13 +19,14 @@ import (
 var (
 	USER     = commons.GoDotEnvVariable("RABBITUSER")
 	PASSWORD = commons.GoDotEnvVariable("RABBITPASSWORD")
-	HOSTNAME = commons.GoDotEnvVariable("RABBITHOSTNAME")
+	HOSTNAME = commons.GoDotEnvVariable("RABBITMQ_SERVICE_HOST")
 	PORT     = commons.GoDotEnvVariable("RABBITPORT")
 )
 
-func ReciverRmq() error {
-	rabbitCoonection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
-	conn, err := amqp.Dial(rabbitCoonection)
+func ReceiverRmq() error {
+	previousTxnHash := ""
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("Failed to connect to RabbitMQ ", err)
 		return err
@@ -65,31 +66,41 @@ func ReciverRmq() error {
 
 	go func() {
 		for d := range msgs {
+
 			object := dao.Connection{}
 			var queue model.SendToQueue
 			var manageDataOprations []txnbuild.Operation
 			if err := json.Unmarshal(d.Body, &queue); err != nil {
 				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
 			}
+			if queue.TransactionCount == 0 {
+				previousTxnHash = ""
+			}
 			for i := range queue.Operations {
 				manageDataOprations = append(manageDataOprations, &queue.Operations[i])
 			}
 			logrus.Info("Received to queue")
+			previousTxnHashBuilder := txnbuild.ManageData{
+				Name:  "PREVIOUS TRANSACTION",
+				Value: []byte(previousTxnHash),
+			}
+			manageDataOprations = append(manageDataOprations, &previousTxnHashBuilder)
+
 			if queue.Type == "METRICBIND" {
 				logrus.Info("Received mgs Type (METRICBIND)")
 				startTime := time.Now()
-				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
-				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
+				stellarprotocol := stellarprotocols.StellarTransaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
+				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
-				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
+				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn+1))
 				metricBindingStore := model.MetricBindingStore{
 					MetricId:            queue.MetricBinding.Metric.ID,
 					MetricMapID:         queue.MetricBinding.MetricMapID,
 					Metric:              queue.MetricBinding.Metric,
 					User:                queue.MetricBinding.User,
-					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData,
-					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn,
+					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData + (queue.MetricBinding.TotalNoOfManageData / 25) + 1,
+					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn + 1, // with previous transaction back-link
 					TransactionTime:     convertedTime,
 					TransactionCost:     convertedCost,
 					Memo:                queue.Memo,
@@ -112,6 +123,7 @@ func ReciverRmq() error {
 				} else {
 					metricBindingStore.SequenceNo = sequenceNo
 					metricBindingStore.TxnHash = hash
+					previousTxnHash = hash
 					errWhenUpdatingMetricBind := object.UpdateMetricBindStatus(queue.MetricBinding.MetricId, queue.MetricBinding.TxnUUID, metricBindingStore)
 					if errWhenUpdatingMetricBind != nil {
 						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
@@ -124,15 +136,15 @@ func ReciverRmq() error {
 			} else if queue.Type == "EXPERTFORMULA" {
 				logrus.Info("Received mgs Type (EXPERTFORMULA)")
 				startTime := time.Now()
-				stellarprotocol := stellarprotocols.StellarTrasaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
-				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellerBlockchain()
+				stellarprotocol := stellarprotocols.StellarTransaction{Operations: manageDataOprations, Memo: string(queue.Memo)}
+				err, errCode, hash, sequenceNo, xdr, senderPK := stellarprotocol.SubmitToStellarBlockchain()
 				expertFormulaStore := queue.ExpertFormula
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn))
 				expertFormulaStore = model.FormulaStore{
 					MetricExpertFormula: queue.ExpertFormula.MetricExpertFormula,
-					User:                queue.ExpertFormula.User,
+					Verify:              queue.ExpertFormula.Verify,
 					FormulaID:           queue.ExpertFormula.FormulaID,
 					FormulaMapID:        queue.ExpertFormula.FormulaMapID,
 					VariableCount:       queue.ExpertFormula.VariableCount,
@@ -159,11 +171,12 @@ func ReciverRmq() error {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
 					logrus.Info("Formula update called with failed status")
-					logrus.Error("Stellar transaction submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
+					logrus.Error("Stellar transactions submitting issue in queue (EXPERTFORMULA)", err, " error code ", errCode)
 					logrus.Println("XDR  ", xdr)
 				} else {
 					expertFormulaStore.SequenceNo = sequenceNo
 					expertFormulaStore.TxnHash = hash
+					previousTxnHash = hash
 					errWhenUpdateingFormulaSatus := object.UpdateFormulaStatus(queue.ExpertFormula.FormulaID, queue.ExpertFormula.TxnUUID, expertFormulaStore) // update
 					if errWhenUpdateingFormulaSatus != nil {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
@@ -190,7 +203,7 @@ func ReciverRmq() error {
 					BINstring:           queue.EthereumExpertFormula.BINstring,
 					ABIstring:           queue.EthereumExpertFormula.ABIstring,
 					GOstring:            queue.EthereumExpertFormula.GOstring,
-					SetterNames: 	   	 queue.EthereumExpertFormula.SetterNames,
+					SetterNames:         queue.EthereumExpertFormula.SetterNames,
 					ContractName:        queue.EthereumExpertFormula.ContractName,
 					ContractAddress:     address,
 					Timestamp:           time.Now().String(),
@@ -254,8 +267,8 @@ func ReciverRmq() error {
 					User:              queue.EthereumMetricBind.User,
 					ErrorMessage:      "",
 					Status:            "SUCCESS",
-					FormulaIDs: 	   queue.EthereumMetricBind.FormulaIDs,
-					ValueIDs: 		   queue.EthereumMetricBind.ValueIDs,
+					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
+					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status

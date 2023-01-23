@@ -7,16 +7,18 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	ethereuemmetricbind "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind"
 	ethereumExpertFormula "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
-	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
+	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
 	"github.com/sirupsen/logrus"
 )
 
 // FieldCount - unique formula element Count -formula element count, can be VARIABLE, SEMATICCONSTANT, REFERREDCONSTANT
 type AbstractSocialImpact struct {
-	Blockchain  string
-	FormulaJSON model.FormulaBuildingRequest
-	FieldCount  int
+	Blockchain    string
+	FormulaJSON   model.FormulaBuildingRequest
+	FieldCount    int
+	VariableCount int
+	ExpertId      string
 }
 
 type AbstractSocialImpactMetricBinding struct {
@@ -26,31 +28,31 @@ type AbstractSocialImpactMetricBinding struct {
 
 /*
 SocialImpactExpertFormula
-des-This mothod check the blockchain Type and call the relevent method according the blockchain
+des-This method check the blockchain Type and call the relevant method according the blockchain
 */
-func (soacialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
-	if soacialImpact.Blockchain == "STELLAR" {
-		expertformula.StellarExpertFormulBuilder(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
-	} else if soacialImpact.Blockchain == "ETHEREUM" {
-		ethereumExpertFormula.SmartContractGeneratorForFormula(w, r, soacialImpact.FormulaJSON, soacialImpact.FieldCount)
+func (socialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
+	if socialImpact.Blockchain == "STELLAR" {
+		expertFormula.StellarExpertFormulaBuilder(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount, socialImpact.VariableCount, socialImpact.ExpertId)
+	} else if socialImpact.Blockchain == "ETHEREUM" {
+		ethereumExpertFormula.SmartContractGeneratorForFormula(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Code: http.StatusBadRequest, Message: "Can not support " + soacialImpact.Blockchain + " yet"}
+		response := model.Error{Code: http.StatusBadRequest, Message: "Can not support " + socialImpact.Blockchain + " yet"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
 }
 
-func (soacialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
-	if soacialImpact.Blockchain == "STELLAR" {
-		metricBinding.StellarMetricBinding(w, r, soacialImpact.MetricBindJSON)
-	} else if soacialImpact.Blockchain == "ETHEREUM" {
-		ethereuemmetricbind.SmartContractGeneratorForMetric(w, r, soacialImpact.MetricBindJSON)
+func (socialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding(w http.ResponseWriter, r *http.Request) {
+	if socialImpact.Blockchain == "STELLAR" {
+		metricBinding.StellarMetricBinding(w, r, socialImpact.MetricBindJSON)
+	} else if socialImpact.Blockchain == "ETHEREUM" {
+		ethereuemmetricbind.SmartContractGeneratorForMetric(w, r, socialImpact.MetricBindJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Code: http.StatusNoContent, Message: "Can notsupport " + soacialImpact.Blockchain + " yet"}
+		response := model.Error{Code: http.StatusNoContent, Message: "Can not supported " + socialImpact.Blockchain + " yet"}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
