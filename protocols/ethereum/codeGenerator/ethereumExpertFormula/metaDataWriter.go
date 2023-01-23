@@ -65,7 +65,7 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 
 	//Metadata declaration
 	metaDataInitComment := "\t" + `//Metadata declaration` + "\n"
-	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.User.Publickey + `");` + "\n"
+	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.Verify.PublicKey + `");` + "\n"
 
 	//Result structure
 	resultVariable := "\n\t" + `// Result structure` +

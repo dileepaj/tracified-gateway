@@ -91,7 +91,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			TransactionUUID:     "",
 			GOstring:            "",
 			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
-			User:                formulaJSON.User,
+			User:                formulaJSON.Verify.PublicKey,
 			ErrorMessage:        "",
 		}
 
@@ -367,7 +367,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		buildQueueObj := model.SendToQueue{
 			EthereumExpertFormula: ethFormulaObj,
 			Type:                  "ETHEXPERTFORMULA",
-			User:                  formulaJSON.User,
 			Status:                "QUEUE",
 		}
 

@@ -20,7 +20,7 @@ func WriteAddDetailsFunction(element model.MetricDataBindingRequest) ([]string, 
 	functionStr += "\t" + `function addDetails() public {` + "\n"	// adding method declaration start
 
 	// loop through all the activities and get the method calls
-	for _, activity := range element.Metric.Activities {
+	for _, activity := range element.Metric.MetricActivities {
 		// add the formula ID to the array
 		formulaIDs = append(formulaIDs, activity.MetricFormula.MetricExpertFormula.ID)
 		formulaCount++

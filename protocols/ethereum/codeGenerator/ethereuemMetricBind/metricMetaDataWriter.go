@@ -82,7 +82,7 @@ func WriteMetricGeneralCodeSnippets(element model.MetricDataBindingRequest, cont
 	// Metadata declaration
 	//TODO: Metric name should be converted to base64 format before adding to the contract -> element.Metric.Name
 	metaDataInitComment := "\t" + `// Metadata declaration` + "\n"
-	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.Metric.ID + `", "` + element.Metric.Name + `", "` + element.User.TenantID + `", ` + strconv.Itoa(len(element.Metric.Activities)) + `, "` + element.User.Publickey + `");` + "\n"
+	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.Metric.ID + `", "` + element.Metric.Name + `", "` + element.User.TenantID + `", ` + strconv.Itoa(len(element.Metric.MetricActivities)) + `, "` + element.User.Publickey + `");` + "\n"
 	metaDataDeclaration := metaDataInitComment + metaDataInit
 
 	// Array to store all the values
