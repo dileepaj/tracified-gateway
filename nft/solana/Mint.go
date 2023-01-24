@@ -3,7 +3,6 @@ package solana
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -151,7 +150,6 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 		if got.Value.Err != nil {
 			log.Println(errors.New("transaction confirmation failed"))
 		} else {
-			fmt.Println("trav ata: ", &ata)
 			return &mint.PublicKey, &fromWallet.PublicKey, &sign, &ata, nil
 		}
 	}
