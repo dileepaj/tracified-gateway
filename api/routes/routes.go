@@ -532,4 +532,10 @@ var routes = Routes{
 		"/pgp/{sha256pk}",
 		businessFacades.GetRSAPublicKeyBySHA256PK,
 	},
+	Route{
+		"TransferNFTonSolana",
+		"POST",
+		"/atatransfer",
+		businessFacades.TransferNFTS, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
 }
