@@ -380,6 +380,12 @@ type NFTWithTransactionSolana struct {
 	InitialDistributorPK             string
 }
 
+type NFTTransfer struct {
+	Source      string
+	Destination string
+	MintPubKey  string
+}
+
 type MarketPlaceNFT struct {
 	Identifier                       string
 	Categories                       string
