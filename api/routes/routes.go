@@ -605,4 +605,10 @@ var routes = Routes{
 		"/pgp/getaccounts/{stellarPublicKey}",
 		businessFacades.GetPGPAccountByStellarPK,
 	},
+	Route{
+		"TransferNFTonSolana",
+		"POST",
+		"/atatransfer",
+		businessFacades.TransferNFTS, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
 }
