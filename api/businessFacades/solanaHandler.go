@@ -140,3 +140,29 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 	p.Await()
 
 }
+
+func TransferNFTS(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var MarketplaceNFT model.NFTTransfer
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&MarketplaceNFT)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(MarketplaceNFT)
+	if MarketplaceNFT.Source != "" {
+		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
+
+		transferTXNX, err := solana.TransferNFTs(WALLETSECRET, MarketplaceNFT.Source, MarketplaceNFT.Destination, MarketplaceNFT.MintPubKey)
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(transferTXNX)
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "URL Not Found in Gateway DataStore"}
+			json.NewEncoder(w).Encode(response)
+		}
+
+	}
+}
