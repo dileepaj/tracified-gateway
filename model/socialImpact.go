@@ -743,3 +743,20 @@ type MetricContractGeneral struct {
 	GetPivotFieldDetails      string
 	ContractEnd               string
 }
+
+type MetricMetadataReq struct {
+	MetricId     string
+	MetricName   string
+	TenetId      string
+	NoOfFormulas string
+	TrustNetPK   string
+}
+
+type MetricMetadataReturnStruct struct {
+	ContractHeader       string
+	ContractName         string
+	MetadataStruct       string
+	MetadataDeceleration string
+	MetadataGetter       string
+	EndOfContract        string
+}
