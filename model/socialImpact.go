@@ -751,12 +751,3 @@ type MetricMetadataReq struct {
 	NoOfFormulas string
 	TrustNetPK   string
 }
-
-type MetricMetadataReturnStruct struct {
-	ContractHeader       string
-	ContractName         string
-	MetadataStruct       string
-	MetadataDeceleration string
-	MetadataGetter       string
-	EndOfContract        string
-}

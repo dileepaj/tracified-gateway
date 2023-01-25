@@ -6,7 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (model.MetricMetadataReturnStruct, error) {
+func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (string, error) {
 
 	//contract header
 	license := `// SPDX-License-Identifier: MIT`
@@ -43,14 +43,7 @@ func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (
 	endOfGetter := "\n\t" + `}`
 	metadataGetter := metadataGetterComment + metadataGetterFunctionSignature + metadataMemoryCopy + metadataGetterReturn + endOfGetter
 
-	metadataCode := model.MetricMetadataReturnStruct{
-		ContractHeader:       license + version,
-		ContractName:         contractName,
-		MetadataStruct:       metadataStruct,
-		MetadataDeceleration: metaDataDeceleration,
-		MetadataGetter:       metadataGetter,
-		EndOfContract:        "\n" + `}`,
-	}
+	metadataCode := license + version + contractName + metadataStruct + metaDataDeceleration + metadataGetter + "\n" + `}`
 
 	return metadataCode, nil
 }
