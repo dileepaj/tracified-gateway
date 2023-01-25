@@ -770,7 +770,6 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	return nil
 }
 
-
 func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -788,7 +787,6 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 	return nil
 	//end of function
 }
-
 
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
 	session, err := cd.connect()
@@ -900,7 +898,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TemplateString:      update.TemplateString,
 		BINstring:           update.BINstring,
 		ABIstring:           update.ABIstring,
-		SetterNames: 	   	 update.SetterNames,
+		SetterNames:         update.SetterNames,
 		ContractAddress:     update.ContractAddress,
 		ContractName:        update.ContractName,
 		Status:              update.Status,
@@ -996,8 +994,8 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		TransactionSender: update.TransactionSender,
 		User:              update.User,
 		ErrorMessage:      update.ErrorMessage,
-		FormulaIDs: 	   update.FormulaIDs,
-		ValueIDs: 		   update.ValueIDs,
+		FormulaIDs:        update.FormulaIDs,
+		ValueIDs:          update.ValueIDs,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1093,6 +1091,37 @@ func (cd *Connection) UpdateTrustNetworkResetUserPassword(pkhash string, update 
 	}
 	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update model.MetricLatestContract) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.MetricLatestContract{
+		MetricID:        update.MetricID,
+		ContractAddress: update.ContractAddress,
+		Type:            update.Type,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
 }

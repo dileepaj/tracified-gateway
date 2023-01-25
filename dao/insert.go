@@ -629,3 +629,18 @@ func (cd *Connection) EthereumInsertToValueIDMap(valueIDMap model.ValueIDMap) er
 	}
 	return err
 }
+
+
+func (cd *Connection) EthereumInsertToMetricLatestContract(contractObj model.MetricLatestContract) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	_, err = c.InsertOne(context.TODO(), contractObj)
+	if err != nil {
+		logrus.Info("Error when inserting latest contract to DB " + err.Error())
+	}
+	return err
+}
