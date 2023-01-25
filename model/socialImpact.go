@@ -754,3 +754,9 @@ type MetricMetadataReq struct {
 	Metric       MetricReq
 	User         User
 }
+
+type MetricLatestContract struct {
+	MetricID        string
+	ContractAddress string
+	Type            string
+}
