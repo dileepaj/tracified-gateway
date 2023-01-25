@@ -269,6 +269,7 @@ func ReceiverRmq() error {
 					Status:            "SUCCESS",
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
+					Type:              queue.Type,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -288,13 +289,14 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
+					//todo call the insert for the type = metadata
+					//todo call the update for the type = activity
 					logrus.Info("Metric update called with SUCCESS status")
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
 					logrus.Info("Transaction hash : " + txnHash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
-
 				}
 			}
 		}
