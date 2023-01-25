@@ -724,6 +724,7 @@ type EthereumMetricBind struct {
 	Status            string
 	FormulaIDs        []string
 	ValueIDs          []string
+	Type              string
 }
 
 type MetricContractGeneral struct {
@@ -750,4 +751,6 @@ type MetricMetadataReq struct {
 	TenetId      string
 	NoOfFormulas string
 	TrustNetPK   string
+	Metric       MetricReq
+	User         User
 }
