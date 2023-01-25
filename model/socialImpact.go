@@ -758,6 +758,12 @@ type ActivityContractGeneral struct {
 	ContractEnd			   	  string
 }
 
+type MetricLatestContract struct {
+	MetricID        string
+	ContractAddress string
+	Type            string
+}
+
 type EthGeneralPivotField struct {
 	PivotStructure string
 	PivotArray     string
