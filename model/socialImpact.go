@@ -743,3 +743,17 @@ type MetricContractGeneral struct {
 	GetPivotFieldDetails      string
 	ContractEnd               string
 }
+
+type ActivityContractGeneral struct {
+	License                   string
+	PragmaLine                string
+	ContractStart             string
+	PreviousContractAddress	  string
+	PreviousContractGetter	  string
+	FormulaStructure          string
+	ValueStructure    	      string
+	ValueArray				  string
+	FormulaGetter			  string
+	ValueGetter				  string
+	ContractEnd			   	  string
+}
