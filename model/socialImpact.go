@@ -757,3 +757,9 @@ type ActivityContractGeneral struct {
 	ValueGetter				  string
 	ContractEnd			   	  string
 }
+
+type EthGeneralPivotField struct {
+	PivotStructure string
+	PivotArray     string
+	PivotGetter    string
+}

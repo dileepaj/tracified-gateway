@@ -4,7 +4,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-// For generating the solidity codes for the common struct
+// For generating the solidity codes for the common struct, arrays, and getters
 
 func WriteGeneralCode(metricID string, formulaID string) (model.ActivityContractGeneral, error) {
 
