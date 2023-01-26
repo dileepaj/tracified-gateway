@@ -1,0 +1,5 @@
+package ethereuemmetricbind
+
+func SmartContractHandlerForMetric(){
+	
+}
