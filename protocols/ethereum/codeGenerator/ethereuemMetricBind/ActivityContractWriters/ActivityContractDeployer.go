@@ -49,6 +49,11 @@ func ActivityContractDeployer(metricID string, element model.MetricDataBindActiv
 	}
 
 	//TODO: call add detail function
+	addDetailsFunction, errWhenGettingAddDetailsFunction := AddDetailsMethodWriter(element)
+	if errWhenGettingAddDetailsFunction != nil {
+		logrus.Error("Error when generating add details function for activity contract : ", errWhenGettingAddDetailsFunction)
+		return errWhenGettingAddDetailsFunction
+	}
 
 	//!File structure should be a follows
 	//License
@@ -64,7 +69,7 @@ func ActivityContractDeployer(metricID string, element model.MetricDataBindActiv
 	//value getter
 	//pivot getter
 
-	template := generalCodes.License + generalCodes.PragmaLine + generalCodes.ContractStart + generalCodes.FormulaStructure + generalCodes.ValueStructure + pivotCode.PivotStructure + generalCodes.ValueArray + pivotCode.PivotArray + previousCode.Setter + formulaDeceleration + previousCode.Getter + generalCodes.FormulaGetter + generalCodes.ValueGetter + pivotCode.PivotGetter + generalCodes.ContractEnd
+	template := generalCodes.License + generalCodes.PragmaLine + generalCodes.ContractStart + generalCodes.FormulaStructure + generalCodes.ValueStructure + pivotCode.PivotStructure + generalCodes.ValueArray + pivotCode.PivotArray + previousCode.Setter + formulaDeceleration + addDetailsFunction + previousCode.Getter + generalCodes.FormulaGetter + generalCodes.ValueGetter + pivotCode.PivotGetter + generalCodes.ContractEnd
 
 	//generate the solidity file in the specified location
 	contractName := generalCodes.ContractName
