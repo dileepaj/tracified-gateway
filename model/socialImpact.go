@@ -745,6 +745,20 @@ type MetricContractGeneral struct {
 	ContractEnd               string
 }
 
+type ActivityContractGeneral struct {
+	License                 string
+	PragmaLine              string
+	ContractStart           string
+	PreviousContractAddress string
+	PreviousContractGetter  string
+	FormulaStructure        string
+	ValueStructure          string
+	ValueArray              string
+	FormulaGetter           string
+	ValueGetter             string
+	ContractEnd             string
+}
+
 type MetricMetadataReq struct {
 	MetricId     string
 	MetricName   string
@@ -759,4 +773,10 @@ type MetricLatestContract struct {
 	MetricID        string
 	ContractAddress string
 	Type            string
+}
+
+type EthGeneralPivotField struct {
+	PivotStructure string
+	PivotArray     string
+	PivotGetter    string
 }
