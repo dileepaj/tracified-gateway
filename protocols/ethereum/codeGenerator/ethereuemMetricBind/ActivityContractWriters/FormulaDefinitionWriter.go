@@ -26,7 +26,7 @@ func GetFormulaDefinitionCode(element model.MetricDataBindActivityRequest) (stri
 	for _, value := range element.MetricFormula.Formula {
 		valueIDs = append(valueIDs, value.ID)
 	}
-	valueIDsString = strings.Join(valueIDs, ", ")
+	valueIDsString := strings.Join(valueIDs, ", ")
 
 	formulaDefinitionStart := `Formula private formula = Formula(`
 	formulaIDCode := `"` + element.MetricFormula.ID + `", `
