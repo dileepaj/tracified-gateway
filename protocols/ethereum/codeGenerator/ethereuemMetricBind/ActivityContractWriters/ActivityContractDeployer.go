@@ -19,7 +19,7 @@ func ActivityContractDeployer(metricID string, element model.MetricDataBindActiv
 	reqType := "ACTIVITY"
 
 	//call the general code writer
-	generalCodes, errWhenGettingGeneralCodes := WriteGeneralCode(metricID, element.MetricFormula.ID)
+	generalCodes, errWhenGettingGeneralCodes := WriteGeneralCode(metricID, element.MetricFormula.MetricExpertFormula.ID)
 	if errWhenGettingGeneralCodes != nil {
 		logrus.Error("Error when generating general code for activity contract : ", errWhenGettingGeneralCodes)
 		return errWhenGettingGeneralCodes
@@ -121,6 +121,7 @@ func ActivityContractDeployer(metricID string, element model.MetricDataBindActiv
 		User:              userElement,
 		ErrorMessage:      "",
 		Status:            "",
+		FormulaID:         element.MetricFormula.MetricExpertFormula.ID,
 	}
 
 	buildQueueObject := model.SendToQueue{

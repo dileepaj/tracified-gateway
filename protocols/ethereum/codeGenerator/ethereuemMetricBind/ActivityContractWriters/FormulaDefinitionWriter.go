@@ -16,7 +16,7 @@ import (
 
 func GetFormulaDefinitionCode(element model.MetricDataBindActivityRequest) (string, error) {
 	// Get the contract address of the formula
-	contractAddress, errInGettingContractAddress := GetFormulaContractAddress(element.MetricFormula.ID)
+	contractAddress, errInGettingContractAddress := GetFormulaContractAddress(element.MetricFormula.MetricExpertFormula.ID)
 	if errInGettingContractAddress != nil {
 		return "", errInGettingContractAddress
 	}
@@ -29,7 +29,7 @@ func GetFormulaDefinitionCode(element model.MetricDataBindActivityRequest) (stri
 	valueIDsString := strings.Join(valueIDs, ", ")
 
 	formulaDefinitionStart := `Formula private formula = Formula(`
-	formulaIDCode := `"` + element.MetricFormula.ID + `", `
+	formulaIDCode := `"` + element.MetricFormula.MetricExpertFormula.ID + `", `
 	contractAddressCode := `"` + contractAddress + `", `
 	noOfValuesCode := strconv.Itoa(len(element.MetricFormula.Formula)) + `, `
 	activityIDCode := `"` + element.ID + `", `

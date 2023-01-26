@@ -725,6 +725,7 @@ type EthereumMetricBind struct {
 	FormulaIDs        []string
 	ValueIDs          []string
 	Type              string
+	FormulaID         string
 }
 
 type MetricContractGeneral struct {

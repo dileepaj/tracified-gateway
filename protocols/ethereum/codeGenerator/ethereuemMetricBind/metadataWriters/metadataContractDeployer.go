@@ -72,6 +72,7 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 		User:              element.User,
 		ErrorMessage:      "",
 		Status:            "",
+		FormulaID:         "",
 	}
 
 	buildQueueObject := model.SendToQueue{
