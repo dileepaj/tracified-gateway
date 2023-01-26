@@ -765,7 +765,7 @@ type MetricMetadataReq struct {
 	MetricId     string
 	MetricName   string
 	TenetId      string
-	NoOfFormulas string
+	NoOfFormulas int
 	TrustNetPK   string
 	Metric       MetricReq
 	User         User

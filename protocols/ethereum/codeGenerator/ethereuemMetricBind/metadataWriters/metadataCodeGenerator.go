@@ -2,6 +2,7 @@ package metadatawriters
 
 import (
 	"encoding/base64"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/model"
 )
@@ -32,7 +33,7 @@ func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (
 
 	//metadata deceleration call
 	metadataDecelerationComment := "\n\n\t" + `// Metadata declaration`
-	metadataDecelerationCall := "\n\t" + `Metadata metadata = Metadata(` + element.MetricId + `,` + metricNameB64 + `,` + element.TenetId + `,` + element.NoOfFormulas + `,` + element.TrustNetPK + `);`
+	metadataDecelerationCall := "\n\t" + `Metadata metadata = Metadata(` + element.MetricId + `,` + metricNameB64 + `,` + element.TenetId + `,` + strconv.Itoa(element.NoOfFormulas) + `,` + element.TrustNetPK + `);`
 	metaDataDeceleration := metadataDecelerationComment + metadataDecelerationCall
 
 	//metadata getter method

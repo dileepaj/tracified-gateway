@@ -2715,3 +2715,24 @@ func (cd *Connection)  GetEthereumMetricLatestContract (metricID string) *promis
 	})
 	return p
 }
+
+func (cd *Connection)  GetEthMetricByMetricIdAndType (metricID string, contractType string) *promise.Promise {
+	result := model.MetricLatestContract{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err1 := c.FindOne(context.TODO(), bson.M{"metricid": metricID, "type": contractType}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting latest metric contract address from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
