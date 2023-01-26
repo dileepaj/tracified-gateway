@@ -8,24 +8,24 @@ import "github.com/dileepaj/tracified-gateway/model"
 func WritePivotCommonCode() (model.EthGeneralPivotField, error) {
 
 	// pivot struct
-	structComment := "// Pivot structure"
-	structStart := "struct Pivot {"
-	name := "string name;"
-	key := "string key;		// converted value to base64"
-	value := "string value;"
-	structEnd := "}"
+	structComment := "\t" + "// Pivot structure"
+	structStart := "\t" + "struct Pivot {"
+	name := "\t\t" + "string name;"
+	key := "\t\t" + "string key;		// converted value to base64"
+	value := "\t\t" + "string value;"
+	structEnd := "\t" + "}"
 	pivotStruct := structComment + "\n" + structStart + "\n" + name + "\n" + key + "\n" + value + "\n" + structEnd + "\n\n"
 
 	// pivot array
-	arrayComment := "// Array to store all the pivot fields of the formula"
-	arrayDeclaration := "Pivot[] private allPivotFields;"
+	arrayComment := "\t" + "// Array to store all the pivot fields of the formula"
+	arrayDeclaration := "\t" + "Pivot[] private allPivotFields;"
 	pivotArray := arrayComment + "\n" + arrayDeclaration + "\n\n"
 
 	// pivot getter
-	getterComment := "// Getter for retrieving all pivot fields"
-	getter := "function getPivotFields() public view returns (Pivot[] memory) {"
-	getterReturn := "return allPivotFields;"
-	getterEnd := "}"
+	getterComment := "\t" + "// Getter for retrieving all pivot fields"
+	getter := "\t" + "function getPivotFields() public view returns (Pivot[] memory) {"
+	getterReturn := "\t\t" + "return allPivotFields;"
+	getterEnd := "\t" + "}"
 	pivotGetter := getterComment + "\n" + getter + "\n" + getterReturn + "\n" + getterEnd + "\n\n"
 
 	pivotFieldCommonCode := model.EthGeneralPivotField{

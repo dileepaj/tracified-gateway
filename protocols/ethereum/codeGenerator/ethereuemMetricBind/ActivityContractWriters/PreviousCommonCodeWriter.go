@@ -13,12 +13,12 @@ func WritePreviousCommonCode(metricID string) (string, error) {
 	}
 
 	// variable declaration and initialization
-	codesForPreviousContract += `string private previousContractAddress = "`+ previousContractAddress + `";	//previous contract address` + "\n"
+	codesForPreviousContract += "\t" + `string private previousContractAddress = "`+ previousContractAddress + `";	//previous contract address` + "\n"
 
 	// getter
-	codesForPreviousContract += `function getPreviousContractAddress() public view returns (string memory) {` + "\n"
-	codesForPreviousContract += `return previousContractAddress;` + "\n"
-	codesForPreviousContract += `}` + "\n"
+	codesForPreviousContract += "\t" + `function getPreviousContractAddress() public view returns (string memory) {` + "\n"
+	codesForPreviousContract += "\t\t" + `return previousContractAddress;` + "\n"
+	codesForPreviousContract += "\t" + `}` + "\n"
 
 	return codesForPreviousContract, nil
 }
