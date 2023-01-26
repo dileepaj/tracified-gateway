@@ -72,6 +72,7 @@ func WriteGeneralCode(metricID string, formulaID string) (model.ActivityContract
 		FormulaGetter:    formulaGetterCode,
 		ValueGetter:      valueGetterCode,
 		ContractEnd:      `}`,
+		ContractName:     contractName,
 	}
 
 	return activity, nil

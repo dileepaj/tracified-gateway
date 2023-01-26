@@ -15,18 +15,18 @@ import (
 // Create the formula definition code and return it
 
 func GetFormulaDefinitionCode(element model.MetricDataBindActivityRequest) (string, error) {
-	// Get the contract address of the formula 
+	// Get the contract address of the formula
 	contractAddress, errInGettingContractAddress := GetFormulaContractAddress(element.MetricFormula.ID)
 	if errInGettingContractAddress != nil {
 		return "", errInGettingContractAddress
 	}
 
 	// Getting value IDs string
-	valueIDs := []string{} 
+	valueIDs := []string{}
 	for _, value := range element.MetricFormula.Formula {
 		valueIDs = append(valueIDs, value.ID)
 	}
-	valueIDsString = strings.Join(valueIDs, ", ")
+	valueIDsString := strings.Join(valueIDs, ", ")
 
 	formulaDefinitionStart := `Formula private formula = Formula(`
 	formulaIDCode := `"` + element.MetricFormula.ID + `", `

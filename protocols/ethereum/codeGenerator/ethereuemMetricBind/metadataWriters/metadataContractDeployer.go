@@ -74,7 +74,6 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 		Status:            "",
 	}
 
-	//!check the type in eth object within the queue function to do other functionalities
 	buildQueueObject := model.SendToQueue{
 		EthereumMetricBind: ethMetricMetadataObj,
 		Type:               "ETHMETRICBIND",
