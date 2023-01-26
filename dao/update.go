@@ -996,6 +996,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		ErrorMessage:      update.ErrorMessage,
 		FormulaIDs:        update.FormulaIDs,
 		ValueIDs:          update.ValueIDs,
+		FormulaID:         update.FormulaID,
 	}
 
 	pByte, err := bson.Marshal(up)

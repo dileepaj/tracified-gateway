@@ -35,13 +35,13 @@ func WriteGeneralCode(metricID string, formulaID string) (model.ActivityContract
 	keyName := "\t\t" + `string keyName;		// converted value to base64` + "\n"
 	tdpType := "\t\t" + `string tdpType;` + "\n"
 	bindingType := "\t\t" + `int bindingType;` + "\n"
-	artifactID := "\t\t" + `string artifactID;` + "\n"
 	primaryKeyRowID := "\t\t" + `string primaryKeyRowID;` + "\n"
+	artifactTemplateID := "\t\t" + `string artifactTemplateID;` + "\n"
 	artifactTemplateName := "\t\t" + `string artifactTemplateName;	// converted value to base64` + "\n"
 	fieldKey := "\t\t" + `string fieldKey;		// converted value to base64` + "\n"
 	fieldName := "\t\t" + `string fieldName;		// converted value to base64` + "\n"
 	valueStructEnd := "\t" + `}` + "\n\n"
-	valueStruct := valueStructComment + valueStructStart + valueID + valueName + workflowID + stageID + stageName + keyName + tdpType + bindingType + artifactID + primaryKeyRowID + artifactTemplateName + fieldKey + fieldName + valueStructEnd
+	valueStruct := valueStructComment + valueStructStart + valueID + valueName + workflowID + stageID + stageName + keyName + tdpType + bindingType + primaryKeyRowID + artifactTemplateID + artifactTemplateName + fieldKey + fieldName + valueStructEnd
 
 	// Value array
 	valueArrayComment := "\t" + `// Array to store all the values` + "\n"
@@ -72,6 +72,7 @@ func WriteGeneralCode(metricID string, formulaID string) (model.ActivityContract
 		FormulaGetter:    formulaGetterCode,
 		ValueGetter:      valueGetterCode,
 		ContractEnd:      `}`,
+		ContractName:     contractName,
 	}
 
 	return activity, nil

@@ -72,9 +72,9 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 		User:              element.User,
 		ErrorMessage:      "",
 		Status:            "",
+		FormulaID:         "",
 	}
 
-	//!check the type in eth object within the queue function to do other functionalities
 	buildQueueObject := model.SendToQueue{
 		EthereumMetricBind: ethMetricMetadataObj,
 		Type:               "ETHMETRICBIND",

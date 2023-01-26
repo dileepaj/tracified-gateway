@@ -271,6 +271,7 @@ func ReceiverRmq() error {
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.Type,
+					FormulaID:         queue.EthereumExpertFormula.FormulaID,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status

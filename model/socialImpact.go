@@ -725,6 +725,7 @@ type EthereumMetricBind struct {
 	FormulaIDs        []string
 	ValueIDs          []string
 	Type              string
+	FormulaID         string
 }
 
 type MetricContractGeneral struct {
@@ -757,6 +758,7 @@ type ActivityContractGeneral struct {
 	FormulaGetter           string
 	ValueGetter             string
 	ContractEnd             string
+	ContractName            string
 }
 
 type MetricMetadataReq struct {
@@ -779,4 +781,9 @@ type EthGeneralPivotField struct {
 	PivotStructure string
 	PivotArray     string
 	PivotGetter    string
+}
+
+type PreviousCode struct {
+	Setter string
+	Getter string
 }
