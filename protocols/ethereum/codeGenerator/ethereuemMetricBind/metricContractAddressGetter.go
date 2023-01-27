@@ -8,22 +8,24 @@ import (
 
 // get the status of the metric smart contract from the DB by metric ID
 
-func GetMetricSmartContractStatus(metricId string, contractType string) (string, error) {
+func GetMetricSmartContractStatus(metricId string, contracttype string) (string, model.EthereumMetricBind, error) {
 	object := dao.Connection{}
 	var status string
+	var metricObject model.EthereumMetricBind
 
-	metricDetails, errWhenGettingMetricStatus := object.GetEthMetricByMetricIdAndType(metricId, contractType).Then(func(data interface{}) interface{} {
+	metricDetails, errWhenGettingMetricStatus := object.GetEthMetricStatus(metricId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenGettingMetricStatus != nil {
 		logrus.Error("An error occurred when getting metric status ", errWhenGettingMetricStatus)
-		return "", errWhenGettingMetricStatus
+		return "", model.EthereumMetricBind{}, errWhenGettingMetricStatus
 	}
 	if metricDetails == nil {
 		status = ""
 	} else {
-		status = metricDetails.(model.EthereumMetricBind).Status
+		metricObject = metricDetails.(model.EthereumMetricBind)
+		status = metricObject.Status
 	}
 
-	return status, nil
+	return status, metricObject, nil
 }
