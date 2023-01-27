@@ -9,7 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	activityWriters "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind/activityContractWriters"
+	activityWriters "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind/ActivityContractWriters"
 	metadataWriters "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind/metadataWriters"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
 	"github.com/oklog/ulid"
@@ -63,8 +63,8 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	}
 	metricMapIDString := strconv.FormatUint(metricMapId, 10)
 
-	contractName := "Metric_" + metricMapIDString
-	ethMetricObjForMetaData.ContractName = contractName
+	metadataContractName := "Metric_" + metricMapIDString
+	ethMetricObjForMetaData.ContractName = metadataContractName
 
 	// get the status of the metric metadata contract
 	status, metricDetails, errWhenGettingMetadataContractStatus := GetMetricSmartContractStatus(metricBindJson.Metric.ID, "METADATA")
@@ -163,7 +163,17 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 				// check the index of the loop, if it is not 0 then check the index-1 activity contract status from the metric collection
 				// if the status is SUCCESS then deploy the activity contract
 
-				errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricBindJson.Metric.ID, activity, metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
+				// get the formula map id form DB
+				formulaMapID, errWhenGettingFormulaMapId := GetFormulaMapId(activity.MetricFormula.MetricExpertFormula.ID)
+				if errWhenGettingFormulaMapId != nil {
+					logrus.Info(errWhenGettingFormulaMapId)
+					return
+				}
+				formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
+				activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
+				_ = activityContractName
+
+				errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activity, metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
 				if errWhenDeployingActivityContract != nil {
 					// TODO: handle the error
 					logrus.Info(errWhenDeployingActivityContract)
