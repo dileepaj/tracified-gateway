@@ -3,6 +3,7 @@ package ethereuemmetricbind
 import (
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -54,7 +55,15 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 		FormulaID:         "",
 	}
 
-	contractName := "Metric_" + metricBindJson.Metric.ID
+	// get metric map id
+	metricMapId, errWhenGettingMetricMapId := GetMetricMapId(metricBindJson.Metric.ID)
+	if errWhenGettingMetricMapId != nil {
+		logrus.Info(errWhenGettingMetricMapId)
+		return
+	}
+	metricMapIDString := strconv.FormatUint(metricMapId, 10)
+
+	contractName := "Metric_" + metricMapIDString
 	ethMetricObjForMetaData.ContractName = contractName
 
 	// get the status of the metric metadata contract
@@ -95,7 +104,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 	if status == "" || status == "FAILED" {
 		// deploy the smart contract for meta data
-		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricBindJson.Metric.ID)
+		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString)
 		if errWhenDeployingMetaDataSmartContract != nil {
 			ethMetricObjForMetaData.ErrorMessage = errWhenDeployingMetaDataSmartContract.Error()
 			ethMetricObjForMetaData.Status = "FAILED"

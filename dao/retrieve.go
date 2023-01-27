@@ -2736,3 +2736,24 @@ func (cd *Connection)  GetEthMetricByMetricIdAndType (metricID string, contractT
 	})
 	return p
 }
+
+func (cd Connection) GetEthMetricMapID(metricID string) *promise.Promise {
+	result := model.EthMetricIDMap{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumMetricIDMap")
+		err1 := c.FindOne(context.TODO(), bson.M{"metricid": metricID}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting Metric ID Map from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}

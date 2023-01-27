@@ -644,3 +644,17 @@ func (cd *Connection) EthereumInsertToMetricLatestContract(contractObj model.Met
 	}
 	return err
 }
+
+func (cd *Connection) InsertEthMetricIDMap(metricIDMap model.EthMetricIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumMetricIDMap")
+	_, err = c.InsertOne(context.TODO(), metricIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting metric id to DB " + err.Error())
+	}
+	return err
+}

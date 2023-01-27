@@ -787,3 +787,8 @@ type PreviousCode struct {
 	Setter string
 	Getter string
 }
+
+type EthMetricIDMap struct {
+	MetricID string
+	MapID    uint64
+}
