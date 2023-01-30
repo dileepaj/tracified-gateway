@@ -41,7 +41,7 @@ func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (
 	metadataGetterFunctionSignature := "\n\t" + `function metadataGetter() public view returns(Metadata memory) {`
 	metadataMemoryCopy := "\n\t\t" + `Metadata metadata;`
 	endOfGetter := "\n\t" + `}`
-	metadataGetter := metadataGetterComment + metadataGetterFunctionSignature + metadataMemoryCopy + metadataGetterReturn + endOfGetter
+	metadataGetter := metadataGetterComment + metadataGetterFunctionSignature + metadataMemoryCopy + endOfGetter
 
 	metadataCode := license + version + contractName + metadataStruct + metaDataDeceleration + metadataGetter + "\n" + `}`
 
