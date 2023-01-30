@@ -11,8 +11,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	activityWriters "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind/ActivityContractWriters"
 	metadataWriters "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind/metadataWriters"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
 	"github.com/oklog/ulid"
+	"github.com/sirupsen/logrus"
 )
 
 func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metricBindJson model.MetricDataBindingRequest) {
@@ -126,7 +126,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 			logrus.Info(errWhenDeployingMetaDataSmartContract)
 			return
 		} else {
-			ethMetricObjForMetaData.Status = "SUCCESS"
+			ethMetricObjForMetaData.Status = "QUEUE"
 			// update the metric object in the database
 			if status == "FAILED" {
 				errWhenUpdatingMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForMetaData.MetricID, ethMetricObjForMetaData.TransactionUUID, ethMetricObjForMetaData)
@@ -150,34 +150,69 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	if errWhenGettingMetadataContractStatus != nil {
 		// TODO: handle the error
 		logrus.Info(errWhenGettingMetadataContractStatus)
-		return
+		//TODO : assign to a boolean variable and will be checked before deploying first activity
 	}
 
 	// check if the status is SUCCESS or not, if SUCCESS then proceed to create the smart contract for the metric activities
 	// TODO: handle status QUEUE
 	if status == "SUCCESS" {
 		if len(activities) > 0 {
-			for _, activity := range activities {
-				// TODO: validation to check whether the contract is already deployed or not(metric collection) using metric id and formula id
-				// if it is deployed then skip the deployment
-				// check the index of the loop, if it is not 0 then check the index-1 activity contract status from the metric collection
-				// if the status is SUCCESS then deploy the activity contract
 
-				// get the formula map id form DB
-				formulaMapID, errWhenGettingFormulaMapId := GetFormulaMapId(activity.MetricFormula.MetricExpertFormula.ID)
-				if errWhenGettingFormulaMapId != nil {
-					logrus.Info(errWhenGettingFormulaMapId)
+			for i := 0; i < len(activities); i++ {
+				//check if the contract for the this metric ID + formula ID + type deployed
+				formulaStatus, formulaDetails, errWhenGettingFormulaStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i].MetricFormula.MetricExpertFormula.ID)
+				if errWhenGettingFormulaStatus != nil {
+					//TODO: handle error
+					logrus.Info(errWhenGettingMetadataContractStatus)
 					return
 				}
-				formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
-				activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
-				_ = activityContractName
 
-				errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activity, metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
-				if errWhenDeployingActivityContract != nil {
-					// TODO: handle the error
-					logrus.Info(errWhenDeployingActivityContract)
+				logrus.Info(formulaDetails)
+
+				//todo : handle the DB update and insert with UUID
+
+				if formulaStatus == "SUCCESS" || formulaStatus == "QUEUE" {
+					//skip this loop and go to next formula
+					continue
+				} else if formulaStatus == "" || formulaStatus == "FAILED" {
+					//check the index of the loop to skip the checking of the previous formula deployment
+					var canCallNextDeployment bool
+					if i != 0 {
+						//check the previous formula contract deployment status
+						previousStatus, _, errWhenGettingPreviousStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i-1].MetricFormula.MetricExpertFormula.ID)
+						if errWhenGettingPreviousStatus != nil {
+							//TODO: handle error
+							logrus.Info(errWhenGettingMetadataContractStatus)
+							return
+						}
+						if previousStatus == "SUCCESS" {
+							canCallNextDeployment = true
+						} else if previousStatus == "FAILED" || previousStatus == "" || previousStatus == "QUEUE" {
+							canCallNextDeployment = false
+						}
+					} else if i == 0 {
+						canCallNextDeployment = true
+					}
+
+					if canCallNextDeployment {
+						// get the formula map id form DB
+						formulaMapID, errWhenGettingFormulaMapId := GetFormulaMapId(activities[i].MetricFormula.MetricExpertFormula.ID)
+						if errWhenGettingFormulaMapId != nil {
+							logrus.Info(errWhenGettingFormulaMapId)
+							return
+						}
+						formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
+						activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
+						_ = activityContractName
+
+						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
+						if errWhenDeployingActivityContract != nil {
+							// TODO: handle the error
+							logrus.Info(errWhenDeployingActivityContract)
+						}
+					}
 				}
+
 			}
 		}
 	}

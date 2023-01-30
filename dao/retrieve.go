@@ -2579,7 +2579,6 @@ func (cd *Connection) GetTrustNetWorkUserbyEmail(email string) *promise.Promise 
 	return p
 }
 
-
 func (cd *Connection) GetPGPAccountByStellarPK(StellarPK string) *promise.Promise {
 	result := model.PGPAccount{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -2670,6 +2669,7 @@ func (cd *Connection) EthereumGetValueMapID(valueID, formulaId string) *promise.
 	})
 	return p
 }
+
 // GET pass numbered identifiers and get real identifers
 // mapvalues - numbered identifiers
 // identifers - real identifier
@@ -2695,7 +2695,7 @@ func (cd *Connection) GetIdentifierMap(mapIdentifiers []string) *promise.Promise
 	return p
 }
 
-func (cd *Connection)  GetEthereumMetricLatestContract (metricID string) *promise.Promise {
+func (cd *Connection) GetEthereumMetricLatestContract(metricID string) *promise.Promise {
 	result := model.MetricLatestContract{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -2716,7 +2716,7 @@ func (cd *Connection)  GetEthereumMetricLatestContract (metricID string) *promis
 	return p
 }
 
-func (cd *Connection)  GetEthMetricByMetricIdAndType (metricID string, contractType string) *promise.Promise {
+func (cd *Connection) GetEthMetricByMetricIdAndType(metricID string, contractType string) *promise.Promise {
 	result := model.MetricLatestContract{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -2753,6 +2753,29 @@ func (cd Connection) GetEthMetricMapID(metricID string) *promise.Promise {
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType string, formulaID string) *promise.Promise {
+	var ethMetric model.EthereumMetricBind
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Error("Error when connecting to DB " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err = c.FindOne(context.TODO(), bson.M{"metricid": metricID, "type": contractType, "formulaid": formulaID}).Decode(&ethMetric)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(ethMetric)
 		}
 	})
 	return p
