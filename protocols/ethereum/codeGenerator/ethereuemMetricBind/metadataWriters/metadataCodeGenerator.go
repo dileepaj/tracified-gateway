@@ -39,7 +39,7 @@ func MetricMetadataWriter(element model.MetricMetadataReq, metricMapID string) (
 	//metadata getter method
 	metadataGetterComment := "\n\n\t" + `// Metadata getter`
 	metadataGetterFunctionSignature := "\n\t" + `function metadataGetter() public view returns(Metadata memory) {`
-	metadataMemoryCopy := "\n\t\t" + `Metadata metadata;`
+	metadataMemoryCopy := "\n\t\t" + `return metadata;`
 	endOfGetter := "\n\t" + `}`
 	metadataGetter := metadataGetterComment + metadataGetterFunctionSignature + metadataMemoryCopy + endOfGetter
 
