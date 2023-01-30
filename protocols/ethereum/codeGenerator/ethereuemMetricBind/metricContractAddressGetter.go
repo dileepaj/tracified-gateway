@@ -3,7 +3,7 @@ package ethereuemmetricbind
 import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 var object = dao.Connection{}

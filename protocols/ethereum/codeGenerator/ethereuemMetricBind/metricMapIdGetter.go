@@ -5,7 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
 )
 
 // to get the metric map id from the DB
@@ -21,7 +21,7 @@ func GetMetricMapId(metricID string) (uint64, error) {
 		logrus.Info("Error when retrieving metric id from DB. Error: " + errInMetricIDMap.Error())
 	}
 	if metricIDMap == nil {
-		logrus.Error("Artifact ID " + metricID + " is not recorded in the DB")
+		logrus.Error("Metric ID " + metricID + " is not recorded in the DB")
 		data, errWhenGettingTheSequence := object.GetNextSequenceValue("ETHMETRICID")
 		if errWhenGettingTheSequence != nil {
 			logrus.Error("Error when taking the sequence number. Error : " + errWhenGettingTheSequence.Error())

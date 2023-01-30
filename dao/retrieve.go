@@ -2717,7 +2717,7 @@ func (cd *Connection) GetEthereumMetricLatestContract(metricID string) *promise.
 }
 
 func (cd *Connection) GetEthMetricByMetricIdAndType(metricID string, contractType string) *promise.Promise {
-	result := model.MetricLatestContract{}
+	result := model.EthereumMetricBind{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
