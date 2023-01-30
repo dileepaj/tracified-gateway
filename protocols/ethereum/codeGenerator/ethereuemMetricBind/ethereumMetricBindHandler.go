@@ -1,6 +1,7 @@
 package ethereuemmetricbind
 
 import (
+	"encoding/json"
 	"math/rand"
 	"net/http"
 	"strconv"
@@ -59,8 +60,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	// get metric map id
 	metricMapId, errWhenGettingMetricMapId := GetMetricMapId(metricBindJson.Metric.ID)
 	if errWhenGettingMetricMapId != nil {
-		//TODO: only show the log message
-		logrus.Info(errWhenGettingMetricMapId)
+		logrus.Error("Error when getting metric map ID : ", errWhenGettingMetricMapId)
 	}
 	metricMapIDString := strconv.FormatUint(metricMapId, 10)
 
@@ -70,8 +70,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	// get the status of the metric metadata contract
 	status, metricDetails, errWhenGettingMetadataContractStatus := GetMetricSmartContractStatus(metricBindJson.Metric.ID, "METADATA")
 	if errWhenGettingMetadataContractStatus != nil {
-		// TODO: only handle the log message
-		logrus.Info(errWhenGettingMetadataContractStatus)
+		logrus.Error("Error when getting metadata contract status : ", errWhenGettingMetadataContractStatus)
 	}
 
 	if status == "SUCCESS" {
@@ -110,20 +109,21 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 				// store the metric object in the database
 				errWhenStoringMetricObj := object.InsertToEthMetricDetails(ethMetricObjForMetaData)
 				if errWhenStoringMetricObj != nil {
-					//TODO: handle error on response
-					logrus.Info(errWhenStoringMetricObj)
+					logrus.Info("Error when inserting to metric collection : ", errWhenStoringMetricObj)
+					commons.JSONErrorReturn(w, r, errWhenStoringMetricObj.Error(), 500, "Error when inserting to metric collection : ")
 					return
 				}
 			} else if status == "FAILED" {
 				// update the metric object in the database
 				errWhenUpdatingMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForMetaData.MetricID, ethMetricObjForMetaData.TransactionUUID, ethMetricObjForMetaData)
 				if errWhenUpdatingMetricObj != nil {
-					//TODO: handle error on response
-					logrus.Info(errWhenUpdatingMetricObj)
+					logrus.Info("Error when updating the metric collection : ", errWhenUpdatingMetricObj)
+					commons.JSONErrorReturn(w, r, errWhenUpdatingMetricObj.Error(), 500, "Error when updating the metric collection : ")
 					return
 				}
 			}
-			logrus.Info(errWhenDeployingMetaDataSmartContract)
+			logrus.Info("Error when deploying metadata metric contract : ", errWhenDeployingMetaDataSmartContract)
+			commons.JSONErrorReturn(w, r, errWhenDeployingMetaDataSmartContract.Error(), 500, "Error when deploying metadata metric contract : ")
 			return
 		} else {
 			ethMetricObjForMetaData.Status = "QUEUE"
@@ -131,17 +131,21 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 			if status == "FAILED" {
 				errWhenUpdatingMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForMetaData.MetricID, ethMetricObjForMetaData.TransactionUUID, ethMetricObjForMetaData)
 				if errWhenUpdatingMetricObj != nil {
-					//TODO: handle error on response
-					logrus.Info(errWhenUpdatingMetricObj)
-					return
+					if errWhenUpdatingMetricObj != nil {
+						logrus.Info("Error when updating the metric collection : ", errWhenUpdatingMetricObj)
+						commons.JSONErrorReturn(w, r, errWhenUpdatingMetricObj.Error(), 500, "Error when updating the metric collection : ")
+						return
+					}
 				}
 			} else if status == "" {
 				// store the metric object in the database
 				errWhenStoringMetricObj := object.InsertToEthMetricDetails(ethMetricObjForMetaData)
 				if errWhenStoringMetricObj != nil {
-					//TODO: handle error on response
-					logrus.Info(errWhenStoringMetricObj)
-					return
+					if errWhenStoringMetricObj != nil {
+						logrus.Info("Error when inserting to metric collection : ", errWhenStoringMetricObj)
+						commons.JSONErrorReturn(w, r, errWhenStoringMetricObj.Error(), 500, "Error when inserting to metric collection : ")
+						return
+					}
 				}
 			}
 		}
@@ -150,22 +154,20 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	// get the status of the metric metadata contract after deploying(/redeploying) the contract
 	status, metricDetails, errWhenGettingMetadataContractStatus = GetMetricSmartContractStatus(metricBindJson.Metric.ID, "METADATA")
 	if errWhenGettingMetadataContractStatus != nil {
-		// TODO: handle the error in response
-		logrus.Info(errWhenGettingMetadataContractStatus)
+		logrus.Info("Error when getting metadata contract details from metric collection : ", errWhenGettingMetadataContractStatus)
+		commons.JSONErrorReturn(w, r, errWhenGettingMetadataContractStatus.Error(), 500, "Error when getting metadata contract details from metric collection : ")
 		return
 	}
 
 	// check if the status is SUCCESS or not, if SUCCESS then proceed to create the smart contract for the metric activities
-	// TODO: handle status QUEUE
-	if status == "SUCCESS" {
+	if status == "SUCCESS" || status == "QUEUE" {
 		canCallNextDeployment = true
 		if len(activities) > 0 {
 			for i := 0; i < len(activities); i++ {
 				//check if the contract for the this metric ID + formula ID + type deployed
 				formulaStatus, formulaDetails, errWhenGettingFormulaStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i].MetricFormula.MetricExpertFormula.ID)
 				if errWhenGettingFormulaStatus != nil {
-					//TODO only add a log message, should not fail if formulas are empty
-					logrus.Info(errWhenGettingMetadataContractStatus)
+					logrus.Info("Error when getting activity contract status : ", errWhenGettingMetadataContractStatus)
 				}
 
 				if formulaStatus == "SUCCESS" || formulaStatus == "QUEUE" {
@@ -218,20 +220,21 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 								//insert to DB
 								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
 								if errWhenInsertingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenInsertingFormulaMetricObj)
+									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
 									return
 								}
 							} else {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 								if errWhenUpdatingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenUpdatingFormulaMetricObj)
+									logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
 									return
 								}
 							}
-							logrus.Info(errWhenGettingMetadataContractStatus)
+							logrus.Info("Error when getting previous contract status : ", errWhenGettingPreviousStatus)
+							commons.JSONErrorReturn(w, r, errWhenGettingPreviousStatus.Error(), 500, "Error when getting previous contract status : ")
 							return
 						}
 						if previousStatus == "SUCCESS" {
@@ -251,21 +254,20 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 								//insert to DB
 								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
 								if errWhenInsertingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenInsertingFormulaMetricObj)
+									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
 									return
 								}
 							} else {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 								if errWhenUpdatingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenUpdatingFormulaMetricObj)
+									logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
 									return
 								}
 							}
-							logrus.Info(errWhenGettingFormulaMapId)
-							return
+							logrus.Info("Error when getting formula map ID : ", errWhenGettingFormulaMapId)
 						}
 						formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
 						activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
@@ -279,20 +281,21 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 								//insert to DB
 								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
 								if errWhenInsertingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenInsertingFormulaMetricObj)
+									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
 									return
 								}
 							} else {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 								if errWhenUpdatingFormulaMetricObj != nil {
-									//TODO:handle error on response
-									logrus.Info(errWhenUpdatingFormulaMetricObj)
+									logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
+									commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
 									return
 								}
 							}
-							logrus.Info(errWhenDeployingActivityContract)
+							logrus.Info("Error when deploying activity contract : ", errWhenDeployingActivityContract)
+							commons.JSONErrorReturn(w, r, errWhenDeployingActivityContract.Error(), 500, "Error when deploying activity contract : ")
 							return
 						}
 					}
@@ -300,7 +303,15 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 			}
 
-			//TODO: overall response when all the contracts are deployed
+			//Once all the contracts are deployed
+			w.WriteHeader(http.StatusOK)
+			response := model.SuccessResponseMetricBinding{
+				Code:     http.StatusOK,
+				MetricID: ethMetricObjForMetaData.MetricID,
+				Message:  "Metric binding request sent to queue",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
 		}
 	}
 
