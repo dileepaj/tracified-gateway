@@ -765,7 +765,7 @@ type MetricMetadataReq struct {
 	MetricId     string
 	MetricName   string
 	TenetId      string
-	NoOfFormulas string
+	NoOfFormulas int
 	TrustNetPK   string
 	Metric       MetricReq
 	User         User
@@ -786,4 +786,9 @@ type EthGeneralPivotField struct {
 type PreviousCode struct {
 	Setter string
 	Getter string
+}
+
+type EthMetricIDMap struct {
+	MetricID string
+	MapID    uint64
 }

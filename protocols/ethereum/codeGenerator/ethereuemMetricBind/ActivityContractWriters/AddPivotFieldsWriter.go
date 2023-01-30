@@ -1,16 +1,23 @@
 package activitywriters
 
-import "github.com/dileepaj/tracified-gateway/model"
+import (
+	"encoding/base64"
+
+	"github.com/dileepaj/tracified-gateway/model"
+)
 
 // For writing the code for adding pivot fields to the values array (inside the addDetails method)/*
 
-func AddPivotFieldsWriter(elements []model.PivotField, formulaID string) (string, error){
+func AddPivotFieldsWriter(elements []model.PivotField, formulaID string) (string, error) {
 
 	addPivotFieldArrayString := ""
 	for _, pivot := range elements {
+
+		keyb64 := base64.StdEncoding.EncodeToString([]byte(pivot.Key))
+
 		pivotField := "\t\t" + `values.push(PivotField(`
 		pivotField += `"` + pivot.Name + `", `
-		pivotField += `"` + pivot.Key + `", `
+		pivotField += `"` + keyb64 + `", `
 		pivotField += `"` + pivot.Field + `", `
 		pivotField += `"` + pivot.Condition + `", `
 		pivotField += `"` + pivot.Value + `", `

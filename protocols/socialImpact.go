@@ -48,7 +48,7 @@ func (socialImpact *AbstractSocialImpactMetricBinding) SocialImpactMetricBinding
 	if socialImpact.Blockchain == "STELLAR" {
 		metricBinding.StellarMetricBinding(w, r, socialImpact.MetricBindJSON)
 	} else if socialImpact.Blockchain == "ETHEREUM" {
-		ethereuemmetricbind.SmartContractGeneratorForMetric(w, r, socialImpact.MetricBindJSON)
+		ethereuemmetricbind.SmartContractHandlerForMetric(w, r, socialImpact.MetricBindJSON)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusNoContent)

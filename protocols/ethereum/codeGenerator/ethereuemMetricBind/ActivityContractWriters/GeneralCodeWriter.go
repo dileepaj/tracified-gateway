@@ -6,10 +6,10 @@ import (
 
 // For generating the solidity codes for the common struct, arrays, and getters
 
-func WriteGeneralCode(metricID string, formulaID string) (model.ActivityContractGeneral, error) {
+func WriteGeneralCode(metricMapID string, formulaMapID string) (model.ActivityContractGeneral, error) {
 
 	// Contract start
-	contractName := "Metric_" + metricID + "_" + formulaID
+	contractName := "Metric_" + metricMapID + "_Formula_" + formulaMapID
 	contractStart := `contract ` + contractName + ` {` + "\n\n"
 
 	// Formula Structure
