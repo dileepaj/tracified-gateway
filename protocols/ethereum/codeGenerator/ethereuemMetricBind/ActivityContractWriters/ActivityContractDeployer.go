@@ -107,7 +107,6 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 	ethMetricActivityObj.BINstring = binString
 	ethMetricActivityObj.ABIstring = abiString
 
-
 	buildQueueObject := model.SendToQueue{
 		EthereumMetricBind: ethMetricActivityObj,
 		Type:               "ETHMETRICBIND",
