@@ -91,7 +91,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			TransactionUUID:     "",
 			GOstring:            "",
 			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
-			User:                formulaJSON.Verify.PublicKey,
+			User:                model.User{},
 			ErrorMessage:        "",
 		}
 

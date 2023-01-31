@@ -3,7 +3,6 @@ package activitywriters
 import (
 	"encoding/base64"
 	"os"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -12,14 +11,14 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID string, element model.MetricDataBindActivityRequest, metricName string, metricElement model.MetricReq, userElement model.User) error {
+func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID string, element model.MetricDataBindActivityRequest, metricName string, metricElement model.MetricReq, userElement model.User, ethMetricActivityObj model.EthereumMetricBind) error {
 
 	var pivotCode model.EthGeneralPivotField
 	var errWhenGettingPivotCodes error
-	reqType := "ACTIVITY"
+	reqType := "METRIC"
 
 	//call the general code writer
-	generalCodes, errWhenGettingGeneralCodes := WriteGeneralCode(metricID, element.MetricFormula.MetricExpertFormula.ID)
+	generalCodes, errWhenGettingGeneralCodes := WriteGeneralCode(metricMapID, formulaMapID)
 	if errWhenGettingGeneralCodes != nil {
 		logrus.Error("Error when generating general code for activity contract : ", errWhenGettingGeneralCodes)
 		return errWhenGettingGeneralCodes
@@ -103,29 +102,14 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 
 	templateB64 := base64.StdEncoding.EncodeToString([]byte(template))
 
-	ethMetricMetadataObj := model.EthereumMetricBind{
-		Type:              "ACTIVITY",
-		MetricID:          element.MetricID,
-		MetricName:        metricName,
-		Metric:            metricElement,
-		ContractName:      contractName,
-		TemplateString:    templateB64,
-		BINstring:         binString,
-		ABIstring:         abiString,
-		Timestamp:         time.Now().String(),
-		ContractAddress:   "",
-		TransactionHash:   "",
-		TransactionTime:   "",
-		TransactionUUID:   "",
-		TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
-		User:              userElement,
-		ErrorMessage:      "",
-		Status:            "",
-		FormulaID:         element.MetricFormula.MetricExpertFormula.ID,
-	}
+	ethMetricActivityObj.ContractName = contractName
+	ethMetricActivityObj.TemplateString = templateB64
+	ethMetricActivityObj.BINstring = binString
+	ethMetricActivityObj.ABIstring = abiString
+
 
 	buildQueueObject := model.SendToQueue{
-		EthereumMetricBind: ethMetricMetadataObj,
+		EthereumMetricBind: ethMetricActivityObj,
 		Type:               "ETHMETRICBIND",
 		User:               userElement,
 		Status:             "QUEUE",

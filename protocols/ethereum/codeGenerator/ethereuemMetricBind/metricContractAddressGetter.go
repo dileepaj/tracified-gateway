@@ -13,6 +13,7 @@ var metricObject model.EthereumMetricBind
 // get the status of the metric smart contract from the DB by metric ID
 
 func GetMetricSmartContractStatus(metricId string, contractType string) (string, model.EthereumMetricBind, error) {
+	var metricObject model.EthereumMetricBind 
 	metricDetails, errWhenGettingMetricStatus := object.GetEthMetricByMetricIdAndType(metricId, contractType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -31,6 +32,7 @@ func GetMetricSmartContractStatus(metricId string, contractType string) (string,
 }
 
 func GetMetricSmartContractStatusForFormula(metricId string, contractType string, formulaId string) (string, model.EthereumMetricBind, error) {
+	var metricObject model.EthereumMetricBind 
 	metricFormulaDetails, errWhenGettingMetricStatus := object.GetEthMetricStatusForFormula(metricId, contractType, formulaId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()

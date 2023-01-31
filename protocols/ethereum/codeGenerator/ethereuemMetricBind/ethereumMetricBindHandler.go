@@ -270,12 +270,12 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 							logrus.Info("Error when getting formula map ID : ", errWhenGettingFormulaMapId)
 						}
 						formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
-						activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
-						_ = activityContractName
+						activityContractName := "Metric_" + metricMapIDString + "_Formula_" + formulaMapIDString
+						ethMetricObjForFormula.ContractName = activityContractName
 
-						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
+						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User, ethMetricObjForFormula)
 						if errWhenDeployingActivityContract != nil {
-							ethMetricObjForFormula.ErrorMessage = errWhenGettingFormulaMapId.Error()
+							ethMetricObjForFormula.ErrorMessage = errWhenDeployingActivityContract.Error()
 							ethMetricObjForFormula.Status = "FAILED"
 							if formulaStatus == "" {
 								//insert to DB
