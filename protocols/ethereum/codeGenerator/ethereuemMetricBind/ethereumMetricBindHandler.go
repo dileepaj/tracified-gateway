@@ -101,7 +101,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 	if status == "" || status == "FAILED" {
 		// deploy the smart contract for meta data
-		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString)
+		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString, ethMetricObjForMetaData)
 		if errWhenDeployingMetaDataSmartContract != nil {
 			ethMetricObjForMetaData.ErrorMessage = errWhenDeployingMetaDataSmartContract.Error()
 			ethMetricObjForMetaData.Status = "FAILED"
@@ -193,7 +193,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						User:              metricBindJson.User,
 						ErrorMessage:      "",
 						Status:            "",
-						Type:              "METADATA",
+						Type:              "ACTIVITY",
 						FormulaID:         activities[i].MetricFormula.MetricExpertFormula.ID,
 					}
 					//handle UUID

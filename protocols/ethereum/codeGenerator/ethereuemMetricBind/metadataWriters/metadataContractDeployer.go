@@ -3,7 +3,6 @@ package metadatawriters
 import (
 	"encoding/base64"
 	"os"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -14,7 +13,7 @@ import (
 
 //! Relevant map ID will be checked on the route handler to see whether the metric contract is already deployed or not
 //! All the other failed database calls will be handled in the handler function
-func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID string) error {
+func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID string, ethMetricMetadataObj model.EthereumMetricBind) error {
 
 	reqType := "METRIC"
 
@@ -54,26 +53,9 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 
 	templateB64 := base64.StdEncoding.EncodeToString([]byte(metadataContractTemplate))
 
-	ethMetricMetadataObj := model.EthereumMetricBind{
-		Type:              "METADATA",
-		MetricID:          element.MetricId,
-		MetricName:        element.MetricName,
-		Metric:            element.Metric,
-		ContractName:      contractName,
-		TemplateString:    templateB64,
-		BINstring:         binString,
-		ABIstring:         abiString,
-		Timestamp:         time.Now().String(),
-		ContractAddress:   "",
-		TransactionHash:   "",
-		TransactionTime:   "",
-		TransactionUUID:   "",
-		TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
-		User:              element.User,
-		ErrorMessage:      "",
-		Status:            "",
-		FormulaID:         "",
-	}
+	ethMetricMetadataObj.TemplateString = templateB64
+	ethMetricMetadataObj.BINstring = binString
+	ethMetricMetadataObj.ABIstring = abiString
 
 	buildQueueObject := model.SendToQueue{
 		EthereumMetricBind: ethMetricMetadataObj,

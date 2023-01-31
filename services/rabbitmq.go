@@ -270,7 +270,7 @@ func ReceiverRmq() error {
 					Status:            "SUCCESS",
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
-					Type:              queue.Type,
+					Type:              queue.EthereumMetricBind.Type,
 					FormulaID:         queue.EthereumExpertFormula.FormulaID,
 				}
 				if errWhenDeploying != nil {
