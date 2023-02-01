@@ -213,7 +213,7 @@ func ReceiverRmq() error {
 					TransactionTime:     convertedTime,
 					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
-					User:                queue.EthereumExpertFormula.User,
+					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
 					Status:              "SUCCESS",
 				}

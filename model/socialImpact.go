@@ -696,7 +696,7 @@ type EthereumExpertFormula struct {
 	TransactionTime     string
 	TransactionUUID     string
 	TransactionSender   string
-	User                User
+	Verify              Verify
 	ErrorMessage        string
 }
 

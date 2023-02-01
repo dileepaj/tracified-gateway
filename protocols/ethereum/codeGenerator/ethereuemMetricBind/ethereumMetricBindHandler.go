@@ -152,8 +152,10 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	}
 
 	//wait until deployment completed
-	logrus.Info("Awaiting server.................")
-	time.Sleep(30 * time.Second)
+	if status != "SUCCESS" {
+		logrus.Info("Awaiting server.................")
+		time.Sleep(30 * time.Second)
+	}
 
 	// get the status of the metric metadata contract after deploying(/redeploying) the contract
 	status, metricDetails, errWhenGettingMetadataContractStatus = GetMetricSmartContractStatus(metricBindJson.Metric.ID, "METADATA")

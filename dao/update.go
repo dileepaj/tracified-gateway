@@ -908,7 +908,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TransactionTime:     update.TransactionTime,
 		TransactionUUID:     update.TransactionUUID,
 		TransactionSender:   update.TransactionSender,
-		User:                update.User,
+		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
 	}
 
