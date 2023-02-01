@@ -521,6 +521,7 @@ func (cd *Connection) InsertSplitData(obj model.Splits) error {
 
 func (cd *Connection) InsertMergeData(obj model.Merges) error {
 	fmt.Println("--------------------------- InsertMassBalanceMerges ------------------------")
+	fmt.Println("data recived : ", obj)
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
@@ -536,7 +537,7 @@ func (cd *Connection) InsertMergeData(obj model.Merges) error {
 	return err
 }
 
-func (cd *Connection) BatchTrackingData(obj model.Batches) error {
+func (cd *Connection) BatchTrackingData(obj model.Batches) (string, error) {
 	fmt.Println("--------------------------- InsertBatches ------------------------")
 	session, err := cd.connect()
 	if err != nil {
@@ -545,12 +546,12 @@ func (cd *Connection) BatchTrackingData(obj model.Batches) error {
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("BatchTrackingData")
-	_, err = c.InsertOne(context.TODO(), obj)
+	rst, err := c.InsertOne(context.TODO(), obj)
 
 	if err != nil {
 		fmt.Println("Error while inserting to BatchData " + err.Error())
 	}
-	return err
+	return rst.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
 func (cd *Connection) ConvertBatches(obj model.Conversions) error {

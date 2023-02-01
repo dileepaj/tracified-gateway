@@ -44,7 +44,7 @@ func Merge(sender string, sign string, amount string, nftname string, destinatio
 		log.Fatal("Error while trying to build tranaction: ", err)
 	}
 
-	senderSK := "SBZAXSIYUW4YENKKKFTXCJUDYVOBTRCVLF6DEDL2YT34IINN4OVWXC6P"
+	senderSK := "SDTJNIJWXBCBB4RAQD6NIBW6CXPDSK3U2WNMAMUPLLKKC5DIGTTYQ6DE"
 	senderKeypair, _ := keypair.ParseFull(senderSK)
 
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)

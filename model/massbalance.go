@@ -45,3 +45,19 @@ type Conversions struct {
 	Denominator int    `json:"Denominator" bson:"Denominator" validate:"required"`
 	TXNHash     string `json:"TXNHash" bson:"TXNHash" validate:"required"`
 }
+
+type TokenCoversion struct {
+	SellerSourceAccount string      `json:"sellerSource" bson:"sellerSource"`
+	BuyerSourceAccount  string      `json:"buyerSource" bson:"buyerSource"`
+	ManageSellOffer     ManageOffer `json:"manageSellOffer" bson:"manageSellOffer"`
+	ManageBuyOffer      ManageOffer `json:"manageBuyOffer" bson:"manageBuyOffer"`
+}
+
+type ManageOffer struct {
+	TokenName string `json:"tokename" bson:"tokenname" validate:"required"`
+	//* OffertType : Sell-Offer || Buy-Offer
+	OfferType              string `json:"offerType" bson:"OfferType" validate:"required"`
+	TokenIssuerAccount     string `json:"tokenIssuer" bson:"TokenIssuer" validate:"required"`
+	NoTokenForSale         int    `json:"no_token_for_sale" bson:"notkenOnsell" validate:"required"`
+	UnitPriceofBuyingToken int    `json:"unit_price_buying_token" bson:"unitPriceofBuyingToken" validate:"required"`
+}

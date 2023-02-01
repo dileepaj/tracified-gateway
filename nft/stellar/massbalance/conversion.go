@@ -13,11 +13,18 @@ import (
 func SetConversion(sender string, amount string, SellAsset string, BuyAsset string, SellIssuer string, BuyIssuer string, numerator int, denominator int) (string, error) {
 	client := horizonclient.DefaultTestNetClient
 
-	// asset, err := txnbuild.CreditAsset{Code: nftname, Issuer: issuer}.ToChangeTrustAsset()
-	// if err != nil {
-	// 	log.Fatal("Error on asset", err)
-	// }
+	sellingasset, creditAsseterr := txnbuild.CreditAsset{Code: SellAsset, Issuer: SellIssuer}.ToChangeTrustAsset()
 
+	if creditAsseterr != nil {
+		log.Println("Failed to create credit asset: ", creditAsseterr.Error())
+		return "", creditAsseterr
+	}
+
+	changeTrustOp := txnbuild.ChangeTrust{
+		Line:          sellingasset,
+		Limit:         amount,
+		SourceAccount: SellIssuer,
+	}
 	sellOp := txnbuild.ManageSellOffer{
 		Selling: txnbuild.CreditAsset{Code: SellAsset,
 			Issuer: SellIssuer},
@@ -42,7 +49,7 @@ func SetConversion(sender string, amount string, SellAsset string, BuyAsset stri
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&sellOp},
+			Operations:           []txnbuild.Operation{&changeTrustOp, &sellOp},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
@@ -72,6 +79,19 @@ func SetConversion(sender string, amount string, SellAsset string, BuyAsset stri
 func ConvertBatches(sender string, amount string, SellAsset string, BuyAsset string, SellIssuer string, BuyIssuer string, numerator int, denominator int) (string, error) {
 	client := horizonclient.DefaultTestNetClient
 
+	buyingAsset, creditAsseterr := txnbuild.CreditAsset{Code: BuyAsset, Issuer: BuyIssuer}.ToChangeTrustAsset()
+
+	if creditAsseterr != nil {
+		log.Println("Failed to create credit asset: ", creditAsseterr.Error())
+		return "", creditAsseterr
+	}
+
+	changeTrustOp := txnbuild.ChangeTrust{
+		Line:          buyingAsset,
+		Limit:         amount,
+		SourceAccount: BuyIssuer,
+	}
+
 	BuyOp := txnbuild.ManageBuyOffer{
 		Selling: txnbuild.CreditAsset{Code: SellAsset,
 			Issuer: SellIssuer},
@@ -96,7 +116,7 @@ func ConvertBatches(sender string, amount string, SellAsset string, BuyAsset str
 		txnbuild.TransactionParams{
 			SourceAccount:        &sourceAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&BuyOp},
+			Operations:           []txnbuild.Operation{&changeTrustOp, &BuyOp},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},

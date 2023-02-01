@@ -2,9 +2,11 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -30,9 +32,33 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("-------data", obj)
 	log.Println("array ", len(obj.Destination))
+	//Move DB call after BC transaction occurs success fully
 	er := object.InsertSplitData(obj)
 	if er != nil {
 		log.Println("Failed to save data")
+	}
+	var total = 0
+	for i := 0; i < len(obj.Destination); i++ {
+		amount, converterr := strconv.Atoi(obj.Destination[i].Amount)
+		if converterr != nil {
+			log.Fatal(converterr.Error())
+			http.Error(w, "incorrect amount submittied", 500)
+			return
+		}
+		total += amount
+	}
+	limit, limitError := strconv.Atoi(obj.Limit)
+	if limitError != nil {
+		http.Error(w, "Error occured", 500)
+		return
+	}
+	if total > limit {
+		http.Error(w, "Amounts provided for split cannot exceed limit", 500)
+		return
+	}
+	if total < limit {
+		http.Error(w, "Addition of values provided is less than the limit", 500)
+		return
 	}
 
 	for i := 0; i < len(obj.Destination); i++ {
@@ -57,6 +83,7 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 				log.Println(w, ErrorMessage)
 				return
 			} else {
+
 				var batchData = model.Batches{
 					NFTName:         obj.NFTName,
 					TXNHashTrust:    result,
@@ -65,13 +92,17 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 					PreviousOwner:   obj.Sender,
 				}
 
-				var resultObj = object.BatchTrackingData(batchData)
+				resultObj, dberr := object.BatchTrackingData(batchData)
+				if dberr != nil {
+					http.Error(w, "Error occured", 500)
+					log.Fatal(dberr.Error())
+					return
+				}
 				w.WriteHeader(http.StatusOK)
 				err = json.NewEncoder(w).Encode(resultObj)
 				if err != nil {
 					log.Println(err)
 				}
-
 			}
 		}
 	}
@@ -104,6 +135,30 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		log.Println("Failed to save data")
 	}
+	var total = 0
+	fmt.Println("arr size for merge:", len(obj.Sender))
+	for i := 0; i < len(obj.Sender); i++ {
+		amount, converterr := strconv.Atoi(obj.Sender[i].Amount)
+		if converterr != nil {
+			log.Fatal(converterr.Error())
+			http.Error(w, "incorrect amount submittied", 500)
+			return
+		}
+		total += amount
+	}
+	limit, limitError := strconv.Atoi(obj.Limit)
+	if limitError != nil {
+		http.Error(w, "Error occured", 500)
+		return
+	}
+	if total > limit {
+		http.Error(w, "Amounts provided for Merge cannot exceed limit", 500)
+		return
+	}
+	if total < limit {
+		http.Error(w, "Addition of values provided is less than thhe limit", 500)
+		return
+	}
 
 	for i := 0; i < len(obj.Sender); i++ {
 		log.Println("---------------element ", i)
@@ -135,7 +190,12 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 					PreviousOwner:   subobj.Source,
 				}
 
-				var resultObj = object.BatchTrackingData(batchData)
+				resultObj, dberr := object.BatchTrackingData(batchData)
+				if dberr != nil {
+					http.Error(w, "Error occured", 500)
+					log.Fatal(dberr.Error())
+					return
+				}
 				w.WriteHeader(http.StatusOK)
 				err = json.NewEncoder(w).Encode(resultObj)
 				if err != nil {

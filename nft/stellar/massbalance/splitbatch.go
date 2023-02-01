@@ -20,7 +20,7 @@ func Split(destination string, sign string, amount string, nftname string, sende
 	log.Println("test1------------------------------")
 	changeTrustOp := txnbuild.ChangeTrust{
 		Line:          asset,
-		Limit:         limit,
+		Limit:         amount,
 		SourceAccount: destination,
 	}
 
@@ -96,7 +96,7 @@ func SplitPayment(destination string, sign string, amount string, nftname string
 		log.Fatal("Error while trying to build tranaction: ", err)
 	}
 
-	senderSK := "SBZAXSIYUW4YENKKKFTXCJUDYVOBTRCVLF6DEDL2YT34IINN4OVWXC6P"
+	senderSK := "SADDSHODIXUWOKHEIMMR4OU3NEKC5MRVEK6CDI6G6QUAXMXQNGIYC3X5"
 	senderKeypair, _ := keypair.ParseFull(senderSK)
 	log.Println("-----------keypairs 111-------------  ", senderKeypair)
 
