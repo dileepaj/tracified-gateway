@@ -102,6 +102,26 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			id := ulid.MustNew(ulid.Timestamp(timeNow), entropy)
 			logrus.Info("TXN UUID : ", id)
 			ethFormulaObj.TransactionUUID = id.String()
+
+			// add formula to the formula ID map
+			// getting next sequence value
+			data, errInGettingNextSequence := object.GetNextSequenceValue("ETHFORMULAID")
+			if errInGettingNextSequence != nil {
+				logrus.Info("Unable to connect to gateway datastore ", errInGettingNextSequence)
+				commons.JSONErrorReturn(w, r, errInGettingNextSequence.Error(), http.StatusInternalServerError, "Error while getting next sequence value for ETHFORMULAID")
+				return
+			}
+			formulaIDmap := model.EthFormulaIDMap{
+				FormulaID: formulaJSON.MetricExpertFormula.ID,
+				MapID:    data.SequenceValue,
+			}
+			errorWhenInsertingToFormulaIDMap := object.InsertEthFormulaIDMap(formulaIDmap)
+			if errorWhenInsertingToFormulaIDMap != nil {
+				logrus.Info("Unable to connect to gateway datastore ", errorWhenInsertingToFormulaIDMap)
+				commons.JSONErrorReturn(w, r, errorWhenInsertingToFormulaIDMap.Error(), http.StatusInternalServerError, "Error while inserting to ETHFORMULAIDMAP")
+				return
+			}
+
 		} else {
 			ethFormulaObj.TransactionUUID = formulaDetails.(model.EthereumExpertFormula).TransactionUUID
 		}
