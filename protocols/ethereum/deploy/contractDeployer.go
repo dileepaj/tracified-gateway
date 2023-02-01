@@ -65,7 +65,7 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Nonce = big.NewInt(int64(nonce))
 	auth.Value = big.NewInt(0)      // in wei
-	auth.GasLimit = uint64(4000000) // in units
+	auth.GasLimit = uint64(3000000) // in units
 	auth.GasPrice = big.NewInt(int64(gasPrice))
 
 	//assign metadata for the contract

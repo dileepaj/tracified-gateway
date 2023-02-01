@@ -5,6 +5,7 @@ import (
 	"errors"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"github.com/sirupsen/logrus"
 )
@@ -23,6 +24,9 @@ func GetErrorOfFailedTransaction(transactionHash string) (string, error) {
 	url := "https://api-sepolia.etherscan.io/api?module=transaction&action=getstatus&apikey=AER6M2C3436231IGT7SV7JZ2URFYFX7MZ1&txhash=" + transactionHash
 	logrus.Info("Calling the transaction status getter at : " + url)
 	method := "GET"
+
+	logrus.Info("---------------Waiting 30 seconds for updating the transaction status...")
+	time.Sleep(30 * time.Second)
 
 	client := &http.Client{}
 	req, errWhenCallingTheNewRequest := http.NewRequest(method, url, nil)
@@ -50,8 +54,6 @@ func GetErrorOfFailedTransaction(transactionHash string) (string, error) {
 		logrus.Error("Error when unmarshalling the response : ", errorWhenUnmarshalling.Error())
 		return "", errors.New("Error when unmarshalling the response : " + errorWhenUnmarshalling.Error())
 	}
-	logrus.Info("Body: ", string(body))
-	logrus.Info("Transaction status: ", transactionStatus)
 
 	return transactionStatus.Result.ErrDescription, nil
 }
