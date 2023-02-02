@@ -82,6 +82,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	} else if status == "" || status == "FAILED" {
 		if status == "FAILED" {
 			logrus.Info("Requested metric is in the failed status, trying to redeploy")
+			ethMetricObjForMetaData.Status = "FAILED"
 		} else {
 			logrus.Info("New metric bind request, initiating new deployment")
 		}
@@ -178,8 +179,10 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 				if formulaStatus == "SUCCESS" || formulaStatus == "QUEUE" {
 					//skip this loop and go to next formula
+					logrus.Info("Contract for formula already deployed or in queue : ", activities[i].MetricFormula.MetricExpertFormula.ID)
 					continue
 				} else if formulaStatus == "" || formulaStatus == "FAILED" {
+					logrus.Info("New or failed activity contract deployment. Trying to deploying contract for formula : ", activities[i].MetricFormula.MetricExpertFormula.ID)
 					//insert object for the formula
 					ethMetricObjForFormula := model.EthereumMetricBind{
 						MetricID:          metricBindJson.Metric.ID,
@@ -217,42 +220,31 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 					//insert to activity contract details to the collection
 					if formulaStatus == "FAILED" {
-						errWhenUpdatingMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
-						if errWhenUpdatingMetricObj != nil {
-							if errWhenUpdatingMetricObj != nil {
-								logrus.Info("Error when updating the metric collection : ", errWhenUpdatingMetricObj)
-								commons.JSONErrorReturn(w, r, errWhenUpdatingMetricObj.Error(), 500, "Error when updating the metric collection : ")
-								return
-							}
-						}
+						// set the status to FAILED
+						ethMetricObjForFormula.Status = "FAILED"
 					} else if formulaStatus == "" {
 						// store the metric object in the database
 						errWhenStoringMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
 						if errWhenStoringMetricObj != nil {
-							if errWhenStoringMetricObj != nil {
-								logrus.Info("Error when inserting to metric collection : ", errWhenStoringMetricObj)
-								commons.JSONErrorReturn(w, r, errWhenStoringMetricObj.Error(), 500, "Error when inserting to metric collection : ")
-								return
-							}
+							logrus.Info("Error when inserting to metric collection : ", errWhenStoringMetricObj)
+							commons.JSONErrorReturn(w, r, errWhenStoringMetricObj.Error(), 500, "Error when inserting to metric collection : ")
+							return
 						}
 					}
 
 					//check the index of the loop to skip the checking of the previous formula deployment
 					if i != 0 {
+						//wait until deployment completed
+						if formulaStatus != "SUCCESS" {
+							logrus.Info("Awaiting server.................")
+							time.Sleep(30 * time.Second)
+						}
 						//check the previous formula contract deployment status
 						previousStatus, _, errWhenGettingPreviousStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i-1].MetricFormula.MetricExpertFormula.ID)
 						if errWhenGettingPreviousStatus != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenGettingPreviousStatus.Error()
 							ethMetricObjForFormula.Status = "FAILED"
 							if formulaStatus == "" {
-								//insert to DB
-								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
-								if errWhenInsertingFormulaMetricObj != nil {
-									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
-									return
-								}
-							} else {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 								if errWhenUpdatingFormulaMetricObj != nil {

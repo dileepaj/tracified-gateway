@@ -2728,7 +2728,7 @@ func (cd *Connection) GetEthMetricByMetricIdAndType(metricID string, contractTyp
 		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
 		err1 := c.FindOne(context.TODO(), bson.M{"metricid": metricID, "type": contractType}).Decode(&result)
 		if err1 != nil {
-			logrus.Info("Error while getting latest metric contract address from db " + err1.Error())
+			logrus.Info("Error while getting the requested metric from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)

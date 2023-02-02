@@ -14,6 +14,7 @@ var metricObject model.EthereumMetricBind
 
 func GetMetricSmartContractStatus(metricId string, contractType string) (string, model.EthereumMetricBind, error) {
 	var metricObject model.EthereumMetricBind 
+	status := ""
 	metricDetails, errWhenGettingMetricStatus := object.GetEthMetricByMetricIdAndType(metricId, contractType).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -21,9 +22,7 @@ func GetMetricSmartContractStatus(metricId string, contractType string) (string,
 		logrus.Error("An error occurred when getting metric status ", errWhenGettingMetricStatus)
 		return "", model.EthereumMetricBind{}, errWhenGettingMetricStatus
 	}
-	if metricDetails == nil {
-		status = ""
-	} else {
+	if metricDetails != nil {
 		metricObject = metricDetails.(model.EthereumMetricBind)
 		status = metricObject.Status
 	}
@@ -33,6 +32,7 @@ func GetMetricSmartContractStatus(metricId string, contractType string) (string,
 
 func GetMetricSmartContractStatusForFormula(metricId string, contractType string, formulaId string) (string, model.EthereumMetricBind, error) {
 	var metricObject model.EthereumMetricBind 
+	status := ""
 	metricFormulaDetails, errWhenGettingMetricStatus := object.GetEthMetricStatusForFormula(metricId, contractType, formulaId).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -40,9 +40,7 @@ func GetMetricSmartContractStatusForFormula(metricId string, contractType string
 		logrus.Error("An error occurred when getting metric status ", errWhenGettingMetricStatus)
 		return "", model.EthereumMetricBind{}, errWhenGettingMetricStatus
 	}
-	if metricFormulaDetails == nil {
-		status = ""
-	} else {
+	if metricFormulaDetails != nil {
 		metricObject = metricFormulaDetails.(model.EthereumMetricBind)
 		status = metricObject.Status
 	}
