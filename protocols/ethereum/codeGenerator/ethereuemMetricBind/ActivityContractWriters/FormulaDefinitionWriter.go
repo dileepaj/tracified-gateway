@@ -35,7 +35,7 @@ func GetFormulaDefinitionCode(element model.MetricDataBindActivityRequest) (stri
 	activityIDCode := `"` + element.ID + `", `
 	activityNameCode := `"` + base64.StdEncoding.EncodeToString([]byte(element.Name)) + `", `
 	valueIDsCode := `"` + valueIDsString + `"`
-	formulaDefinitionEnd := `);`
+	formulaDefinitionEnd := `);` + "\n"
 	formulaDefinitionCode := formulaDefinitionStart + formulaIDCode + contractAddressCode + noOfValuesCode + activityIDCode + activityNameCode + valueIDsCode + formulaDefinitionEnd
 
 	return formulaDefinitionCode, nil

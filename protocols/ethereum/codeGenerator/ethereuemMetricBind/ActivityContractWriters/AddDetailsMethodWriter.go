@@ -26,7 +26,7 @@ func AddDetailsMethodWriter(element model.MetricDataBindActivityRequest) (string
 
 	addDetailsCodeComment := "\t" + "// Method to add all the values and pivot fields relevant to the formula" + "\n"
 	functionStart := "\t" + `function addDetails() public {` + "\n"
-	functionEnd := "\t" + `}` + "\n"
+	functionEnd := "\t" + `}` + "\n\n"
 	addDetailsCode := addDetailsCodeComment + functionStart + addValuesCode + addPivotFieldsCode + functionEnd
 	
 	return addDetailsCode, nil
