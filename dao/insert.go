@@ -554,7 +554,7 @@ func (cd *Connection) BatchTrackingData(obj model.Batches) (string, error) {
 	return rst.InsertedID.(primitive.ObjectID).Hex(), nil
 }
 
-func (cd *Connection) ConvertBatches(obj model.Conversions) error {
+func (cd *Connection) ConvertBatches(obj model.TokenCoversion) error {
 	fmt.Println("--------------------------- InsertConversion ------------------------")
 	session, err := cd.connect()
 	if err != nil {
