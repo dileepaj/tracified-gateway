@@ -219,7 +219,7 @@ func Conversions(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	result1, err1 := massbalance.SetConversion(obj.SellerSourceAccount, obj.BuyerSourceAccount, obj.ManageBuyOffer, obj.ManageSellOffer)
+	result1, err1 := massbalance.SetConversion(obj.SellerSourceAccount, obj.BuyerSourceAccount, obj.ManageSellOffer, obj.ManageBuyOffer)
 	if err1 != nil {
 		ErrorMessage := err1.Error()
 		log.Println(w, ErrorMessage)
@@ -232,7 +232,7 @@ func Conversions(w http.ResponseWriter, r *http.Request) {
 			ManageBuyOffer:      obj.ManageBuyOffer,
 		}
 		object.ConvertBatches(newobj)
-		result2, err2 := massbalance.ConvertBatches(obj.SellerSourceAccount, obj.BuyerSourceAccount, obj.ManageBuyOffer, obj.ManageSellOffer)
+		result2, err2 := massbalance.ConvertBatches(obj.SellerSourceAccount, obj.BuyerSourceAccount, obj.ManageSellOffer, obj.ManageBuyOffer)
 		if err2 != nil {
 			ErrorMessage := err2.Error()
 			log.Println(w, ErrorMessage)

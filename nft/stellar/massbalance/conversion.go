@@ -4,6 +4,7 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -71,12 +72,13 @@ func SetConversion(sellerSourceAccount model.SourceAccount, buyerSourceAccount m
 		log.Fatal("Error when submitting thetransaction : ", hError)
 	}
 
-	txe, err := txe64.Base64()
+	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
+		log.Fatal("Error submitting transaction:", err)
 		panic(err)
 	}
-
-	return txe, nil
+	log.Println("txxxxn---------------------", respn.Hash)
+	return respn.Hash, nil
 }
 
 func ConvertBatches(sellerSourceAccount model.SourceAccount, buyerSourceAccount model.SourceAccount, manageSellOffer model.ManageOffer, manageBuyOffer model.ManageOffer) (string, error) {
@@ -138,10 +140,11 @@ func ConvertBatches(sellerSourceAccount model.SourceAccount, buyerSourceAccount 
 		log.Fatal("Error when submitting thetransaction : ", hError)
 	}
 
-	txe, err := txe64.Base64()
+	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
+		log.Fatal("Error submitting transaction:", err)
 		panic(err)
 	}
-
-	return txe, nil
+	log.Println("txxxxn---------------------", respn.Hash)
+	return respn.Hash, nil
 }
