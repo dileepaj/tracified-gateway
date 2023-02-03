@@ -153,15 +153,24 @@ func TransferNFTS(w http.ResponseWriter, r *http.Request) {
 	log.Println(MarketplaceNFT)
 	if MarketplaceNFT.Source != "" {
 		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
-
 		transferTXNX, err := solana.TransferNFTs(WALLETSECRET, MarketplaceNFT.Source, MarketplaceNFT.Destination, MarketplaceNFT.MintPubKey)
 		if err == nil {
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(transferTXNX)
+			return
 		} else {
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "URL Not Found in Gateway DataStore"}
-			json.NewEncoder(w).Encode(response)
+			transferTXNX, err := solana.TransferNFTsToExistingAccount(WALLETSECRET, MarketplaceNFT.Source, MarketplaceNFT.Destination, MarketplaceNFT.MintPubKey)
+			if err == nil {
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(transferTXNX)
+				return
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: "URL Not Found in Gateway DataStore"}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
+
 		}
 
 	}
