@@ -908,7 +908,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TransactionTime:     update.TransactionTime,
 		TransactionUUID:     update.TransactionUUID,
 		TransactionSender:   update.TransactionSender,
-		User:                update.User,
+		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
 	}
 
@@ -997,6 +997,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		FormulaIDs:        update.FormulaIDs,
 		ValueIDs:          update.ValueIDs,
 		FormulaID:         update.FormulaID,
+		Type:              update.Type,
 	}
 
 	pByte, err := bson.Marshal(up)

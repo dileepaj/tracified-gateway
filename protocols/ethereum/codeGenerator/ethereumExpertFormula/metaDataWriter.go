@@ -1,6 +1,8 @@
 package codeGenerator
 
 import (
+	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
@@ -65,7 +67,11 @@ func WriteGeneralCodeSnippets(element model.FormulaBuildingRequest, contractName
 
 	//Metadata declaration
 	metaDataInitComment := "\t" + `//Metadata declaration` + "\n"
-	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + element.Verify.PublicKey + `");` + "\n"
+	publicKey := element.Verify.PublicKey
+	if configs.PGPkeyEnableExpertFormula {
+		publicKey = commons.ConvertBase64StringToHash256(element.Verify.PublicKey)
+	}
+	metaDataInit := "\t" + `Metadata metadata = Metadata("` + element.MetricExpertFormula.ID + `","` + element.MetricExpertFormula.Name + `","` + publicKey + `");` + "\n"
 
 	//Result structure
 	resultVariable := "\n\t" + `// Result structure` +

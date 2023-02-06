@@ -111,8 +111,15 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 		transactionCost = fmt.Sprintf("%g", cost) + " ETH"
 
 		if receipt.Status == 0 {
-			logrus.Error("Transaction failed.")
-			return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
+			errorMessageFromStatus, errorInCallingTransactionStatus := GetErrorOfFailedTransaction(tx.Hash().Hex())
+			if errorInCallingTransactionStatus != nil {
+				logrus.Error("Transaction failed.")
+				logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
+				return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
+			} else {
+				logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
+				return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed. Error: " + errorMessageFromStatus)
+			}
 		}
 	}
 	return contractAddress, transactionHash, transactionCost, nil

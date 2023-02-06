@@ -15,7 +15,7 @@ func AddPivotFieldsWriter(elements []model.PivotField, formulaID string) (string
 
 		keyb64 := base64.StdEncoding.EncodeToString([]byte(pivot.Key))
 
-		pivotField := "\t\t" + `values.push(PivotField(`
+		pivotField := "\t\t" + `allPivotFields.push(PivotField(`
 		pivotField += `"` + pivot.Name + `", `
 		pivotField += `"` + keyb64 + `", `
 		pivotField += `"` + pivot.Field + `", `

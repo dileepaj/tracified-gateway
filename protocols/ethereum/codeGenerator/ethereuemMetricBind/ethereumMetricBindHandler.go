@@ -82,6 +82,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 	} else if status == "" || status == "FAILED" {
 		if status == "FAILED" {
 			logrus.Info("Requested metric is in the failed status, trying to redeploy")
+			ethMetricObjForMetaData.Status = "FAILED"
 		} else {
 			logrus.Info("New metric bind request, initiating new deployment")
 		}
@@ -101,7 +102,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 	if status == "" || status == "FAILED" {
 		// deploy the smart contract for meta data
-		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString)
+		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString, ethMetricObjForMetaData)
 		if errWhenDeployingMetaDataSmartContract != nil {
 			ethMetricObjForMetaData.ErrorMessage = errWhenDeployingMetaDataSmartContract.Error()
 			ethMetricObjForMetaData.Status = "FAILED"
@@ -151,6 +152,12 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 		}
 	}
 
+	//wait until deployment completed
+	if status != "SUCCESS" {
+		logrus.Info("Awaiting server.................")
+		time.Sleep(30 * time.Second)
+	}
+
 	// get the status of the metric metadata contract after deploying(/redeploying) the contract
 	status, metricDetails, errWhenGettingMetadataContractStatus = GetMetricSmartContractStatus(metricBindJson.Metric.ID, "METADATA")
 	if errWhenGettingMetadataContractStatus != nil {
@@ -172,8 +179,10 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 
 				if formulaStatus == "SUCCESS" || formulaStatus == "QUEUE" {
 					//skip this loop and go to next formula
+					logrus.Info("Contract for formula already deployed or in queue : ", activities[i].MetricFormula.MetricExpertFormula.ID)
 					continue
 				} else if formulaStatus == "" || formulaStatus == "FAILED" {
+					logrus.Info("New or failed activity contract deployment. Trying to deploying contract for formula : ", activities[i].MetricFormula.MetricExpertFormula.ID)
 					//insert object for the formula
 					ethMetricObjForFormula := model.EthereumMetricBind{
 						MetricID:          metricBindJson.Metric.ID,
@@ -193,7 +202,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						User:              metricBindJson.User,
 						ErrorMessage:      "",
 						Status:            "",
-						Type:              "METADATA",
+						Type:              "ACTIVITY",
 						FormulaID:         activities[i].MetricFormula.MetricExpertFormula.ID,
 					}
 					//handle UUID
@@ -209,22 +218,33 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						ethMetricObjForFormula.TransactionUUID = formulaDetails.TransactionUUID
 					}
 
+					//insert to activity contract details to the collection
+					if formulaStatus == "FAILED" {
+						// set the status to FAILED
+						ethMetricObjForFormula.Status = "FAILED"
+					} else if formulaStatus == "" {
+						// store the metric object in the database
+						errWhenStoringMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
+						if errWhenStoringMetricObj != nil {
+							logrus.Info("Error when inserting to metric collection : ", errWhenStoringMetricObj)
+							commons.JSONErrorReturn(w, r, errWhenStoringMetricObj.Error(), 500, "Error when inserting to metric collection : ")
+							return
+						}
+					}
+
 					//check the index of the loop to skip the checking of the previous formula deployment
 					if i != 0 {
+						//wait until deployment completed
+						if formulaStatus != "SUCCESS" {
+							logrus.Info("Awaiting server.................")
+							time.Sleep(30 * time.Second)
+						}
 						//check the previous formula contract deployment status
 						previousStatus, _, errWhenGettingPreviousStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i-1].MetricFormula.MetricExpertFormula.ID)
 						if errWhenGettingPreviousStatus != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenGettingPreviousStatus.Error()
 							ethMetricObjForFormula.Status = "FAILED"
 							if formulaStatus == "" {
-								//insert to DB
-								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
-								if errWhenInsertingFormulaMetricObj != nil {
-									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
-									return
-								}
-							} else {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 								if errWhenUpdatingFormulaMetricObj != nil {
@@ -270,12 +290,12 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 							logrus.Info("Error when getting formula map ID : ", errWhenGettingFormulaMapId)
 						}
 						formulaMapIDString := strconv.FormatUint(formulaMapID, 10)
-						activityContractName := "Metric_" + metricMapIDString + "_" + formulaMapIDString
-						_ = activityContractName
+						activityContractName := "Metric_" + metricMapIDString + "_Formula_" + formulaMapIDString
+						ethMetricObjForFormula.ContractName = activityContractName
 
-						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User)
+						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User, ethMetricObjForFormula)
 						if errWhenDeployingActivityContract != nil {
-							ethMetricObjForFormula.ErrorMessage = errWhenGettingFormulaMapId.Error()
+							ethMetricObjForFormula.ErrorMessage = errWhenDeployingActivityContract.Error()
 							ethMetricObjForFormula.Status = "FAILED"
 							if formulaStatus == "" {
 								//insert to DB

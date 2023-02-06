@@ -213,7 +213,7 @@ func ReceiverRmq() error {
 					TransactionTime:     convertedTime,
 					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
-					User:                queue.EthereumExpertFormula.User,
+					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
 					Status:              "SUCCESS",
 				}
@@ -270,8 +270,8 @@ func ReceiverRmq() error {
 					Status:            "SUCCESS",
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
-					Type:              queue.Type,
-					FormulaID:         queue.EthereumExpertFormula.FormulaID,
+					Type:              queue.EthereumMetricBind.Type,
+					FormulaID:         queue.EthereumMetricBind.FormulaID,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -283,7 +283,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
-					logrus.Info("Metric update called with FAILED status")
+					logrus.Info("Metric update called with FAILED status. Type: " + ethMetricObj.Type)
 					logrus.Info("Contract deployment unsuccessful")
 				} else {
 					//if deploy method is success update the status into success
@@ -291,7 +291,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
-					logrus.Info("Metric update called with SUCCESS status")
+					logrus.Info("Metric update called with SUCCESS status. Type: " + ethMetricObj.Type)
 
 					insertObj := model.MetricLatestContract{
 						MetricID:        ethMetricObj.MetricID,

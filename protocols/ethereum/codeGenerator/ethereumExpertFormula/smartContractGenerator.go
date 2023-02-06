@@ -91,7 +91,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			TransactionUUID:     "",
 			GOstring:            "",
 			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
-			User:                formulaJSON.Verify.PublicKey,
+			Verify:              formulaJSON.Verify,
 			ErrorMessage:        "",
 		}
 
@@ -102,6 +102,26 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			id := ulid.MustNew(ulid.Timestamp(timeNow), entropy)
 			logrus.Info("TXN UUID : ", id)
 			ethFormulaObj.TransactionUUID = id.String()
+
+			// add formula to the formula ID map
+			// getting next sequence value
+			data, errInGettingNextSequence := object.GetNextSequenceValue("ETHFORMULAID")
+			if errInGettingNextSequence != nil {
+				logrus.Info("Unable to connect to gateway datastore ", errInGettingNextSequence)
+				commons.JSONErrorReturn(w, r, errInGettingNextSequence.Error(), http.StatusInternalServerError, "Error while getting next sequence value for ETHFORMULAID")
+				return
+			}
+			formulaIDmap := model.EthFormulaIDMap{
+				FormulaID: formulaJSON.MetricExpertFormula.ID,
+				MapID:    data.SequenceValue,
+			}
+			errorWhenInsertingToFormulaIDMap := object.InsertEthFormulaIDMap(formulaIDmap)
+			if errorWhenInsertingToFormulaIDMap != nil {
+				logrus.Info("Unable to connect to gateway datastore ", errorWhenInsertingToFormulaIDMap)
+				commons.JSONErrorReturn(w, r, errorWhenInsertingToFormulaIDMap.Error(), http.StatusInternalServerError, "Error while inserting to ETHFORMULAIDMAP")
+				return
+			}
+
 		} else {
 			ethFormulaObj.TransactionUUID = formulaDetails.(model.EthereumExpertFormula).TransactionUUID
 		}
@@ -138,7 +158,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
-		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject + generalValues.MetadataGetter
+		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject 
 
 		//call the value builder and get the string for the variable initialization and setter
 		variableValues, setterNames, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
@@ -234,6 +254,9 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		getterBody = getterBody + "\n\t\t" + `return (result.value, result.exponent);`
 		getterBody = getterBody + "\n\t" + `}` + "\n"
 		contractBody = contractBody + commentForGetter + getterBody
+
+		// metadata getter method
+		contractBody += generalValues.MetadataGetter
 
 		// create the contract
 		template := generalValues.License + "\n\n" + generalValues.PragmaLine + "\n\n" + generalValues.ImportCalculationsSol + "\n\n" + generalValues.ContractStart + "\n\t" + contractBody + "\n" + generalValues.ContractEnd
