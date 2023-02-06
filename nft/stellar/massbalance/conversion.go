@@ -46,7 +46,7 @@ func SetConversion(sellerSourceAccount model.SourceAccount, buyerSourceAccount m
 	accountRequest := horizonclient.AccountRequest{AccountID: sellerSourceAccount.Source}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -60,7 +60,7 @@ func SetConversion(sellerSourceAccount model.SourceAccount, buyerSourceAccount m
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build transaction: ", err)
 	}
 
 	senderSK := sellerSourceAccount.Sign
@@ -69,12 +69,12 @@ func SetConversion(sellerSourceAccount model.SourceAccount, buyerSourceAccount m
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting thetransaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
 
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn---------------------", respn.Hash)
@@ -114,7 +114,7 @@ func ConvertBatches(sellerSourceAccount model.SourceAccount, buyerSourceAccount 
 	accountRequest := horizonclient.AccountRequest{AccountID: buyerSourceAccount.Source}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -128,7 +128,7 @@ func ConvertBatches(sellerSourceAccount model.SourceAccount, buyerSourceAccount 
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build transaction: ", err)
 	}
 
 	senderSK := buyerSourceAccount.Sign
@@ -137,12 +137,12 @@ func ConvertBatches(sellerSourceAccount model.SourceAccount, buyerSourceAccount 
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting thetransaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
 
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn---------------------", respn.Hash)

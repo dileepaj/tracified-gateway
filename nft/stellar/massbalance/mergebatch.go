@@ -15,7 +15,7 @@ func Merge(sender string, sign string, amount string, nftname string, destinatio
 
 	asset, err := txnbuild.CreditAsset{Code: nftname, Issuer: issuer}.ToChangeTrustAsset()
 	if err != nil {
-		log.Fatal("Error on asset", err)
+		log.Println("Error on asset", err)
 	}
 
 	changeTrustOp := txnbuild.ChangeTrust{
@@ -27,7 +27,7 @@ func Merge(sender string, sign string, amount string, nftname string, destinatio
 	accountRequest := horizonclient.AccountRequest{AccountID: destination}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -41,7 +41,7 @@ func Merge(sender string, sign string, amount string, nftname string, destinatio
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build tranaction: ", err)
 	}
 
 	senderSK := "SDTJNIJWXBCBB4RAQD6NIBW6CXPDSK3U2WNMAMUPLLKKC5DIGTTYQ6DE"
@@ -50,12 +50,12 @@ func Merge(sender string, sign string, amount string, nftname string, destinatio
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting the transaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
 
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn trust---------------------", respn.Hash)
@@ -76,7 +76,7 @@ func TransferMerge(sender string, sign string, amount string, nftname string, de
 	accountRequest := horizonclient.AccountRequest{AccountID: sender}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -90,7 +90,7 @@ func TransferMerge(sender string, sign string, amount string, nftname string, de
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build tranaction: ", err)
 	}
 
 	senderSK := sign
@@ -99,12 +99,12 @@ func TransferMerge(sender string, sign string, amount string, nftname string, de
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting the transaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
 
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn- transfer--------------------", respn.Hash)

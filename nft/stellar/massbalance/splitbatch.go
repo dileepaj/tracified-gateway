@@ -15,7 +15,7 @@ func Split(destination string, sign string, amount string, nftname string, sende
 	log.Println("data in stellar service: ", destination, amount, nftname, sender, issuer, limit)
 	asset, err := txnbuild.CreditAsset{Code: nftname, Issuer: issuer}.ToChangeTrustAsset()
 	if err != nil {
-		log.Fatal("Error on asset", err)
+		log.Println("Error on asset", err)
 	}
 	log.Println("test1------------------------------")
 	changeTrustOp := txnbuild.ChangeTrust{
@@ -27,7 +27,7 @@ func Split(destination string, sign string, amount string, nftname string, sende
 	accountRequest := horizonclient.AccountRequest{AccountID: destination}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -41,7 +41,7 @@ func Split(destination string, sign string, amount string, nftname string, sende
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build transaction: ", err)
 	}
 
 	destSK := sign
@@ -51,12 +51,14 @@ func Split(destination string, sign string, amount string, nftname string, sende
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, destKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting thetransaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
-	log.Println("-----------keypairs 3333-------------  ", txe64)
+
+	b64, _ := txe64.Base64()
+	log.Println("-----------keypairs 3333-------------  ", b64)
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn---------------------", respn.Hash)
@@ -79,7 +81,7 @@ func SplitPayment(destination string, sign string, amount string, nftname string
 	accountRequest := horizonclient.AccountRequest{AccountID: sender}
 	sourceAccount, err := client.AccountDetail(accountRequest)
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 	tx, err := txnbuild.NewTransaction(
@@ -93,7 +95,7 @@ func SplitPayment(destination string, sign string, amount string, nftname string
 		},
 	)
 	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+		log.Println("Error while trying to build transaction: ", err)
 	}
 
 	senderSK := "SADDSHODIXUWOKHEIMMR4OU3NEKC5MRVEK6CDI6G6QUAXMXQNGIYC3X5"
@@ -103,12 +105,12 @@ func SplitPayment(destination string, sign string, amount string, nftname string
 	txe64, err := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting thetransaction : ", hError)
+		log.Println("Error when submitting the transaction : ", hError)
 	}
 
 	respn, err := commons.GetHorizonClient().SubmitTransaction(txe64)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
+		log.Println("Error submitting transaction:", err)
 		panic(err)
 	}
 	log.Println("txxxxn---------------------", respn.Hash)

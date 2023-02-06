@@ -32,17 +32,13 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println("-------data", obj)
 	log.Println("array ", len(obj.Destination))
-	//Move DB call after BC transaction occurs success fully
-	er := object.InsertSplitData(obj)
-	if er != nil {
-		log.Println("Failed to save data")
-	}
+
 	var total = 0
 	for i := 0; i < len(obj.Destination); i++ {
 		amount, converterr := strconv.Atoi(obj.Destination[i].Amount)
 		if converterr != nil {
-			log.Fatal(converterr.Error())
-			http.Error(w, "incorrect amount submittied", 500)
+			log.Println(converterr.Error())
+			http.Error(w, "incorrect amount submitted", 500)
 			return
 		}
 		total += amount
@@ -95,7 +91,7 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 				resultObj, dberr := object.BatchTrackingData(batchData)
 				if dberr != nil {
 					http.Error(w, "Error occured", 500)
-					log.Fatal(dberr.Error())
+					log.Println(dberr.Error())
 					return
 				}
 				w.WriteHeader(http.StatusOK)
@@ -106,7 +102,14 @@ func SplitBatches(w http.ResponseWriter, r *http.Request) {
 			}
 		}
 	}
+
 	log.Println("done with for loop")
+	//Move DB call after BC transaction occurs success fully
+	er := object.InsertSplitData(obj)
+	if er != nil {
+		log.Println("Failed to save data")
+	}
+
 	return
 }
 
@@ -131,16 +134,12 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 	log.Println("-------data", obj)
 	log.Println("array ", len(obj.Sender))
 
-	er := object.InsertMergeData(obj)
-	if er != nil {
-		log.Println("Failed to save data")
-	}
 	var total = 0
 	fmt.Println("arr size for merge:", len(obj.Sender))
 	for i := 0; i < len(obj.Sender); i++ {
 		amount, converterr := strconv.Atoi(obj.Sender[i].Amount)
 		if converterr != nil {
-			log.Fatal(converterr.Error())
+			log.Println(converterr.Error())
 			http.Error(w, "incorrect amount submittied", 500)
 			return
 		}
@@ -156,7 +155,7 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if total < limit {
-		http.Error(w, "Addition of values provided is less than thhe limit", 500)
+		http.Error(w, "Addition of values provided is less than the limit", 500)
 		return
 	}
 
@@ -192,8 +191,8 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 
 				resultObj, dberr := object.BatchTrackingData(batchData)
 				if dberr != nil {
-					http.Error(w, "Error occured", 500)
-					log.Fatal(dberr.Error())
+					http.Error(w, "Error occurred", 500)
+					log.Println(dberr.Error())
 					return
 				}
 				w.WriteHeader(http.StatusOK)
@@ -206,6 +205,12 @@ func MergeBatches(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	log.Println("done with for loop")
+
+	er := object.InsertMergeData(obj)
+	if er != nil {
+		log.Println("Failed to save data")
+	}
+
 	return
 }
 
