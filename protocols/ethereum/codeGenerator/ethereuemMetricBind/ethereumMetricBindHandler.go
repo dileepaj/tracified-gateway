@@ -201,7 +201,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
 						User:              metricBindJson.User,
 						ErrorMessage:      "",
-						Status:            "",
+						Status:            "QUEUE",
 						Type:              "ACTIVITY",
 						FormulaID:         activities[i].MetricFormula.MetricExpertFormula.ID,
 					}
