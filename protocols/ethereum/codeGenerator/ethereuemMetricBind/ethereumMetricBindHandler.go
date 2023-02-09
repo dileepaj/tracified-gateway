@@ -201,7 +201,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
 						User:              metricBindJson.User,
 						ErrorMessage:      "",
-						Status:            "",
+						Status:            "QUEUE",
 						Type:              "ACTIVITY",
 						FormulaID:         activities[i].MetricFormula.MetricExpertFormula.ID,
 					}
@@ -270,22 +270,12 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						if errWhenGettingFormulaMapId != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenGettingFormulaMapId.Error()
 							ethMetricObjForFormula.Status = "FAILED"
-							if formulaStatus == "" {
-								//insert to DB
-								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
-								if errWhenInsertingFormulaMetricObj != nil {
-									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
-									return
-								}
-							} else {
-								//update collection
-								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
-								if errWhenUpdatingFormulaMetricObj != nil {
-									logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
-									return
-								}
+							//update collection
+							errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
+							if errWhenUpdatingFormulaMetricObj != nil {
+								logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
+								commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
+								return
 							}
 							logrus.Info("Error when getting formula map ID : ", errWhenGettingFormulaMapId)
 						}
@@ -297,22 +287,12 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						if errWhenDeployingActivityContract != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenDeployingActivityContract.Error()
 							ethMetricObjForFormula.Status = "FAILED"
-							if formulaStatus == "" {
-								//insert to DB
-								errWhenInsertingFormulaMetricObj := object.InsertToEthMetricDetails(ethMetricObjForFormula)
-								if errWhenInsertingFormulaMetricObj != nil {
-									logrus.Info("Error when inserting to metric collection : ", errWhenInsertingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenInsertingFormulaMetricObj.Error(), 500, "Error when inserting to metric collection : ")
-									return
-								}
-							} else {
-								//update collection
-								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
-								if errWhenUpdatingFormulaMetricObj != nil {
-									logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
-									commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
-									return
-								}
+							//update collection
+							errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
+							if errWhenUpdatingFormulaMetricObj != nil {
+								logrus.Info("Error when updating the metric collection : ", errWhenUpdatingFormulaMetricObj)
+								commons.JSONErrorReturn(w, r, errWhenUpdatingFormulaMetricObj.Error(), 500, "Error when updating the metric collection : ")
+								return
 							}
 							logrus.Info("Error when deploying activity contract : ", errWhenDeployingActivityContract)
 							commons.JSONErrorReturn(w, r, errWhenDeployingActivityContract.Error(), 500, "Error when deploying activity contract : ")
