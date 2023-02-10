@@ -25,7 +25,9 @@ import (
 
 // CheckTempOrphan ...
 func CheckTempOrphan() {
-	log.Debug("=================== CheckTempOrphan ==================")
+	if (commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"){
+		log.Debug("=================== CheckTempOrphan ==================")
+	}
 	adminDBConnectionObj := adminDAO.Connection{}
 	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
 	//log.Info("PK count : " + strconv.Itoa(len(clientList)))
