@@ -50,6 +50,8 @@ type InsertTestimonialCollectionResponse struct {
 	Message string
 }
 
+// mapvalues - numbered identifiers (tracified mapped real identifier to unique id)
+// identifiers - real identifier
 type IdentifierModel struct {
 	MapValue   string
 	Identifier string

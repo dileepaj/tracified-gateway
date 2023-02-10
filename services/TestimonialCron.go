@@ -6,13 +6,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func CheckTestimonialStatus() {
+	if (commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"){
 	log.Debug("----------------------------------- CheckTestimonialStatus -------------------------------------")
-	// fmt.Println("NEW STUFF")
+	}
 	object := dao.Connection{}
 	p := object.GetTestimonialbyStatus(model.Pending.String())
 	p.Then(func(data interface{}) interface{} {
@@ -27,7 +29,9 @@ func CheckTestimonialStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXDR, &txe)
 				if err != nil {
-					log.Error("Error @SafeUnmarshalBase64 @CheckTestimonialStatus" + err.Error())
+					if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+						log.Error("Error @SafeUnmarshalBase64 @CheckTestimonialStatus" + err.Error())
+					}
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -35,9 +39,10 @@ func CheckTestimonialStatus() {
 					// result[i].Status="expired"
 					err1 := object.UpdateTestimonial(result[i], temp)
 					if err1 != nil {
-						log.Error("Error @UpdateTestimonial" + err1.Error())
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+							log.Error("Error @UpdateTestimonial" + err1.Error())
+						}
 					}
-					log.Info("Expired")
 				} else {
 					// fmt.Println("Not Expired")
 				}
@@ -46,7 +51,9 @@ func CheckTestimonialStatus() {
 		}
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("Error @GetTestimonialbyStatus " + error.Error())
+		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+			log.Error("Error @GetTestimonialbyStatus " + error.Error())
+		}
 		return error
 	})
 	p.Await()
