@@ -6,13 +6,15 @@ import (
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
 func CheckOrganizationStatus() {
+	if (commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"){
 	log.Debug("----------------------------------- CheckOrganizationStatus -------------------------------------")
-	// fmt.Println("NEW STUFF")
+	}
 	object := dao.Connection{}
 	p := object.GetTestimonialOrganizationbyStatus(model.Pending.String())
 	p.Then(func(data interface{}) interface{} {
@@ -27,7 +29,9 @@ func CheckOrganizationStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXDR, &txe)
 				if err != nil {
-					log.Error("Error @SafeUnmarshalBase64 @CheckOrganizationStatus" + err.Error())
+					if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
+						log.Error("Error @SafeUnmarshalBase64 @CheckOrganizationStatus" + err.Error())
+					}
 				}
 				// fmt.Println(i)
 				// fmt.Println(txe.TimeBounds.MaxTime)
@@ -35,7 +39,9 @@ func CheckOrganizationStatus() {
 					// result[i].Status="expired"
 					err1 := object.Updateorganization(result[i], temp)
 					if err1 != nil {
+						if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
 						log.Error("Error @UpdateOrganization" + err1.Error())
+						}
 					}
 					log.Info("Expired")
 				} else {
@@ -46,7 +52,9 @@ func CheckOrganizationStatus() {
 		}
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("Error @GetOrganizationbyStatus " + error.Error())
+		if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
+			log.Error("Error @GetOrganizationbyStatus " + error.Error())
+		}
 		return error
 	})
 	p.Await()
