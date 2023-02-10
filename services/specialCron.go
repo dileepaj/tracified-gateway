@@ -72,11 +72,11 @@ func CheckTempOrphan() {
 					client := commons.GetHorizonClient()
 					pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 					pubaccount, err := client.AccountDetail(pubaccountRequest)
-					if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
-					log.Info(" clientList PublicKey ", address, " Sequence number ", seq)
-					log.Info("PublicKey key of XDR ", ar.AccountID)
-					log.Info("Sequence number ", i)
-					log.Info("Type of XDR ", result.TxnType)
+					if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
+						log.Info("clientList PublicKey ", address, " Sequence number ", seq)
+						log.Info("PublicKey key of XDR ", ar.AccountID)
+						log.Info("Sequence number ", i)
+						log.Info("Type of XDR ", result.TxnType)
 					}
 
 					switch result.TxnType {
@@ -85,7 +85,7 @@ func CheckTempOrphan() {
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
 						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
-						log.Info("type 0 submission ", response)
+							log.Info("type 0 submission ", response)
 						}
 						if response.Error.Code == 400 {
 							log.Println("response.Error.Code 400 for SubmitXDR")
