@@ -29,7 +29,7 @@ func CheckOrganizationStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXDR, &txe)
 				if err != nil {
-					if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
+					if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
 						log.Error("Error @SafeUnmarshalBase64 @CheckOrganizationStatus" + err.Error())
 					}
 				}
@@ -39,8 +39,8 @@ func CheckOrganizationStatus() {
 					// result[i].Status="expired"
 					err1 := object.Updateorganization(result[i], temp)
 					if err1 != nil {
-						if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
-						log.Error("Error @UpdateOrganization" + err1.Error())
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+							log.Error("Error @UpdateOrganization" + err1.Error())
 						}
 					}
 					log.Info("Expired")
@@ -52,7 +52,7 @@ func CheckOrganizationStatus() {
 		}
 		return nil
 	}).Catch(func(error error) error {
-		if (commons.GoDotEnvVariable("LOGSTYPE")=="CRON"){
+		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
 			log.Error("Error @GetOrganizationbyStatus " + error.Error())
 		}
 		return error
