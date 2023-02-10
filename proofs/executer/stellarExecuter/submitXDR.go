@@ -24,7 +24,7 @@ type ConcreteSubmitXDR struct {
 @params - XDR
 */
 func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
-	// log.Debug("=========================== submitXDR.go SubmitXDR =============================")
+	log.Debug("=========================== submitXDR.go SubmitXDR =============================")
 	horizonClient := commons.GetHorizonClient()
 	var response model.SubmitXDRResponse
 	//s := time.Now().UTC().String()
@@ -50,9 +50,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
     if TC != nil{
 			response.Error.Message = TC.TransactionCode
 		}
-		if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
-			log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
-		}
+		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ", cd.XDR)
 		log.Error(time.Now().UTC().String() + "- TXNType:" + tType + " " + response.Error.Message + "  ")
 
 		response.Error.Code = http.StatusBadRequest
@@ -66,7 +64,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 
 	response.Error.Code = http.StatusOK
 	response.Error.Message = "Transaction performed in the blockchain."
-	log.Info("Transaction performed in the blockchain.")
+	log.Info("Transaction performed in the blockchain.  " + resp.Hash)
 	response.TXNID = resp.Hash
 
 	return response
