@@ -570,3 +570,17 @@ func (cd *Connection) ConvertBatches(obj model.TokenCoversion) error {
 	}
 	return err
 }
+
+func (cd *Connection) SetAccountRangeLevels(obj model.MassBalancePayload) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("MassBalanceRanges")
+	_, err = c.InsertOne(context.TODO(), obj)
+	if err != nil {
+		fmt.Println("Error while inserting to MassBalanceRanges " + err.Error())
+	}
+	return err
+}

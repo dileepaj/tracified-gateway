@@ -538,4 +538,10 @@ var routes = Routes{
 		"/convert/batches",
 		businessFacades.Conversions,
 	},
+	Route{
+		"Set Account",
+		"POST",
+		"/setAccount",
+		businessFacades.SetRanges,
+	},
 }

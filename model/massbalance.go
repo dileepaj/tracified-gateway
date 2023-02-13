@@ -66,3 +66,26 @@ type SourceAccount struct {
 	Source string `json:"source" bson:"source" validate:"required"`
 	Sign   string `json:"sign" bson:"sign" validate:"required"`
 }
+
+type MassBalancePayload struct {
+	RatioData     []Range            `json:"ratioData"`
+	SingerAccount AccountCredentials `json:"singerAccount"`
+	UserAccount   AccountCredentials `json:"userAccount"`
+}
+type Range struct {
+	ProductName string `json:"productName"`
+	HigherLimit int    `json:"high"`
+	LowerLimit  int    `json:"low"`
+	Userinput   int    `json:"userInput"`
+	Result      string `json:"result"`
+	ResultHash  string `json:"resulthash"`
+}
+type AccountCredentials struct {
+	PublicKey string `json:"publicKey"`
+	SecretKey string `json:"secretKey"`
+}
+
+type RangeSetResult struct {
+	Status     string `json:"result"`
+	ResultHash string `json:"resultHash"`
+}

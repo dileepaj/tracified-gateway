@@ -255,3 +255,46 @@ func Conversions(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func SetRanges(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	dbConn := dao.Connection{}
+	var obj model.MassBalancePayload
+	var result []model.RangeSetResult
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&obj)
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < len(obj.RatioData); i++ {
+		var res model.RangeSetResult
+		setOptionsrst, manageDataRst, err := massbalance.SetAccountLockLevel(obj.RatioData[i].ProductName, obj.RatioData[i].Userinput, obj.RatioData[i].LowerLimit, obj.RatioData[i].HigherLimit, obj.SingerAccount, obj.UserAccount)
+		if err != nil {
+			log.Println("err : ", err.Error())
+		}
+		if manageDataRst == "locked" {
+			res.Status = manageDataRst
+			res.ResultHash = setOptionsrst
+			obj.RatioData[i].Result = "locked"
+			obj.RatioData[i].ResultHash = setOptionsrst
+		} else {
+			res.Status = "success"
+			res.ResultHash = setOptionsrst
+			obj.RatioData[i].Result = "success"
+			obj.RatioData[i].ResultHash = setOptionsrst
+		}
+		result = append(result, res)
+
+	}
+	dbErr := dbConn.SetAccountRangeLevels(obj)
+	if dbErr != nil {
+		log.Println("failed to save transaction data: ", dbErr.Error())
+	}
+	log.Println("final result : ", result)
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		log.Println(err)
+	}
+}
