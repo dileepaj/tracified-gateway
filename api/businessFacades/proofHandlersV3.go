@@ -593,7 +593,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 			FirstTxnGateway := data.(model.TransactionCollectionBody)
 
 			//First TXN SIGNED BY GATEWAY IS USED TO REQUEST THE USER's GENESIS
-			result1, err := http.Get("https://horizon.stellar.orgtransactions/" + FirstTxnGateway.TxnHash + "/operations")
+			result1, err := http.Get(commons.GetHorizonClient().HorizonURL + FirstTxnGateway.TxnHash + "/operations")
 			if err != nil {
 
 			} else {
