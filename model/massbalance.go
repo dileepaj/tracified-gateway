@@ -2,6 +2,10 @@ package model
 
 //"github.com/stellar/go/txnbuild"
 
+import (
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
+
 type Splits struct {
 	Destination []Destination `json:"Destination" bson:"Destination" validate:"required"`
 	Sender      string        `json:"Sender" bson:"Sender" validate:"required"`
@@ -88,4 +92,11 @@ type AccountCredentials struct {
 type RangeSetResult struct {
 	Status     string `json:"result"`
 	ResultHash string `json:"resultHash"`
+}
+
+type MassBalanceRangesDB struct {
+	Id            primitive.ObjectID `json:"_id,omitempty" bson:"_id,omitempty"`
+	RatioData     []Range            `json:"ratioData"`
+	SingerAccount AccountCredentials `json:"singerAccount"`
+	UserAccount   AccountCredentials `json:"userAccount"`
 }

@@ -544,4 +544,10 @@ var routes = Routes{
 		"/setAccount",
 		businessFacades.SetRanges,
 	},
+	Route{
+		"Update Account",
+		"PUT",
+		"/updateAccount",
+		businessFacades.UpdateAccount,
+	},
 }

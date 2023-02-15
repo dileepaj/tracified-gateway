@@ -278,6 +278,11 @@ func SetRanges(w http.ResponseWriter, r *http.Request) {
 			res.ResultHash = setOptionsrst
 			obj.RatioData[i].Result = "locked"
 			obj.RatioData[i].ResultHash = setOptionsrst
+		} else if manageDataRst == "pending" {
+			res.Status = manageDataRst
+			res.ResultHash = setOptionsrst
+			obj.RatioData[i].Result = "pending"
+			obj.RatioData[i].ResultHash = setOptionsrst
 		} else {
 			res.Status = "success"
 			res.ResultHash = setOptionsrst
@@ -288,6 +293,86 @@ func SetRanges(w http.ResponseWriter, r *http.Request) {
 
 	}
 	dbErr := dbConn.SetAccountRangeLevels(obj)
+	if dbErr != nil {
+		log.Println("failed to save transaction data: ", dbErr.Error())
+	}
+	log.Println("final result : ", result)
+	w.WriteHeader(http.StatusOK)
+	err = json.NewEncoder(w).Encode(result)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func UpdateAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	dbConn := dao.Connection{}
+	var obj model.MassBalancePayload
+	var result []model.RangeSetResult
+	var newRangeData []model.Range
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&obj)
+	if err != nil {
+		panic(err)
+	}
+
+	//retrieve range levels from db
+	ret, err1 := dbConn.GetAccountRangeLevels(obj.UserAccount.PublicKey).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+
+	if err1 != nil {
+		panic(err)
+	}
+
+	rangeLevel := ret.(model.MassBalanceRangesDB)
+
+	//unlock account
+	_, err2 := massbalance.UnlockAccount(obj.SingerAccount, obj.UserAccount)
+
+	if err2 != nil {
+		panic(err2)
+	}
+
+	for i := 0; i < len(rangeLevel.RatioData); i++ {
+		//check for failed transactions
+		if rangeLevel.RatioData[i].Result != "success" {
+			for j := 0; j < len(obj.RatioData); j++ {
+				//redo the set options transaction
+				if obj.RatioData[j].ProductName == rangeLevel.RatioData[i].ProductName {
+					var res model.RangeSetResult
+					setOptionsrst, manageDataRst, err := massbalance.SetAccountLockLevel(obj.RatioData[j].ProductName, obj.RatioData[j].Userinput, obj.RatioData[j].LowerLimit, obj.RatioData[j].HigherLimit, obj.SingerAccount, obj.UserAccount)
+					if err != nil {
+						log.Println("err : ", err.Error())
+					}
+					if manageDataRst == "locked" {
+						res.Status = manageDataRst
+						res.ResultHash = setOptionsrst
+						obj.RatioData[j].Result = "locked"
+						obj.RatioData[j].ResultHash = setOptionsrst
+					} else if manageDataRst == "pending" {
+						res.Status = manageDataRst
+						res.ResultHash = setOptionsrst
+						obj.RatioData[i].Result = "pending"
+						obj.RatioData[i].ResultHash = setOptionsrst
+					} else {
+						res.Status = "success"
+						res.ResultHash = setOptionsrst
+						obj.RatioData[j].Result = "success"
+						obj.RatioData[j].ResultHash = setOptionsrst
+					}
+					result = append(result, res)
+					newRangeData = append(newRangeData, obj.RatioData[j])
+					break
+				}
+			}
+		} else {
+			newRangeData = append(newRangeData, rangeLevel.RatioData[i])
+		}
+	}
+
+	dbErr := dbConn.UpdateAccountRangeLevels(rangeLevel.Id, newRangeData)
 	if dbErr != nil {
 		log.Println("failed to save transaction data: ", dbErr.Error())
 	}

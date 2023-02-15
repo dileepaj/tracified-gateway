@@ -128,19 +128,21 @@ func SetAccountLockLevel(productName string, userinput int, lowerlimit int, high
 	respn, reserr := commons.GetHorizonClient().SubmitTransaction(txe64)
 
 	manageDataresp, manageDataErr := CheckAcountStatus(user, int(accountWeight))
+
+	if reserr != nil {
+		log.Println("Error submitting transaction:", reserr)
+		return respn.Hash, "pending", reserr
+	}
+
 	if manageDataErr != nil {
 		log.Println("Manage data failed account locked")
 		return respn.Hash, "locked", manageDataErr
 	}
 
-	if reserr != nil {
-		log.Println("Error submitting transaction:", reserr)
-		return respn.Hash, "locked", reserr
-	}
 	return respn.Hash, manageDataresp, nil
 }
 
-func UnlockAccount(singer model.AccountCredentials, user model.AccountCredentials) (string, error) {
+func UnlockAccount(signer model.AccountCredentials, user model.AccountCredentials) (string, error) {
 	accountSetOptions := txnbuild.SetOptions{
 		MasterWeight: txnbuild.NewThreshold(
 			txnbuild.Threshold(1),
@@ -168,7 +170,7 @@ func UnlockAccount(singer model.AccountCredentials, user model.AccountCredential
 		return "", txErr
 	}
 
-	senderKeypair, _ := keypair.ParseFull(singer.SecretKey)
+	senderKeypair, _ := keypair.ParseFull(signer.SecretKey)
 
 	txe64, signErr := tx.Sign(network.TestNetworkPassphrase, senderKeypair)
 	if signErr != nil {
