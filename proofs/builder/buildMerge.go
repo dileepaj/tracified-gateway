@@ -78,7 +78,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		log.Debug(AP.TxnBody)
 		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if AP.TxnBody[i].Identifier != AP.TxnBody[i].FromIdentifier1 {
-			pData, errorAsync := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+			pData, errorAsync := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -94,7 +94,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
 			}
 
-			pData2, errorAsync2 := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
+			pData2, errorAsync2 := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -110,7 +110,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
 			}
 		} else {
-			pData3, errorAsync3 := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
+			pData3, errorAsync3 := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].FromIdentifier2).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -204,7 +204,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}
 
 			if i == 0 {
-				pData, errorAsync := object.GetLastTransactionbyIdentifierNotSplitParent(TxnBody.FromIdentifier2).Then(func(data interface{}) interface{} {
+				pData, errorAsync := object.GetLastTransactionbyIdentifier(TxnBody.FromIdentifier2).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 
