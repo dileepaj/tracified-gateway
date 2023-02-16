@@ -21,30 +21,55 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 	url := commons.GoDotEnvVariable("ETHEREUMTESTNETLINK")
 	method := "POST"
 
+	var fromString, toString, gasString, gasPriceString, maxPriorityFeePerGasString, maxFeePerGasString, valueString, dataString string
+
 	// if any of the parameters are empty, set them to null
 	if from == "" {
-		from = "null"
+		fromString = `"from": null,`
+	} else {
+		fromString = `"from": "` + from + `",`
 	}
+
 	if to == "" {
-		to = "null"
+		toString = `"to": null,`
+	} else {
+		toString = `"to": "` + to + `",`
 	}
+
 	if gas == "" {
-		gas = "null"
+		gasString = `"gas": null,`
+	} else {
+		gasString = `"gas": "` + gas + `",`
 	}
+
 	if gasPrice == "" {
-		gasPrice = "null"
+		gasPriceString = `"gasPrice": null,`
+	} else {
+		gasPriceString = `"gasPrice": "` + gasPrice + `",`
 	}
+
 	if maxPriorityFeePerGas == "" {
-		maxPriorityFeePerGas = "null"
+		maxPriorityFeePerGasString = `"maxPriorityFeePerGas": null,`
+	} else {
+		maxPriorityFeePerGasString = `"maxPriorityFeePerGas": "` + maxPriorityFeePerGas + `",`
 	}
+
 	if maxFeePerGas == "" {
-		maxFeePerGas = "null"
+		maxFeePerGasString = `"maxFeePerGas": null,`
+	} else {
+		maxFeePerGasString = `"maxFeePerGas": "` + maxFeePerGas + `",`
 	}
+
 	if value == "" {
-		value = "null"
+		valueString = `"value": null,`
+	} else {
+		valueString = `"value": "` + value + `",`
 	}
+
 	if data == "" {
-		data = "null"
+		dataString = `"data": null`
+	} else {
+		dataString = `"data": "` + data + `"`
 	}
 
 	payload := strings.NewReader(`{` +
@@ -52,14 +77,14 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 		`"method": "eth_estimateGas",` +
 		`"params": [` +
 		`{` +
-		`"from": "` + from + `",` +
-		`"to": ` + to + `,` +
-		`"gas": "`+ gas + `",` +
-		`"gasPrice": "`+ gasPrice +`",` +
-		`"maxPriorityFeePerGas": "`+ maxPriorityFeePerGas +`",` +
-		`"maxFeePerGas": "`+ maxFeePerGas +`",` +
-		`"value": "` + value + `",` +
-		`"data": "` + data + `"` +
+		fromString +
+		toString +
+		gasString +
+		gasPriceString +
+		maxPriorityFeePerGasString +
+		maxFeePerGasString +
+		valueString +
+		dataString +
 		`}` +
 		`],` +
 		`"id": 1` +
@@ -89,7 +114,7 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 	// struct to unmarshal the response
 	type GasLimitResponse struct {
 		Jsonrpc string
-		Id int
+		Id      int
 		Result  string
 	}
 
@@ -108,7 +133,7 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 	// convert hex to decimal
 	decimalValue, errInConversion := strconv.ParseInt(hexString, 16, 64)
 	if errInConversion != nil {
-		logrus.Error("Error in converting gas limit hex to decimal: " + err.Error())
+		logrus.Error("Error in converting gas limit hex to decimal: " + errInConversion.Error())
 		return 0, errInConversion
 	}
 
