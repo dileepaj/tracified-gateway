@@ -98,6 +98,17 @@ func (poc *POCTreeV4) generatePOCV4() {
 			break
 		case "5":
 			poc.LastTxnHash = gtxe.PreviousTxnHash
+			// create backLink with splitParent
+			p := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
+			pspgtxe, err2 := p.GetTransactionCollection()
+			if err2 == nil {
+				if poc.Nodes[pspgtxe.CurrentTxnHash] == nil {
+					poc.Nodes[pspgtxe.CurrentTxnHash] = &POCNode{}
+				}
+				if !contains(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+					poc.Nodes[pspgtxe.CurrentTxnHash].Children = append(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+				}
+			} 	
 			poc.generatePOCV4()
 			break
 		case "6":

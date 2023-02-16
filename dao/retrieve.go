@@ -357,37 +357,6 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 	return p
 }
 
-func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier string) *promise.Promise {
-	result := []model.TransactionCollectionBody{}
-	// p := promise.NewPromise()
-
-	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		// Do something asynchronously.
-		session, err := cd.connect()
-		if err != nil {
-			// fmt.Println(err)
-			reject(err)
-		}
-
-		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier ,"txntype":bson.M{"$ne":"5"}})
-
-		if err1 != nil {
-			reject(err1)
-		} else {
-			err2 := cursor.All(context.TODO(), &result)
-			if err2 != nil || len(result) == 0 {
-				reject(err2)
-			} else {
-				resolve(result[len(result)-1])
-			}
-		}
-	})
-
-	return p
-}
-
 /*
 GetFirstTransactionbyIdentifier Retrieve First Transaction Object from TransactionCollection in DB by Identifier
 @author - Azeem Ashraf
