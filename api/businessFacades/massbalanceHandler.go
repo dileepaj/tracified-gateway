@@ -340,7 +340,7 @@ func UpdateAccount(w http.ResponseWriter, r *http.Request) {
 		if rangeLevel.RatioData[i].Result != "success" {
 			for j := 0; j < len(obj.RatioData); j++ {
 				//redo the set options transaction
-				if obj.RatioData[j].ProductName == rangeLevel.RatioData[i].ProductName {
+				if obj.RatioData[j].ProductName == rangeLevel.RatioData[i].ProductName && rangeLevel.RatioData[i].Result == "locked" {
 					var res model.RangeSetResult
 					setOptionsrst, manageDataRst, err := massbalance.SetAccountLockLevel(obj.RatioData[j].ProductName, obj.RatioData[j].Userinput, obj.RatioData[j].LowerLimit, obj.RatioData[j].HigherLimit, obj.SingerAccount, obj.UserAccount)
 					if err != nil {
@@ -367,6 +367,32 @@ func UpdateAccount(w http.ResponseWriter, r *http.Request) {
 					break
 				}
 			}
+			if rangeLevel.RatioData[i].Result == "pending" {
+				var res model.RangeSetResult
+				setOptionsrst, manageDataRst, err := massbalance.SetAccountLockLevel(rangeLevel.RatioData[i].ProductName, rangeLevel.RatioData[i].Userinput, rangeLevel.RatioData[i].LowerLimit, rangeLevel.RatioData[i].HigherLimit, rangeLevel.SingerAccount, rangeLevel.UserAccount)
+				if err != nil {
+					log.Println("err : ", err.Error())
+				}
+				if manageDataRst == "locked" {
+					res.Status = manageDataRst
+					res.ResultHash = setOptionsrst
+					rangeLevel.RatioData[i].Result = "locked"
+					rangeLevel.RatioData[i].ResultHash = setOptionsrst
+				} else if manageDataRst == "pending" {
+					res.Status = manageDataRst
+					res.ResultHash = setOptionsrst
+					rangeLevel.RatioData[i].Result = "pending"
+					rangeLevel.RatioData[i].ResultHash = setOptionsrst
+				} else {
+					res.Status = "success"
+					res.ResultHash = setOptionsrst
+					rangeLevel.RatioData[i].Result = "success"
+					rangeLevel.RatioData[i].ResultHash = setOptionsrst
+				}
+				result = append(result, res)
+				newRangeData = append(newRangeData, rangeLevel.RatioData[i])
+			}
+
 		} else {
 			newRangeData = append(newRangeData, rangeLevel.RatioData[i])
 		}
