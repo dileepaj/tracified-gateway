@@ -11,7 +11,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasservices"
+	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -108,7 +108,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 			//if the first iteration take the initial gas limit and gas price
 			if i == 0 {
 				//get the initial gas limit
-				gasLimit, errInGettingGasLimit := gasservices.EstimateGasLimit(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", "", "", bin)
+				gasLimit, errInGettingGasLimit := gasServices.EstimateGasLimit(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", "", "", bin)
 				if errInGettingGasLimit != nil {
 					logrus.Error("Error when getting gas limit " + errInGettingGasLimit.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas limit, ERROR : " + errInGettingGasLimit.Error())

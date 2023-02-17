@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import (
 	"encoding/base64"

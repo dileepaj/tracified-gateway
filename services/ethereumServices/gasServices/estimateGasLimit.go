@@ -1,4 +1,4 @@
-package gasservices
+package gasServices
 
 import (
 	"encoding/json"
