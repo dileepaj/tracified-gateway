@@ -103,11 +103,6 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	var nonce uint64
 	var errWhenGettingNonce error
 
-	nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
-	if errWhenGettingNonce != nil {
-		logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
-	}
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
 			return contractAddress, transactionHash, transactionCost, nil
@@ -129,6 +124,12 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					logrus.Error("Error when getting gas price " + errWhenGettingGasPrice.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price, ERROR : " + errWhenGettingGasPrice.Error())
 				}
+				auth.GasLimit = uint64(predictedGasLimit) // in units
+				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+				if errWhenGettingNonce != nil {
+					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+				}
 			} else {
 
 				//check the error
@@ -138,10 +139,12 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 					}
+				} else if deploymentError == "intrinsic gas too low" {
+					//increase gas limit by 10%
+					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				}
 
 				//increase both by 10%
-				predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				predictedGasPrice = predictedGasPrice + int(predictedGasPrice*10/100)
 			}
 
@@ -155,8 +158,8 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 			logrus.Info("Predicted gas price : ", predictedGasPrice)
 			logrus.Info("Current nonce : ", nonce)
 
-			auth.Nonce = big.NewInt(int64(nonce))
 			auth.GasLimit = uint64(predictedGasLimit) // in units
+			auth.Nonce = big.NewInt(int64(nonce))
 			auth.GasPrice = big.NewInt(int64(predictedGasPrice))
 
 			//call the deployer method
