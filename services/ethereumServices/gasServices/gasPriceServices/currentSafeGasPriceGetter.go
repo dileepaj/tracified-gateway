@@ -34,7 +34,7 @@ func GetCurrentGasPrice() (int, error) {
 	}
 	defer result.Body.Close()
 
-	value := gjson.GetBytes(data, "result.FastGasPrice")
+	value := gjson.GetBytes(data, "result.SafeGasPrice")
 	logrus.Info("Gas price in Gwei : ", value.String())
 
 	//convert value to int

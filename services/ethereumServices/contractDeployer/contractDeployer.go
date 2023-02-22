@@ -13,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/crypto"
@@ -100,7 +101,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 
 	var isFailed = true
 	var predictedGasLimit int
-	var predictedGasPrice int
+	var predictedGasPrice = new(big.Int)
 	var deploymentError string
 	var nonce uint64
 	var errWhenGettingNonce error
@@ -121,11 +122,16 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				predictedGasLimit = int(gasLimit)
 				//get the initial gas price
 				var errWhenGettingGasPrice error
-				predictedGasPrice, errWhenGettingGasPrice = deploy.GetCurrentGasPrice()
+				predictedGasPrice, errWhenGettingGasPrice = gasPriceServices.GetMinGasPrice()
 				if errWhenGettingGasPrice != nil {
 					logrus.Error("Error when getting gas price " + errWhenGettingGasPrice.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price, ERROR : " + errWhenGettingGasPrice.Error())
 				}
+				if predictedGasPrice.Cmp(big.NewInt(0)) == 0 {
+					logrus.Error("Error when getting gas price , gas price is zero")
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price , gas price is zero")
+				}
+
 				auth.GasLimit = uint64(predictedGasLimit) // in units
 				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
 				if errWhenGettingNonce != nil {
@@ -177,11 +183,11 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				}
 
 				//increase both by 10%
-				predictedGasPrice = predictedGasPrice + int(predictedGasPrice*10/100)
+				predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
 			}
 
 			//check the gas limit cap and gas price cap
-			if predictedGasLimit > gasLimitCap || predictedGasPrice > gasPriceCap {
+			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1{
 				logrus.Error("Gas values are passing specified thresholds")
 				return contractAddress, transactionHash, transactionCost, errors.New("Gas values are passing specified thresholds")
 			}
@@ -192,7 +198,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 
 			auth.GasLimit = uint64(predictedGasLimit) // in units
 			auth.Nonce = big.NewInt(int64(nonce))
-			auth.GasPrice = big.NewInt(int64(predictedGasPrice))
+			auth.GasPrice = predictedGasPrice
 
 			//call the deployer method
 			address, tx, contract, errWhenDeployingContract := bind.DeployContract(auth, *parsed, common.FromHex(ContractBIN), client)
@@ -214,7 +220,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 				} else {
-					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), big.NewInt(int64(predictedGasPrice)))
+					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
 					cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
 					transactionCost = fmt.Sprintf("%g", cost) + " ETH"
 
