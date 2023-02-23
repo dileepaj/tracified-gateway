@@ -8,14 +8,17 @@ import (
 	"math"
 	"math/big"
 	"strconv"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
@@ -180,14 +183,14 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					}
 					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Ethereum account funds are not enough")
 
+				} else if deploymentError == "replacement transaction underpriced" {
+					//increase gas price by 10%
+					predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
 				}
-
-				//increase both by 10%
-				predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
 			}
 
 			//check the gas limit cap and gas price cap
-			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1{
+			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
 				logrus.Error("Gas values are passing specified thresholds")
 				return contractAddress, transactionHash, transactionCost, errors.New("Gas values are passing specified thresholds")
 			}
@@ -214,34 +217,74 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				logrus.Info("View contract at : https://goerli.etherscan.io/address/", address.Hex())
 				logrus.Info("View transaction at : https://goerli.etherscan.io/tx/", tx.Hash().Hex())
 
-				// Wait for the transaction to be mined and calculate the cost
-				receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
-				if errInGettingReceipt != nil {
-					logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-				} else {
-					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
-					cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
-					transactionCost = fmt.Sprintf("%g", cost) + " ETH"
-
-					if receipt.Status == 0 {
-						isFailed = true
-						errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
-						if errorInCallingTransactionStatus != nil {
-							logrus.Error("Transaction failed.")
-							logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
-						} else {
-							logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
-						}
-					} else if receipt.Status == 1 {
-						isFailed = false
+				// TODO: Use a timeout here instead of a sleep
+				time.Sleep(60 * time.Second)
+				isInBlockchain, errorWhenCheckingLatestTxn := pendingTransactionHandler.CheckTransaction(tx.Hash().Hex())
+				if errorWhenCheckingLatestTxn != nil {
+					logrus.Error("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
+				}
+				if isInBlockchain {
+					// Wait for the transaction to be mined and calculate the cost
+					receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
+					if errInGettingReceipt != nil {
+						logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
+						return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 					} else {
-						logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
-						return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
+						costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
+						cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
+						transactionCost = fmt.Sprintf("%g", cost) + " ETH"
+
+						if receipt.Status == 0 {
+							isFailed = true
+							errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
+							if errorInCallingTransactionStatus != nil {
+								logrus.Error("Transaction failed.")
+								logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
+								return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
+							} else {
+								logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
+							}
+						} else if receipt.Status == 1 {
+							isFailed = false
+						} else {
+							logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
+							return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
+						}
+						logrus.Info("Status of receipt : ", receipt.Status)
+						logrus.Info(isFailed)
 					}
-					logrus.Info("Status of receipt : ", receipt.Status)
-					logrus.Info(isFailed)
+				} else {
+					logrus.Error("Transaction is still pending, not in the blockchain yet")
+					// getting current nonce
+					currentNonce, errInGettingCurrentNonce := client.PendingNonceAt(context.Background(), auth.From)
+					if errInGettingCurrentNonce != nil {
+						logrus.Error("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
+						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
+					}
+					deploymentError = "replacement transaction underpriced"
+
+					// if the loop is running for the last time, call the method to replace the transaction
+					if i == tryoutCap-1 && currentNonce > nonce {
+						logrus.Info("Replacing the transaction")
+						predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
+
+						toAddress := common.HexToAddress(commons.GoDotEnvVariable("ETHEREUMPUBKEY"))
+						tx := types.NewTransaction(nonce, toAddress, big.NewInt(0), 21000, predictedGasPrice, nil)
+						logrus.Info("Predicted gas price : ", predictedGasPrice)
+						// Sign the transaction with your private key
+						signedTx, errInSigningTxn := types.SignTx(tx, types.HomesteadSigner{}, privateKey)
+						if errInSigningTxn != nil {
+							logrus.Error("Error when signing transaction, ERROR : " + errInSigningTxn.Error())
+						}
+						//call the method to replace the transaction
+						errInCancellingTransaction := client.SendTransaction(context.Background(), signedTx)
+						if errInCancellingTransaction != nil {
+							logrus.Error("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
+							return contractAddress, transactionHash, transactionCost, errors.New("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
+						}
+						logrus.Info("Transaction cancelled successfully : ", signedTx.Hash())
+					}
 				}
 			}
 
