@@ -15,7 +15,7 @@ import (
 func CheckTransaction(tx string) (bool, error) {
 	isInBlockchain := false
 
-	url := commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "/api?module=account&action=txlist&address=" + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + "&startblock=0&endblock=latest+1&page=1&offset=1&sort=desc&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY")
+	url := commons.GoDotEnvVariable("ETHERSCANAPISEPOLIATESTNET") + "api?module=account&action=txlist&address=" + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + "&startblock=0&endblock=latest+1&page=1&offset=1&sort=desc&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY")
 	logrus.Info("Getting the latest transaction from the address : " + url)
 
 	result, errWhenCallingUrl := http.Get(url)

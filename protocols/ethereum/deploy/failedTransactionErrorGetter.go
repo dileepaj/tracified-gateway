@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,8 +21,8 @@ type TransactionStatus struct {
 }
 
 func GetErrorOfFailedTransaction(transactionHash string) (string, error) {
-	// url := commons.GoDotEnvVariable("ETHERSCANAPI") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&txhash=" + transactionHash
-	url := "https://api-goerli.etherscan.io/api?module=transaction&action=getstatus&apikey=AER6M2C3436231IGT7SV7JZ2URFYFX7MZ1&txhash=" + transactionHash
+	url := commons.GoDotEnvVariable("ETHERSCANAPISEPOLIATESTNET") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&txhash=" + transactionHash
+	// url := "https://api-goerli.etherscan.io/api?module=transaction&action=getstatus&apikey=AER6M2C3436231IGT7SV7JZ2URFYFX7MZ1&txhash=" + transactionHash
 	logrus.Info("Calling the transaction status getter at : " + url)
 	method := "GET"
 

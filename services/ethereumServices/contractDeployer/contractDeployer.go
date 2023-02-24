@@ -8,17 +8,16 @@ import (
 	"math"
 	"math/big"
 	"strconv"
-	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
+	"github.com/dileepaj/tracified-gateway/dao"
+	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
-	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
@@ -33,10 +32,12 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	transactionHash := ""
 	transactionCost := ""
 
+	object := dao.Connection{}
+
 	logrus.Info("Calling the deployer service.............")
 
 	//Dial infura client
-	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
+	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("SPOLIALINK"))
 	if errWhenDialingEthClinet != nil {
 		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClinet.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClinet.Error())
@@ -209,22 +210,32 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				logrus.Info("Error when deploying contract " + errWhenDeployingContract.Error())
 				isFailed = true
 				deploymentError = errWhenDeployingContract.Error()
+				// inserting error message to the database
+				errorMessage := model.EthErrorMessage{
+					TransactionHash: "",
+					ErrorMessage:    deploymentError,
+					Network:         "sepolia",
+				}
+				errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
+				if errInInsertingErrorMessage != nil {
+					logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
+				}
 			} else {
 				contractAddress = address.Hex()
 				transactionHash = tx.Hash().Hex()
 				_ = contract
 
-				logrus.Info("View contract at : https://goerli.etherscan.io/address/", address.Hex())
-				logrus.Info("View transaction at : https://goerli.etherscan.io/tx/", tx.Hash().Hex())
+				logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
+				logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
-				// TODO: Use a timeout here instead of a sleep
-				time.Sleep(60 * time.Second)
-				isInBlockchain, errorWhenCheckingLatestTxn := pendingTransactionHandler.CheckTransaction(tx.Hash().Hex())
-				if errorWhenCheckingLatestTxn != nil {
-					logrus.Error("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
-				}
-				if isInBlockchain {
+				// TODO: Use a timeout 
+				// time.Sleep(120 * time.Second)
+				// isInBlockchain, errorWhenCheckingLatestTxn := pendingTransactionHandler.CheckTransaction(tx.Hash().Hex())
+				// if errorWhenCheckingLatestTxn != nil {
+				// 	logrus.Error("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
+				// 	return contractAddress, transactionHash, transactionCost, errors.New("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
+				// }
+				// if isInBlockchain {
 					// Wait for the transaction to be mined and calculate the cost
 					receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
 					if errInGettingReceipt != nil {
@@ -244,6 +255,16 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 								return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
 							} else {
 								logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
+								// inserting error message to the database
+								errorMessage := model.EthErrorMessage{
+									TransactionHash: tx.Hash().Hex(),
+									ErrorMessage:    errorMessageFromStatus,
+									Network:         "sepolia",
+								}
+								errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
+								if errInInsertingErrorMessage != nil {
+									logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
+								}
 							}
 						} else if receipt.Status == 1 {
 							isFailed = false
@@ -254,38 +275,48 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 						logrus.Info("Status of receipt : ", receipt.Status)
 						logrus.Info(isFailed)
 					}
-				} else {
-					logrus.Error("Transaction is still pending, not in the blockchain yet")
+				// } else {
+					// logrus.Error("Transaction is still pending, not in the blockchain yet")
 					// getting current nonce
-					currentNonce, errInGettingCurrentNonce := client.PendingNonceAt(context.Background(), auth.From)
-					if errInGettingCurrentNonce != nil {
-						logrus.Error("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
-						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
-					}
-					deploymentError = "replacement transaction underpriced"
+				// 	currentNonce, errInGettingCurrentNonce := client.PendingNonceAt(context.Background(), auth.From)
+				// 	if errInGettingCurrentNonce != nil {
+				// 		logrus.Error("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
+				// 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
+				// 	}
+				// 	deploymentError = "replacement transaction underpriced"
 
-					// if the loop is running for the last time, call the method to replace the transaction
-					if i == tryoutCap-1 && currentNonce > nonce {
-						logrus.Info("Replacing the transaction")
-						predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
+				// 	// if the loop is running for the last time, call the method to replace the transaction
+				// 	if i == tryoutCap-1 && currentNonce > nonce {
+				// 		logrus.Info("Replacing the transaction")
+				// 		predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
 
-						toAddress := common.HexToAddress(commons.GoDotEnvVariable("ETHEREUMPUBKEY"))
-						tx := types.NewTransaction(nonce, toAddress, big.NewInt(0), 21000, predictedGasPrice, nil)
-						logrus.Info("Predicted gas price : ", predictedGasPrice)
-						// Sign the transaction with your private key
-						signedTx, errInSigningTxn := types.SignTx(tx, types.HomesteadSigner{}, privateKey)
-						if errInSigningTxn != nil {
-							logrus.Error("Error when signing transaction, ERROR : " + errInSigningTxn.Error())
-						}
-						//call the method to replace the transaction
-						errInCancellingTransaction := client.SendTransaction(context.Background(), signedTx)
-						if errInCancellingTransaction != nil {
-							logrus.Error("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
-						}
-						logrus.Info("Transaction cancelled successfully : ", signedTx.Hash())
-					}
-				}
+				// 		toAddress := common.HexToAddress(commons.GoDotEnvVariable("ETHEREUMPUBKEY"))
+				// 		txn := types.NewTransaction(nonce, toAddress, big.NewInt(0), 21000, predictedGasPrice, nil)
+				// 		logrus.Info("Predicted gas price : ", predictedGasPrice)
+				// 		// Sign the transaction with your private key
+				// 		signedTx, errInSigningTxn := types.SignTx(txn, types.HomesteadSigner{}, privateKey)
+				// 		if errInSigningTxn != nil {
+				// 			logrus.Error("Error when signing transaction, ERROR : " + errInSigningTxn.Error())
+				// 		}
+				// 		//call the method to replace the transaction
+				// 		errInCancellingTransaction := client.SendTransaction(context.Background(), signedTx)
+				// 		if errInCancellingTransaction != nil {
+				// 			logrus.Error("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
+				// 			// inserting error message to the database
+				// 			errorMessage := model.EthErrorMessages{
+				// 				TransactionHash: "",
+				// 				ErrorMessage:    errInCancellingTransaction.Error(),
+				// 				Network:         "sepolia",
+				// 			}
+				// 			errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
+				// 			if errInInsertingErrorMessage != nil {
+				// 				logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
+				// 			}
+				// 			return contractAddress, transactionHash, transactionCost, errors.New("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
+				// 		}
+				// 		logrus.Info("Transaction cancelled successfully : ", signedTx.Hash())
+				// 	}
+				// }
 			}
 
 		}
