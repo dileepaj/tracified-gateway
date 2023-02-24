@@ -18,7 +18,7 @@ import (
 // data is the bin of the contract to deploy
 
 func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPriorityFeePerGas string, maxFeePerGas string, value string, data string) (uint64, error) {
-	url := commons.GoDotEnvVariable("SPOLIALINK")
+	url := commons.GoDotEnvVariable("ETHEREUMTESTNETLINK")
 	method := "POST"
 
 	var fromString, toString, gasString, gasPriceString, maxPriorityFeePerGasString, maxFeePerGasString, valueString, dataString string

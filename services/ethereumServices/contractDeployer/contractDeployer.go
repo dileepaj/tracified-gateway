@@ -37,7 +37,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	logrus.Info("Calling the deployer service.............")
 
 	//Dial infura client
-	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("SPOLIALINK"))
+	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
 	if errWhenDialingEthClinet != nil {
 		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClinet.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClinet.Error())
