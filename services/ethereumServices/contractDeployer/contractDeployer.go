@@ -10,7 +10,6 @@ import (
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
@@ -21,7 +20,6 @@ import (
 	"github.com/ethereum/go-ethereum/crypto"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
-	gomail "gopkg.in/gomail.v2"
 )
 
 /*
@@ -157,30 +155,10 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-					url := `https://etherscan.io/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
-					message := `<center><h1 style='color: brown;'>Gateway Ethereum account should be funded</h1></center><p>Dear Admins,</p><p> 
-	This email is auto-generated to notify that the following gateway Ethereum account is low on Eths, please fund the account.
-	<p><b>Public key:</b> ` + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + `</p>` + `<p><a href="` + url + `">View Account</p><br><br><p>Thank you</p>`
-
-					subject := `Gateway Ethereum account should be funded`
-
-					for _, email := range configs.EthereumNotificationEmails {
-						msg := gomail.NewMessage()
-						msg.SetHeader("From", commons.GoDotEnvVariable("sender_emailadress"))
-						msg.SetHeader("To", email)
-						msg.SetHeader("Subject", subject)
-						msg.SetBody("text/html", message)
-						port, errWhenConvertingToStr := strconv.Atoi(commons.GoDotEnvVariable("GOMAILPORT"))
-						if errWhenConvertingToStr != nil {
-							logrus.Error("Issue when converting string to int, ERROR : " + errWhenConvertingToStr.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Issue when converting string to int, ERROR : " + errWhenConvertingToStr.Error())
-						}
-						n := gomail.NewDialer(commons.GoDotEnvVariable("GMAILHOST"), port, commons.GoDotEnvVariable("sender_emailadress"), commons.GoDotEnvVariable("SENDER_EMAILADRESS_APPPWD"))
-						errWhenDialAndSending := n.DialAndSend(msg)
-						if errWhenDialAndSending != nil {
-							logrus.Error("Email sending issue, ERROR : " + errWhenDialAndSending.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Email sending issue, ERROR : " + errWhenDialAndSending.Error())
-						}
+					errorInSendingEmail := RequestFunds()
+					if errorInSendingEmail != nil {
+						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
+						return contractAddress, transactionHash, transactionCost, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
 					}
 					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Ethereum account funds are not enough")
 
