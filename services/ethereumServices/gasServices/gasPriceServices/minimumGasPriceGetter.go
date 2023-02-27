@@ -41,7 +41,7 @@ type Response struct {
 func GetMinGasPrice() (*big.Int, error) {
 	client1, errDiallingClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMMAINNETLINK"))
 	if errDiallingClient != nil {
-		logrus.Error(errDiallingClient)
+		logrus.Error("Error when dialing client : " + errDiallingClient.Error())
 		return nil, errors.New(errDiallingClient.Error())
 	}
 
@@ -114,7 +114,7 @@ func GetMinGasPrice() (*big.Int, error) {
 		logrus.Info("Using the lowest gas price from the network")
 		lowestPrice, errorInGettingLowestPrice := GetCurrentGasPrice()
 		if errorInGettingLowestPrice != nil {
-			logrus.Error(errorInGettingLowestPrice)
+			logrus.Error("Error when getting low gas price from 'GetCurrentGasPrice()'" + errorInGettingLowestPrice.Error())
 			return nil, errors.New(errorInGettingLowestPrice.Error())
 		}
 		min = big.NewInt(int64(lowestPrice))
