@@ -107,7 +107,8 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	var deploymentError string
 	var nonce uint64
 	var errWhenGettingNonce error
-
+	var initialNonce uint64
+	var currentHash common.Hash
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
 			return contractAddress, transactionHash, transactionCost, nil
@@ -140,8 +141,8 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 				}
+				initialNonce = nonce
 			} else {
-
 				//check the error
 				if deploymentError == "nonce too low" {
 					//pick up the latest the nonce available
@@ -150,6 +151,34 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 					}
+
+					//check the previous nonce with the current nonce if the 2nd loop is in action to see whether the transaction is already on the blockchain
+					if i == 1 {
+						if initialNonce != nonce {
+							//! if this is true that means this transaction is already happened in the blockchain, next check the success of failure status
+							transactionReceipt, errWhenTakingTransactionForSameNonce := client.TransactionReceipt(context.Background(), currentHash)
+							if errWhenTakingTransactionForSameNonce != nil {
+								logrus.Info("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
+								return contractAddress, transactionHash, transactionCost, errors.New("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
+							}
+
+							//checking the transaction receipt status
+							if transactionReceipt.Status == 0 {
+								//transaction has been failed
+								//try in the next iteration
+								isFailed = true
+
+							} else if transactionReceipt.Status == 1 {
+								//transaction is successful -> return with success message
+								return contractAddress, transactionHash, transactionCost, nil
+
+							} else {
+								logrus.Error("Invalid transaction receipt status")
+								return contractAddress, transactionHash, transactionCost, errors.New("Invalid transaction receipt status")
+							}
+						}
+					}
+
 				} else if deploymentError == "intrinsic gas too low" {
 					//increase gas limit by 10%
 					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
@@ -203,98 +232,50 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				transactionHash = tx.Hash().Hex()
 				_ = contract
 
+				currentHash = tx.Hash()
+
 				logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 				logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
-				// TODO: Use a timeout 
-				// time.Sleep(120 * time.Second)
-				// isInBlockchain, errorWhenCheckingLatestTxn := pendingTransactionHandler.CheckTransaction(tx.Hash().Hex())
-				// if errorWhenCheckingLatestTxn != nil {
-				// 	logrus.Error("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
-				// 	return contractAddress, transactionHash, transactionCost, errors.New("Error when checking latest transaction, ERROR : " + errorWhenCheckingLatestTxn.Error())
-				// }
-				// if isInBlockchain {
-					// Wait for the transaction to be mined and calculate the cost
-					receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
-					if errInGettingReceipt != nil {
-						logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-						return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-					} else {
-						costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
-						cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
-						transactionCost = fmt.Sprintf("%g", cost) + " ETH"
+				receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
+				if errInGettingReceipt != nil {
+					logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
+					return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
+				} else {
+					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
+					cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
+					transactionCost = fmt.Sprintf("%g", cost) + " ETH"
 
-						if receipt.Status == 0 {
-							isFailed = true
-							errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
-							if errorInCallingTransactionStatus != nil {
-								logrus.Error("Transaction failed.")
-								logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
-								return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
-							} else {
-								logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
-								// inserting error message to the database
-								errorMessage := model.EthErrorMessage{
-									TransactionHash: tx.Hash().Hex(),
-									ErrorMessage:    errorMessageFromStatus,
-									Network:         "sepolia",
-								}
-								errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
-								if errInInsertingErrorMessage != nil {
-									logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
-								}
-							}
-						} else if receipt.Status == 1 {
-							isFailed = false
+					if receipt.Status == 0 {
+						isFailed = true
+						errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
+						if errorInCallingTransactionStatus != nil {
+							logrus.Error("Transaction failed.")
+							logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
+							return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
 						} else {
-							logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
-							return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
+							logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
+							// inserting error message to the database
+							errorMessage := model.EthErrorMessage{
+								TransactionHash: tx.Hash().Hex(),
+								ErrorMessage:    errorMessageFromStatus,
+								Network:         "sepolia",
+							}
+							errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
+							if errInInsertingErrorMessage != nil {
+								logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
+							}
 						}
-						logrus.Info("Status of receipt : ", receipt.Status)
-						logrus.Info(isFailed)
+					} else if receipt.Status == 1 {
+						isFailed = false
+					} else {
+						logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
+						return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
 					}
-				// } else {
-					// logrus.Error("Transaction is still pending, not in the blockchain yet")
-					// getting current nonce
-				// 	currentNonce, errInGettingCurrentNonce := client.PendingNonceAt(context.Background(), auth.From)
-				// 	if errInGettingCurrentNonce != nil {
-				// 		logrus.Error("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
-				// 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting current nonce, ERROR : " + errInGettingCurrentNonce.Error())
-				// 	}
-				// 	deploymentError = "replacement transaction underpriced"
+					logrus.Info("Status of receipt : ", receipt.Status)
+					logrus.Info(isFailed)
+				}
 
-				// 	// if the loop is running for the last time, call the method to replace the transaction
-				// 	if i == tryoutCap-1 && currentNonce > nonce {
-				// 		logrus.Info("Replacing the transaction")
-				// 		predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
-
-				// 		toAddress := common.HexToAddress(commons.GoDotEnvVariable("ETHEREUMPUBKEY"))
-				// 		txn := types.NewTransaction(nonce, toAddress, big.NewInt(0), 21000, predictedGasPrice, nil)
-				// 		logrus.Info("Predicted gas price : ", predictedGasPrice)
-				// 		// Sign the transaction with your private key
-				// 		signedTx, errInSigningTxn := types.SignTx(txn, types.HomesteadSigner{}, privateKey)
-				// 		if errInSigningTxn != nil {
-				// 			logrus.Error("Error when signing transaction, ERROR : " + errInSigningTxn.Error())
-				// 		}
-				// 		//call the method to replace the transaction
-				// 		errInCancellingTransaction := client.SendTransaction(context.Background(), signedTx)
-				// 		if errInCancellingTransaction != nil {
-				// 			logrus.Error("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
-				// 			// inserting error message to the database
-				// 			errorMessage := model.EthErrorMessages{
-				// 				TransactionHash: "",
-				// 				ErrorMessage:    errInCancellingTransaction.Error(),
-				// 				Network:         "sepolia",
-				// 			}
-				// 			errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
-				// 			if errInInsertingErrorMessage != nil {
-				// 				logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
-				// 			}
-				// 			return contractAddress, transactionHash, transactionCost, errors.New("Error when cancelling transaction, ERROR : " + errInCancellingTransaction.Error())
-				// 		}
-				// 		logrus.Info("Transaction cancelled successfully : ", signedTx.Hash())
-				// 	}
-				// }
 			}
 
 		}
