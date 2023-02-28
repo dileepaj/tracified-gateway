@@ -53,6 +53,9 @@
       become: true
       docker_volume:
         name: gateway_logs
+    - name: Create a network
+      docker_network:
+        name: tillitgatewaynetwork
     - name: Run docker
       become: true
       debugger: on_failed
