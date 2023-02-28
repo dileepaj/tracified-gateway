@@ -54,6 +54,7 @@
       docker_volume:
         name: gateway_logs
     - name: Create a network
+      become: true
       docker_network:
         name: tillitgatewaynetwork
     - name: Run docker
