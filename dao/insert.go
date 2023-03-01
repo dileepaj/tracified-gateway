@@ -672,3 +672,17 @@ func (cd *Connection) InsertEthErrorMessage(errorMessage model.EthErrorMessage) 
 	}
 	return err
 }
+
+func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+	_, err = c.InsertOne(context.TODO(), pendingTransaction)
+	if err != nil {
+		logrus.Info("Error when inserting pending transaction to DB " + err.Error())
+	}
+	return err
+}

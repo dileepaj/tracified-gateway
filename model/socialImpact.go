@@ -798,3 +798,13 @@ type EthErrorMessage struct {
 	Network 	 		  string
 	TransactionHash string
 }
+
+type PendingContracts struct {
+	TransactionHash string
+	ContractAddress string
+	Status          string
+	CurrentIndex    int
+	ErrorMessage    string
+	ContractType    string
+	Identifier string
+}
