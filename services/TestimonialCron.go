@@ -12,8 +12,8 @@ import (
 )
 
 func CheckTestimonialStatus() {
-	if (commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"){
-	log.Debug("----------------------------------- CheckTestimonialStatus -------------------------------------")
+	if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
+		log.Debug("----------------------------------- CheckTestimonialStatus -------------------------------------")
 	}
 	object := dao.Connection{}
 	p := object.GetTestimonialbyStatus(model.Pending.String())
@@ -29,7 +29,7 @@ func CheckTestimonialStatus() {
 				var txe xdr.Transaction
 				err := xdr.SafeUnmarshalBase64(result[i].AcceptXDR, &txe)
 				if err != nil {
-					if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+					if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 						log.Error("Error @SafeUnmarshalBase64 @CheckTestimonialStatus" + err.Error())
 					}
 				}
@@ -39,7 +39,7 @@ func CheckTestimonialStatus() {
 					// result[i].Status="expired"
 					err1 := object.UpdateTestimonial(result[i], temp)
 					if err1 != nil {
-						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 							log.Error("Error @UpdateTestimonial" + err1.Error())
 						}
 					}
@@ -51,7 +51,7 @@ func CheckTestimonialStatus() {
 		}
 		return nil
 	}).Catch(func(error error) error {
-		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG"  {
+		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 			log.Error("Error @GetTestimonialbyStatus " + error.Error())
 		}
 		return error

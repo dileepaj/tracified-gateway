@@ -2780,3 +2780,33 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 	})
 	return p
 }
+
+//Get the Ethereum contract status
+func (cd *Connection) GetPendingContractsByStatus(status string) *promise.Promise {
+	result := []model.PendingContracts{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+
+	return p
+
+}
