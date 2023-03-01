@@ -4,15 +4,12 @@ import (
 	"context"
 	"crypto/ecdsa"
 	"errors"
-	"fmt"
-	"math"
 	"math/big"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -236,45 +233,6 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 
 				logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 				logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
-
-				receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
-				if errInGettingReceipt != nil {
-					logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-				} else {
-					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
-					cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
-					transactionCost = fmt.Sprintf("%g", cost) + " ETH"
-
-					if receipt.Status == 0 {
-						isFailed = true
-						errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
-						if errorInCallingTransactionStatus != nil {
-							logrus.Error("Transaction failed.")
-							logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
-						} else {
-							logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
-							// inserting error message to the database
-							errorMessage := model.EthErrorMessage{
-								TransactionHash: tx.Hash().Hex(),
-								ErrorMessage:    errorMessageFromStatus,
-								Network:         "sepolia",
-							}
-							errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
-							if errInInsertingErrorMessage != nil {
-								logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
-							}
-						}
-					} else if receipt.Status == 1 {
-						isFailed = false
-					} else {
-						logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
-						return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
-					}
-					logrus.Info("Status of receipt : ", receipt.Status)
-					logrus.Info(isFailed)
-				}
 
 			}
 
