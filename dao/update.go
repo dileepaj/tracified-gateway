@@ -1144,6 +1144,9 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 		ErrorMessage: 	update.ErrorMessage,
 		ContractType: 	update.ContractType,
 		Identifier: 	update.Identifier,
+		Nonce: 			update.Nonce,
+		GasPrice: 		update.GasPrice,
+		GasLimit: 		update.GasLimit,
 	}
 
 	pByte, err := bson.Marshal(up)

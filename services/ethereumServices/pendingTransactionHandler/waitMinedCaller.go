@@ -24,10 +24,6 @@ func CallWaitMined(client *ethclient.Client, tx *types.Transaction) (int64, uint
 		logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 		return -1, 0, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 	} else {
-		// costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
-		// cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
-		// transactionCost = fmt.Sprintf("%g", cost) + " ETH"
-
 		if receipt.Status == 0 {
 			errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
 			if errorInCallingTransactionStatus != nil {
