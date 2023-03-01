@@ -13,3 +13,5 @@ var PGPkeyEnableMetricBind = false
 var DefaultBlockchain = "STELLAR"
 
 var DigitalSIgnatureValidationEnabled = false
+
+var EthereumNotificationEmails = [3]string{"ishinik@tracified.com", "thurshah@tracified.com", "mithilap@tracified.com"}

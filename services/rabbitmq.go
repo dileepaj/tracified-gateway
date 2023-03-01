@@ -12,6 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	deploy "github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
+	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -191,7 +192,11 @@ func ReceiverRmq() error {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
 				startTime := time.Now()
 				//Call the deploy method
-				address, txnHash, deploymentCost, errWhenDeploying := deploy.DeployContract(queue.EthereumExpertFormula.ABIstring, queue.EthereumExpertFormula.BINstring)
+				expertDeployObject := ethereumservices.AbstractContractDeployment{
+					ABI: queue.EthereumExpertFormula.ABIstring,
+					BIN: queue.EthereumExpertFormula.BINstring,
+				}
+				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethExpertFormulaObj := model.EthereumExpertFormula{

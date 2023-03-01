@@ -792,3 +792,9 @@ type EthMetricIDMap struct {
 	MetricID string
 	MapID    uint64
 }
+
+type EthErrorMessage struct {
+	ErrorMessage 		  string
+	Network 	 		  string
+	TransactionHash string
+}

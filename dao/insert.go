@@ -658,3 +658,17 @@ func (cd *Connection) InsertEthMetricIDMap(metricIDMap model.EthMetricIDMap) err
 	}
 	return err
 }
+
+func (cd *Connection) InsertEthErrorMessage(errorMessage model.EthErrorMessage) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthErrorMessages")
+	_, err = c.InsertOne(context.TODO(), errorMessage)
+	if err != nil {
+		logrus.Info("Error when inserting ethereum error messages to DB " + err.Error())
+	}
+	return err
+}

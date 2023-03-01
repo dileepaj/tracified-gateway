@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ import (
 
 func getPreviousContractAddress(metricID string) (string, error) {
 	contractAddress := ""
-	
+
 	object := dao.Connection{}
 	contract, err := object.GetEthereumMetricLatestContract(metricID).Then(func(data interface{}) interface{} {
 		return data

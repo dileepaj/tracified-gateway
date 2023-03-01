@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import (
 	"encoding/base64"
@@ -47,7 +47,6 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 		return errWhenGettingFormulaDeceleration
 	}
 
-	//TODO: call add detail function
 	addDetailsFunction, errWhenGettingAddDetailsFunction := AddDetailsMethodWriter(element)
 	if errWhenGettingAddDetailsFunction != nil {
 		logrus.Error("Error when generating add details function for activity contract : ", errWhenGettingAddDetailsFunction)

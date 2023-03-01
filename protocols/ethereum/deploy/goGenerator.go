@@ -28,7 +28,5 @@ func GenerateGoCode(contractName string) (string, error) {
 	}
 	logrus.Info("Go file generated" + out.String())
 
-	//TODO read the abi file and pass the string to abistring
-
 	return goString, nil
 }

@@ -25,7 +25,7 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 	transactionCost := ""
 
 	//Dial infura client
-	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("SPOLIALINK"))
+	client, errWhenDialingEthClinet := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
 	if errWhenDialingEthClinet != nil {
 		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClinet.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClinet.Error())
