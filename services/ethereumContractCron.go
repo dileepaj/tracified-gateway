@@ -2,6 +2,7 @@ package services
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -37,30 +38,53 @@ func CheckContractStatus() {
 			logrus.Error("Error when calling th Ethereum client on Cron job, Error : " + errWHenDialingEthClient.Error())
 			return nil
 		}
+		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDINGTHRESHOLD"))
+		if errWhenConvertingPendingCap != nil {
+			logrus.Error("Error when converting the pending cap : " + errWhenConvertingPendingCap.Error())
+			return nil
+		}
 		for i := 0; i < len(result); i++ {
-			//check the transaction status
 			pendingHash := result[i].TransactionHash
-			transactionReceipt, errWhenTakingTheReceipt := ethClient.TransactionReceipt(context.Background(), common.HexToHash(pendingHash))
-			if errWhenTakingTheReceipt != nil {
-				//Pending transaction
-			} else if transactionReceipt.Status == 1 {
-				//Transaction is successful
-			} else if transactionReceipt.Status == 0 {
-				//Transaction failed
-				//Get the error for the transaction
-				errorOccurred, errWhenGettingTheTransactionError := deploy.GetErrorOfFailedTransaction(pendingHash)
-				if errWhenGettingTheTransactionError != nil {
-					logrus.Error("Error when getting the transaction error : " + errWhenGettingTheTransactionError.Error())
+			//check the pending threshold
+			if result[i].CurrentIndex == pendingCap {
+				logrus.Error(pendingHash + " hash pending checking capacity met, invalidating transaction")
+				//TODO update the db to cancel out the transaction
+				continue
+			} else {
+				//check the transaction status
+				transactionReceipt, errWhenTakingTheReceipt := ethClient.TransactionReceipt(context.Background(), common.HexToHash(pendingHash))
+				if errWhenTakingTheReceipt != nil {
+					//check the error
+					if errWhenTakingTheReceipt.Error() == "not found" {
+						//transaction is still pending
+						//update the index
+					} else {
+						logrus.Error("Error when calling the transaction receipt : " + errWhenTakingTheReceipt.Error())
+						continue
+					}
+
+				} else if transactionReceipt.Status == 1 {
+					//Transaction is successful
+					// update both collections
+
+				} else if transactionReceipt.Status == 0 {
+					//Transaction failed
+					//Get the error for the transaction
+					errorOccurred, errWhenGettingTheTransactionError := deploy.GetErrorOfFailedTransaction(pendingHash)
+					if errWhenGettingTheTransactionError != nil {
+						logrus.Error("Error when getting the transaction error : " + errWhenGettingTheTransactionError.Error())
+						continue
+					}
+					logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
+
+					//call the failed contact redeployer
+
+				} else {
+					logrus.Error("Invalid transaction receipt status for transaction hash : ", pendingHash)
 					continue
 				}
-				logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
-
-				//call the failed contact redeployer
-
-			} else {
-				logrus.Error("Invalid transaction receipt status for transaction hash : ", pendingHash)
-				continue
 			}
+
 		}
 		return nil
 	}).Catch(func(error error) error {
