@@ -22,7 +22,7 @@ import (
 /*
 Deploy smart contracts on to Ethereum with failure replacements
 */
-func EthereumContractDeployerService(bin string, abi string) (string, string, string, error) {
+func EthereumContractDeployerService(bin string, abi string, contractIdentifier string, contractType string) (string, string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
 	transactionCost := ""
@@ -105,7 +105,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	var nonce uint64
 	var errWhenGettingNonce error
 	var initialNonce uint64
-	var currentHash common.Hash
+
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
 			return contractAddress, transactionHash, transactionCost, nil
@@ -153,7 +153,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					if i == 1 {
 						if initialNonce != nonce {
 							//! if this is true that means this transaction is already happened in the blockchain, next check the success of failure status
-							transactionReceipt, errWhenTakingTransactionForSameNonce := client.TransactionReceipt(context.Background(), currentHash)
+							transactionReceipt, errWhenTakingTransactionForSameNonce := client.TransactionReceipt(context.Background(), common.HexToHash(transactionHash))
 							if errWhenTakingTransactionForSameNonce != nil {
 								logrus.Info("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
 								return contractAddress, transactionHash, transactionCost, errors.New("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
@@ -229,11 +229,26 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				transactionHash = tx.Hash().Hex()
 				_ = contract
 
-				currentHash = tx.Hash()
+				logrus.Info("View contract at : https://goerli.etherscan.io/address/", address.Hex())
+				logrus.Info("View transaction at : https://goerli.etherscan.io/tx/", tx.Hash().Hex())
 
-				logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
-				logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
-
+				// Insert the pending transaction to the database
+				pendingTransaction := model.PendingContracts{
+					TransactionHash: tx.Hash().Hex(),
+					ContractAddress: address.Hex(),
+					Status: 		 "PENDING",
+					CurrentIndex:    0,
+					ErrorMessage:    "",
+					ContractType:    contractType,
+					Identifier:      contractIdentifier,
+				}
+				errInInsertingPendingTx := object.InsertEthPendingContract(pendingTransaction)
+				if errInInsertingPendingTx != nil {
+					logrus.Error("Error in inserting the pending transaction, ERROR : " + errInInsertingPendingTx.Error()) 
+					isFailed = true
+				} else {
+					isFailed = false
+				}		
 			}
 
 		}

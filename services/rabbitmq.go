@@ -195,6 +195,8 @@ func ReceiverRmq() error {
 				expertDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
+					Identifier: queue.EthereumExpertFormula.FormulaID,
+					ContractType: 	 "EXPERTFORMULA",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
 				endTime := time.Now()
