@@ -12,7 +12,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
@@ -25,7 +24,7 @@ import (
 /*
 Deploy smart contracts on to Ethereum with failure replacements
 */
-func EthereumContractDeployerService(bin string, abi string) (string, string, string, error) {
+func EthereumContractDeployerService(bin string, abi string, contractIdentifier string, contractType string) (string, string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
 	transactionCost := ""
@@ -107,8 +106,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 	var deploymentError string
 	var nonce uint64
 	var errWhenGettingNonce error
-	var initialNonce uint64
-	var currentHash common.Hash
+
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
 			return contractAddress, transactionHash, transactionCost, nil
@@ -141,7 +139,6 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 				}
-				initialNonce = nonce
 			} else {
 				//check the error
 				if deploymentError == "nonce too low" {
@@ -150,33 +147,6 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					if errWhenGettingNonce != nil {
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
-					}
-
-					//check the previous nonce with the current nonce if the 2nd loop is in action to see whether the transaction is already on the blockchain
-					if i == 1 {
-						if initialNonce != nonce {
-							//! if this is true that means this transaction is already happened in the blockchain, next check the success of failure status
-							transactionReceipt, errWhenTakingTransactionForSameNonce := client.TransactionReceipt(context.Background(), currentHash)
-							if errWhenTakingTransactionForSameNonce != nil {
-								logrus.Info("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
-								return contractAddress, transactionHash, transactionCost, errors.New("Error when taking the transaction receipt for the previously pending transaction, Error : " + errWhenTakingTransactionForSameNonce.Error())
-							}
-
-							//checking the transaction receipt status
-							if transactionReceipt.Status == 0 {
-								//transaction has been failed
-								//try in the next iteration
-								isFailed = true
-
-							} else if transactionReceipt.Status == 1 {
-								//transaction is successful -> return with success message
-								return contractAddress, transactionHash, transactionCost, nil
-
-							} else {
-								logrus.Error("Invalid transaction receipt status")
-								return contractAddress, transactionHash, transactionCost, errors.New("Invalid transaction receipt status")
-							}
-						}
 					}
 
 				} else if deploymentError == "intrinsic gas too low" {
@@ -191,10 +161,7 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 					}
 					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Ethereum account funds are not enough")
 
-				} else if deploymentError == "replacement transaction underpriced" {
-					//increase gas price by 10%
-					predictedGasPrice = new(big.Int).Add(predictedGasPrice, new(big.Int).Div(predictedGasPrice, big.NewInt(10)))
-				}
+				} 
 			}
 
 			//check the gas limit cap and gas price cap
@@ -232,52 +199,35 @@ func EthereumContractDeployerService(bin string, abi string) (string, string, st
 				transactionHash = tx.Hash().Hex()
 				_ = contract
 
-				currentHash = tx.Hash()
-
 				logrus.Info("View contract at : https://sepolia.etherscan.io/address/", address.Hex())
 				logrus.Info("View transaction at : https://sepolia.etherscan.io/tx/", tx.Hash().Hex())
 
-				receipt, errInGettingReceipt := bind.WaitMined(context.Background(), client, tx)
-				if errInGettingReceipt != nil {
-					logrus.Error("Error in getting receipt: Error: " + errInGettingReceipt.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
+				// Insert the pending transaction to the database
+				pendingTransaction := model.PendingContracts{
+					TransactionHash: tx.Hash().Hex(),
+					ContractAddress: address.Hex(),
+					Status:          "PENDING",
+					CurrentIndex:    0,
+					ErrorMessage:    "",
+					ContractType:    contractType,
+					Identifier:      contractIdentifier,
+					Nonce:           auth.Nonce,
+					GasLimit:        auth.GasLimit,
+					GasPrice:        auth.GasPrice,
+				}
+				errInInsertingPendingTx := object.InsertEthPendingContract(pendingTransaction)
+				if errInInsertingPendingTx != nil {
+					logrus.Error("Error in inserting the pending transaction, ERROR : " + errInInsertingPendingTx.Error())
+					isFailed = true
 				} else {
-					costInWei := new(big.Int).Mul(big.NewInt(int64(receipt.GasUsed)), predictedGasPrice)
-					cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
-					transactionCost = fmt.Sprintf("%g", cost) + " ETH"
-
-					if receipt.Status == 0 {
-						isFailed = true
-						errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
-						if errorInCallingTransactionStatus != nil {
-							logrus.Error("Transaction failed.")
-							logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())
-							return contractAddress, transactionHash, transactionCost, errors.New("Transaction failed.")
-						} else {
-							logrus.Error("Transaction failed. Error: " + errorMessageFromStatus)
-							// inserting error message to the database
-							errorMessage := model.EthErrorMessage{
-								TransactionHash: tx.Hash().Hex(),
-								ErrorMessage:    errorMessageFromStatus,
-								Network:         "sepolia",
-							}
-							errInInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
-							if errInInsertingErrorMessage != nil {
-								logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
-							}
-						}
-					} else if receipt.Status == 1 {
-						isFailed = false
-					} else {
-						logrus.Error("Invalid receipt status for 'WaitMined', Status : ", receipt.Status)
-						return contractAddress, transactionHash, transactionCost, errors.New("Invalid receipt status for 'WaitMined', Status : " + fmt.Sprint(receipt.Status))
-					}
-					logrus.Info("Status of receipt : ", receipt.Status)
-					logrus.Info(isFailed)
+					isFailed = false
 				}
 
+				// calculate the predicted transaction cost
+				costInWei := new(big.Int).Mul(big.NewInt(int64(predictedGasLimit)), predictedGasPrice)
+				cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
+				transactionCost = fmt.Sprintf("%g", cost) + " ETH"
 			}
-
 		}
 	}
 	if !isFailed {

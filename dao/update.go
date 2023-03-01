@@ -1127,3 +1127,41 @@ func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update
 
 	return err
 }
+
+func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, contractAddress, identifier string, update model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.PendingContracts{
+		TransactionHash: update.TransactionHash,
+		ContractAddress: update.ContractAddress,
+		Status: 		update.Status,
+		CurrentIndex: 	update.CurrentIndex,
+		ErrorMessage: 	update.ErrorMessage,
+		ContractType: 	update.ContractType,
+		Identifier: 	update.Identifier,
+		Nonce: 			update.Nonce,
+		GasPrice: 		update.GasPrice,
+		GasLimit: 		update.GasLimit,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"transactionhash": transactionHash, "contractaddress": contractAddress, "identifier": identifier}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
