@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/txnbuild"
@@ -797,4 +798,17 @@ type EthErrorMessage struct {
 	ErrorMessage 		  string
 	Network 	 		  string
 	TransactionHash string
+}
+
+type PendingContracts struct {
+	TransactionHash string
+	ContractAddress string
+	Status          string
+	CurrentIndex    int
+	ErrorMessage    string
+	ContractType    string
+	Identifier      string
+	Nonce           *big.Int
+	GasPrice        *big.Int
+	GasLimit        uint64
 }

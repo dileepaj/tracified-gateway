@@ -10,7 +10,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	deploy "github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -195,6 +194,8 @@ func ReceiverRmq() error {
 				expertDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
+					Identifier: queue.EthereumExpertFormula.FormulaID,
+					ContractType: 	 "ETHEXPERTFORMULA",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
 				endTime := time.Now()
@@ -252,7 +253,13 @@ func ReceiverRmq() error {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
 				startTime := time.Now()
 				//Call the deploy method
-				address, txnHash, deploymentCost, errWhenDeploying := deploy.DeployContract(queue.EthereumMetricBind.ABIstring, queue.EthereumMetricBind.BINstring)
+				metricDeployObject := ethereumservices.AbstractContractDeployment{
+					ABI: queue.EthereumMetricBind.ABIstring,
+					BIN: queue.EthereumMetricBind.BINstring,
+					Identifier: queue.EthereumMetricBind.MetricID,
+					ContractType: 	 "ETHMETRICBIND",
+				}
+				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethMetricObj := model.EthereumMetricBind{
