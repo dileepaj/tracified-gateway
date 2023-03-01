@@ -6,6 +6,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/ethclient"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/log"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
@@ -46,8 +47,18 @@ func CheckContractStatus() {
 				//Transaction is successful
 			} else if transactionReceipt.Status == 0 {
 				//Transaction failed
+				//Get the error for the transaction
+				errorOccurred, errWhenGettingTheTransactionError := deploy.GetErrorOfFailedTransaction(pendingHash)
+				if errWhenGettingTheTransactionError != nil {
+					logrus.Error("Error when getting the transaction error : " + errWhenGettingTheTransactionError.Error())
+					continue
+				}
+				logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
+
+				//call the failed contact redeployer
+
 			} else {
-				logrus.Error("Invalid transaction receipt status")
+				logrus.Error("Invalid transaction receipt status for transaction hash : ", pendingHash)
 				continue
 			}
 		}
