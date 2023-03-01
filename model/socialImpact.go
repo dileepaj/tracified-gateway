@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/txnbuild"
@@ -807,4 +808,7 @@ type PendingContracts struct {
 	ErrorMessage    string
 	ContractType    string
 	Identifier      string
+	Nonce           *big.Int
+	GasPrice        *big.Int
+	GasLimit        uint64
 }
