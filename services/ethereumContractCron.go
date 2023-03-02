@@ -47,7 +47,23 @@ func CheckContractStatus() {
 			//check the pending threshold
 			if result[i].CurrentIndex == pendingCap {
 				logrus.Error(pendingHash + " hash pending checking capacity met, invalidating transaction")
-				//TODO update the db to cancel out the transaction
+				updateCancel := model.PendingContracts{
+					TransactionHash: result[i].TransactionHash,
+					ContractAddress: result[i].ContractAddress,
+					Status:          "Cancelled",
+					CurrentIndex:    result[i].CurrentIndex + 1,
+					ErrorMessage:    result[i].ErrorMessage,
+					ContractType:    result[i].ContractType,
+					Identifier:      result[i].Identifier,
+					Nonce:           result[i].Nonce,
+					GasPrice:        result[i].GasPrice,
+					GasLimit:        result[i].GasLimit,
+				}
+				errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updateCancel)
+				if errWhenUpdatingStatus != nil {
+					logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+					continue
+				}
 				continue
 			} else {
 				//check the transaction status
