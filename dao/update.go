@@ -1165,3 +1165,37 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 
 	return err
 }
+
+func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	filter := bson.D{{"transactionuuid", txnUUID}}
+	update := bson.D{{"$set", bson.D{{"status", status}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum formula status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	filter := bson.D{{"transactionuuid", txnUUID}}
+	update := bson.D{{"$set", bson.D{{"status", status}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum metric status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}

@@ -106,7 +106,7 @@ require (
 	github.com/go-chi/chi v4.0.3+incompatible // indirect
 	github.com/go-errors/errors v0.0.0-20150906023321-a41850380601 // indirect
 	github.com/go-playground/validator/v10 v10.11.0
-	github.com/go-stack/stack v1.8.1 // indirect
+	github.com/go-stack/stack v1.8.1
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -135,7 +135,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.5.0
 	golang.org/x/text v0.7.0
 	gopkg.in/gavv/httpexpect.v1 v1.1.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

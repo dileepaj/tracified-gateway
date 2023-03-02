@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
+	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
@@ -99,7 +100,16 @@ func CheckContractStatus() {
 				} else if transactionReceipt.Status == 1 {
 					//Transaction is successful
 					// update both collections
-
+					abstractObj := ethereumservices.AbstractCollectionUpdate{
+						PendingContract: result[i],
+						Status:          "SUCCESS",
+						Type: 			 "SOCIALIMPACT",
+					}
+					errInUpdatingDBForSuccessfulTransactions := abstractObj.AbstractCollectionUpdater()
+					if errInUpdatingDBForSuccessfulTransactions != nil {
+						logrus.Error("Error when updating the database for successful transactions : " + errInUpdatingDBForSuccessfulTransactions.Error())
+						continue
+					}
 				} else if transactionReceipt.Status == 0 {
 					//Transaction failed
 					//Get the error for the transaction
