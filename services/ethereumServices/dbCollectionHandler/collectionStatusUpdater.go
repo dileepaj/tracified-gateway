@@ -17,14 +17,14 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 		if errWhenUpdatingTheFormula != nil {
 			return errWhenUpdatingTheFormula
 		}
-		logrus.Info("Updated the formula status: ", status)
+		logrus.Info("Updated the formula(" + pendingContract.TransactionHash + ") status: ", status)
 	} else if pendingContract.ContractType == "ETHMETRICBIND" {
 		// unique identifier -> uuid
 		errWhenUpdatingTheMetric := object.UpdateEthMetricStatusByUUID(pendingContract.Identifier, status, pendingContract.ErrorMessage)
 		if errWhenUpdatingTheMetric != nil {
 			return errWhenUpdatingTheMetric
 		}
-		logrus.Info("Updated the metric status: ", status)
+		logrus.Info("Updated the metric(" + pendingContract.TransactionHash + ") status: ", status)
 	}
 
 	// update pending transactions collection
