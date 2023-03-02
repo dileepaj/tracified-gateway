@@ -194,7 +194,7 @@ func ReceiverRmq() error {
 				expertDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
-					Identifier: queue.EthereumExpertFormula.FormulaID,
+					Identifier: queue.EthereumExpertFormula.TransactionUUID,
 					ContractType: 	 "ETHEXPERTFORMULA",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
@@ -256,7 +256,7 @@ func ReceiverRmq() error {
 				metricDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumMetricBind.ABIstring,
 					BIN: queue.EthereumMetricBind.BINstring,
-					Identifier: queue.EthereumMetricBind.MetricID,
+					Identifier: queue.EthereumMetricBind.TransactionUUID,
 					ContractType: 	 "ETHMETRICBIND",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()

@@ -12,13 +12,13 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 	// Update main collections
 	if pendingContract.ContractType == "ETHEXPERTFORMULA" {
 		// unique identifier -> formula ID
-		errWhenUpdatingTheFormula := object.UpdateEthFormulaStatusByUUID(pendingContract.Identifier, status)
+		errWhenUpdatingTheFormula := object.UpdateEthFormulaStatusByUUID(pendingContract.Identifier, status, pendingContract.ErrorMessage)
 		if errWhenUpdatingTheFormula != nil {
 			return errWhenUpdatingTheFormula
 		}
 	} else if pendingContract.ContractType == "ETHMETRICBIND" {
 		// unique identifier -> uuid
-		errWhenUpdatingTheMetric := object.UpdateEthMetricStatusByUUID(pendingContract.Identifier, status)
+		errWhenUpdatingTheMetric := object.UpdateEthMetricStatusByUUID(pendingContract.Identifier, status, pendingContract.ErrorMessage)
 		if errWhenUpdatingTheMetric != nil {
 			return errWhenUpdatingTheMetric
 		}
