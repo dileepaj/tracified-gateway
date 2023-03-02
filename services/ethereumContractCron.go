@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
@@ -30,7 +31,7 @@ func CheckContractStatus() {
 
 	object := dao.Connection{}
 	//Get the transactions with the pending status from the Database
-	p := object.GetPendingContractsByStatus("Pending")
+	p := object.GetPendingContractsByStatus("PENDING")
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
 		ethClient, errWHenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
@@ -51,7 +52,7 @@ func CheckContractStatus() {
 				updateCancel := model.PendingContracts{
 					TransactionHash: result[i].TransactionHash,
 					ContractAddress: result[i].ContractAddress,
-					Status:          "Cancelled",
+					Status:          "CANCELLED",
 					CurrentIndex:    result[i].CurrentIndex + 1,
 					ErrorMessage:    result[i].ErrorMessage,
 					ContractType:    result[i].ContractType,
@@ -60,7 +61,8 @@ func CheckContractStatus() {
 					GasPrice:        result[i].GasPrice,
 					GasLimit:        result[i].GasLimit,
 				}
-				errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updateCancel)
+				updateCancel.ErrorMessage = "Transaction pending checking capacity met"
+				errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, "CANCELLED")
 				if errWhenUpdatingStatus != nil {
 					logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 					continue
@@ -77,7 +79,7 @@ func CheckContractStatus() {
 						updatePending := model.PendingContracts{
 							TransactionHash: result[i].TransactionHash,
 							ContractAddress: result[i].ContractAddress,
-							Status:          "Pending",
+							Status:          "PENDING",
 							CurrentIndex:    result[i].CurrentIndex + 1,
 							ErrorMessage:    result[i].ErrorMessage,
 							ContractType:    result[i].ContractType,
