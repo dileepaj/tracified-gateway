@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
+	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
@@ -16,13 +17,6 @@ import (
 )
 
 func CheckContractStatus() {
-	//TODO check the status
-	/*
-		TODO
-			if pending - Update the index
-			if success - update in the DB collection as completed
-			if failed - log the error and mark the status as failed
-	*/
 
 	if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 		log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
@@ -30,7 +24,7 @@ func CheckContractStatus() {
 
 	object := dao.Connection{}
 	//Get the transactions with the pending status from the Database
-	p := object.GetPendingContractsByStatus("Pending")
+	p := object.GetPendingContractsByStatus("PENDING")
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
 		ethClient, errWHenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
@@ -51,7 +45,7 @@ func CheckContractStatus() {
 				updateCancel := model.PendingContracts{
 					TransactionHash: result[i].TransactionHash,
 					ContractAddress: result[i].ContractAddress,
-					Status:          "Cancelled",
+					Status:          "CANCELLED",
 					CurrentIndex:    result[i].CurrentIndex + 1,
 					ErrorMessage:    result[i].ErrorMessage,
 					ContractType:    result[i].ContractType,
@@ -77,7 +71,7 @@ func CheckContractStatus() {
 						updatePending := model.PendingContracts{
 							TransactionHash: result[i].TransactionHash,
 							ContractAddress: result[i].ContractAddress,
-							Status:          "Pending",
+							Status:          "PENDING ",
 							CurrentIndex:    result[i].CurrentIndex + 1,
 							ErrorMessage:    result[i].ErrorMessage,
 							ContractType:    result[i].ContractType,
@@ -103,7 +97,7 @@ func CheckContractStatus() {
 					abstractObj := ethereumservices.AbstractCollectionUpdate{
 						PendingContract: result[i],
 						Status:          "SUCCESS",
-						Type: 			 "SOCIALIMPACT",
+						Type:            "SOCIALIMPACT",
 					}
 					errInUpdatingDBForSuccessfulTransactions := abstractObj.AbstractCollectionUpdater()
 					if errInUpdatingDBForSuccessfulTransactions != nil {
@@ -121,7 +115,32 @@ func CheckContractStatus() {
 					logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
 
 					//call the failed contact redeployer
+					contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
+					if errWhenRedeploying != nil {
+						logrus.Error("Error when redeploying : " + errWhenRedeploying.Error())
+						continue
+					}
 
+					//update collection
+					updatePending := model.PendingContracts{
+						TransactionHash: transactionHash,
+						ContractAddress: contractAddress,
+						Status:          "PENDING ",
+						CurrentIndex:    result[i].CurrentIndex + 1,
+						ErrorMessage:    result[i].ErrorMessage,
+						ContractType:    result[i].ContractType,
+						Identifier:      result[i].Identifier,
+						Nonce:           nonce,
+						GasPrice:        gasPrice,
+						GasLimit:        gasLimit,
+					}
+					errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+						continue
+					}
+
+					//TODO update the related collections with the new request
 				} else {
 					logrus.Error("Invalid transaction receipt status for transaction hash : ", pendingHash)
 					continue

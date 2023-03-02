@@ -810,5 +810,5 @@ type PendingContracts struct {
 	Identifier      string
 	Nonce           *big.Int
 	GasPrice        *big.Int
-	GasLimit        uint64
+	GasLimit        int
 }

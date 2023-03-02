@@ -28,6 +28,12 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	contractAddress := ""
 	transactionHash := ""
 	transactionCost := ""
+	var isFailed = true
+	var predictedGasLimit int
+	var predictedGasPrice = new(big.Int)
+	var deploymentError string
+	var nonce uint64
+	var errWhenGettingNonce error
 
 	object := dao.Connection{}
 
@@ -100,13 +106,6 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
 	}
 
-	var isFailed = true
-	var predictedGasLimit int
-	var predictedGasPrice = new(big.Int)
-	var deploymentError string
-	var nonce uint64
-	var errWhenGettingNonce error
-
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
 			return contractAddress, transactionHash, transactionCost, nil
@@ -161,7 +160,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					}
 					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Ethereum account funds are not enough")
 
-				} 
+				}
 			}
 
 			//check the gas limit cap and gas price cap
@@ -212,7 +211,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					ContractType:    contractType,
 					Identifier:      contractIdentifier,
 					Nonce:           auth.Nonce,
-					GasLimit:        auth.GasLimit,
+					GasLimit:        int(auth.GasLimit),
 					GasPrice:        auth.GasPrice,
 				}
 				errInInsertingPendingTx := object.InsertEthPendingContract(pendingTransaction)
