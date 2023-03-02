@@ -91,7 +91,7 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 			temp := model.TransactionIds{Txnhash: TxnHash,
 				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier:TxnBody.Identifier}
+				Identifier: TxnBody.Identifier}
 			result = append(result, temp)
 		}
 		// res := TDP{TdpId: result.TdpId}
@@ -240,7 +240,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 			temp := model.TransactionIds{Txnhash: TxnHash,
 				Url: commons.GetHorizonClient().HorizonURL + "laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=public",
-				Identifier:TxnBody.Identifier, TdpId: TxnBody.TdpId,}
+				Identifier: TxnBody.Identifier, TdpId: TxnBody.TdpId}
 			result = append(result, temp)
 		}
 		// res := TDP{TdpId: result.TdpId}
@@ -257,7 +257,7 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 }
 
 func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
-	//log.Debug("----------------------------- QueryTransactionsByKey --------------------------------")
+	log.Debug("----------------------------- QueryTransactionsByKey --------------------------------")
 	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var result []model.PrevTxnResponse
@@ -297,6 +297,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 	log.Info("SearchBy:  ", checkValidVersionByte(txn))
 	switch checkValidVersionByte(txn) {
 	case "pk":
+		fmt.Println("----------response1", txn, page, perPage)
 		qdata, err := object.GetAllTransactionForPK_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
@@ -497,22 +498,22 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Url: commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
-				Identifier:     commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:          TxnBody.TdpId,
-				DataHash:       TxnBody.DataHash,
-				Blockchain:     "Stellar",
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to,
-				ProductName:    TxnBody.ProductName,
-				Itemcount:      count,
-				AssetCode:      assetcode,
+				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
+				TdpId:           TxnBody.TdpId,
+				DataHash:        TxnBody.DataHash,
+				Blockchain:      "Stellar",
+				Timestamp:       timestamp,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				FeePaid:         feePaid,
+				Ledger:          ledger,
+				SourceAccount:   TxnBody.PublicKey,
+				From:            from,
+				SequenceNo:      TxnBody.SequenceNo,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				To:              to,
+				ProductName:     TxnBody.ProductName,
+				Itemcount:       count,
+				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 			}
@@ -731,20 +732,20 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:          TxnBody.TdpId,
-				Blockchain:     "Stellar",
-				DataHash:       TxnBody.DataHash,
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to,
-				ProductName:    TxnBody.ProductName,
-				AssetCode:      assetcode,
+				TdpId:           TxnBody.TdpId,
+				Blockchain:      "Stellar",
+				DataHash:        TxnBody.DataHash,
+				Timestamp:       timestamp,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				FeePaid:         feePaid,
+				Ledger:          ledger,
+				SourceAccount:   TxnBody.PublicKey,
+				From:            from,
+				SequenceNo:      TxnBody.SequenceNo,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				To:              to,
+				ProductName:     TxnBody.ProductName,
+				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 			}
@@ -960,21 +961,21 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				Blockchain:     "Stellar",
-				TdpId:          TxnBody.TdpId,
-				DataHash:       TxnBody.DataHash,
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to,
-				ProductName:    TxnBody.ProductName,
-				Itemcount:      count,
-				AssetCode:      assetcode,
+				Blockchain:      "Stellar",
+				TdpId:           TxnBody.TdpId,
+				DataHash:        TxnBody.DataHash,
+				Timestamp:       timestamp,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				FeePaid:         feePaid,
+				Ledger:          ledger,
+				SourceAccount:   TxnBody.PublicKey,
+				From:            from,
+				SequenceNo:      TxnBody.SequenceNo,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				To:              to,
+				ProductName:     TxnBody.ProductName,
+				Itemcount:       count,
+				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 			}
@@ -1203,21 +1204,21 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				Blockchain:     "Stellar",
-				TdpId:          TxnBody.TdpId,
-				DataHash:       TxnBody.DataHash,
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to,
-				ProductName:    TxnBody.ProductName,
-				Itemcount:      count,
-				AssetCode:      assetcode,
+				Blockchain:      "Stellar",
+				TdpId:           TxnBody.TdpId,
+				DataHash:        TxnBody.DataHash,
+				Timestamp:       timestamp,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				FeePaid:         feePaid,
+				Ledger:          ledger,
+				SourceAccount:   TxnBody.PublicKey,
+				From:            from,
+				SequenceNo:      TxnBody.SequenceNo,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				To:              to,
+				ProductName:     TxnBody.ProductName,
+				Itemcount:       count,
+				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 			}
@@ -1305,17 +1306,17 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 					text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 				Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-				TdpId:          TxnBody.TdpId,
-				DataHash:       TxnBody.DataHash,
-				Timestamp:      timestamp,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				FeePaid:        feePaid,
-				Ledger:         ledger,
-				SourceAccount:  TxnBody.PublicKey,
-				From:           from,
-				SequenceNo:     TxnBody.SequenceNo,
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				To:             to,
+				TdpId:           TxnBody.TdpId,
+				DataHash:        TxnBody.DataHash,
+				Timestamp:       timestamp,
+				TxnType:         GetTransactiontype(TxnBody.TxnType),
+				FeePaid:         feePaid,
+				Ledger:          ledger,
+				SourceAccount:   TxnBody.PublicKey,
+				From:            from,
+				SequenceNo:      TxnBody.SequenceNo,
+				AvailableProof:  GetProofName(TxnBody.TxnType),
+				To:              to,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 			}
@@ -1405,10 +1406,12 @@ func checkValidVersionByte(key string) string {
 
 func RetrievePreviousTranasctionsCount(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
+	fmt.Println("------------------1")
 	var totalRecordCount model.TotalTransaction
 	_, err := object.GetTransactionCount().Then(func(data interface{}) interface{} {
 		totalRecordCount = model.TotalTransaction{TotalTransactionCount: data.(int64)}
 		w.WriteHeader(http.StatusOK)
+		fmt.Println("------------------4")
 		return json.NewEncoder(w).Encode(totalRecordCount)
 	}).Await()
 	if err != nil {
@@ -1424,7 +1427,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["perPage"]
-
+	fmt.Println("----------t1")
 	if !error || len(key1[0]) < 1 {
 		log.Error("Url Parameter 'perPage' is missing")
 		return
@@ -1471,7 +1474,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
-
+	fmt.Println("----------t2", perPage, page, NoPage)
 	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
@@ -1654,19 +1657,19 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					Status: status, Txnhash: TxnHash,
 					Url:             commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",
 					Identifier:      commons.ValidateStrings(TxnBody.MapIdentifier, TxnBody.Identifier),
-					TdpId:          TxnBody.TdpId,
-					DataHash:       TxnBody.DataHash,
-					Timestamp:      timestamp,
-					TxnType:        GetTransactiontype(TxnBody.TxnType),
-					FeePaid:        feePaid,
-					Ledger:         ledger,
-					SourceAccount:  TxnBody.PublicKey,
-					From:           from,
-					SequenceNo:     TxnBody.SequenceNo,
-					AvailableProof: GetProofName(TxnBody.TxnType),
-					To:             to,
-					ProductName:    TxnBody.ProductName,
-					AssetCode:      assetcode,
+					TdpId:           TxnBody.TdpId,
+					DataHash:        TxnBody.DataHash,
+					Timestamp:       timestamp,
+					TxnType:         GetTransactiontype(TxnBody.TxnType),
+					FeePaid:         feePaid,
+					Ledger:          ledger,
+					SourceAccount:   TxnBody.PublicKey,
+					From:            from,
+					SequenceNo:      TxnBody.SequenceNo,
+					AvailableProof:  GetProofName(TxnBody.TxnType),
+					To:              to,
+					ProductName:     TxnBody.ProductName,
+					AssetCode:       assetcode,
 					FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 					FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 				}
