@@ -8,10 +8,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/ethclient"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/log"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/sirupsen/logrus"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/log"
+	"github.com/sirupsen/logrus"
 )
 
 func CheckContractStatus() {
