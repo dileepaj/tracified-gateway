@@ -15,7 +15,6 @@ import (
 )
 
 func CheckContractStatus() {
-	//TODO loop through the transactions and call the ethereum endpoint to check the transaction status
 	//TODO check the status
 	/*
 		TODO
@@ -57,7 +56,25 @@ func CheckContractStatus() {
 					//check the error
 					if errWhenTakingTheReceipt.Error() == "not found" {
 						//transaction is still pending
-						//update the index
+						logrus.Info(pendingHash + " transaction is still in pending state.")
+						updatePending := model.PendingContracts{
+							TransactionHash: result[i].TransactionHash,
+							ContractAddress: result[i].ContractAddress,
+							Status:          "Pending",
+							CurrentIndex:    result[i].CurrentIndex + 1,
+							ErrorMessage:    result[i].ErrorMessage,
+							ContractType:    result[i].ContractType,
+							Identifier:      result[i].Identifier,
+							Nonce:           result[i].Nonce,
+							GasPrice:        result[i].GasPrice,
+							GasLimit:        result[i].GasLimit,
+						}
+
+						errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
+						if errWhenUpdatingStatus != nil {
+							logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+							continue
+						}
 					} else {
 						logrus.Error("Error when calling the transaction receipt : " + errWhenTakingTheReceipt.Error())
 						continue

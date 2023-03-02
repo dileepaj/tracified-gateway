@@ -1139,14 +1139,14 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 	up := model.PendingContracts{
 		TransactionHash: update.TransactionHash,
 		ContractAddress: update.ContractAddress,
-		Status: 		update.Status,
-		CurrentIndex: 	update.CurrentIndex,
-		ErrorMessage: 	update.ErrorMessage,
-		ContractType: 	update.ContractType,
-		Identifier: 	update.Identifier,
-		Nonce: 			update.Nonce,
-		GasPrice: 		update.GasPrice,
-		GasLimit: 		update.GasLimit,
+		Status:          update.Status,
+		CurrentIndex:    update.CurrentIndex,
+		ErrorMessage:    update.ErrorMessage,
+		ContractType:    update.ContractType,
+		Identifier:      update.Identifier,
+		Nonce:           update.Nonce,
+		GasPrice:        update.GasPrice,
+		GasLimit:        update.GasLimit,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1160,7 +1160,7 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 		return err
 	}
 
-	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
 	_, err = c.UpdateOne(context.TODO(), bson.M{"transactionhash": transactionHash, "contractaddress": contractAddress, "identifier": identifier}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
