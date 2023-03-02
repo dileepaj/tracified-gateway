@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
@@ -54,7 +55,8 @@ func CheckContractStatus() {
 					GasPrice:        result[i].GasPrice,
 					GasLimit:        result[i].GasLimit,
 				}
-				errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updateCancel)
+				updateCancel.ErrorMessage = "Transaction pending checking capacity met"
+				errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, "CANCELLED")
 				if errWhenUpdatingStatus != nil {
 					logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 					continue

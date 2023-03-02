@@ -3,6 +3,7 @@ package dbCollectionHandler
 import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/sirupsen/logrus"
 )
 
 // Check the contracts type and update the database
@@ -16,12 +17,14 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 		if errWhenUpdatingTheFormula != nil {
 			return errWhenUpdatingTheFormula
 		}
+		logrus.Info("Updated the formula(" + pendingContract.TransactionHash + ") status: ", status)
 	} else if pendingContract.ContractType == "ETHMETRICBIND" {
 		// unique identifier -> uuid
 		errWhenUpdatingTheMetric := object.UpdateEthMetricStatusByUUID(pendingContract.Identifier, status, pendingContract.ErrorMessage)
 		if errWhenUpdatingTheMetric != nil {
 			return errWhenUpdatingTheMetric
 		}
+		logrus.Info("Updated the metric(" + pendingContract.TransactionHash + ") status: ", status)
 	}
 
 	// update pending transactions collection
