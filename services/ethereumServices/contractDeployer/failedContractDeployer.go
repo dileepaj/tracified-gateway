@@ -112,7 +112,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 	gasLimit = failedContract.GasLimit
 
 	//check the error to be corrected
-	if failedContract.ErrorMessage == "out of gas" {
+	if failedContract.ErrorMessage == "out of gas" || failedContract.ErrorMessage == "contract creation code storage out of gas" {
 		gasLimit = gasLimit + int(gasLimit*10/100)
 	}
 

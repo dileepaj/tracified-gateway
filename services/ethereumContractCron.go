@@ -116,6 +116,17 @@ func CheckContractStatus() {
 					}
 					logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
 
+					// update error messages collection
+					errorMessage := model.EthErrorMessage {
+						TransactionHash: pendingHash,
+						ErrorMessage:    errorOccurred,
+					}
+						
+					errorWhenInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
+					if errorWhenInsertingErrorMessage != nil {
+						logrus.Error("Error when inserting the error message : " + errorWhenInsertingErrorMessage.Error())
+					}
+
 					//call the failed contact redeployer
 					contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
 					if errWhenRedeploying != nil {
