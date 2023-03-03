@@ -138,9 +138,9 @@ func CheckContractStatus() {
 					updatePending := model.PendingContracts{
 						TransactionHash: transactionHash,
 						ContractAddress: contractAddress,
-						Status:          "PENDING ",
-						CurrentIndex:    result[i].CurrentIndex + 1,
-						ErrorMessage:    result[i].ErrorMessage,
+						Status:          "PENDING",
+						CurrentIndex:    0,
+						ErrorMessage:    "",
 						ContractType:    result[i].ContractType,
 						Identifier:      result[i].Identifier,
 						Nonce:           nonce,
@@ -153,7 +153,19 @@ func CheckContractStatus() {
 						continue
 					}
 
-					//TODO update the related collections with the new request
+					//call the relevant collections to be update with the contract type and the address
+					abstractObjToUpdateNewTransaction := ethereumservices.AbstractCollectionUpdate{
+						PendingContract: result[i],
+						Status:          "PENDING",
+						Type:            "SOCIALIMPACT",
+					}
+
+					errWhenUpdatingTheDBCollections := abstractObjToUpdateNewTransaction.AbstractCollectionUpdater()
+					if errWhenUpdatingTheDBCollections != nil {
+						logrus.Error("Error when updating the relevant collection with the new transaction : " + errWhenUpdatingTheDBCollections.Error())
+						continue
+					}
+
 				} else {
 					logrus.Error("Invalid transaction receipt status for transaction hash : ", pendingHash)
 					continue
