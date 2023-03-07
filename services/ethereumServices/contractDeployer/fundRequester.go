@@ -10,6 +10,7 @@ import (
 	gomail "gopkg.in/gomail.v2"
 )
 
+//Request funds from the admins via email
 func RequestFunds() error {
 	url := `https://etherscan.io/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
 	message := `<center><h1 style='color: brown;'>Gateway Ethereum account should be funded</h1></center><p>Dear Admins,</p><p> 

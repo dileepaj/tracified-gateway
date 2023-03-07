@@ -7,6 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+//Get ABI and BIN strings
 func GetAbiAndBin(contractType string, identifier string) (string, string, error) {
 	object := dao.Connection{}
 

@@ -117,11 +117,11 @@ func CheckContractStatus() {
 					logrus.Info(pendingHash + " hash failed due to the error : " + errorOccurred)
 
 					// update error messages collection
-					errorMessage := model.EthErrorMessage {
+					errorMessage := model.EthErrorMessage{
 						TransactionHash: pendingHash,
 						ErrorMessage:    errorOccurred,
 					}
-						
+
 					errorWhenInsertingErrorMessage := object.InsertEthErrorMessage(errorMessage)
 					if errorWhenInsertingErrorMessage != nil {
 						logrus.Error("Error when inserting the error message : " + errorWhenInsertingErrorMessage.Error())
@@ -130,6 +130,27 @@ func CheckContractStatus() {
 					//call the failed contact redeployer
 					contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
 					if errWhenRedeploying != nil {
+						if errWhenRedeploying.Error() == "Gateway Ethereum account funds are not enough" {
+							logrus.Error("Error when redeploying the failed transaction : " + errWhenRedeploying.Error())
+							//update collection
+							updatePending := model.PendingContracts{
+								TransactionHash: transactionHash,
+								ContractAddress: contractAddress,
+								Status:          "CANCELLED",
+								CurrentIndex:    result[i].CurrentIndex,
+								ErrorMessage:    "Gateway Ethereum account funds are not enough",
+								ContractType:    result[i].ContractType,
+								Identifier:      result[i].Identifier,
+								Nonce:           nonce,
+								GasPrice:        gasPrice,
+								GasLimit:        gasLimit,
+							}
+							errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
+							if errWhenUpdatingStatus != nil {
+								logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+								continue
+							}
+						}
 						logrus.Error("Error when redeploying : " + errWhenRedeploying.Error())
 						continue
 					}

@@ -21,6 +21,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+//redeploy contracts on failures
 func RedeployFailedContracts(failedContract model.PendingContracts) (string, string, string, *big.Int, *big.Int, int, error) {
 	logrus.Info("----Redeploying failed transaction-------------")
 
