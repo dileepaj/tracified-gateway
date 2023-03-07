@@ -44,19 +44,11 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 	}
-	//assign metadata for the contract
-	var BuildData = &bind.MetaData{
-		ABI: abi,
-		Bin: bin,
-	}
 
-	//var ContractABI = BuildData.ABI
-	var ContractBIN = BuildData.Bin
-
-	parsed, errWhenGettingABI := BuildData.GetAbi()
-	if errWhenGettingABI != nil {
-		logrus.Error("Error when getting abi from passed ABI string " + errWhenGettingABI.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
+	ContractBIN, parsed, errWhenLoadingParsedABIAndBIN := generalservices.LoadContractBinAndParsedAbi(bin, abi)
+	if errWhenLoadingParsedABIAndBIN != nil {
+		logrus.Error("Error when loading ContractBIN and Parsed ABI : " + errWhenLoadingParsedABIAndBIN.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading ContractBIN and Parsed ABI : " + errWhenLoadingParsedABIAndBIN.Error())
 	}
 
 	if parsed == nil {
