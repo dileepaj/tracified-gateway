@@ -2,7 +2,7 @@ package contractdeployer
 
 import (
 	"context"
-	"crypto/ecdsa"
+
 	"errors"
 	"fmt"
 	"math"
@@ -14,10 +14,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
+	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 )
 
@@ -39,31 +38,12 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 
 	logrus.Info("Calling the deployer service.............")
 
-	//Dial infura client
-	client, errWhenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
-	if errWhenDialingEthClient != nil {
-		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClient.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClient.Error())
+	//load client and the keys
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	if errWhenLoadingClientAndKey != nil {
+		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 	}
-
-	//load ECDSA private key
-	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
-	if errWhenGettingECDSAKey != nil {
-		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
-	}
-
-	//get the public key
-	publicKey := privateKey.Public()
-	//get public key ECDSA
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		logrus.Error("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-		return contractAddress, transactionHash, transactionCost, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
 	//assign metadata for the contract
 	var BuildData = &bind.MetaData{
 		ABI: abi,
@@ -133,7 +113,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				}
 
 				auth.GasLimit = uint64(predictedGasLimit) // in units
-				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
 				if errWhenGettingNonce != nil {
 					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
@@ -142,7 +122,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				//check the error
 				if deploymentError == "nonce too low" {
 					//pick up the latest the nonce available
-					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
 					if errWhenGettingNonce != nil {
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
