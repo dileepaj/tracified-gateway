@@ -2780,3 +2780,75 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 	})
 	return p
 }
+
+//Get the Ethereum contract status
+func (cd *Connection) GetPendingContractsByStatus(status string) *promise.Promise {
+	result := []model.PendingContracts{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+
+	return p
+
+}
+
+func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *promise.Promise {
+	result := model.EthereumExpertFormula{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting contract name from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetEthMetricBinAndAbiByIdentifier(identifier string) *promise.Promise {
+	result := model.EthereumMetricBind{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting contract name from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}

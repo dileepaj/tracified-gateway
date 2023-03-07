@@ -194,7 +194,7 @@ func ReceiverRmq() error {
 				expertDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
-					Identifier: queue.EthereumExpertFormula.FormulaID,
+					Identifier: queue.EthereumExpertFormula.TransactionUUID,
 					ContractType: 	 "ETHEXPERTFORMULA",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
@@ -221,7 +221,7 @@ func ReceiverRmq() error {
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
 					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
-					Status:              "SUCCESS",
+					Status:              "PENDING",
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -241,7 +241,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of formula status for Eth , formula ID " + ethExpertFormulaObj.FormulaID)
 					}
-					logrus.Info("Formula update called with SUCCESS status")
+					logrus.Info("Formula update called with status ", ethExpertFormulaObj.Status)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert expert formula smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
@@ -256,7 +256,7 @@ func ReceiverRmq() error {
 				metricDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumMetricBind.ABIstring,
 					BIN: queue.EthereumMetricBind.BINstring,
-					Identifier: queue.EthereumMetricBind.MetricID,
+					Identifier: queue.EthereumMetricBind.TransactionUUID,
 					ContractType: 	 "ETHMETRICBIND",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
@@ -279,7 +279,7 @@ func ReceiverRmq() error {
 					TransactionSender: queue.EthereumMetricBind.TransactionSender,
 					User:              queue.EthereumMetricBind.User,
 					ErrorMessage:      "",
-					Status:            "SUCCESS",
+					Status:            "PENDING",
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.EthereumMetricBind.Type,
@@ -303,7 +303,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
-					logrus.Info("Metric update called with SUCCESS status. Type: " + ethMetricObj.Type)
+					logrus.Info("Metric update called with status "+ ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
 
 					insertObj := model.MetricLatestContract{
 						MetricID:        ethMetricObj.MetricID,

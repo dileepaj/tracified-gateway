@@ -12,7 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	gasServices "github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -21,36 +21,40 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-/*
-Deploy smart contracts on to Ethereum with failure replacements
-*/
-func EthereumContractDeployerService(bin string, abi string, contractIdentifier string, contractType string) (string, string, string, error) {
-	contractAddress := ""
+//redeploy contracts on failures
+func RedeployFailedContracts(failedContract model.PendingContracts) (string, string, string, *big.Int, *big.Int, int, error) {
+	logrus.Info("----Redeploying failed transaction-------------")
+
 	transactionHash := ""
+	contractAddress := ""
 	transactionCost := ""
-	var isFailed = true
-	var predictedGasLimit int
-	var predictedGasPrice = new(big.Int)
-	var deploymentError string
 	var nonce uint64
+	var deploymentError string
 	var errWhenGettingNonce error
-
+	var isFailed = true
+	var predictedGasPrice = new(big.Int)
 	object := dao.Connection{}
+	var gasLimit int
 
-	logrus.Info("Calling the deployer service.............")
+	//get the ABI and BIN
+	abiString, binString, errWhenGettingABIandBIN := dbCollectionHandler.GetAbiAndBin(failedContract.ContractType, failedContract.Identifier)
+	if errWhenGettingABIandBIN != nil {
+		logrus.Error("Error when getting the ABI and BIN : " + errWhenGettingABIandBIN.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting ABI and BIN : " + errWhenGettingABIandBIN.Error())
+	}
 
 	//Dial infura client
 	client, errWhenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
 	if errWhenDialingEthClient != nil {
-		logrus.Error("Error when dialing the eth client " + errWhenDialingEthClient.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClient.Error())
+		logrus.Error("Error when dialing the eth client : " + errWhenDialingEthClient.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClient.Error())
 	}
 
 	//load ECDSA private key
 	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
 	if errWhenGettingECDSAKey != nil {
 		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
 	}
 
 	//get the public key
@@ -59,15 +63,15 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
 	if !ok {
 		logrus.Error("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-		return contractAddress, transactionHash, transactionCost, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
 	}
 
 	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
 
 	//assign metadata for the contract
 	var BuildData = &bind.MetaData{
-		ABI: abi,
-		Bin: bin,
+		ABI: abiString,
+		Bin: binString,
 	}
 
 	//var ContractABI = BuildData.ABI
@@ -76,12 +80,12 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	parsed, errWhenGettingABI := BuildData.GetAbi()
 	if errWhenGettingABI != nil {
 		logrus.Error("Error when getting abi from passed ABI string " + errWhenGettingABI.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
 	}
 
 	if parsed == nil {
 		logrus.Error("GetABI returned nil")
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
 	}
 
 	//create the keyed transactor
@@ -91,52 +95,50 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
 	if errInTryConvert != nil {
 		logrus.Error("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
-	}
-
-	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
-	if errInGasLimitCapConcert != nil {
-		logrus.Error("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 	}
 
 	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASPRICECAP"))
 	if errInGasPriceCapConcert != nil {
 		logrus.Error("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
-		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
+	}
+
+	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
+	if errInGasLimitCapConcert != nil {
+		logrus.Error("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
+	}
+
+	gasLimit = failedContract.GasLimit
+
+	//check the error to be corrected
+	if failedContract.ErrorMessage == "out of gas" || failedContract.ErrorMessage == "contract creation code storage out of gas" {
+		gasLimit = gasLimit + int(gasLimit*10/100)
 	}
 
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
-			return contractAddress, transactionHash, transactionCost, nil
+			return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
 		} else {
 			logrus.Info("Deploying the contract for the ", i+1, " th time")
-			//if the first iteration take the initial gas limit and gas price
 			if i == 0 {
-				//get the initial gas limit
-				gasLimit, errInGettingGasLimit := gasServices.EstimateGasLimit(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", "", "", bin)
-				if errInGettingGasLimit != nil {
-					logrus.Error("Error when getting gas limit " + errInGettingGasLimit.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas limit, ERROR : " + errInGettingGasLimit.Error())
+				//get the initially corrected values
+				auth.GasLimit = uint64(gasLimit)
+				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+				if errWhenGettingNonce != nil {
+					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
+					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 				}
-				predictedGasLimit = int(gasLimit)
-				//get the initial gas price
 				var errWhenGettingGasPrice error
 				predictedGasPrice, errWhenGettingGasPrice = gasPriceServices.GetMinGasPrice()
 				if errWhenGettingGasPrice != nil {
 					logrus.Error("Error when getting gas price " + errWhenGettingGasPrice.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price, ERROR : " + errWhenGettingGasPrice.Error())
+					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting gas price, ERROR : " + errWhenGettingGasPrice.Error())
 				}
 				if predictedGasPrice.Cmp(big.NewInt(0)) == 0 {
 					logrus.Error("Error when getting gas price , gas price is zero")
-					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price , gas price is zero")
-				}
-
-				auth.GasLimit = uint64(predictedGasLimit) // in units
-				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
-				if errWhenGettingNonce != nil {
-					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
-					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting gas price , gas price is zero")
 				}
 			} else {
 				//check the error
@@ -145,35 +147,34 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
 					if errWhenGettingNonce != nil {
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
-						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+						return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
 					}
 
 				} else if deploymentError == "intrinsic gas too low" {
 					//increase gas limit by 10%
-					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
+					gasLimit = gasLimit + int(gasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
 					errorInSendingEmail := RequestFunds()
 					if errorInSendingEmail != nil {
 						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
-						return contractAddress, transactionHash, transactionCost, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
+						return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
 					}
-					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Ethereum account funds are not enough")
+					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gateway Ethereum account funds are not enough")
 
 				}
 			}
-
 			//check the gas limit cap and gas price cap
-			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
+			if gasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
 				logrus.Error("Gas values are passing specified thresholds")
-				return contractAddress, transactionHash, transactionCost, errors.New("Gas values are passing specified thresholds")
+				return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gas values are passing specified thresholds")
 			}
 
-			logrus.Info("Predicted gas limit : ", predictedGasLimit)
+			logrus.Info("Predicted gas limit : ", gasLimit)
 			logrus.Info("Predicted gas price : ", predictedGasPrice)
 			logrus.Info("Current nonce : ", nonce)
 
-			auth.GasLimit = uint64(predictedGasLimit) // in units
+			auth.GasLimit = uint64(gasLimit) // in units
 			auth.Nonce = big.NewInt(int64(nonce))
 			auth.GasPrice = predictedGasPrice
 
@@ -208,8 +209,8 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					Status:          "PENDING",
 					CurrentIndex:    0,
 					ErrorMessage:    "",
-					ContractType:    contractType,
-					Identifier:      contractIdentifier,
+					ContractType:    failedContract.ContractType,
+					Identifier:      failedContract.Identifier,
 					Nonce:           auth.Nonce,
 					GasLimit:        int(auth.GasLimit),
 					GasPrice:        auth.GasPrice,
@@ -223,15 +224,15 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				}
 
 				// calculate the predicted transaction cost
-				costInWei := new(big.Int).Mul(big.NewInt(int64(predictedGasLimit)), predictedGasPrice)
+				costInWei := new(big.Int).Mul(big.NewInt(int64(gasLimit)), predictedGasPrice)
 				cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
 				transactionCost = fmt.Sprintf("%g", cost) + " ETH"
 			}
 		}
 	}
 	if !isFailed {
-		return contractAddress, transactionHash, transactionCost, nil
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
 	}
 
-	return contractAddress, transactionHash, transactionCost, errors.New("Threshold for contract redeployment exceeded")
+	return transactionHash, contractAddress, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
 }

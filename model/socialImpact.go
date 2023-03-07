@@ -795,8 +795,8 @@ type EthMetricIDMap struct {
 }
 
 type EthErrorMessage struct {
-	ErrorMessage 		  string
-	Network 	 		  string
+	ErrorMessage    string
+	Network         string
 	TransactionHash string
 }
 
@@ -810,5 +810,5 @@ type PendingContracts struct {
 	Identifier      string
 	Nonce           *big.Int
 	GasPrice        *big.Int
-	GasLimit        uint64
+	GasLimit        int
 }
