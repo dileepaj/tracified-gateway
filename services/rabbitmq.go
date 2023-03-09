@@ -304,27 +304,6 @@ func ReceiverRmq() error {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
 					logrus.Info("Metric update called with status "+ ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
-
-					insertObj := model.MetricLatestContract{
-						MetricID:        ethMetricObj.MetricID,
-						ContractAddress: address,
-						Type:            ethMetricObj.Type,
-					}
-					if ethMetricObj.Type == "METADATA" {
-						//insert the latest contract address in DB
-						errWhenInsertingToLatest := object.EthereumInsertToMetricLatestContract(insertObj)
-						if errWhenInsertingToLatest != nil {
-							logrus.Error("Error when inserting to latest contract to DB: ", errWhenInsertingToLatest)
-						}
-						logrus.Info("Added " + address + " to latest contract collection")
-					} else if ethMetricObj.Type == "ACTIVITY" {
-						//update the latest contract address in DB
-						errWhenUpdatingLatest := object.UpdateEthereumMetricLatestContract(ethMetricObj.MetricID, insertObj)
-						if errWhenUpdatingLatest != nil {
-							logrus.Errorf("Error when updating latest contract address in DB: ", errWhenUpdatingLatest)
-						}
-						logrus.Info("Updated " + address + " as latest contract")
-					}
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
