@@ -35,7 +35,7 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 
 			pendingContractNew := model.PendingContracts{}
 			// get the pending contracts for the uuid if the hash is present
-			if pendingContract.TransactionHash != "" {
+			if metric.TransactionHash != "" {
 				contract, errWhenRetrievingThePendingContract := object.GetPendingContractByIdentifier(metric.TransactionUUID).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()

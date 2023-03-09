@@ -12,6 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -294,6 +295,18 @@ func ReceiverRmq() error {
 					errWhenUpdatingStatus := object.UpdateEthereumMetricStatus(queue.EthereumMetricBind.MetricID, queue.EthereumMetricBind.TransactionUUID, ethMetricObj)
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
+					}
+					pendingContract := model.PendingContracts{
+						ContractAddress: ethMetricObj.ContractAddress,
+						ContractType:    "ETHMETRICBIND",
+						Identifier: ethMetricObj.TransactionUUID,
+						TransactionHash: ethMetricObj.TransactionHash,
+						Status: 		"FAILED",
+						ErrorMessage: ethMetricObj.ErrorMessage,
+					}
+					errWhenInvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
+					if errWhenInvalidatingMetric != nil {
+						logrus.Error("Error when invalidating the metric : " + queue.EthereumMetricBind.MetricID)
 					}
 					logrus.Info("Metric update called with FAILED status. Type: " + ethMetricObj.Type)
 					logrus.Info("Contract deployment unsuccessful")

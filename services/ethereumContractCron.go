@@ -81,7 +81,7 @@ func CheckContractStatus() {
 						updatePending := model.PendingContracts{
 							TransactionHash: result[i].TransactionHash,
 							ContractAddress: result[i].ContractAddress,
-							Status:          "PENDING ",
+							Status:          "PENDING",
 							CurrentIndex:    result[i].CurrentIndex + 1,
 							ErrorMessage:    result[i].ErrorMessage,
 							ContractType:    result[i].ContractType,
