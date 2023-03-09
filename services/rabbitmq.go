@@ -12,6 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -295,6 +296,18 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
+					pendingContract := model.PendingContracts{
+						ContractAddress: ethMetricObj.ContractAddress,
+						ContractType:    "ETHMETRICBIND",
+						Identifier: ethMetricObj.TransactionUUID,
+						TransactionHash: ethMetricObj.TransactionHash,
+						Status: 		"FAILED",
+						ErrorMessage: ethMetricObj.ErrorMessage,
+					}
+					errWhenInvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
+					if errWhenInvalidatingMetric != nil {
+						logrus.Error("Error when invalidating the metric : " + queue.EthereumMetricBind.MetricID)
+					}
 					logrus.Info("Metric update called with FAILED status. Type: " + ethMetricObj.Type)
 					logrus.Info("Contract deployment unsuccessful")
 				} else {
@@ -304,27 +317,6 @@ func ReceiverRmq() error {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
 					logrus.Info("Metric update called with status "+ ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
-
-					insertObj := model.MetricLatestContract{
-						MetricID:        ethMetricObj.MetricID,
-						ContractAddress: address,
-						Type:            ethMetricObj.Type,
-					}
-					if ethMetricObj.Type == "METADATA" {
-						//insert the latest contract address in DB
-						errWhenInsertingToLatest := object.EthereumInsertToMetricLatestContract(insertObj)
-						if errWhenInsertingToLatest != nil {
-							logrus.Error("Error when inserting to latest contract to DB: ", errWhenInsertingToLatest)
-						}
-						logrus.Info("Added " + address + " to latest contract collection")
-					} else if ethMetricObj.Type == "ACTIVITY" {
-						//update the latest contract address in DB
-						errWhenUpdatingLatest := object.UpdateEthereumMetricLatestContract(ethMetricObj.MetricID, insertObj)
-						if errWhenUpdatingLatest != nil {
-							logrus.Errorf("Error when updating latest contract address in DB: ", errWhenUpdatingLatest)
-						}
-						logrus.Info("Updated " + address + " as latest contract")
-					}
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
