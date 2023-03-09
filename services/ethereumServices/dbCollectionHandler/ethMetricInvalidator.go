@@ -33,6 +33,10 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 		metricList := metrics.([]model.EthereumMetricBind)
 		for _, metric := range metricList {
 
+			if metric.TransactionUUID != pendingContract.Identifier {
+				errorMessage = "One of the contracts under this metric ID is failed or invalid."
+			}
+
 			pendingContractNew := model.PendingContracts{}
 			// get the pending contracts for the uuid if the hash is present
 			if metric.TransactionHash != "" {
