@@ -12,7 +12,7 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 
 	// Update main collections
 	if pendingContract.ContractType == "ETHEXPERTFORMULA" {
-		// unique identifier -> formula ID
+		// unique identifier -> uuid
 		errWhenUpdatingTheFormula := object.UpdateEthFormulaStatusByUUID(pendingContract.Identifier, status, pendingContract.ErrorMessage)
 		if errWhenUpdatingTheFormula != nil {
 			return errWhenUpdatingTheFormula
@@ -27,11 +27,13 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 		logrus.Info("Updated the metric(" + pendingContract.TransactionHash + ") status: ", status)
 	}
 
-	// update pending transactions collection
-	pendingContract.Status = status
-	errWhenUpdatingThePendingContracts := object.UpdateEthereumPendingContract(pendingContract.TransactionHash, pendingContract.ContractAddress, pendingContract.Identifier, pendingContract)
-	if errWhenUpdatingThePendingContracts != nil {
-		return errWhenUpdatingThePendingContracts
+	// update pending transactions collection if the hash is present
+	if pendingContract.TransactionHash != "" {
+		pendingContract.Status = status
+		errWhenUpdatingThePendingContracts := object.UpdateEthereumPendingContract(pendingContract.TransactionHash, pendingContract.ContractAddress, pendingContract.Identifier, pendingContract)
+		if errWhenUpdatingThePendingContracts != nil {
+			return errWhenUpdatingThePendingContracts
+		}
 	}
 
 	return nil

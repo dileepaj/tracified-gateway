@@ -56,10 +56,18 @@ func CheckContractStatus() {
 					GasLimit:        result[i].GasLimit,
 				}
 				updateCancel.ErrorMessage = "Transaction pending checking capacity met"
-				errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, "CANCELLED")
-				if errWhenUpdatingStatus != nil {
-					logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
-					continue
+				if result[i].ContractType == "ETHMETRICBIND" {
+					errorWhenInvalidatingTransactions := dbCollectionHandler.InvalidateMetric(updateCancel, updateCancel.Status, updateCancel.ErrorMessage)
+					if errorWhenInvalidatingTransactions != nil {
+						logrus.Error("Error when invalidating the transaction : " + errorWhenInvalidatingTransactions.Error())
+						continue
+					}
+				} else if result[i].ContractType == "ETHEXPERTFORMULA" {
+					errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, "CANCELLED")
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+						continue
+					}
 				}
 				continue
 			} else {
@@ -73,7 +81,7 @@ func CheckContractStatus() {
 						updatePending := model.PendingContracts{
 							TransactionHash: result[i].TransactionHash,
 							ContractAddress: result[i].ContractAddress,
-							Status:          "PENDING ",
+							Status:          "PENDING",
 							CurrentIndex:    result[i].CurrentIndex + 1,
 							ErrorMessage:    result[i].ErrorMessage,
 							ContractType:    result[i].ContractType,
