@@ -87,7 +87,11 @@ func (poc *POCTreeV4) generatePOCV4() {
 					poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
 				}
 				if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
-					poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{}
+					poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
+						Id: pgtxe.TxnHash,
+						Data: *pgtxe,
+						TrustLinks: []string{pgtxe.TxnHash},
+					}
 				}
 				if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
 					poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
@@ -103,7 +107,11 @@ func (poc *POCTreeV4) generatePOCV4() {
 			pspgtxe, err2 := p.GetTransactionCollection()
 			if err2 == nil {
 				if poc.Nodes[pspgtxe.CurrentTxnHash] == nil {
-					poc.Nodes[pspgtxe.CurrentTxnHash] = &POCNode{}
+					poc.Nodes[pspgtxe.CurrentTxnHash] = &POCNode{
+						Id: pspgtxe.TxnHash,
+						Data: *pspgtxe,
+						TrustLinks: []string{pspgtxe.TxnHash},
+					}
 				}
 				if !contains(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
 					poc.Nodes[pspgtxe.CurrentTxnHash].Children = append(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
@@ -120,23 +128,43 @@ func (poc *POCTreeV4) generatePOCV4() {
 				poc.siblings[gtxe.PreviousTxnHash] = append(poc.siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash)
 			}
 			sp := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
-			spgtxe, err1 := sp.GetTransactionCollection()
+			spgtxe1, err1:= sp.GetTransactionCollection()
 			if err1 == nil {
-				p := ConcreteStellarTransaction{Txnhash: spgtxe.PreviousTxnHash}
-				pspgtxe, err2 := p.GetTransactionCollection()
+				if spgtxe1.CurrentTxnHash !=""{
+				if poc.Nodes[spgtxe1.CurrentTxnHash] == nil {
+					poc.Nodes[spgtxe1.CurrentTxnHash] =&POCNode{
+						Id: spgtxe1.CurrentTxnHash,
+						Data: *spgtxe1,
+						TrustLinks: []string{spgtxe1.TxnHash},
+					}
+					poc.Nodes[spgtxe1.CurrentTxnHash].Data.TxnHash = spgtxe1.CurrentTxnHash
+				}
+				if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, spgtxe1.CurrentTxnHash) {
+					poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, spgtxe1.CurrentTxnHash)
+				}
+				if !contains(poc.Nodes[spgtxe1.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+					poc.Nodes[spgtxe1.CurrentTxnHash].Children = append(poc.Nodes[spgtxe1.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+				}
+				}
+				p := ConcreteStellarTransaction{Txnhash: spgtxe1.PreviousTxnHash}
+				spgtxe, err2 := p.GetTransactionCollection()
 				if err2 == nil {
-					if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pspgtxe.CurrentTxnHash) {
-						poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pspgtxe.CurrentTxnHash)
+					if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, spgtxe.CurrentTxnHash) {
+						poc.Nodes[spgtxe1.CurrentTxnHash].Parents = append(poc.Nodes[spgtxe1.CurrentTxnHash].Parents, spgtxe.CurrentTxnHash)
 					}
-					if poc.Nodes[pspgtxe.CurrentTxnHash] == nil {
-						poc.Nodes[pspgtxe.CurrentTxnHash] = &POCNode{}
+					if poc.Nodes[spgtxe.CurrentTxnHash] == nil {
+						poc.Nodes[spgtxe.CurrentTxnHash] = &POCNode{
+							Id: spgtxe.TxnHash,
+							Data: *spgtxe,
+							TrustLinks: []string{spgtxe.TxnHash},
+						}
 					}
-					if !contains(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
-						poc.Nodes[pspgtxe.CurrentTxnHash].Children = append(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+					if !contains(poc.Nodes[spgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+						poc.Nodes[spgtxe.CurrentTxnHash].Children = append(poc.Nodes[spgtxe.CurrentTxnHash].Children, spgtxe1.CurrentTxnHash)
 					}
 				}
 			}
-			poc.LastTxnHash = spgtxe.PreviousTxnHash
+			poc.LastTxnHash = spgtxe1.PreviousTxnHash
 			poc.generatePOCV4()
 			break
 		case "7":
