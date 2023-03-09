@@ -2852,3 +2852,76 @@ func (cd *Connection) GetEthMetricBinAndAbiByIdentifier(identifier string) *prom
 	})
 	return p
 }
+
+func (cd *Connection) GetEthMetricByUUID(identifier string) *promise.Promise {
+	result := model.EthereumMetricBind{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting contract name from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetEthMetricsByMetricID(metricID string) *promise.Promise {
+	ethMetric := []model.EthereumMetricBind{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"metricid": metricID})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &ethMetric)
+			if err2 != nil || len(ethMetric) == 0 {
+				reject(err2)
+			} else {
+				resolve(ethMetric)
+			}
+		}
+	})
+	
+	return p
+}
+
+func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise.Promise {
+	result := model.PendingContracts{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+		err = c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
+		if err != nil {
+			log.Info("Fetching data from DB " + err.Error())
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+
+	return p
+
+}
