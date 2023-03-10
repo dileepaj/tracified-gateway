@@ -11,6 +11,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -2348,6 +2349,7 @@ func (cd *Connection) GetEthFormulaStatus(formulaID string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Error("Error when connecting to DB " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula status by formula ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2393,6 +2395,7 @@ func (cd Connection) GetEthFormulaMapID(formulaID string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula mapped ID by formula ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2608,6 +2611,7 @@ func (cd *Connection) GetEthMetricStatus(metricID string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Error("Error when connecting to DB " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum metric by metric ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2632,6 +2636,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula by name", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2655,6 +2660,7 @@ func (cd *Connection) EthereumGetValueMapID(valueID, formulaId string) *promise.
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum mapped value ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2701,6 +2707,7 @@ func (cd *Connection) GetEthereumMetricLatestContract(metricID string) *promise.
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum latest contract for the given metric ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2722,6 +2729,7 @@ func (cd *Connection) GetEthMetricByMetricIdAndType(metricID string, contractTyp
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum metric by metric id and type", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2743,6 +2751,7 @@ func (cd Connection) GetEthMetricMapID(metricID string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum mapped metric ID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2765,6 +2774,7 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Error("Error when connecting to DB " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum metric status for formula(activity)", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2788,6 +2798,7 @@ func (cd *Connection) GetPendingContractsByStatus(status string) *promise.Promis
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
+			notificationhandler.InformDBConnectionIssue("get Ethereum pending contracts by status", err.Error())
 			reject(err)
 		}
 
@@ -2817,6 +2828,7 @@ func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *pro
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula bin and abi by identifier", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2838,6 +2850,7 @@ func (cd *Connection) GetEthMetricBinAndAbiByIdentifier(identifier string) *prom
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum metric bin and abi by identifier", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2859,6 +2872,7 @@ func (cd *Connection) GetEthMetricByUUID(identifier string) *promise.Promise {
 		session, err := cd.connect()
 		if err != nil {
 			logrus.Info("Error while connecting to db " + err.Error())
+			notificationhandler.InformDBConnectionIssue("get Ethereum metric by UUID", err.Error())
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2880,6 +2894,7 @@ func (cd *Connection) GetEthMetricsByMetricID(metricID string) *promise.Promise 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
+			notificationhandler.InformDBConnectionIssue("get Ethereum metrics by metric ID", err.Error())
 			reject(err)
 		}
 
@@ -2908,6 +2923,7 @@ func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
+			notificationhandler.InformDBConnectionIssue("get Ethereum pending contract by identifier", err.Error())
 			reject(err)
 		}
 
