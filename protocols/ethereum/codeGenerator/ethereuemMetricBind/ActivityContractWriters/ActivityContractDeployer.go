@@ -7,7 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/services"
+	ethereumsocialimpact "github.com/dileepaj/tracified-gateway/services/ethereumServices/ethereumSocialImpact"
 	"github.com/sirupsen/logrus"
 )
 
@@ -106,17 +106,10 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 	ethMetricActivityObj.BINstring = binString
 	ethMetricActivityObj.ABIstring = abiString
 
-	buildQueueObject := model.SendToQueue{
-		EthereumMetricBind: ethMetricActivityObj,
-		Type:               "ETHMETRICBIND",
-		User:               userElement,
-		Status:             "QUEUE",
-	}
-
-	errWhenSendingToQueue := services.SendToQueue(buildQueueObject)
-	if errWhenSendingToQueue != nil {
-		logrus.Error("Error when sending to the metric activity contract to queue : ", errWhenSendingToQueue)
-		return errWhenSendingToQueue
+	errWhenDeploying := ethereumsocialimpact.DeployMetricContract(ethMetricActivityObj)
+	if errWhenDeploying != nil {
+		logrus.Error("Error when sending to the metric activity contract to deployer : ", errWhenDeploying)
+		return errWhenDeploying
 	}
 
 	return nil

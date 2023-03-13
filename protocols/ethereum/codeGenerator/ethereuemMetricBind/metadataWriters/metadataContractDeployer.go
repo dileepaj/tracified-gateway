@@ -7,12 +7,12 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/services"
+	ethereumsocialimpact "github.com/dileepaj/tracified-gateway/services/ethereumServices/ethereumSocialImpact"
 	"github.com/sirupsen/logrus"
 )
 
-//! Relevant map ID will be checked on the route handler to see whether the metric contract is already deployed or not
-//! All the other failed database calls will be handled in the handler function
+// ! Relevant map ID will be checked on the route handler to see whether the metric contract is already deployed or not
+// ! All the other failed database calls will be handled in the handler function
 func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID string, ethMetricMetadataObj model.EthereumMetricBind) error {
 
 	reqType := "METRIC"
@@ -57,17 +57,10 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 	ethMetricMetadataObj.BINstring = binString
 	ethMetricMetadataObj.ABIstring = abiString
 
-	buildQueueObject := model.SendToQueue{
-		EthereumMetricBind: ethMetricMetadataObj,
-		Type:               "ETHMETRICBIND",
-		User:               element.User,
-		Status:             "QUEUE",
-	}
-
-	errWhenSendingToQueue := services.SendToQueue(buildQueueObject)
-	if errWhenSendingToQueue != nil {
-		logrus.Error("Error when sending to the metric metadata contract to queue : ", errWhenSendingToQueue)
-		return errWhenSendingToQueue
+	errWhenDeploying := ethereumsocialimpact.DeployMetricContract(ethMetricMetadataObj)
+	if errWhenDeploying != nil {
+		logrus.Error("Error when sending to the metric metadata contract to deployer : ", errWhenDeploying)
+		return errWhenDeploying
 	}
 
 	return nil
