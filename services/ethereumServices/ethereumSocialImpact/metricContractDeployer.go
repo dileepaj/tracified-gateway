@@ -2,7 +2,6 @@ package ethereumsocialimpact
 
 import (
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -15,7 +14,6 @@ import (
 func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 	object := dao.Connection{}
 	logrus.Info("Trying to deploy contract for metric : ", ethMetricObj.MetricID)
-	startTime := time.Now()
 	// call the deploy method
 	metadataDeployObj := ethereumservices.AbstractContractDeployment{
 		ABI:          ethMetricObj.ABIstring,
@@ -24,13 +22,10 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 		ContractType: "ETHMETRICBIND",
 	}
 	address, txnHash, deploymentCost, errWhenDeploying := metadataDeployObj.AbstractContractDeployer()
-	endTime := time.Now()
-	convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 	ethMetricObj.Timestamp = time.Now().String()
 	ethMetricObj.ContractAddress = address
 	ethMetricObj.TransactionHash = txnHash
 	ethMetricObj.TransactionCost = deploymentCost
-	ethMetricObj.TransactionTime = convertedTime
 	ethMetricObj.Status = "PENDING"
 	if errWhenDeploying != nil {
 		ethMetricObj.ErrorMessage = errWhenDeploying.Error()

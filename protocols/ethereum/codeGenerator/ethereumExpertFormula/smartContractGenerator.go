@@ -87,7 +87,6 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			Timestamp:           time.Now().String(),
 			TransactionHash:     "",
 			TransactionCost:     "",
-			TransactionTime:     "",
 			TransactionUUID:     "",
 			GOstring:            "",
 			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),

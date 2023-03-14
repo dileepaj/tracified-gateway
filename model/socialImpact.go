@@ -694,7 +694,6 @@ type EthereumExpertFormula struct {
 	Timestamp           string
 	TransactionHash     string
 	TransactionCost     string
-	TransactionTime     string
 	TransactionUUID     string
 	TransactionSender   string
 	Verify              Verify
@@ -717,7 +716,6 @@ type EthereumMetricBind struct {
 	ContractAddress   string
 	TransactionHash   string
 	TransactionCost   string
-	TransactionTime   string
 	TransactionUUID   string
 	TransactionSender string
 	User              User

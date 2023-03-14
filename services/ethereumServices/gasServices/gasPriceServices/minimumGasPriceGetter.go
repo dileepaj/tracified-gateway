@@ -4,18 +4,22 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"io"
+	"io/ioutil"
 	"math/big"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 )
 
-// getting minimum gas price from the latest transactions and get the amount 10% less than that (using infura, etherscan and go-ethereum)
+type BlockNumberResponse struct {
+	Status  string `json:"status"`
+	Message string `json:"message"`
+	Result  string `json:"result"`
+}
 
 type Response struct {
 	Status  string
@@ -39,101 +43,62 @@ type Response struct {
 }
 
 func GetMinGasPrice() (*big.Int, error) {
-	client1, errDiallingClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMMAINNETLINK"))
+	client, errDiallingClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMMAINNETLINK"))
 	if errDiallingClient != nil {
 		logrus.Error("Error when dialing client : " + errDiallingClient.Error())
 		return nil, errors.New(errDiallingClient.Error())
 	}
 
-	offSet := 100
-	urlToGetTransactions := "https://api.etherscan.io/api?apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&module=account&action=txlistinternal&startblock=latest&sort=desc&offset=" + strconv.Itoa(offSet) + "&page=1&endblock=latest+1"
-	method := "GET"
-	httpClient := &http.Client{}
-	request, errInNewRequest := http.NewRequest(method, urlToGetTransactions, nil)
-	if errInNewRequest != nil {
-		logrus.Error("Error in creating new request: " + errInNewRequest.Error())
-		return nil, errors.New(errInNewRequest.Error())
+	//call the block number endpoint
+	blockUrl := `https://api.etherscan.io/api?module=block&action=getblocknobytime&timestamp=` + strconv.FormatInt(time.Now().Unix(), 10) + `&closest=before&apikey=AER6M2C3436231IGT7SV7JZ2URFYFX7MZ1`
+
+	blockNoRes, errWhenGettingBlockNumber := http.Get(blockUrl)
+	if errWhenGettingBlockNumber != nil {
+		logrus.Error("Error when getting block number : " + errWhenGettingBlockNumber.Error())
+		return nil, errors.New(errWhenGettingBlockNumber.Error())
+	}
+	defer blockNoRes.Body.Close()
+	body, errWhenReadingTheBlockNo := ioutil.ReadAll(blockNoRes.Body)
+	if errWhenReadingTheBlockNo != nil {
+		logrus.Error("Error when reading the block number : " + errWhenReadingTheBlockNo.Error())
+		return nil, errors.New(errWhenReadingTheBlockNo.Error())
 	}
 
-	response, errInDo := httpClient.Do(request)
-	if errInDo != nil {
-		logrus.Error("Error in getting response: " + errInDo.Error())
-		return nil, errors.New(errInDo.Error())
+	var blockNoJsonResponse BlockNumberResponse
+	errWhenUnmarsallingBlock := json.Unmarshal(body, &blockNoJsonResponse)
+	if errWhenUnmarsallingBlock != nil {
+		logrus.Error("Error when unmarshalling block : " + errWhenUnmarsallingBlock.Error())
+		return nil, errors.New(errWhenUnmarsallingBlock.Error())
 	}
 
-	defer response.Body.Close()
-
-	body, errInReadAll := io.ReadAll(response.Body)
-	if errInReadAll != nil {
-		logrus.Error("Error in reading response body: " + errInReadAll.Error())
-		return nil, errors.New(errInReadAll.Error())
+	var i big.Int
+	_, suc := i.SetString(blockNoJsonResponse.Result, 10)
+	if !suc {
+		logrus.Error("Error when converting block number to big int")
+		return nil, errors.New("Error when converting block number to big int")
 	}
 
-	var response1 Response
-	errInUnmarshal := json.Unmarshal(body, &response1)
-	if errInUnmarshal != nil {
-		logrus.Error("Error in unmarshalling: " + errInUnmarshal.Error())
-		return nil, errors.New(errInUnmarshal.Error())
+	//load th block
+	block, err := client.BlockByNumber(context.Background(), &i)
+	if err != nil {
+		logrus.Error("Error when loading the block : " + err.Error())
+		return nil, errors.New(err.Error())
 	}
 
-	min := new(big.Int)
-	if len(response1.Result) > 0 {
-		// getting all the hashes to an array
-		var hashes []string
-		for result1 := range response1.Result {
-			if response1.Result[result1].IsError == "0" {
-				hashes = append(hashes, response1.Result[result1].Hash)
-			}
+	count := 0
+
+	min := block.Transactions()[0].GasPrice()
+	//query block transactions
+	for _, tx := range block.Transactions() {
+		//pick only the normal transaction by checking if the "To" is nil
+		if tx.To() != nil && tx.GasPrice().Cmp(min) < 0 {
+			min = tx.GasPrice()
+			count++
 		}
-
-		// remove duplicates from hashes
-		uniqueHashes := getUniqueStringsInAnArray(hashes)
-		logrus.Info("No of Unique Hashes : ", len(uniqueHashes))
-
-		tx1, _, errInGettingTransaction1 := client1.TransactionByHash(context.Background(), common.HexToHash(response1.Result[0].Hash))
-		if errInGettingTransaction1 != nil {
-			logrus.Error("Error in getting transaction: " + errInGettingTransaction1.Error())
-			return nil, errors.New(errInGettingTransaction1.Error())
-		}
-
-		min = tx1.GasPrice()
-		for _, hash := range uniqueHashes {
-			tx2, _, errInGettingTransaction := client1.TransactionByHash(context.Background(), common.HexToHash(hash))
-			if errInGettingTransaction != nil {
-				logrus.Error("Error in getting transaction: " + errInGettingTransaction.Error())
-				return nil, errors.New(errInGettingTransaction.Error())
-			}
-
-			if tx2.GasPrice().Cmp(min) < 0 {
-				min = tx2.GasPrice()
-			}
-
-		}
-	} else {
-		logrus.Error("No transactions found")
-		logrus.Info("Using the lowest gas price from the network")
-		lowestPrice, errorInGettingLowestPrice := GetCurrentGasPrice()
-		if errorInGettingLowestPrice != nil {
-			logrus.Error("Error when getting low gas price from 'GetCurrentGasPrice()'" + errorInGettingLowestPrice.Error())
-			return nil, errors.New(errorInGettingLowestPrice.Error())
-		}
-		min = big.NewInt(int64(lowestPrice))
 	}
-	logrus.Info("Initial gas price : ", min)
-	// get the less than 10% value as the minimum gas price
-	min = new(big.Int).Sub(min, new(big.Int).Div(min, big.NewInt(10)))
+
+	logrus.Info("No of unique transactions considered to get the minimum gas price : " + strconv.Itoa(count))
 
 	return min, nil
-}
 
-func getUniqueStringsInAnArray(intSlice []string) []string {
-	keys := make(map[string]bool)
-	list := []string{}
-	for _, entry := range intSlice {
-		if _, value := keys[entry]; !value {
-			keys[entry] = true
-			list = append(list, entry)
-		}
-	}
-	return list
 }
