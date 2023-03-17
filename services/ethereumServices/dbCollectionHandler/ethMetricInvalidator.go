@@ -32,9 +32,9 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 	if metrics != nil {
 		metricList := metrics.([]model.EthereumMetricBind)
 		for _, metric := range metricList {
-
+			updatedErrorMessage := errorMessage
 			if metric.TransactionUUID != pendingContract.Identifier {
-				errorMessage = "One of the contracts under this metric ID is failed or invalid."
+				updatedErrorMessage = "One of the contracts under this metric ID is failed or invalid."
 			}
 
 			pendingContractNew := model.PendingContracts{}
@@ -51,7 +51,9 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 					pendingContractNew = contract.(model.PendingContracts)
 					// update the status
 					pendingContractNew.Status = status
-					pendingContractNew.ErrorMessage = errorMessage
+					pendingContractNew.ErrorMessage = updatedErrorMessage
+				} else {
+					logrus.Info("No contracts found in the pending contract collection for the given uuid: " + metric.TransactionUUID)
 				}
 			}
 
@@ -61,12 +63,11 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 				return errors.New("error when updating the collections: " + errorWhenUpdatingCollections.Error())
 			}
 		}
+		logrus.Info("Invalidated all the contracts for the metric " + metricID + " with status: " + status)
 
 	} else {
 		return errors.New("no metrics found for the given metric id")
 	}
-
-	logrus.Info("Invalidated all the contracts for the metric " + metricID + " with status: " + status)
 
 	return nil
 }

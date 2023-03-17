@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumsocialimpact "github.com/dileepaj/tracified-gateway/services/ethereumServices/ethereumSocialImpact"
@@ -12,7 +13,7 @@ import (
 )
 
 func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID string, element model.MetricDataBindActivityRequest, metricName string, metricElement model.MetricReq, userElement model.User, ethMetricActivityObj model.EthereumMetricBind) error {
-
+	object := dao.Connection{}
 	var pivotCode model.EthGeneralPivotField
 	var errWhenGettingPivotCodes error
 	reqType := "METRIC"
@@ -105,6 +106,12 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 	ethMetricActivityObj.TemplateString = templateB64
 	ethMetricActivityObj.BINstring = binString
 	ethMetricActivityObj.ABIstring = abiString
+
+	errWhenUpdatingMetricDetails := object.UpdateEthereumMetricStatus(ethMetricActivityObj.MetricID, ethMetricActivityObj.TransactionUUID, ethMetricActivityObj)
+	if errWhenUpdatingMetricDetails != nil {
+		logrus.Error("Error when updating the metric metadata contract details : ", errWhenUpdatingMetricDetails)
+		return errWhenUpdatingMetricDetails
+	}
 
 	errWhenDeploying := ethereumsocialimpact.DeployMetricContract(ethMetricActivityObj)
 	if errWhenDeploying != nil {

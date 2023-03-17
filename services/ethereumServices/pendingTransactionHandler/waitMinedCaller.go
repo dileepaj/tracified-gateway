@@ -7,7 +7,6 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -25,7 +24,7 @@ func CallWaitMined(client *ethclient.Client, tx *types.Transaction) (int64, uint
 		return -1, 0, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 	} else {
 		if receipt.Status == 0 {
-			errorMessageFromStatus, errorInCallingTransactionStatus := deploy.GetErrorOfFailedTransaction(tx.Hash().Hex())
+			errorMessageFromStatus, errorInCallingTransactionStatus := GetErrorOfFailedTransaction(tx.Hash().Hex())
 			if errorInCallingTransactionStatus != nil {
 				logrus.Error("Transaction failed.")
 				logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())

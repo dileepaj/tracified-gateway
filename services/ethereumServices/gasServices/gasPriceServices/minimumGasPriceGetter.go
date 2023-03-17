@@ -91,8 +91,10 @@ func GetMinGasPrice() (*big.Int, error) {
 	//query block transactions
 	for _, tx := range block.Transactions() {
 		//pick only the normal transaction by checking if the "To" is nil
-		if tx.To() != nil && tx.GasPrice().Cmp(min) < 0 {
-			min = tx.GasPrice()
+		if tx.To() != nil {
+			if tx.GasPrice().Cmp(min) < 0 {
+				min = tx.GasPrice()
+			}
 			count++
 		}
 	}

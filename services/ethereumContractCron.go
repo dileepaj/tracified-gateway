@@ -7,10 +7,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/ethereum/go-ethereum/log"
@@ -117,7 +117,7 @@ func CheckContractStatus() {
 				} else if transactionReceipt.Status == 0 {
 					//Transaction failed
 					//Get the error for the transaction
-					errorOccurred, errWhenGettingTheTransactionError := deploy.GetErrorOfFailedTransaction(pendingHash)
+					errorOccurred, errWhenGettingTheTransactionError := pendingTransactionHandler.GetErrorOfFailedTransaction(pendingHash)
 					if errWhenGettingTheTransactionError != nil {
 						logrus.Error("Error when getting the transaction error : " + errWhenGettingTheTransactionError.Error())
 						continue
@@ -135,10 +135,18 @@ func CheckContractStatus() {
 						logrus.Error("Error when inserting the error message : " + errorWhenInsertingErrorMessage.Error())
 					}
 
+					result[i].Status = "FAILED"
+					result[i].ErrorMessage = errorOccurred
+					errWhenUpdatingCollection := dbCollectionHandler.InvalidateMetric(result[i], "FAILED", result[i].ErrorMessage)
+					if errWhenUpdatingCollection != nil {
+						logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
+						continue
+					}
+
 					//call the failed contact redeployer
-					contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
-					if errWhenRedeploying != nil {
-						if errWhenRedeploying.Error() == "Gateway Ethereum account funds are not enough" {
+					if result[i].ContractType != "ETHMETRICBIND" {
+						contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
+						if errWhenRedeploying != nil {
 							logrus.Error("Error when redeploying the failed transaction : " + errWhenRedeploying.Error())
 							//update collection
 							updatePending := model.PendingContracts{
@@ -158,41 +166,41 @@ func CheckContractStatus() {
 								logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 								continue
 							}
+
+							continue
 						}
-						logrus.Error("Error when redeploying : " + errWhenRedeploying.Error())
-						continue
-					}
 
-					//update collection
-					updatePending := model.PendingContracts{
-						TransactionHash: transactionHash,
-						ContractAddress: contractAddress,
-						Status:          "PENDING",
-						CurrentIndex:    0,
-						ErrorMessage:    "",
-						ContractType:    result[i].ContractType,
-						Identifier:      result[i].Identifier,
-						Nonce:           nonce,
-						GasPrice:        gasPrice,
-						GasLimit:        gasLimit,
-					}
-					errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
-					if errWhenUpdatingStatus != nil {
-						logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
-						continue
-					}
+						//update collection
+						updatePending := model.PendingContracts{
+							TransactionHash: transactionHash,
+							ContractAddress: contractAddress,
+							Status:          "PENDING",
+							CurrentIndex:    0,
+							ErrorMessage:    "",
+							ContractType:    result[i].ContractType,
+							Identifier:      result[i].Identifier,
+							Nonce:           nonce,
+							GasPrice:        gasPrice,
+							GasLimit:        gasLimit,
+						}
+						errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
+						if errWhenUpdatingStatus != nil {
+							logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+							continue
+						}
 
-					//call the relevant collections to be update with the contract type and the address
-					abstractObjToUpdateNewTransaction := ethereumservices.AbstractCollectionUpdate{
-						PendingContract: result[i],
-						Status:          "PENDING",
-						Type:            "SOCIALIMPACT",
-					}
+						//call the relevant collections to be update with the contract type and the address
+						abstractObjToUpdateNewTransaction := ethereumservices.AbstractCollectionUpdate{
+							PendingContract: result[i],
+							Status:          "PENDING",
+							Type:            "SOCIALIMPACT",
+						}
 
-					errWhenUpdatingTheDBCollections := abstractObjToUpdateNewTransaction.AbstractCollectionUpdater()
-					if errWhenUpdatingTheDBCollections != nil {
-						logrus.Error("Error when updating the relevant collection with the new transaction : " + errWhenUpdatingTheDBCollections.Error())
-						continue
+						errWhenUpdatingTheDBCollections := abstractObjToUpdateNewTransaction.AbstractCollectionUpdater()
+						if errWhenUpdatingTheDBCollections != nil {
+							logrus.Error("Error when updating the relevant collection with the new transaction : " + errWhenUpdatingTheDBCollections.Error())
+							continue
+						}
 					}
 
 				} else {

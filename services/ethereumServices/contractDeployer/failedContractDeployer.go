@@ -227,6 +227,37 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 				costInWei := new(big.Int).Mul(big.NewInt(int64(gasLimit)), predictedGasPrice)
 				cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
 				transactionCost = fmt.Sprintf("%g", cost) + " ETH"
+
+				// insert and update latest metric contract address
+				if failedContract.ContractType == "ETHMETRICBIND" {
+					// get the metric object from the database using uuid
+					ethMetricObj, errWhenGettingMetric := dbCollectionHandler.GetEthMetricByUUID(failedContract.Identifier)
+					if errWhenGettingMetric != nil {
+						logrus.Error("Error when getting metric object from DB: ", errWhenGettingMetric)
+						return contractAddress, transactionHash, transactionCost, auth.Nonce, pendingTransaction.GasPrice, pendingTransaction.GasLimit, errors.New("Error when getting metric object from DB for the latest contract update, ERROR : " + errWhenGettingMetric.Error())
+					}
+
+					insertObj := model.MetricLatestContract{
+						MetricID:        ethMetricObj.MetricID,
+						ContractAddress: address.Hex(),
+						Type:            ethMetricObj.Type,
+					}
+					if ethMetricObj.Type == "METADATA" {
+						//insert the latest contract address in DB
+						errWhenInsertingToLatest := object.EthereumInsertToMetricLatestContract(insertObj)
+						if errWhenInsertingToLatest != nil {
+							logrus.Error("Error when inserting to latest contract to DB: ", errWhenInsertingToLatest)
+						}
+						logrus.Info("Added " + address.Hex() + " to latest contract collection")
+					} else if ethMetricObj.Type == "ACTIVITY" {
+						//update the latest contract address in DB
+						errWhenUpdatingLatest := object.UpdateEthereumMetricLatestContract(ethMetricObj.MetricID, insertObj)
+						if errWhenUpdatingLatest != nil {
+							logrus.Errorf("Error when updating latest contract address in DB: ", errWhenUpdatingLatest)
+						}
+						logrus.Info("Updated " + address.Hex() + " as latest contract")
+					}
+				}
 			}
 		}
 	}

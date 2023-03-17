@@ -156,7 +156,6 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 		canCallNextDeployment = true
 		if len(activities) > 0 {
 			for i := 0; i < len(activities); i++ {
-				time.Sleep(30 * time.Second)
 				//check if the contract for the this metric ID + formula ID + type deployed
 				formulaStatus, formulaDetails, errWhenGettingFormulaStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i].MetricFormula.MetricExpertFormula.ID)
 				if errWhenGettingFormulaStatus != nil {

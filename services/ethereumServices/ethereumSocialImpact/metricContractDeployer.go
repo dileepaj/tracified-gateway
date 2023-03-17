@@ -1,7 +1,6 @@
 package ethereumsocialimpact
 
 import (
-	"errors"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -32,11 +31,6 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 		ethMetricObj.Status = "FAILED"
 		logrus.Error("Error when deploying contract for metric : ", ethMetricObj.MetricID, " Error : ", errWhenDeploying)
 
-		errWhenUpdatingMetric := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
-		if errWhenUpdatingMetric != nil {
-			logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
-		}
-
 		pendingContract := model.PendingContracts{
 			ContractAddress: ethMetricObj.ContractAddress,
 			ContractType:    "ETHMETRICBIND",
@@ -45,13 +39,13 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 			Status:          "FAILED",
 			ErrorMessage:    ethMetricObj.ErrorMessage,
 		}
-		errWheninvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
+		errWheninvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, "FAILED", ethMetricObj.ErrorMessage)
 		if errWheninvalidatingMetric != nil {
 			logrus.Error("Error when invalidating the metric : " + ethMetricObj.MetricID)
 		}
 		logrus.Info("Metric update called with FAILED status. Type: " + ethMetricObj.Type)
 		logrus.Info("Contract deployment unsuccessful")
-		return errors.New("Error in metric contract deployer. Error : " + errWhenDeploying.Error())
+		return errWhenDeploying
 	} else {
 		//if deploy method is success update the status into success
 		errWhenUpdatingStatus := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)

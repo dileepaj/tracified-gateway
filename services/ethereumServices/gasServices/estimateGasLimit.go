@@ -116,6 +116,18 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 		Jsonrpc string
 		Id      int
 		Result  string
+		Error  struct {
+			Code   int
+			Message string
+			Data struct {
+				Rate struct {
+					Allowed_rps int
+					Current_rps int
+					Backoff_seconds int
+				}
+				See string
+			}
+		}
 	}
 
 	var gasLimitResponse GasLimitResponse
@@ -124,6 +136,12 @@ func EstimateGasLimit(from string, to string, gas string, gasPrice string, maxPr
 	errorInUnmarshal := json.Unmarshal(body, &gasLimitResponse)
 	if errorInUnmarshal != nil {
 		logrus.Error("Error in un-marshalling response body: " + errorInUnmarshal.Error())
+		return 0, errorInUnmarshal
+	}
+	
+	// check if there is an error in the response
+	if gasLimitResponse.Error.Code != 0 {
+		logrus.Error("Error in estimating gas limit: " + gasLimitResponse.Error.Message)
 		return 0, errorInUnmarshal
 	}
 

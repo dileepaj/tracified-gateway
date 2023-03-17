@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	ethereumsocialimpact "github.com/dileepaj/tracified-gateway/services/ethereumServices/ethereumSocialImpact"
@@ -14,7 +15,7 @@ import (
 // ! Relevant map ID will be checked on the route handler to see whether the metric contract is already deployed or not
 // ! All the other failed database calls will be handled in the handler function
 func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID string, ethMetricMetadataObj model.EthereumMetricBind) error {
-
+	object := dao.Connection{}
 	reqType := "METRIC"
 
 	//generate the contract
@@ -56,6 +57,12 @@ func MetricMetadataContractDeployer(element model.MetricMetadataReq, metricMapID
 	ethMetricMetadataObj.TemplateString = templateB64
 	ethMetricMetadataObj.BINstring = binString
 	ethMetricMetadataObj.ABIstring = abiString
+
+	errWhenUpdatingMetricDetails := object.UpdateEthereumMetricStatus(ethMetricMetadataObj.MetricID, ethMetricMetadataObj.TransactionUUID, ethMetricMetadataObj)
+	if errWhenUpdatingMetricDetails != nil {
+		logrus.Error("Error when updating the metric metadata contract details : ", errWhenUpdatingMetricDetails)
+		return errWhenUpdatingMetricDetails
+	}
 
 	errWhenDeploying := ethereumsocialimpact.DeployMetricContract(ethMetricMetadataObj)
 	if errWhenDeploying != nil {
