@@ -61,6 +61,7 @@ type POC struct {
 type TDPData struct {
 	Data       string
 	Identifier string
+	TdpId      string
 	Oldtdp     string
 	Error      string
 }

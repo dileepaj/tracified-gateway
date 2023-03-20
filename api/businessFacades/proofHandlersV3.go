@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -134,40 +135,40 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	var finalResult []model.POEResponse
 
 	var response model.POE
-	// // url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
-	// url := constants.TracifiedBackend + "/api/v2/dataPackets/" + result.ProfileID + `/` + result.TdpId
-	// bearer := "Bearer " + constants.BackendToken
+	// url := "http://localhost:3001/api/v2/dataPackets/raw?id=5c9141b2618cf404ec5e105d"
+	url := constants.TracifiedBackend + "/api/v2/dataPackets/" + result.ProfileID + `/` + result.TdpId
+	bearer := "Bearer " + constants.BackendToken
 
-	// // Create a new request using http
-	// req, er := http.NewRequest("GET", url, nil)
-	// if er != nil {
-	// 	log.Error("Error while create new request using http " + er.Error())
-	// }
-	// req.Header.Add("Authorization", bearer)
-	// client := &http.Client{}
-	// resq, er := client.Do(req)
-	// if er != nil {
-	// 	log.Error("Error while getting response " + er.Error())
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
-	// 	json.NewEncoder(w).Encode(response)
-	// 	return
-	// }
+	// Create a new request using http
+	req, er := http.NewRequest("GET", url, nil)
+	if er != nil {
+		log.Error("Error while create new request using http " + er.Error())
+	}
+	req.Header.Add("Authorization", bearer)
+	client := &http.Client{}
+	resq, er := client.Do(req)
+	if er != nil {
+		log.Error("Error while getting response " + er.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
 
-	// body, err := ioutil.ReadAll(resq.Body)
-	// if err != nil {
-	// 	log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
-	// }
-	// h := sha256.New()
-	// var TdpData model.TDPData
-	// json.Unmarshal(body, &TdpData)
+	body, err := ioutil.ReadAll(resq.Body)
+	if err != nil {
+		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
+	}
+	h := sha256.New()
+	var TdpData model.TDPData
+	json.Unmarshal(body, &TdpData)
 
-	// h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
-	// dataHash := hex.EncodeToString(h.Sum(nil))
+	h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
+	dataHash := hex.EncodeToString(h.Sum(nil))
 
-	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: "5bf0af3bdbbf70035db383c95914c85b2ae50768ec86fb492be533e90c95acad"}
+	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
-	response = display.InterpretPOE("64001c836f91b84ad6355129")
+	response = display.InterpretPOE(TdpData.TdpId)
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
 	//var txe xdr.Transaction
