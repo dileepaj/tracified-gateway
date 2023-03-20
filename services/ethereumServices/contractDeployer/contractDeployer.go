@@ -166,6 +166,22 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				if errInInsertingErrorMessage != nil {
 					logrus.Error("Error in inserting the error message, ERROR : " + errInInsertingErrorMessage.Error())
 				}
+
+				if contractType == "ETHMETRICBIND" {
+					pendingContractObj := model.PendingContracts{
+						TransactionHash: "",
+						ContractAddress: "",
+						Status:          "FAILED",
+						CurrentIndex:    0,
+						ErrorMessage:    deploymentError,
+						ContractType:    contractType,
+						Identifier:      contractIdentifier,
+					}
+					errorWhenInvalidating := dbCollectionHandler.InvalidateMetric(pendingContractObj, "FAILED", deploymentError)
+					if errorWhenInvalidating != nil {
+						logrus.Error("Error when invalidating the metric, ERROR : " + errorWhenInvalidating.Error())
+					}
+				}
 			} else {
 				contractAddress = address.Hex()
 				transactionHash = tx.Hash().Hex()

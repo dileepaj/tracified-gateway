@@ -5,14 +5,15 @@ import (
 	"os"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/services"
+	ethereumsocialimpact "github.com/dileepaj/tracified-gateway/services/ethereumServices/ethereumSocialImpact"
 	"github.com/sirupsen/logrus"
 )
 
 func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID string, element model.MetricDataBindActivityRequest, metricName string, metricElement model.MetricReq, userElement model.User, ethMetricActivityObj model.EthereumMetricBind) error {
-
+	object := dao.Connection{}
 	var pivotCode model.EthGeneralPivotField
 	var errWhenGettingPivotCodes error
 	reqType := "METRIC"
@@ -106,17 +107,16 @@ func ActivityContractDeployer(metricMapID string, formulaMapID string, metricID 
 	ethMetricActivityObj.BINstring = binString
 	ethMetricActivityObj.ABIstring = abiString
 
-	buildQueueObject := model.SendToQueue{
-		EthereumMetricBind: ethMetricActivityObj,
-		Type:               "ETHMETRICBIND",
-		User:               userElement,
-		Status:             "QUEUE",
+	errWhenUpdatingMetricDetails := object.UpdateEthereumMetricStatus(ethMetricActivityObj.MetricID, ethMetricActivityObj.TransactionUUID, ethMetricActivityObj)
+	if errWhenUpdatingMetricDetails != nil {
+		logrus.Error("Error when updating the metric metadata contract details : ", errWhenUpdatingMetricDetails)
+		return errWhenUpdatingMetricDetails
 	}
 
-	errWhenSendingToQueue := services.SendToQueue(buildQueueObject)
-	if errWhenSendingToQueue != nil {
-		logrus.Error("Error when sending to the metric activity contract to queue : ", errWhenSendingToQueue)
-		return errWhenSendingToQueue
+	errWhenDeploying := ethereumsocialimpact.DeployMetricContract(ethMetricActivityObj)
+	if errWhenDeploying != nil {
+		logrus.Error("Error when sending to the metric activity contract to deployer : ", errWhenDeploying)
+		return errWhenDeploying
 	}
 
 	return nil

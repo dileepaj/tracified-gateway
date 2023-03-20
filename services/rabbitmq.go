@@ -190,7 +190,6 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHEXPERTFORMULA" {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
-				startTime := time.Now()
 				//Call the deploy method
 				expertDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
@@ -199,8 +198,6 @@ func ReceiverRmq() error {
 					ContractType: 	 "ETHEXPERTFORMULA",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
-				endTime := time.Now()
-				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethExpertFormulaObj := model.EthereumExpertFormula{
 					FormulaID:           queue.EthereumExpertFormula.FormulaID,
 					FormulaName:         queue.EthereumExpertFormula.FormulaName,
@@ -217,7 +214,6 @@ func ReceiverRmq() error {
 					Timestamp:           time.Now().String(),
 					TransactionHash:     txnHash,
 					TransactionCost:     deploymentCost, //add after deploy
-					TransactionTime:     convertedTime,
 					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
 					Verify:              queue.EthereumExpertFormula.Verify,
@@ -252,7 +248,6 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
-				startTime := time.Now()
 				//Call the deploy method
 				metricDeployObject := ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumMetricBind.ABIstring,
@@ -261,8 +256,6 @@ func ReceiverRmq() error {
 					ContractType: 	 "ETHMETRICBIND",
 				}
 				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
-				endTime := time.Now()
-				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				ethMetricObj := model.EthereumMetricBind{
 					MetricID:          queue.EthereumMetricBind.MetricID,
 					MetricName:        queue.EthereumMetricBind.MetricName,
@@ -275,7 +268,6 @@ func ReceiverRmq() error {
 					ContractAddress:   address,
 					TransactionHash:   txnHash,
 					TransactionCost:   deploymentCost,
-					TransactionTime:   convertedTime,
 					TransactionUUID:   queue.EthereumMetricBind.TransactionUUID,
 					TransactionSender: queue.EthereumMetricBind.TransactionSender,
 					User:              queue.EthereumMetricBind.User,

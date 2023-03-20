@@ -2674,7 +2674,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
 		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": "SUCCESS"}).Decode(&result)
 		if err1 != nil {
-			logrus.Info("Error while getting contract name from db " + err1.Error())
+			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -2866,7 +2866,7 @@ func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *pro
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
 		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
 		if err1 != nil {
-			logrus.Info("Error while getting contract name from db " + err1.Error())
+			logrus.Info("Error while getting Ethereum formula contract abi and bin by uuid from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -2888,7 +2888,7 @@ func (cd *Connection) GetEthMetricBinAndAbiByIdentifier(identifier string) *prom
 		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
 		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
 		if err1 != nil {
-			logrus.Info("Error while getting contract name from db " + err1.Error())
+			logrus.Info("Error while getting Ethereum metric contract abi and bin by uuid from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)
@@ -2910,7 +2910,7 @@ func (cd *Connection) GetEthMetricByUUID(identifier string) *promise.Promise {
 		c := session.Client().Database(dbName).Collection("EthereumMetricBind")
 		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
 		if err1 != nil {
-			logrus.Info("Error while getting contract name from db " + err1.Error())
+			logrus.Info("Error while getting Ethereum metric by uuid from db " + err1.Error())
 			reject(err1)
 		} else {
 			resolve(result)

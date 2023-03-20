@@ -69,7 +69,6 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			ContractAddress:   "",
 			TransactionHash:   "",
 			TransactionCost:   "",
-			TransactionTime:   "",
 			TransactionUUID:   "",
 			TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
 			User:              metricBindJson.User,
