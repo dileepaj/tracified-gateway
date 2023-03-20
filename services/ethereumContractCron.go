@@ -19,9 +19,7 @@ import (
 
 func CheckContractStatus() {
 
-	if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
-		log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
-	}
+	log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
 
 	object := dao.Connection{}
 	//Get the transactions with the pending status from the Database
