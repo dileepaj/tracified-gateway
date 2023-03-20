@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -885,6 +886,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum expert formula", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -971,6 +973,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1099,6 +1102,7 @@ func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum latest metric contract", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1130,6 +1134,7 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum pending contract", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1168,6 +1173,7 @@ func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum formula status for the given UUID", err.Error())
 		return err
 	}
 	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
@@ -1185,6 +1191,7 @@ func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status string,
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric status for the given UUID", err.Error())
 		return err
 	}
 	c := session.Client().Database(dbName).Collection("EthereumMetricBind")

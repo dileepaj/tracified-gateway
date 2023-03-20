@@ -2,7 +2,6 @@ package contractdeployer
 
 import (
 	"context"
-	"crypto/ecdsa"
 	"errors"
 	"fmt"
 	"math"
@@ -14,10 +13,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
+	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/crypto"
-	"github.com/ethereum/go-ethereum/ethclient"
 	"github.com/sirupsen/logrus"
 )
 
@@ -43,44 +41,18 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting ABI and BIN : " + errWhenGettingABIandBIN.Error())
 	}
 
-	//Dial infura client
-	client, errWhenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
-	if errWhenDialingEthClient != nil {
-		logrus.Error("Error when dialing the eth client : " + errWhenDialingEthClient.Error())
-		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when dialing eth client , ERROR : " + errWhenDialingEthClient.Error())
+	//load client and the keys
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	if errWhenLoadingClientAndKey != nil {
+		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
+
 	}
 
-	//load ECDSA private key
-	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
-	if errWhenGettingECDSAKey != nil {
-		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
-		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())
-	}
-
-	//get the public key
-	publicKey := privateKey.Public()
-	//get public key ECDSA
-	publicKeyECDSA, ok := publicKey.(*ecdsa.PublicKey)
-	if !ok {
-		logrus.Error("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Cannot assert type: publicKey is not of type *ecdsa.PublicKey")
-	}
-
-	fromAddress := crypto.PubkeyToAddress(*publicKeyECDSA)
-
-	//assign metadata for the contract
-	var BuildData = &bind.MetaData{
-		ABI: abiString,
-		Bin: binString,
-	}
-
-	//var ContractABI = BuildData.ABI
-	var ContractBIN = BuildData.Bin
-
-	parsed, errWhenGettingABI := BuildData.GetAbi()
-	if errWhenGettingABI != nil {
-		logrus.Error("Error when getting abi from passed ABI string " + errWhenGettingABI.Error())
-		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting abi from passed ABI string , ERROR : " + errWhenGettingABI.Error())
+	ContractBIN, parsed, errWhenLoadingParsedABIAndBIN := generalservices.LoadContractBinAndParsedAbi(binString, abiString)
+	if errWhenLoadingParsedABIAndBIN != nil {
+		logrus.Error("Error when loading ContractBIN and Parsed ABI : " + errWhenLoadingParsedABIAndBIN.Error())
+		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when loading ContractBIN and Parsed ABI : " + errWhenLoadingParsedABIAndBIN.Error())
 	}
 
 	if parsed == nil {
@@ -125,7 +97,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 			if i == 0 {
 				//get the initially corrected values
 				auth.GasLimit = uint64(gasLimit)
-				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
 				if errWhenGettingNonce != nil {
 					logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
@@ -144,7 +116,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 				//check the error
 				if deploymentError == "nonce too low" {
 					//pick up the latest the nonce available
-					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), fromAddress)
+					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
 					if errWhenGettingNonce != nil {
 						logrus.Error("Error when getting nonce " + errWhenGettingNonce.Error())
 						return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
