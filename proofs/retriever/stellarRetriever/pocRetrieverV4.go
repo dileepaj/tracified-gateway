@@ -128,13 +128,22 @@ func (poc *POCTreeV4) generatePOCV4() {
 				poc.siblings[gtxe.PreviousTxnHash] = append(poc.siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash)
 			}
 			sp := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
+			// backlinks build transaction hash
 			spgtxe1, err1:= sp.GetTransactionCollection()
+			if err1 != nil {
+				return
+			}
 			if err1 == nil {
-				if spgtxe1.CurrentTxnHash !=""{
+				e := ConcreteStellarTransaction{Txnhash: spgtxe1.CurrentTxnHash}
+				// current transaction hash of the backlinks build transaction hash
+				spgtxe2, err := e.GetTransactionCollection()
+				if err != nil {
+					return
+				}
 				if poc.Nodes[spgtxe1.CurrentTxnHash] == nil {
 					poc.Nodes[spgtxe1.CurrentTxnHash] =&POCNode{
 						Id: spgtxe1.CurrentTxnHash,
-						Data: *spgtxe1,
+						Data: *spgtxe2,
 						TrustLinks: []string{spgtxe1.TxnHash},
 					}
 					poc.Nodes[spgtxe1.CurrentTxnHash].Data.TxnHash = spgtxe1.CurrentTxnHash
@@ -144,7 +153,6 @@ func (poc *POCTreeV4) generatePOCV4() {
 				}
 				if !contains(poc.Nodes[spgtxe1.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
 					poc.Nodes[spgtxe1.CurrentTxnHash].Children = append(poc.Nodes[spgtxe1.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
-				}
 				}
 				p := ConcreteStellarTransaction{Txnhash: spgtxe1.PreviousTxnHash}
 				spgtxe, err2 := p.GetTransactionCollection()

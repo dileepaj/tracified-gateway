@@ -145,7 +145,22 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		var SplitParentProfile string
 		var PreviousSplitProfile string
 		for i, TxnBody := range AP.TxnBody {
-
+			/*
+			When constructing a backlink transaction(put from gateway) for a split, it is important to exclude the split-parent transaction as its previous transaction.
+			Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
+			*/
+			if TxnBody.TxnType == "6" {
+			backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+			if backlinkData == nil || errAsnc != nil {
+				log.Info("Can not find transaction form database ","build Split")
+			} else {
+				result := backlinkData.(model.TransactionCollectionBody)
+				PreviousTxn = result.TxnHash
+				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
+			}
+			}
 			previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXN", Value: []byte(PreviousTxn)}
 			typeTXNBuilder := txnbuild.ManageData{Name: "Type", Value: []byte("G" + TxnBody.TxnType)}
 			currentTXNBuilder := txnbuild.ManageData{Name: "CurrentTXN", Value: []byte(UserSplitTxnHashes[i])}
