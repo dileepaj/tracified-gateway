@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"strconv"
+	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -37,6 +38,30 @@ func CheckContractStatus() {
 			return nil
 		}
 		for i := 0; i < len(result); i++ {
+			// get the metric by uuid
+			metricDetails, errorInGettingMetricDetails := dbCollectionHandler.GetEthMetricByUUID(result[i].Identifier)
+			if errorInGettingMetricDetails != nil {
+				logrus.Error("Error when getting the metric details : " + errorInGettingMetricDetails.Error())
+				continue
+			}
+			//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
+			givenTimestamp := metricDetails.Timestamp
+			layout := "2006-01-02 15:04:05.9999999 -0700 -0700"
+			// truncate the timestamp to the layout
+			truncatedTime, errInParsingAndTruncating := time.Parse(layout, givenTimestamp[:len(layout)])
+			if errInParsingAndTruncating != nil {
+				logrus.Error("Error when parsing and truncating the time : " + errInParsingAndTruncating.Error())
+				continue
+			}
+			// get the current time
+			currentTime := time.Now()
+			// get the difference between the current time and the time of the transaction
+			timeDifference := currentTime.Sub(truncatedTime)
+			if timeDifference.Abs().Minutes() < 10 {
+				logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
+				continue
+			} 
+
 			pendingHash := result[i].TransactionHash
 			//check the pending threshold
 			if result[i].CurrentIndex == pendingCap {
