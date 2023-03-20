@@ -487,6 +487,37 @@ func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func SponsorAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	key1, error := r.URL.Query()["publickey"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'publickey' is missing")
+		return
+	}
+
+	publickey := key1[0]
+
+	var txn, err = stellar.SponsorAccount(publickey)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when updating the buying status",
+		}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusOK)
+		result := model.XDRRuri{
+			XDR: txn,
+		}
+		logrus.Println("XDR been passed to frontend : ", result)
+		json.NewEncoder(w).Encode(result)
+	}
+
+}
+
 func GetSponsorTrustXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]

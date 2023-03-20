@@ -488,7 +488,6 @@ func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
 	return err
 }
 
-
 func (cd *Connection) InsertToWorkflowIDMap(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -531,6 +530,20 @@ func (cd *Connection) InsertBindKey(bindKey model.BindKeyMap) (string, error) {
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
 
+func (cd *Connection) InsertToEthFormulaDetails(ethFormulaMap model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	_, err = c.InsertOne(context.TODO(), ethFormulaMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula details to DB " + err.Error())
+	}
+	return err
+}
+
 func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -541,6 +554,78 @@ func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) e
 	_, err = c.InsertOne(context.TODO(), artifactMap)
 	if err != nil {
 		logrus.Info("Error when inserting artifact id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertEthFormulaIDMap(formulaIDMap model.EthFormulaIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumFormulaIDMap")
+	_, err = c.InsertOne(context.TODO(), formulaIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+		return "", err
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	result, err1 := c.InsertOne(context.TODO(), user)
+	if err1 != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		return "", err1
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (cd *Connection) InsertPGPAccount(pgpAccount model.PGPAccount) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PGPAccounts")
+	_, err = c.InsertOne(context.TODO(), pgpAccount)
+	if err != nil {
+		logrus.Info("Error when inserting pgpAccount id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToEthMetricDetails(ethMetricDetails model.EthereumMetricBind) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	_, err = c.InsertOne(context.TODO(), ethMetricDetails)
+	if err != nil {
+		logrus.Info("Error when inserting metric details to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) EthereumInsertToValueIDMap(valueIDMap model.ValueIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthValueIDMap")
+	_, err = c.InsertOne(context.TODO(), valueIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
 	}
 	return err
 }

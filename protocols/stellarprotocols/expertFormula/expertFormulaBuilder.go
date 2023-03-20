@@ -31,7 +31,7 @@ des- This method build stellar transactions for expert formula
 		* load stellar account,build and sing the XDR
 		* put XDR to stellar blockchain
 */
-func StellarExpertFormulaBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int, variableCount int,expId string) {
+func StellarExpertFormulaBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int, variableCount int, expId string) {
 	w.Header().Set("Content-Type", "application/json")
 	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend                               // formula array sent by the backend
 	var manageDataOpArray []txnbuild.ManageData             // manageDataOpArray all manage data append to to this array
@@ -101,7 +101,8 @@ func StellarExpertFormulaBuilder(w http.ResponseWriter, r *http.Request, formula
 			return data
 		}).Await()
 		if err != nil {
-			commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Unable to connect to gateway datastore ")
+			logrus.Info("gateway datastore GetExpertMapID ", err)
+			// commons.JSONErrorReturn(w, r, err.Error(), http.StatusInternalServerError, "Unable to connect to gateway datastore ")
 		}
 		// if not,  retrieved the current latest sequence number for expertID , map the expertID with incrementing integer
 		if expertMapdata == nil {
