@@ -306,23 +306,25 @@ type MetricDataBindingRequest struct {
 }
 
 type MetricBindingStore struct {
-	MetricId            string
-	MetricMapID         uint64
-	Metric              MetricReq
-	User                User
-	TotalNoOfManageData int
-	NoOfManageDataInTxn int
-	Memo                []byte
-	TxnHash             string
-	TxnSenderPK         string
-	XDR                 string
-	SequenceNo          int64
-	Status              string
-	Timestamp           string
-	ErrorMessage        string
-	TxnUUID             string
-	TransactionTime     string
-	TransactionCost     string
+	MetricId              string
+	MetricMapID           uint64
+	Metric                MetricReq
+	User                  User
+	TotalNoOfManageData   int
+	NoOfManageDataInTxn   int
+	Memo                  []byte
+	TxnHash               string
+	TxnSenderPK           string
+	XDR                   string
+	SequenceNo            int64
+	Status                string
+	Timestamp             string
+	ErrorMessage          string
+	TxnUUID               string
+	TransactionTime       string
+	TransactionCost       string
+	ActivityManageDataMap []ActivityManageDataCountMap
+	TransactionOrderCount int
 }
 
 type MetricReq struct {
@@ -654,4 +656,14 @@ type BindKeyMap struct {
 	KeyInBlockchain    string
 	Id                 string
 	ArtifactTemplateId string
+}
+
+type ActivityManageDataCountMap struct {
+	ActivityID               string
+	ActivityMapId            uint64
+	MetricID                 string
+	MetricMapID              uint64
+	ManageDataCountStart     int
+	ManageDataCountEnd       int
+	manageDataPerTransaction int
 }
