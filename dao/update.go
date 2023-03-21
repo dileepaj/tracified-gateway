@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -770,7 +771,6 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 	return nil
 }
 
-
 func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -789,7 +789,6 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 	//end of function
 }
 
-
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -799,23 +798,25 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 	defer session.EndSession(context.TODO())
 
 	up := model.MetricBindingStore{
-		MetricId:            update.MetricId,
-		MetricMapID:         update.MetricMapID,
-		Metric:              update.Metric,
-		User:                update.User,
-		TotalNoOfManageData: update.TotalNoOfManageData,
-		NoOfManageDataInTxn: update.NoOfManageDataInTxn,
-		TransactionTime:     update.TransactionTime,
-		TransactionCost:     update.TransactionCost,
-		Memo:                update.Memo,
-		TxnHash:             update.TxnHash,
-		TxnSenderPK:         update.TxnSenderPK,
-		XDR:                 update.XDR,
-		SequenceNo:          update.SequenceNo,
-		Status:              update.Status,
-		Timestamp:           update.Timestamp,
-		ErrorMessage:        update.ErrorMessage,
-		TxnUUID:             update.TxnUUID,
+		MetricId:              update.MetricId,
+		MetricMapID:           update.MetricMapID,
+		Metric:                update.Metric,
+		User:                  update.User,
+		TotalNoOfManageData:   update.TotalNoOfManageData,
+		NoOfManageDataInTxn:   update.NoOfManageDataInTxn,
+		TransactionTime:       update.TransactionTime,
+		TransactionCost:       update.TransactionCost,
+		Memo:                  update.Memo,
+		TxnHash:               update.TxnHash,
+		TxnSenderPK:           update.TxnSenderPK,
+		XDR:                   update.XDR,
+		SequenceNo:            update.SequenceNo,
+		Status:                update.Status,
+		Timestamp:             update.Timestamp,
+		ErrorMessage:          update.ErrorMessage,
+		TxnUUID:               update.TxnUUID,
+		ActivityManageDataMap: update.ActivityManageDataMap,
+		TransactionOrderCount: update.TransactionOrderCount,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -887,6 +888,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum expert formula", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -900,17 +902,16 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TemplateString:      update.TemplateString,
 		BINstring:           update.BINstring,
 		ABIstring:           update.ABIstring,
-		SetterNames: 	   	 update.SetterNames,
+		SetterNames:         update.SetterNames,
 		ContractAddress:     update.ContractAddress,
 		ContractName:        update.ContractName,
 		Status:              update.Status,
 		Timestamp:           update.Timestamp,
 		TransactionHash:     update.TransactionHash,
 		TransactionCost:     update.TransactionCost,
-		TransactionTime:     update.TransactionTime,
 		TransactionUUID:     update.TransactionUUID,
 		TransactionSender:   update.TransactionSender,
-		User:                update.User,
+		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
 	}
 
@@ -974,6 +975,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -991,13 +993,14 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		Timestamp:         update.Timestamp,
 		TransactionHash:   update.TransactionHash,
 		TransactionCost:   update.TransactionCost,
-		TransactionTime:   update.TransactionTime,
 		TransactionUUID:   update.TransactionUUID,
 		TransactionSender: update.TransactionSender,
 		User:              update.User,
 		ErrorMessage:      update.ErrorMessage,
-		FormulaIDs: 	   update.FormulaIDs,
-		ValueIDs: 		   update.ValueIDs,
+		FormulaIDs:        update.FormulaIDs,
+		ValueIDs:          update.ValueIDs,
+		FormulaID:         update.FormulaID,
+		Type:              update.Type,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1095,4 +1098,111 @@ func (cd *Connection) UpdateTrustNetworkResetUserPassword(pkhash string, update 
 	_, err = c.UpdateOne(context.TODO(), bson.M{"pgppkhash": pkhash}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
+}
+
+func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update model.MetricLatestContract) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum latest metric contract", err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.MetricLatestContract{
+		MetricID:        update.MetricID,
+		ContractAddress: update.ContractAddress,
+		Type:            update.Type,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, contractAddress, identifier string, update model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum pending contract", err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.PendingContracts{
+		TransactionHash: update.TransactionHash,
+		ContractAddress: update.ContractAddress,
+		Status:          update.Status,
+		CurrentIndex:    update.CurrentIndex,
+		ErrorMessage:    update.ErrorMessage,
+		ContractType:    update.ContractType,
+		Identifier:      update.Identifier,
+		Nonce:           update.Nonce,
+		GasPrice:        update.GasPrice,
+		GasLimit:        update.GasLimit,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"transactionhash": transactionHash, "contractaddress": contractAddress, "identifier": identifier}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string, errorMessage string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum formula status for the given UUID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	filter := bson.D{{"transactionuuid", txnUUID}}
+	update := bson.D{{"$set", bson.D{{"status", status}, {"errormessage", errorMessage}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum formula status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status string, errorMessage string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric status for the given UUID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	filter := bson.D{{"transactionuuid", txnUUID}}
+	update := bson.D{{"$set", bson.D{{"status", status}, {"errormessage", errorMessage}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum metric status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
 }

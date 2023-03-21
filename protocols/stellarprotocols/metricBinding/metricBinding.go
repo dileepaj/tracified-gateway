@@ -122,9 +122,13 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			return
 		}
 		manageDataOpArray = append(manageDataOpArray, publisherIdentity)
+		var activityManageDataMap []model.ActivityManageDataCountMap
 		// manage data operation order counter
 		//! Formula definitions manage data start
 		for i, activity := range metricBindJson.Metric.MetricActivities {
+			activityManageDataCountEnd := 0
+			var activityMapId uint64
+			var err error
 			// checked whether given formulaID already in the database or not
 			formulaMapID, err := object.GetFormulaMapID(activity.MetricFormula.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 				return data
@@ -139,7 +143,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				return
 			}
 			formulaDetails := formulaMapID.(model.FormulaIDMap)
-			activityMapId, err := InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
+			activityMapId, err = InsertAndFindActivityID(activity.ID, activity.Name, activity.MetricID, activity.StageID)
 			if err != nil {
 				metricBindingStore.ErrorMessage = err.Error()
 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
@@ -161,6 +165,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				return
 			}
 			manageDataOpArray = append(manageDataOpArray, formulaDefinition)
+			activityManageDataCountStrat := len(manageDataOpArray)
 			// 4. Activity Name Definition (Compulsory MDO) metric name builder
 			activityName, err := metricBinding.CommonStringBuilder(activity.Name, "Activity name")
 			if err != nil {
@@ -489,6 +494,16 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 
 				}
 			}
+			activityManageDataCountEnd = len(manageDataOpArray)
+			activityManageDataCountMap := model.ActivityManageDataCountMap{
+				ActivityID:           activity.ID,
+				ActivityMapId:        activityMapId,
+				MetricID:             metricBindJson.Metric.ID,
+				MetricMapID:          metricMapID,
+				ManageDataCountStart: activityManageDataCountStrat,
+				ManageDataCountEnd:   activityManageDataCountEnd,
+			}
+			activityManageDataMap = append(activityManageDataMap, activityManageDataCountMap)
 		}
 		// split manage data in to 25 length sub arrays
 		manageData2dArray := commons.ChunkSlice(manageDataOpArray, manageDataPerMetricBindingRequest)
@@ -533,6 +548,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			metricBindingStore.NoOfManageDataInTxn = len(managedDataOperationArray)
 			metricBindingStore.TotalNoOfManageData = len(manageDataOpArray)
 			metricBindingStore.Status = "QUEUE"
+			metricBindingStore.ActivityManageDataMap = activityManageDataMap
 			_, errResult := object.InsertMetricBindingFormula(metricBindingStore) // update
 			if errResult != nil {
 				logrus.Error("Error while inserting the metric binding formula into DB: ", errResult)

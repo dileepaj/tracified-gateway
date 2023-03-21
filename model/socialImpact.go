@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/txnbuild"
@@ -306,23 +307,25 @@ type MetricDataBindingRequest struct {
 }
 
 type MetricBindingStore struct {
-	MetricId            string
-	MetricMapID         uint64
-	Metric              MetricReq
-	User                User
-	TotalNoOfManageData int
-	NoOfManageDataInTxn int
-	Memo                []byte
-	TxnHash             string
-	TxnSenderPK         string
-	XDR                 string
-	SequenceNo          int64
-	Status              string
-	Timestamp           string
-	ErrorMessage        string
-	TxnUUID             string
-	TransactionTime     string
-	TransactionCost     string
+	MetricId              string
+	MetricMapID           uint64
+	Metric                MetricReq
+	User                  User
+	TotalNoOfManageData   int
+	NoOfManageDataInTxn   int
+	Memo                  []byte
+	TxnHash               string
+	TxnSenderPK           string
+	XDR                   string
+	SequenceNo            int64
+	Status                string
+	Timestamp             string
+	ErrorMessage          string
+	TxnUUID               string
+	TransactionTime       string
+	TransactionCost       string
+	ActivityManageDataMap []ActivityManageDataCountMap
+	TransactionOrderCount int
 }
 
 type MetricReq struct {
@@ -658,6 +661,16 @@ type BindKeyMap struct {
 	ArtifactTemplateId string
 }
 
+type ActivityManageDataCountMap struct {
+	ActivityID               string
+	ActivityMapId            uint64
+	MetricID                 string
+	MetricMapID              uint64
+	ManageDataCountStart     int
+	ManageDataCountEnd       int
+	manageDataPerTransaction int
+}
+
 type ContractGeneral struct {
 	License                   string
 	PragmaLine                string
@@ -693,10 +706,9 @@ type EthereumExpertFormula struct {
 	Timestamp           string
 	TransactionHash     string
 	TransactionCost     string
-	TransactionTime     string
 	TransactionUUID     string
 	TransactionSender   string
-	User                string
+	Verify              Verify
 	ErrorMessage        string
 }
 
@@ -716,7 +728,6 @@ type EthereumMetricBind struct {
 	ContractAddress   string
 	TransactionHash   string
 	TransactionCost   string
-	TransactionTime   string
 	TransactionUUID   string
 	TransactionSender string
 	User              User
@@ -724,6 +735,8 @@ type EthereumMetricBind struct {
 	Status            string
 	FormulaIDs        []string
 	ValueIDs          []string
+	Type              string
+	FormulaID         string
 }
 
 type MetricContractGeneral struct {
@@ -742,4 +755,70 @@ type MetricContractGeneral struct {
 	GetValueDetailsFunction   string
 	GetPivotFieldDetails      string
 	ContractEnd               string
+}
+
+type ActivityContractGeneral struct {
+	License                 string
+	PragmaLine              string
+	ContractStart           string
+	PreviousContractAddress string
+	PreviousContractGetter  string
+	FormulaStructure        string
+	ValueStructure          string
+	ValueArray              string
+	FormulaGetter           string
+	ValueGetter             string
+	ContractEnd             string
+	ContractName            string
+}
+
+type MetricMetadataReq struct {
+	MetricId     string
+	MetricName   string
+	TenetId      string
+	NoOfFormulas int
+	TrustNetPK   string
+	Metric       MetricReq
+	User         User
+}
+
+type MetricLatestContract struct {
+	MetricID        string
+	ContractAddress string
+	Type            string
+}
+
+type EthGeneralPivotField struct {
+	PivotStructure string
+	PivotArray     string
+	PivotGetter    string
+}
+
+type PreviousCode struct {
+	Setter string
+	Getter string
+}
+
+type EthMetricIDMap struct {
+	MetricID string
+	MapID    uint64
+}
+
+type EthErrorMessage struct {
+	ErrorMessage    string
+	Network         string
+	TransactionHash string
+}
+
+type PendingContracts struct {
+	TransactionHash string
+	ContractAddress string
+	Status          string
+	CurrentIndex    int
+	ErrorMessage    string
+	ContractType    string
+	Identifier      string
+	Nonce           *big.Int
+	GasPrice        *big.Int
+	GasLimit        int
 }
