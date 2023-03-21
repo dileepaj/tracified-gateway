@@ -32,7 +32,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
 	if err != nil {
-		panic(err)
+		log.Println(err)
 	}
 	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" && TrustLineResponseNFT.Successfull {
 		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
@@ -356,7 +356,7 @@ func GetNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 		object := dao.Connection{}
 		err := object.InsertStellarNFTKeys(NFTKeys)
 		if err != nil {
-			panic(err)
+			log.Println(err)
 		}
 		//send the response
 		result := model.NFTIssuerAccount{
@@ -468,6 +468,37 @@ func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 	issuer := key3[0]
 
 	var txn, err = stellar.SponsorCreateAccount(publickey, nftname, issuer)
+	if err != nil {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when updating the buying status",
+		}
+		json.NewEncoder(w).Encode(result)
+	} else {
+		w.Header().Set("Content-Type", "application/json;")
+		w.WriteHeader(http.StatusOK)
+		result := model.XDRRuri{
+			XDR: txn,
+		}
+		logrus.Println("XDR been passed to frontend : ", result)
+		json.NewEncoder(w).Encode(result)
+	}
+
+}
+
+func SponsorAccount(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	key1, error := r.URL.Query()["publickey"]
+
+	if !error || len(key1[0]) < 1 {
+		logrus.Error("Url Parameter 'publickey' is missing")
+		return
+	}
+
+	publickey := key1[0]
+
+	var txn, err = stellar.SponsorAccount(publickey)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json;")
 		w.WriteHeader(http.StatusBadRequest)

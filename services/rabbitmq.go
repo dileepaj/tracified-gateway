@@ -4,12 +4,15 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
+	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -186,6 +189,133 @@ func ReceiverRmq() error {
 					logrus.Info("Formula update called with success status")
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Stellar transaction submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+				}
+			} else if queue.Type == "ETHEXPERTFORMULA" {
+				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
+				//Call the deploy method
+				expertDeployObject := ethereumservices.AbstractContractDeployment{
+					ABI: queue.EthereumExpertFormula.ABIstring,
+					BIN: queue.EthereumExpertFormula.BINstring,
+					Identifier: queue.EthereumExpertFormula.TransactionUUID,
+					ContractType: 	 "ETHEXPERTFORMULA",
+				}
+				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
+				ethExpertFormulaObj := model.EthereumExpertFormula{
+					FormulaID:           queue.EthereumExpertFormula.FormulaID,
+					FormulaName:         queue.EthereumExpertFormula.FormulaName,
+					ExecutionTemplate:   queue.EthereumExpertFormula.ExecutionTemplate,
+					MetricExpertFormula: queue.EthereumExpertFormula.MetricExpertFormula,
+					VariableCount:       queue.EthereumExpertFormula.VariableCount,
+					TemplateString:      queue.EthereumExpertFormula.TemplateString,
+					BINstring:           queue.EthereumExpertFormula.BINstring,
+					ABIstring:           queue.EthereumExpertFormula.ABIstring,
+					GOstring:            queue.EthereumExpertFormula.GOstring,
+					SetterNames:         queue.EthereumExpertFormula.SetterNames,
+					ContractName:        queue.EthereumExpertFormula.ContractName,
+					ContractAddress:     address,
+					Timestamp:           time.Now().String(),
+					TransactionHash:     txnHash,
+					TransactionCost:     deploymentCost, //add after deploy
+					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
+					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
+					Verify:              queue.EthereumExpertFormula.Verify,
+					ErrorMessage:        "",
+					Status:              "PENDING",
+				}
+				if errWhenDeploying != nil {
+					//Insert to DB with FAILED status
+					ethExpertFormulaObj.Status = "FAILED"
+					ethExpertFormulaObj.ErrorMessage = errWhenDeploying.Error()
+					logrus.Error("Error when deploying the expert formula smart contract : " + errWhenDeploying.Error())
+					//if deploy method is success update the status into success
+					errWhenUpdatingStatus := object.UpdateEthereumFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, ethExpertFormulaObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of formula status for Eth , formula ID " + ethExpertFormulaObj.FormulaID)
+					}
+					logrus.Info("Formula update called with FAILED status")
+					logrus.Info("Contract deployment unsuccessful")
+				} else {
+					//if deploy method is success update the status into success
+					errWhenUpdatingStatus := object.UpdateEthereumFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, ethExpertFormulaObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of formula status for Eth , formula ID " + ethExpertFormulaObj.FormulaID)
+					}
+					logrus.Info("Formula update called with status ", ethExpertFormulaObj.Status)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+					logrus.Info("Deployed expert expert formula smart contract to blockchain")
+					logrus.Info("Contract address : " + address)
+					logrus.Info("Transaction hash : " + txnHash)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+
+				}
+			} else if queue.Type == "ETHMETRICBIND" {
+				logrus.Info("Received mgs Type (ETHMETRICBIND)")
+				//Call the deploy method
+				metricDeployObject := ethereumservices.AbstractContractDeployment{
+					ABI: queue.EthereumMetricBind.ABIstring,
+					BIN: queue.EthereumMetricBind.BINstring,
+					Identifier: queue.EthereumMetricBind.TransactionUUID,
+					ContractType: 	 "ETHMETRICBIND",
+				}
+				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
+				ethMetricObj := model.EthereumMetricBind{
+					MetricID:          queue.EthereumMetricBind.MetricID,
+					MetricName:        queue.EthereumMetricBind.MetricName,
+					Metric:            queue.EthereumMetricBind.Metric,
+					ContractName:      queue.EthereumMetricBind.ContractName,
+					TemplateString:    queue.EthereumMetricBind.TemplateString,
+					BINstring:         queue.EthereumMetricBind.BINstring,
+					ABIstring:         queue.EthereumMetricBind.ABIstring,
+					Timestamp:         time.Now().String(),
+					ContractAddress:   address,
+					TransactionHash:   txnHash,
+					TransactionCost:   deploymentCost,
+					TransactionUUID:   queue.EthereumMetricBind.TransactionUUID,
+					TransactionSender: queue.EthereumMetricBind.TransactionSender,
+					User:              queue.EthereumMetricBind.User,
+					ErrorMessage:      "",
+					Status:            "PENDING",
+					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
+					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
+					Type:              queue.EthereumMetricBind.Type,
+					FormulaID:         queue.EthereumMetricBind.FormulaID,
+				}
+				if errWhenDeploying != nil {
+					//Insert to DB with FAILED status
+					ethMetricObj.Status = "FAILED"
+					ethMetricObj.ErrorMessage = errWhenDeploying.Error()
+					logrus.Error("Error when deploying the metric bind smart contract : " + errWhenDeploying.Error())
+					//if deploy method is success update the status into success
+					errWhenUpdatingStatus := object.UpdateEthereumMetricStatus(queue.EthereumMetricBind.MetricID, queue.EthereumMetricBind.TransactionUUID, ethMetricObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
+					}
+					pendingContract := model.PendingContracts{
+						ContractAddress: ethMetricObj.ContractAddress,
+						ContractType:    "ETHMETRICBIND",
+						Identifier: ethMetricObj.TransactionUUID,
+						TransactionHash: ethMetricObj.TransactionHash,
+						Status: 		"FAILED",
+						ErrorMessage: ethMetricObj.ErrorMessage,
+					}
+					errWhenInvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
+					if errWhenInvalidatingMetric != nil {
+						logrus.Error("Error when invalidating the metric : " + queue.EthereumMetricBind.MetricID)
+					}
+					logrus.Info("Metric update called with FAILED status. Type: " + ethMetricObj.Type)
+					logrus.Info("Contract deployment unsuccessful")
+				} else {
+					//if deploy method is success update the status into success
+					errWhenUpdatingStatus := object.UpdateEthereumMetricStatus(queue.EthereumMetricBind.MetricID, queue.EthereumMetricBind.TransactionUUID, ethMetricObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
+					}
+					logrus.Info("Metric update called with status "+ ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+					logrus.Info("Deployed expert metric bind smart contract to blockchain")
+					logrus.Info("Contract address : " + address)
+					logrus.Info("Transaction hash : " + txnHash)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			}

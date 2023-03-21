@@ -220,23 +220,33 @@ type ArtifactTransaction struct {
 	Txnhash        string `json:"Txnhash"`
 }
 type TestimonialOrganization struct {
-	Name           string
-	Description    string
-	Logo           string
-	Email          string
-	Phone          string
-	PhoneSecondary string
-	AcceptTxn      string
-	AcceptXDR      string
-	RejectTxn      string
-	RejectXDR      string
-	TxnHash        string
-	Author         string
-	SubAccount     string
-	SequenceNo     string
-	Status         string
-	ApprovedBy     string
-	ApprovedOn     string
+	PGPData        PGPInformation `json:"PGPData"`
+	Name           string         `json:"Name"`
+	Description    string         `json:"Description"`
+	Logo           string         `json:"Logo"`
+	Email          string         `json:"Email"`
+	Phone          string         `json:"Phone"`
+	PhoneSecondary string         `json:"PhoneSecondary"`
+	AcceptTxn      string         `json:"AcceptTxn"`
+	AcceptXDR      string         `json:"AcceptXDR"`
+	RejectTxn      string         `json:"RejectTxn"`
+	RejectXDR      string         `json:"RejectXDR"`
+	TxnHash        string         `json:"TxnHash"`
+	Author         string         `json:"Author"`
+	SubAccount     string         `json:"SubAccount"`
+	SequenceNo     string         `json:"SequenceNo"`
+	Status         string         `json:"Status"`
+	ApprovedBy     string         `json:"ApprovedBy"`
+	ApprovedOn     string         `json:"ApprovedOn"`
+}
+
+type PGPInformation struct {
+	PGPPublicKey       string `json:"PGPPublicKey"`
+	StellarPublicKey   string `json:"StellarPublicKey"`
+	DigitalSignature   string `json:"DigitalSignature"`
+	SignatureHash      string `json:"SignatureHash"`
+	StellarTXNToSave   string `json:"StellarTXNToSave"`
+	StellarTXNToVerify string `json:"StellarTXNToVerify"`
 }
 
 type TestimonialOrganizationResponse struct {
@@ -378,6 +388,12 @@ type NFTWithTransactionSolana struct {
 	Description                      string
 	Copies                           string
 	InitialDistributorPK             string
+}
+
+type NFTTransfer struct {
+	Source      string
+	Destination string
+	MintPubKey  string
 }
 
 type MarketPlaceNFT struct {

@@ -73,6 +73,11 @@ func (stxn *ConcreteStellarTransaction) GetTransactionCollection() (*model.Trans
 	txe.XDR = txn.EnvelopeXdr
 	txe.Status = "stellar-" + commons.GetHorizonClientNetworkName()
 	mapAPIOperations(&txe, *oprn)
+	// checked whether the transaction type is a parent. Parent transaction data does not have mange data called Identifier
+	if txe.TxnType == "5" && txe.ProfileID != "parent" {
+		txe.Identifier = txe.FromIdentifier1
+	}
+
 	return &txe, nil
 }
 
@@ -163,18 +168,6 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 			break
 		case "mergeid": 
 			txe.MergeID = dataValue
-			break
-		case "realidentifer":
-			txe.RealIdentifier = dataValue
-			break
-		case "mapidentifier":
-			txe.MapIdentifier = dataValue
-			break
-		case "mapidentifier1":
-			txe.MapIdentifier1 = dataValue
-			break
-		case "mapidentifier2":
-			txe.MapIdentifier2 = dataValue
 			break
 	}
 	return txe

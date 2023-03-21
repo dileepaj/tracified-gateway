@@ -7,6 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -488,7 +489,6 @@ func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
 	return err
 }
 
-
 func (cd *Connection) InsertToWorkflowIDMap(tenentIDMap model.WorkflowMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -531,6 +531,21 @@ func (cd *Connection) InsertBindKey(bindKey model.BindKeyMap) (string, error) {
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
 }
 
+func (cd *Connection) InsertToEthFormulaDetails(ethFormulaMap model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("insert Ethereum expert formula", err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	_, err = c.InsertOne(context.TODO(), ethFormulaMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula details to DB " + err.Error())
+	}
+	return err
+}
+
 func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -541,6 +556,142 @@ func (cd *Connection) InsertToPrimaryKeyIdMap(artifactMap model.PrimaryKeyMap) e
 	_, err = c.InsertOne(context.TODO(), artifactMap)
 	if err != nil {
 		logrus.Info("Error when inserting artifact id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertEthFormulaIDMap(formulaIDMap model.EthFormulaIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("insert Ethereum formula mapped ID", err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumFormulaIDMap")
+	_, err = c.InsertOne(context.TODO(), formulaIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting formula id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string, error) {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+		return "", err
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
+	result, err1 := c.InsertOne(context.TODO(), user)
+	if err1 != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		return "", err1
+	}
+	return result.InsertedID.(primitive.ObjectID).Hex(), err
+}
+
+func (cd *Connection) InsertPGPAccount(pgpAccount model.PGPAccount) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PGPAccounts")
+	_, err = c.InsertOne(context.TODO(), pgpAccount)
+	if err != nil {
+		logrus.Info("Error when inserting pgpAccount id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertToEthMetricDetails(ethMetricDetails model.EthereumMetricBind) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("insert Ethereum metric bind", err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	_, err = c.InsertOne(context.TODO(), ethMetricDetails)
+	if err != nil {
+		logrus.Info("Error when inserting metric details to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) EthereumInsertToValueIDMap(valueIDMap model.ValueIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("insert Ethereum mapped value ID", err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthValueIDMap")
+	_, err = c.InsertOne(context.TODO(), valueIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting Counters to DB " + err.Error())
+	}
+	return err
+}
+
+
+func (cd *Connection) EthereumInsertToMetricLatestContract(contractObj model.MetricLatestContract) error {
+	session, err := cd.connect()
+	if err != nil {
+		notificationhandler.InformDBConnectionIssue("insert latest metric contract", err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthMetricLatest")
+	_, err = c.InsertOne(context.TODO(), contractObj)
+	if err != nil {
+		logrus.Info("Error when inserting latest contract to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertEthMetricIDMap(metricIDMap model.EthMetricIDMap) error {
+	session, err := cd.connect()
+	if err != nil {
+		logrus.Info("Error when connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("insert Ethereum metric mapped ID", err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumMetricIDMap")
+	_, err = c.InsertOne(context.TODO(), metricIDMap)
+	if err != nil {
+		logrus.Info("Error when inserting metric id to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertEthErrorMessage(errorMessage model.EthErrorMessage) error {
+	session, err := cd.connect()
+	if err != nil {
+		notificationhandler.InformDBConnectionIssue("insert ethereum error message", err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthErrorMessages")
+	_, err = c.InsertOne(context.TODO(), errorMessage)
+	if err != nil {
+		logrus.Info("Error when inserting ethereum error messages to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		notificationhandler.InformDBConnectionIssue("insert ethereum pending contract", err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+	_, err = c.InsertOne(context.TODO(), pendingTransaction)
+	if err != nil {
+		logrus.Info("Error when inserting pending transaction to DB " + err.Error())
 	}
 	return err
 }
