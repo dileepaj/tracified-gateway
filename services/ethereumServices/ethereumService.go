@@ -1,17 +1,44 @@
 package ethereumservices
 
 import (
+	"math/big"
+
+	"github.com/dileepaj/tracified-gateway/model"
 	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
 	gettercaller "github.com/dileepaj/tracified-gateway/services/ethereumServices/getterCaller"
 	settercaller "github.com/dileepaj/tracified-gateway/services/ethereumServices/setterCaller"
 	"github.com/sirupsen/logrus"
 )
 
+// defining the interface
+type DeploymentStrategy interface {
+	AbstractContractDeployer() (string, string, string, *big.Int, *big.Int, int, error)
+}
+
+// creating a context class
+type ContractDeployerContext struct {
+	contractDeploymentStrategy DeploymentStrategy
+}
+
+// creating a method to set the strategy
+func (context *ContractDeployerContext) SetContractDeploymentStrategy(strategy DeploymentStrategy) {
+	context.contractDeploymentStrategy = strategy
+}
+
+// 
+func (context *ContractDeployerContext) ExecuteContractDeployment() (string, string, string, *big.Int, *big.Int, int, error) {
+	return context.contractDeploymentStrategy.AbstractContractDeployer()
+}
+
 type AbstractContractDeployment struct {
 	ABI string
 	BIN string
 	Identifier string
 	ContractType string
+}
+
+type AbstractContractRedeployment struct {
+	PendingContract model.PendingContracts
 }
 
 type AbstractMethodExecution struct {
@@ -32,10 +59,18 @@ type AbstractGetters struct {
 	ContractAddress string
 }
 
-func (contractObject *AbstractContractDeployment) AbstractContractDeployer() (string, string, string, error) {
+// implementation of the deployment strategy
+func (contractObject *AbstractContractDeployment) AbstractContractDeployer() (string, string, string, *big.Int, *big.Int, int, error) {
 	//call the deployer method that is able to send the transaction to the blockchain with multiple try outs on failures
 	address, hash, transactionCost, errInContractDeployment := contractdeployer.EthereumContractDeployerService(contractObject.BIN, contractObject.ABI, contractObject.Identifier, contractObject.ContractType)
-	return address, hash, transactionCost, errInContractDeployment
+	return address, hash, transactionCost, big.NewInt(0), big.NewInt(0), 0, errInContractDeployment
+}
+
+// implementation of the redeployment strategy
+func (contractObject *AbstractContractRedeployment) AbstractContractDeployer() (string, string, string, *big.Int, *big.Int, int, error) {
+	//call the deployer method that is able to send the transaction to the blockchain with multiple try outs on failures
+	address, hash, transactionCost, nonce, gasPrice, gasLimit, errInContractDeployment := contractdeployer.RedeployFailedContracts(contractObject.PendingContract)
+	return address, hash, transactionCost, nonce, gasPrice, gasLimit, errInContractDeployment
 }
 
 func (MethodExecuteObject *AbstractMethodExecution) AbstractMethodExecuter() {

@@ -9,7 +9,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
-	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
 	"github.com/ethereum/go-ethereum/common"
@@ -38,29 +37,31 @@ func CheckContractStatus() {
 			return nil
 		}
 		for i := 0; i < len(result); i++ {
-			// get the metric by uuid
-			metricDetails, errorInGettingMetricDetails := dbCollectionHandler.GetEthMetricByUUID(result[i].Identifier)
-			if errorInGettingMetricDetails != nil {
-				logrus.Error("Error when getting the metric details : " + errorInGettingMetricDetails.Error())
-				continue
+			if result[i].ContractType == "ETHMETRICBIND" {
+				// get the metric by uuid
+				metricDetails, errorInGettingMetricDetails := dbCollectionHandler.GetEthMetricByUUID(result[i].Identifier)
+				if errorInGettingMetricDetails != nil {
+					logrus.Error("Error when getting the metric details : " + errorInGettingMetricDetails.Error())
+					continue
+				}
+				//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
+				givenTimestamp := metricDetails.Timestamp
+				layout := "2006-01-02 15:04:05.9999999 -0700"
+				// truncate the timestamp to the layout
+				truncatedTime, errInParsingAndTruncating := time.Parse(layout, givenTimestamp[:len(layout)])
+				if errInParsingAndTruncating != nil {
+					logrus.Error("Error when parsing and truncating the time : " + errInParsingAndTruncating.Error())
+					continue
+				}
+				// get the current time
+				currentTime := time.Now()
+				// get the difference between the current time and the time of the transaction
+				timeDifference := currentTime.Sub(truncatedTime)
+				if timeDifference.Abs().Minutes() < 10 {
+					logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
+					continue
+				} 
 			}
-			//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
-			givenTimestamp := metricDetails.Timestamp
-			layout := "2006-01-02 15:04:05.9999999 -0700 -0700"
-			// truncate the timestamp to the layout
-			truncatedTime, errInParsingAndTruncating := time.Parse(layout, givenTimestamp[:len(layout)])
-			if errInParsingAndTruncating != nil {
-				logrus.Error("Error when parsing and truncating the time : " + errInParsingAndTruncating.Error())
-				continue
-			}
-			// get the current time
-			currentTime := time.Now()
-			// get the difference between the current time and the time of the transaction
-			timeDifference := currentTime.Sub(truncatedTime)
-			if timeDifference.Abs().Minutes() < 10 {
-				logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
-				continue
-			} 
 
 			pendingHash := result[i].TransactionHash
 			//check the pending threshold
@@ -71,7 +72,7 @@ func CheckContractStatus() {
 					ContractAddress: result[i].ContractAddress,
 					Status:          "CANCELLED",
 					CurrentIndex:    result[i].CurrentIndex + 1,
-					ErrorMessage:    result[i].ErrorMessage,
+					ErrorMessage:    "Pending checking capacity met",
 					ContractType:    result[i].ContractType,
 					Identifier:      result[i].Identifier,
 					Nonce:           result[i].Nonce,
@@ -101,32 +102,15 @@ func CheckContractStatus() {
 					if errWhenTakingTheReceipt.Error() == "not found" {
 						//transaction is still pending
 						logrus.Info(pendingHash + " transaction is still in pending state.")
-						updatePending := model.PendingContracts{
-							TransactionHash: result[i].TransactionHash,
-							ContractAddress: result[i].ContractAddress,
-							Status:          "PENDING",
-							CurrentIndex:    result[i].CurrentIndex + 1,
-							ErrorMessage:    result[i].ErrorMessage,
-							ContractType:    result[i].ContractType,
-							Identifier:      result[i].Identifier,
-							Nonce:           result[i].Nonce,
-							GasPrice:        result[i].GasPrice,
-							GasLimit:        result[i].GasLimit,
-						}
-
-						errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
-						if errWhenUpdatingStatus != nil {
-							logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
-							continue
-						}
 					} else {
 						logrus.Error("Error when calling the transaction receipt : " + errWhenTakingTheReceipt.Error())
-						continue
 					}
+					continue
 
 				} else if transactionReceipt.Status == 1 {
 					//Transaction is successful
 					// update both collections
+					result[i].Status = "SUCCESS"
 					abstractObj := ethereumservices.AbstractCollectionUpdate{
 						PendingContract: result[i],
 						Status:          "SUCCESS",
@@ -137,6 +121,7 @@ func CheckContractStatus() {
 						logrus.Error("Error when updating the database for successful transactions : " + errInUpdatingDBForSuccessfulTransactions.Error())
 						continue
 					}
+					continue
 				} else if transactionReceipt.Status == 0 {
 					//Transaction failed
 					//Get the error for the transaction
@@ -160,15 +145,41 @@ func CheckContractStatus() {
 
 					result[i].Status = "FAILED"
 					result[i].ErrorMessage = errorOccurred
-					errWhenUpdatingCollection := dbCollectionHandler.InvalidateMetric(result[i], "FAILED", result[i].ErrorMessage)
-					if errWhenUpdatingCollection != nil {
-						logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
-						continue
+
+					if result[i].ContractType == "ETHMETRICBIND" {
+						errWhenUpdatingCollection := dbCollectionHandler.InvalidateMetric(result[i], "FAILED", result[i].ErrorMessage)
+						if errWhenUpdatingCollection != nil {
+							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
+							continue
+						}
+					} else if result[i].ContractType == "ETHEXPERTFORMULA" {
+						errWhenUpdatingCollection := dbCollectionHandler.UpdateCollectionsWithNewStatus(result[i], "FAILED")
+						if errWhenUpdatingCollection != nil {
+							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
+							continue
+						}
 					}
 
 					//call the failed contact redeployer
-					if result[i].ContractType != "ETHMETRICBIND" {
-						contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := contractdeployer.RedeployFailedContracts(result[i])
+					if result[i].ContractType == "ETHEXPERTFORMULA" {
+
+						// use deployment strategy
+						deployer := &ethereumservices.ContractDeployerContext{}
+						deployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractRedeployment{
+							PendingContract: model.PendingContracts{
+								TransactionHash: "",
+								ContractAddress: "",
+								Status:          "",
+								CurrentIndex:    result[i].CurrentIndex,
+								ErrorMessage:    result[i].ErrorMessage,
+								ContractType:    result[i].ContractType,
+								Identifier:      result[i].Identifier,
+								Nonce:    result[i].Nonce,
+								GasPrice: result[i].GasPrice,
+								GasLimit: result[i].GasLimit,
+							},
+						})
+						contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := deployer.ExecuteContractDeployment()
 						if errWhenRedeploying != nil {
 							logrus.Error("Error when redeploying the failed transaction : " + errWhenRedeploying.Error())
 							//update collection
@@ -176,52 +187,20 @@ func CheckContractStatus() {
 								TransactionHash: transactionHash,
 								ContractAddress: contractAddress,
 								Status:          "CANCELLED",
-								CurrentIndex:    result[i].CurrentIndex,
-								ErrorMessage:    "Gateway Ethereum account funds are not enough",
+								CurrentIndex:    result[i].CurrentIndex + 1,
+								ErrorMessage:    errWhenRedeploying.Error(),
 								ContractType:    result[i].ContractType,
 								Identifier:      result[i].Identifier,
 								Nonce:           nonce,
 								GasPrice:        gasPrice,
 								GasLimit:        gasLimit,
 							}
-							errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
+							errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updatePending, "CANCELLED")
 							if errWhenUpdatingStatus != nil {
 								logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 								continue
 							}
 
-							continue
-						}
-
-						//update collection
-						updatePending := model.PendingContracts{
-							TransactionHash: transactionHash,
-							ContractAddress: contractAddress,
-							Status:          "PENDING",
-							CurrentIndex:    0,
-							ErrorMessage:    "",
-							ContractType:    result[i].ContractType,
-							Identifier:      result[i].Identifier,
-							Nonce:           nonce,
-							GasPrice:        gasPrice,
-							GasLimit:        gasLimit,
-						}
-						errWhenUpdatingStatus := object.UpdateEthereumPendingContract(result[i].TransactionHash, result[i].ContractAddress, result[i].Identifier, updatePending)
-						if errWhenUpdatingStatus != nil {
-							logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
-							continue
-						}
-
-						//call the relevant collections to be update with the contract type and the address
-						abstractObjToUpdateNewTransaction := ethereumservices.AbstractCollectionUpdate{
-							PendingContract: result[i],
-							Status:          "PENDING",
-							Type:            "SOCIALIMPACT",
-						}
-
-						errWhenUpdatingTheDBCollections := abstractObjToUpdateNewTransaction.AbstractCollectionUpdater()
-						if errWhenUpdatingTheDBCollections != nil {
-							logrus.Error("Error when updating the relevant collection with the new transaction : " + errWhenUpdatingTheDBCollections.Error())
 							continue
 						}
 					}

@@ -190,14 +190,16 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHEXPERTFORMULA" {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
-				//Call the deploy method
-				expertDeployObject := ethereumservices.AbstractContractDeployment{
+				// use deployment strategy
+				expertDeployer := &ethereumservices.ContractDeployerContext{}
+				expertDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
 					Identifier: queue.EthereumExpertFormula.TransactionUUID,
 					ContractType: 	 "ETHEXPERTFORMULA",
-				}
-				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
+				})
+				//Call the deploy method
+				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := expertDeployer.ExecuteContractDeployment()
 				ethExpertFormulaObj := model.EthereumExpertFormula{
 					FormulaID:           queue.EthereumExpertFormula.FormulaID,
 					FormulaName:         queue.EthereumExpertFormula.FormulaName,
@@ -248,14 +250,16 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
-				//Call the deploy method
-				metricDeployObject := ethereumservices.AbstractContractDeployment{
+				// use deployment strategy
+				metricDeployer := &ethereumservices.ContractDeployerContext{}
+				metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumMetricBind.ABIstring,
 					BIN: queue.EthereumMetricBind.BINstring,
 					Identifier: queue.EthereumMetricBind.TransactionUUID,
 					ContractType: 	 "ETHMETRICBIND",
-				}
-				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
+				})
+				//Call the deploy method
+				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
 				ethMetricObj := model.EthereumMetricBind{
 					MetricID:          queue.EthereumMetricBind.MetricID,
 					MetricName:        queue.EthereumMetricBind.MetricName,

@@ -13,14 +13,17 @@ import (
 func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 	object := dao.Connection{}
 	logrus.Info("Trying to deploy contract for metric : ", ethMetricObj.MetricID)
-	// call the deploy method
-	metadataDeployObj := ethereumservices.AbstractContractDeployment{
-		ABI:          ethMetricObj.ABIstring,
-		BIN:          ethMetricObj.BINstring,
-		Identifier:   ethMetricObj.TransactionUUID,
+	// use deployer strategy
+	metricDeployer := &ethereumservices.ContractDeployerContext{}
+	metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
+		ABI: 	  ethMetricObj.ABIstring,
+		BIN: 	  ethMetricObj.BINstring,
+		Identifier: ethMetricObj.TransactionUUID,
 		ContractType: "ETHMETRICBIND",
-	}
-	address, txnHash, deploymentCost, errWhenDeploying := metadataDeployObj.AbstractContractDeployer()
+	})
+
+	// call the deploy method
+	address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
 	ethMetricObj.Timestamp = time.Now().String()
 	ethMetricObj.ContractAddress = address
 	ethMetricObj.TransactionHash = txnHash
