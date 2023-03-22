@@ -179,7 +179,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 					TransactionHash: tx.Hash().Hex(),
 					ContractAddress: address.Hex(),
 					Status:          "PENDING",
-					CurrentIndex:    0,
+					CurrentIndex:    failedContract.CurrentIndex + 1,
 					ErrorMessage:    "",
 					ContractType:    failedContract.ContractType,
 					Identifier:      failedContract.Identifier,
@@ -237,5 +237,5 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
 	}
 
-	return transactionHash, contractAddress, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
+	return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, nil
 }

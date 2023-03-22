@@ -34,6 +34,7 @@ func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, stat
 		if errWhenUpdatingThePendingContracts != nil {
 			return errWhenUpdatingThePendingContracts
 		}
+		logrus.Info("Updated the pending contract collection for " + pendingContract.TransactionHash + " status: ", status)
 	}
 
 	return nil
