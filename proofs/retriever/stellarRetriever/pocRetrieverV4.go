@@ -174,6 +174,27 @@ func (poc *POCTreeV4) generatePOCV4() {
 			}
 			poc.LastTxnHash = spgtxe1.PreviousTxnHash
 			poc.generatePOCV4()
+			if spgtxe1.TxnType=="8"{
+				mergeParent := spgtxe1.CurrentTxnHash
+				mergeHashes := []string{spgtxe1.MergeID, spgtxe1.PreviousTxnHash}
+				for _, hash := range mergeHashes {
+					p := ConcreteStellarTransaction{Txnhash: hash}
+					pgtxe, _ := p.GetTransactionCollection()
+					if !contains(poc.Nodes[mergeParent].Parents, spgtxe1.CurrentTxnHash) {
+						poc.Nodes[mergeParent].Parents = append(poc.Nodes[mergeParent].Parents, pgtxe.CurrentTxnHash)
+					}
+					if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+						poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{Id: pgtxe.CurrentTxnHash}
+					}
+					if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent) {
+						poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent)	
+					}
+				}
+				for _, hash := range mergeHashes { 
+					poc.LastTxnHash = hash
+					poc.generatePOCV4()
+				}
+			}
 			break
 		case "7":
 			mergeParent := gtxe.CurrentTxnHash
