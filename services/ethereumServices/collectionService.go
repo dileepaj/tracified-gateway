@@ -6,20 +6,37 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type AbstractCollectionUpdate struct {
-	PendingContract model.PendingContracts
-	Status          string
-	Type 		  	string
+// define the interface
+type CollectionServiceStrategy interface {
+	AbstractCollectionService() (error)
 }
 
-func (collectionUpdateObject *AbstractCollectionUpdate) AbstractCollectionUpdater() (error) {
-	// Checking the type and calling the relevant method according to the availability of parameters
-	if collectionUpdateObject.Type == "SOCIALIMPACT" {
-		errorInCallingStatusUpdater := dbCollectionHandler.UpdateCollectionsWithNewStatus(collectionUpdateObject.PendingContract, collectionUpdateObject.Status)
-		if errorInCallingStatusUpdater != nil {
-			logrus.Info("Error when calling the status updater. Error: ", errorInCallingStatusUpdater)
-			return errorInCallingStatusUpdater
-		}
+// create context class
+type CollectionServiceContext struct {
+	collectionServiceStrategy CollectionServiceStrategy
+}
+
+// create a method to set the strategy
+func (context *CollectionServiceContext) SetCollectionServiceStrategy(strategy CollectionServiceStrategy) {
+	context.collectionServiceStrategy = strategy
+}
+
+// create a method to execute the strategy
+func (context *CollectionServiceContext) ExecuteCollectionService() (error) {
+	return context.collectionServiceStrategy.AbstractCollectionService()
+}
+
+// struct and function for social impact main collection and pending contract collection updates
+type SocialImpactMainCollectionUpdate struct {
+	PendingContract model.PendingContracts
+	Status          string
+}
+func (collectionUpdateObject *SocialImpactMainCollectionUpdate) AbstractCollectionService() (error) {
+	// update the collection with the new status
+	errorInCallingCollectionService := dbCollectionHandler.UpdateCollectionsWithNewStatus(collectionUpdateObject.PendingContract, collectionUpdateObject.Status)
+	if errorInCallingCollectionService != nil {
+		logrus.Info("Error when calling the status updater. Error: ", errorInCallingCollectionService)
+		return errorInCallingCollectionService
 	}
 
 	return nil

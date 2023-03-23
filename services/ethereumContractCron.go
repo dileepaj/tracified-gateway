@@ -46,7 +46,7 @@ func CheckContractStatus() {
 				}
 				//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
 				givenTimestamp := metricDetails.Timestamp
-				layout := "2006-01-02 15:04:05.9999999 -0700"
+				layout := "2006-01-02 15:04:05"
 				// truncate the timestamp to the layout
 				truncatedTime, errInParsingAndTruncating := time.Parse(layout, givenTimestamp[:len(layout)])
 				if errInParsingAndTruncating != nil {
@@ -111,12 +111,13 @@ func CheckContractStatus() {
 					//Transaction is successful
 					// update both collections
 					result[i].Status = "SUCCESS"
-					abstractObj := ethereumservices.AbstractCollectionUpdate{
+					// use collection update strategy
+					collectionUpdater := &ethereumservices.CollectionServiceContext{}
+					collectionUpdater.SetCollectionServiceStrategy(&ethereumservices.SocialImpactMainCollectionUpdate{
 						PendingContract: result[i],
-						Status:          "SUCCESS",
-						Type:            "SOCIALIMPACT",
-					}
-					errInUpdatingDBForSuccessfulTransactions := abstractObj.AbstractCollectionUpdater()
+						Status:       "SUCCESS",
+					})
+					errInUpdatingDBForSuccessfulTransactions := collectionUpdater.ExecuteCollectionService()
 					if errInUpdatingDBForSuccessfulTransactions != nil {
 						logrus.Error("Error when updating the database for successful transactions : " + errInUpdatingDBForSuccessfulTransactions.Error())
 						continue
