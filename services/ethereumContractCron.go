@@ -20,8 +20,12 @@ import (
 func CheckContractStatus() {
 
 	log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
+	logrus.Info("Ethereum cron job started")
+	cronJobStartTime := time.Now().String()
 
 	object := dao.Connection{}
+	var formulaObj model.EthereumExpertFormula
+	var metricObj model.EthereumMetricBind
 	//Get the transactions with the pending status from the Database
 	p := object.GetPendingContractsByStatus("PENDING")
 	p.Then(func(data interface{}) interface{} {
@@ -37,13 +41,23 @@ func CheckContractStatus() {
 			return nil
 		}
 		for i := 0; i < len(result); i++ {
-			if result[i].ContractType == "ETHMETRICBIND" {
+			if result[i].ContractType == "ETHEXPERTFORMULA" {
+				// get the formula by uuid
+				formulaDetails, errorInGettingFormulaDetails := dbCollectionHandler.GetEthFormulaByUUID(result[i].Identifier)
+				if errorInGettingFormulaDetails != nil {
+					logrus.Error("Error when getting the formula details : " + errorInGettingFormulaDetails.Error())
+					continue
+				} 
+
+				formulaObj = formulaDetails
+			} else if result[i].ContractType == "ETHMETRICBIND" {
 				// get the metric by uuid
 				metricDetails, errorInGettingMetricDetails := dbCollectionHandler.GetEthMetricByUUID(result[i].Identifier)
 				if errorInGettingMetricDetails != nil {
 					logrus.Error("Error when getting the metric details : " + errorInGettingMetricDetails.Error())
 					continue
 				}
+				metricObj = metricDetails
 				//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
 				givenTimestamp := metricDetails.Timestamp
 				layout := "2006-01-02 15:04:05"
@@ -54,11 +68,11 @@ func CheckContractStatus() {
 					continue
 				}
 				// get the current time
-				currentTime := time.Now()
+				currentTime := time.Now().UTC()
 				// get the difference between the current time and the time of the transaction
 				timeDifference := currentTime.Sub(truncatedTime)
 				if timeDifference.Abs().Minutes() < 10 {
-					logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
+					// logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
 					continue
 				} 
 			}
@@ -79,6 +93,23 @@ func CheckContractStatus() {
 					GasPrice:        result[i].GasPrice,
 					GasLimit:        result[i].GasLimit,
 				}
+				// updating actual status in the database
+				if result[i].ContractType == "ETHEXPERTFORMULA" {
+					formulaObj.ActualStatus = 115 	// DEPLOYMENT_TRANSACTION_CANCELLED
+					errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+					if errWhenUpdatingActualStatus != nil {
+						logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
+						continue
+					}
+				} else if result[i].ContractType == "ETHMETRICBIND" {
+					metricObj.ActualStatus = 115 	// DEPLOYMENT_TRANSACTION_CANCELLED
+					errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
+					if errWhenUpdatingActualStatus != nil {
+						logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
+						continue
+					}
+				}
+				
 				updateCancel.ErrorMessage = "Transaction pending checking capacity met"
 				if result[i].ContractType == "ETHMETRICBIND" {
 					errorWhenInvalidatingTransactions := dbCollectionHandler.InvalidateMetric(updateCancel, updateCancel.Status, updateCancel.ErrorMessage)
@@ -122,6 +153,25 @@ func CheckContractStatus() {
 						logrus.Error("Error when updating the database for successful transactions : " + errInUpdatingDBForSuccessfulTransactions.Error())
 						continue
 					}
+
+					// updating actual status in the database
+					if result[i].ContractType == "ETHEXPERTFORMULA" {
+						formulaObj.Status = "SUCCESS"
+						formulaObj.ActualStatus = 113	// DEPLOYMENT_TRANSACTION_SUCCESS
+						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+						if errWhenUpdatingActualStatus != nil {
+							logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
+							continue
+						}
+					} else if result[i].ContractType == "ETHMETRICBIND" {
+						metricObj.Status = "SUCCESS"
+						metricObj.ActualStatus = 113 	// DEPLOYMENT_TRANSACTION_SUCCESS
+						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
+						if errWhenUpdatingActualStatus != nil {
+							logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
+							continue
+						}
+					}
 					continue
 				} else if transactionReceipt.Status == 0 {
 					//Transaction failed
@@ -153,10 +203,26 @@ func CheckContractStatus() {
 							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
 							continue
 						}
+						// updating status and actual status in the database
+						metricObj.Status = "FAILED"
+						metricObj.ActualStatus = 114 	// DEPLOYMENT_TRANSACTION_FAILED
+						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
+						if errWhenUpdatingActualStatus != nil {
+							logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
+							continue
+						}
 					} else if result[i].ContractType == "ETHEXPERTFORMULA" {
 						errWhenUpdatingCollection := dbCollectionHandler.UpdateCollectionsWithNewStatus(result[i], "FAILED")
 						if errWhenUpdatingCollection != nil {
 							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
+							continue
+						}
+						// updating status and actual status in the database
+						formulaObj.Status = "FAILED"
+						formulaObj.ActualStatus = 114	// DEPLOYMENT_TRANSACTION_FAILED
+						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+						if errWhenUpdatingActualStatus != nil {
+							logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
 							continue
 						}
 					}
@@ -213,6 +279,7 @@ func CheckContractStatus() {
 			}
 
 		}
+		logrus.Info("Ethereum cron job completed at " + time.Now().String() + "(for started time : " + cronJobStartTime + ")")
 		return nil
 	}).Catch(func(error error) error {
 		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {

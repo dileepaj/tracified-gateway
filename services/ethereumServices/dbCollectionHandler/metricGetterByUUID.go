@@ -25,6 +25,23 @@ func GetEthMetricByUUID(identifier string) (model.EthereumMetricBind, error) {
 		logrus.Error("no metric bind found for the given uuid")
 		return model.EthereumMetricBind{}, errors.New("no metric bind found for the given uuid")
 	}
-	
-	return model.EthereumMetricBind{}, nil
+}
+
+func GetEthFormulaByUUID(identifier string) (model.EthereumExpertFormula, error) {
+	object := dao.Connection{}
+
+	formula, errWhenRetrievingTheFormula := object.GetEthFormulaBinAndAbiByIdentifier(identifier).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if errWhenRetrievingTheFormula != nil {
+		logrus.Error("error when retrieving the formula for the given uuid: " + errWhenRetrievingTheFormula.Error())
+		return model.EthereumExpertFormula{}, errors.New("error when retrieving the formula for the given uuid: " + errWhenRetrievingTheFormula.Error())
+	}
+	if formula != nil {
+		formulaObj := formula.(model.EthereumExpertFormula)
+		return formulaObj, nil
+	} else {
+		logrus.Error("no formula found for the given uuid")
+		return model.EthereumExpertFormula{}, errors.New("no formula found for the given uuid")
+	}
 }

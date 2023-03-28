@@ -24,7 +24,7 @@ import (
 /*
 Deploy smart contracts on to Ethereum with failure replacements
 */
-func EthereumContractDeployerService(bin string, abi string, contractIdentifier string, contractType string) (string, string, string, error) {
+func EthereumContractDeployerService(bin string, abi string, contractIdentifier string, contractType string, otherParams []any) (string, string, string, error) {
 	contractAddress := ""
 	transactionHash := ""
 	transactionCost := ""
@@ -37,7 +37,29 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 
 	object := dao.Connection{}
 
+
+	var expertFormulaObj model.EthereumExpertFormula
+	var metricBindObj model.EthereumMetricBind
+
 	logrus.Info("Calling the deployer service.............")
+
+	if contractType == "ETHEXPERTFORMULA" {
+		expertFormulaObj = otherParams[0].(model.EthereumExpertFormula)
+		expertFormulaObj.ActualStatus = 110 // DEPLOYMENT_STARTED
+		errorWhenUpdatingStatus := object.UpdateSelectedEthFormulaFields(expertFormulaObj.FormulaID, expertFormulaObj.TransactionUUID, expertFormulaObj)
+		if errorWhenUpdatingStatus != nil {
+			logrus.Error("Error when updating the status after deployment started : " + errorWhenUpdatingStatus.Error())
+			return contractAddress, transactionHash, transactionCost, errors.New("Error when updating the status after deployment started : " + errorWhenUpdatingStatus.Error())
+		}
+	} else if contractType == "ETHMETRICBIND" {
+		metricBindObj = otherParams[0].(model.EthereumMetricBind)
+		metricBindObj.ActualStatus = 110 // DEPLOYMENT_STARTED
+		errorWhenUpdatingStatus := object.UpdateSelectedEthMetricFields(metricBindObj.MetricID, metricBindObj.TransactionUUID, metricBindObj)
+		if errorWhenUpdatingStatus != nil {
+			logrus.Error("Error when updating the status after deployment started : " + errorWhenUpdatingStatus.Error())
+			return contractAddress, transactionHash, transactionCost, errors.New("Error when updating the status after deployment started : " + errorWhenUpdatingStatus.Error())
+		}
+	}
 
 	//load client and the keys
 	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()

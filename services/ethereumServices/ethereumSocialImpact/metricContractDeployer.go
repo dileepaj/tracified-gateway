@@ -13,6 +13,12 @@ import (
 func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 	object := dao.Connection{}
 	logrus.Info("Trying to deploy contract for metric : ", ethMetricObj.MetricID)
+	ethMetricObj.ActualStatus = 110 // DEPLOYMENT_STARTED
+	errorWhenUpdatingStatus := object.UpdateSelectedEthMetricFields(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
+	if errorWhenUpdatingStatus != nil {
+		logrus.Error("Error when updating the status of the metric : ", ethMetricObj.MetricID, " Error : ", errorWhenUpdatingStatus)
+		return errorWhenUpdatingStatus
+	}
 	// use deployer strategy
 	metricDeployer := &ethereumservices.ContractDeployerContext{}
 	metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
@@ -20,11 +26,12 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 		BIN: 	  ethMetricObj.BINstring,
 		Identifier: ethMetricObj.TransactionUUID,
 		ContractType: "ETHMETRICBIND",
+		OtherParams: []any{ethMetricObj},
 	})
 
 	// call the deploy method
 	address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
-	ethMetricObj.Timestamp = time.Now().String()
+	ethMetricObj.Timestamp = time.Now().UTC().String()
 	ethMetricObj.ContractAddress = address
 	ethMetricObj.TransactionHash = txnHash
 	ethMetricObj.TransactionCost = deploymentCost
@@ -32,6 +39,12 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 	if errWhenDeploying != nil {
 		ethMetricObj.ErrorMessage = errWhenDeploying.Error()
 		ethMetricObj.Status = "FAILED"
+		ethMetricObj.ActualStatus = 111 // DEPLOYMENT_FAILED
+		errorWhenUpdatingStatus1 := object.UpdateSelectedEthMetricFields(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
+		if errorWhenUpdatingStatus1 != nil {
+			logrus.Error("Error when updating the status of the metric : ", ethMetricObj.MetricID, " Error : ", errorWhenUpdatingStatus1)
+			return errorWhenUpdatingStatus1
+		}
 		logrus.Error("Error when deploying contract for metric : ", ethMetricObj.MetricID, " Error : ", errWhenDeploying)
 
 		pendingContract := model.PendingContracts{
@@ -50,6 +63,7 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 		logrus.Info("Contract deployment unsuccessful")
 		return errWhenDeploying
 	} else {
+		ethMetricObj.ActualStatus = 112 // DEPLOYMENT_TRANSACTION_PENDING
 		//if deploy method is success update the status into success
 		errWhenUpdatingStatus := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 		if errWhenUpdatingStatus != nil {

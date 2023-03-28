@@ -71,7 +71,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 			MetricId:  metricBindJson.Metric.ID,
 			Metric:    metricBindJson.Metric,
 			User:      metricBindJson.User,
-			Timestamp: time.Now().String(),
+			Timestamp: time.Now().UTC().String(),
 			Status:    "FAILED",
 		}
 		// mapMetricId uint64, metricName string, tenantId uint32, noOfFormula int32

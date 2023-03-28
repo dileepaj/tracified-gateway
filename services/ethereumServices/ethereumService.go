@@ -34,10 +34,11 @@ type AbstractContractDeployment struct {
 	BIN string
 	Identifier string
 	ContractType string
+	OtherParams []any
 }
 func (contractObject *AbstractContractDeployment) AbstractContractDeployer() (string, string, string, *big.Int, *big.Int, int, error) {
 	//call the deployer method that is able to send the transaction to the blockchain with multiple try outs on failures
-	address, hash, transactionCost, errInContractDeployment := contractdeployer.EthereumContractDeployerService(contractObject.BIN, contractObject.ABI, contractObject.Identifier, contractObject.ContractType)
+	address, hash, transactionCost, errInContractDeployment := contractdeployer.EthereumContractDeployerService(contractObject.BIN, contractObject.ABI, contractObject.Identifier, contractObject.ContractType, contractObject.OtherParams)
 	return address, hash, transactionCost, big.NewInt(0), big.NewInt(0), 0, errInContractDeployment
 }
 
