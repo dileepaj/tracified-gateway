@@ -1651,9 +1651,10 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue}).Decode(&result)
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}},
+		options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
 		if err != nil {
-			log.Error("Error when fetching data from DB " + err.Error())
+			log.Info(err.Error())
 			reject(err)
 		} else {
 			if result.Identifier != "" {
@@ -2395,6 +2396,7 @@ func (cd *Connection) GetPrimaryKeyMapID(artifactId string) *promise.Promise {
 	})
 	return p
 }
+
 // GET pass numbered identifiers and get real identifers
 // mapvalues - numbered identifiers
 // identifers - real identifier
