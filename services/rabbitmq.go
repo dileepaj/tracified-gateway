@@ -193,14 +193,17 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHEXPERTFORMULA" {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
-				//Call the deploy method
-				expertDeployObject := ethereumservices.AbstractContractDeployment{
+				// use deployment strategy
+				expertDeployer := &ethereumservices.ContractDeployerContext{}
+				expertDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumExpertFormula.ABIstring,
 					BIN: queue.EthereumExpertFormula.BINstring,
 					Identifier: queue.EthereumExpertFormula.TransactionUUID,
 					ContractType: 	 "ETHEXPERTFORMULA",
-				}
-				address, txnHash, deploymentCost, errWhenDeploying := expertDeployObject.AbstractContractDeployer()
+					OtherParams: []any{queue.EthereumExpertFormula},
+					})			
+				//Call the deploy method
+				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := expertDeployer.ExecuteContractDeployment()
 				ethExpertFormulaObj := model.EthereumExpertFormula{
 					FormulaID:           queue.EthereumExpertFormula.FormulaID,
 					FormulaName:         queue.EthereumExpertFormula.FormulaName,
@@ -222,11 +225,13 @@ func ReceiverRmq() error {
 					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
 					Status:              "PENDING",
+					ActualStatus: 	  	 queue.EthereumExpertFormula.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
 					ethExpertFormulaObj.Status = "FAILED"
 					ethExpertFormulaObj.ErrorMessage = errWhenDeploying.Error()
+					ethExpertFormulaObj.ActualStatus = 111 // DEPLOYMENT_FAILED
 					logrus.Error("Error when deploying the expert formula smart contract : " + errWhenDeploying.Error())
 					//if deploy method is success update the status into success
 					errWhenUpdatingStatus := object.UpdateEthereumFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, ethExpertFormulaObj)
@@ -237,6 +242,7 @@ func ReceiverRmq() error {
 					logrus.Info("Contract deployment unsuccessful")
 				} else {
 					//if deploy method is success update the status into success
+					ethExpertFormulaObj.ActualStatus = 112 // DEPLOYMENT_TRANSACTION_PENDING
 					errWhenUpdatingStatus := object.UpdateEthereumFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, ethExpertFormulaObj)
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of formula status for Eth , formula ID " + ethExpertFormulaObj.FormulaID)
@@ -251,14 +257,17 @@ func ReceiverRmq() error {
 				}
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
-				//Call the deploy method
-				metricDeployObject := ethereumservices.AbstractContractDeployment{
+				// use deployment strategy
+				metricDeployer := &ethereumservices.ContractDeployerContext{}
+				metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
 					ABI: queue.EthereumMetricBind.ABIstring,
 					BIN: queue.EthereumMetricBind.BINstring,
 					Identifier: queue.EthereumMetricBind.TransactionUUID,
 					ContractType: 	 "ETHMETRICBIND",
-				}
-				address, txnHash, deploymentCost, errWhenDeploying := metricDeployObject.AbstractContractDeployer()
+					OtherParams: []any{queue.EthereumMetricBind},
+				})
+				//Call the deploy method
+				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
 				ethMetricObj := model.EthereumMetricBind{
 					MetricID:          queue.EthereumMetricBind.MetricID,
 					MetricName:        queue.EthereumMetricBind.MetricName,
@@ -267,7 +276,7 @@ func ReceiverRmq() error {
 					TemplateString:    queue.EthereumMetricBind.TemplateString,
 					BINstring:         queue.EthereumMetricBind.BINstring,
 					ABIstring:         queue.EthereumMetricBind.ABIstring,
-					Timestamp:         time.Now().String(),
+					Timestamp:         time.Now().UTC().String(),
 					ContractAddress:   address,
 					TransactionHash:   txnHash,
 					TransactionCost:   deploymentCost,
@@ -280,6 +289,7 @@ func ReceiverRmq() error {
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.EthereumMetricBind.Type,
 					FormulaID:         queue.EthereumMetricBind.FormulaID,
+					ActualStatus: 	   queue.EthereumMetricBind.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status

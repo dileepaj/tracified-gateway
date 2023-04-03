@@ -710,6 +710,7 @@ type EthereumExpertFormula struct {
 	TransactionSender   string
 	Verify              Verify
 	ErrorMessage        string
+	ActualStatus 		int
 }
 
 type EthFormulaIDMap struct {
@@ -737,6 +738,7 @@ type EthereumMetricBind struct {
 	ValueIDs          []string
 	Type              string
 	FormulaID         string
+	ActualStatus 	  int
 }
 
 type MetricContractGeneral struct {
