@@ -740,7 +740,7 @@ func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 		return model.Counters{}, err
 	}
 	defer session.EndSession(context.TODO())
-	c := session.Client().Database(dbName).Collection("Counters2023")
+	c := session.Client().Database(dbName).Collection("Counters")
 	err = c.FindOneAndUpdate(
 		context.TODO(),
 		bson.M{"id": Id}, // <- Find block
