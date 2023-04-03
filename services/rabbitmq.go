@@ -96,21 +96,24 @@ func ReceiverRmq() error {
 				endTime := time.Now()
 				convertedTime := fmt.Sprintf("%f", endTime.Sub(startTime).Seconds())
 				convertedCost := fmt.Sprintf("%f", 0.00001*float32(queue.ExpertFormula.NoOfManageDataInTxn+1))
+
 				metricBindingStore := model.MetricBindingStore{
-					MetricId:            queue.MetricBinding.Metric.ID,
-					MetricMapID:         queue.MetricBinding.MetricMapID,
-					Metric:              queue.MetricBinding.Metric,
-					User:                queue.MetricBinding.User,
-					TotalNoOfManageData: queue.MetricBinding.TotalNoOfManageData + (queue.MetricBinding.TotalNoOfManageData / 25) + 1,
-					NoOfManageDataInTxn: queue.MetricBinding.NoOfManageDataInTxn + 1, // with previous transaction back-link
-					TransactionTime:     convertedTime,
-					TransactionCost:     convertedCost,
-					Memo:                queue.Memo,
-					Status:              "SUCCESS",
-					XDR:                 xdr,
-					TxnSenderPK:         senderPK,
-					Timestamp:           time.Now().String(),
-					TxnUUID:             queue.MetricBinding.TxnUUID,
+					MetricId:              queue.MetricBinding.Metric.ID,
+					MetricMapID:           queue.MetricBinding.MetricMapID,
+					Metric:                queue.MetricBinding.Metric,
+					User:                  queue.MetricBinding.User,
+					TotalNoOfManageData:   queue.MetricBinding.TotalNoOfManageData + (queue.MetricBinding.TotalNoOfManageData / 25) + 1,
+					NoOfManageDataInTxn:   queue.MetricBinding.NoOfManageDataInTxn + 1, // with previous transaction back-link
+					TransactionTime:       convertedTime,
+					TransactionCost:       convertedCost,
+					Memo:                  queue.Memo,
+					Status:                "SUCCESS",
+					XDR:                   xdr,
+					TxnSenderPK:           senderPK,
+					Timestamp:             time.Now().String(),
+					TxnUUID:               queue.MetricBinding.TxnUUID,
+					ActivityManageDataMap: queue.MetricBinding.ActivityManageDataMap,
+					TransactionOrderCount:         queue.TransactionCount +1,
 				}
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
