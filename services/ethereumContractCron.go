@@ -71,7 +71,7 @@ func CheckContractStatus() {
 				currentTime := time.Now().UTC()
 				// get the difference between the current time and the time of the transaction
 				timeDifference := currentTime.Sub(truncatedTime)
-				if timeDifference.Abs().Minutes() < 10 {
+				if timeDifference.Round(time.Second).Minutes() < 10 {
 					// logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
 					continue
 				} 
