@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
+	"github.com/sirupsen/logrus"
 )
 
 /*
@@ -40,6 +41,7 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 			Signature: formulaJSON.Verify.Signature,
 			Plaintext: formulaJSON.Verify.Payload,
 		}
+		logrus.Info("Expert's public key  ",formulaJSON.Verify.PublicKey)
 		err, errCode, id := authLayer.ValidateExpertRequest()
 		if err != nil {
 			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Authentication Issue, ")
