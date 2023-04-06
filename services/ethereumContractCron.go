@@ -27,7 +27,7 @@ func CheckContractStatus() {
 	var formulaObj model.EthereumExpertFormula
 	var metricObj model.EthereumMetricBind
 	//Get the transactions with the pending status from the Database
-	p := object.GetPendingContractsByStatus("PENDING")
+	p := object.GetPendingContractsByStatus(117) // 117 is the status code for PENDING transactions
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
 		ethClient, errWHenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
@@ -84,7 +84,7 @@ func CheckContractStatus() {
 				updateCancel := model.PendingContracts{
 					TransactionHash: result[i].TransactionHash,
 					ContractAddress: result[i].ContractAddress,
-					Status:          "CANCELLED",
+					Status:          120,
 					CurrentIndex:    result[i].CurrentIndex + 1,
 					ErrorMessage:    "Pending checking capacity met",
 					ContractType:    result[i].ContractType,
@@ -118,7 +118,7 @@ func CheckContractStatus() {
 						continue
 					}
 				} else if result[i].ContractType == "ETHEXPERTFORMULA" {
-					errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, "CANCELLED")
+					errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updateCancel, 120)
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 						continue
@@ -141,12 +141,12 @@ func CheckContractStatus() {
 				} else if transactionReceipt.Status == 1 {
 					//Transaction is successful
 					// update both collections
-					result[i].Status = "SUCCESS"
+					result[i].Status = 118	// SUCCESS
 					// use collection update strategy
 					collectionUpdater := &ethereumservices.CollectionServiceContext{}
 					collectionUpdater.SetCollectionServiceStrategy(&ethereumservices.SocialImpactMainCollectionUpdate{
 						PendingContract: result[i],
-						Status:       "SUCCESS",
+						Status:       118,	// SUCCESS
 					})
 					errInUpdatingDBForSuccessfulTransactions := collectionUpdater.ExecuteCollectionService()
 					if errInUpdatingDBForSuccessfulTransactions != nil {
@@ -156,7 +156,7 @@ func CheckContractStatus() {
 
 					// updating actual status in the database
 					if result[i].ContractType == "ETHEXPERTFORMULA" {
-						formulaObj.Status = "SUCCESS"
+						formulaObj.Status = 118 // SUCCESS
 						formulaObj.ActualStatus = 113	// DEPLOYMENT_TRANSACTION_SUCCESS
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 						if errWhenUpdatingActualStatus != nil {
@@ -164,7 +164,7 @@ func CheckContractStatus() {
 							continue
 						}
 					} else if result[i].ContractType == "ETHMETRICBIND" {
-						metricObj.Status = "SUCCESS"
+						metricObj.Status = 118 // SUCCESS
 						metricObj.ActualStatus = 113 	// DEPLOYMENT_TRANSACTION_SUCCESS
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
 						if errWhenUpdatingActualStatus != nil {
@@ -194,17 +194,17 @@ func CheckContractStatus() {
 						logrus.Error("Error when inserting the error message : " + errorWhenInsertingErrorMessage.Error())
 					}
 
-					result[i].Status = "FAILED"
+					result[i].Status = 119	// FAILED
 					result[i].ErrorMessage = errorOccurred
 
 					if result[i].ContractType == "ETHMETRICBIND" {
-						errWhenUpdatingCollection := dbCollectionHandler.InvalidateMetric(result[i], "FAILED", result[i].ErrorMessage)
+						errWhenUpdatingCollection := dbCollectionHandler.InvalidateMetric(result[i], 119, result[i].ErrorMessage)
 						if errWhenUpdatingCollection != nil {
 							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
 							continue
 						}
 						// updating status and actual status in the database
-						metricObj.Status = "FAILED"
+						metricObj.Status = 119 // FAILED
 						metricObj.ActualStatus = 114 	// DEPLOYMENT_TRANSACTION_FAILED
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
 						if errWhenUpdatingActualStatus != nil {
@@ -212,13 +212,13 @@ func CheckContractStatus() {
 							continue
 						}
 					} else if result[i].ContractType == "ETHEXPERTFORMULA" {
-						errWhenUpdatingCollection := dbCollectionHandler.UpdateCollectionsWithNewStatus(result[i], "FAILED")
+						errWhenUpdatingCollection := dbCollectionHandler.UpdateCollectionsWithNewStatus(result[i], 119)
 						if errWhenUpdatingCollection != nil {
 							logrus.Error("Error when updating the collection : " + errWhenUpdatingCollection.Error())
 							continue
 						}
 						// updating status and actual status in the database
-						formulaObj.Status = "FAILED"
+						formulaObj.Status = 119 // FAILED
 						formulaObj.ActualStatus = 114	// DEPLOYMENT_TRANSACTION_FAILED
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 						if errWhenUpdatingActualStatus != nil {
@@ -236,7 +236,7 @@ func CheckContractStatus() {
 							PendingContract: model.PendingContracts{
 								TransactionHash: "",
 								ContractAddress: "",
-								Status:          "",
+								Status:          0,
 								CurrentIndex:    result[i].CurrentIndex,
 								ErrorMessage:    result[i].ErrorMessage,
 								ContractType:    result[i].ContractType,
@@ -253,7 +253,7 @@ func CheckContractStatus() {
 							updatePending := model.PendingContracts{
 								TransactionHash: transactionHash,
 								ContractAddress: contractAddress,
-								Status:          "CANCELLED",
+								Status:          120,	// CANCELLED
 								CurrentIndex:    result[i].CurrentIndex + 1,
 								ErrorMessage:    errWhenRedeploying.Error(),
 								ContractType:    result[i].ContractType,
@@ -262,7 +262,7 @@ func CheckContractStatus() {
 								GasPrice:        gasPrice,
 								GasLimit:        gasLimit,
 							}
-							errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updatePending, "CANCELLED")
+							errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updatePending, 120)
 							if errWhenUpdatingStatus != nil {
 								logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
 								continue

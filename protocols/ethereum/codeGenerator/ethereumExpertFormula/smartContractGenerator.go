@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -35,7 +36,7 @@ Generate the smart contract for the solidity formula definitions
 */
 func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	object := dao.Connection{}
-	var deployStatus string
+	var deployStatus int
 	reqType := "EXPERT"
 
 	formulaDetails, errWhenGettingFormulaDetailsFromDB := object.GetEthFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -45,35 +46,35 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		logrus.Error("An error occurred when getting formula status, ERROR : ", errWhenGettingFormulaDetailsFromDB)
 	}
 	if formulaDetails == nil {
-		deployStatus = ""
+		deployStatus = 0
 	}
 	if formulaDetails != nil {
 		deployStatus = formulaDetails.(model.EthereumExpertFormula).Status
 		logrus.Info("Deploy status : ", deployStatus)
 	}
 
-	if deployStatus == "SUCCESS" {
+	if deployStatus == 118 {	// SUCCESS
 		logrus.Info("Contract for formula " + formulaJSON.MetricExpertFormula.Name + " has been added to the blockchain")
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.SuccessResponseExpertFormula{
 			Code:      http.StatusBadRequest,
 			FormulaID: formulaJSON.MetricExpertFormula.ID,
-			Message:   "Requested formula is in the blockchain :  Status : " + deployStatus,
+			Message:   "Requested formula is in the blockchain :  Status : " + strconv.Itoa(deployStatus),
 		}
 		json.NewEncoder(w).Encode(response)
 		return
-	} else if deployStatus == "QUEUE" {
+	} else if deployStatus == 116 {	// QUEUE
 		logrus.Info("Requested formula is in the queue, please try again")
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.SuccessResponseExpertFormula{
 			Code:      http.StatusBadRequest,
 			FormulaID: formulaJSON.MetricExpertFormula.ID,
-			Message:   "Requested formula is in the queue :  Status : " + deployStatus,
+			Message:   "Requested formula is in the queue :  Status : " + strconv.Itoa(deployStatus),
 		}
 		json.NewEncoder(w).Encode(response)
 		return
-	} else if deployStatus == "" || deployStatus == "FAILED" {
-		if deployStatus == "FAILED" {
+	} else if deployStatus == 0 || deployStatus == 119 {	// NIL or FAILED
+		if deployStatus == 119 {
 			logrus.Info("Requested formula is in the failed status, trying to redeploy")
 		} else {
 			logrus.Info("New expert formula request, initiating new deployment")
@@ -95,7 +96,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			ActualStatus: 		 101, // SMART_CONTRACT_GENERATION_STARTED
 		}
 
-		if deployStatus == "" {
+		if deployStatus == 0 {
 			//generate transaction UUID
 			timeNow := time.Now().UTC()
 			entropy := rand.New(rand.NewSource(timeNow.UnixNano()))
@@ -134,17 +135,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippet := WriteGeneralCodeSnippets(formulaJSON, contractName)
 		if errWhenBuildingGeneralCodeSnippet != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenBuildingGeneralCodeSnippet.Error()
 			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {	// FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -164,17 +165,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//call the value builder and get the string for the variable initialization and setter
 		variableValues, setterNames, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
 		if errInGeneratingValues != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInGeneratingValues.Error()
 			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {	// FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -192,17 +193,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//pass the query to the FCL and get the execution template
 		executionTemplate, errInGettingExecutionTemplate := expertFormula.BuildExecutionTemplateByQuery(formulaJSON.MetricExpertFormula.FormulaAsQuery)
 		if errInGettingExecutionTemplate != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInGettingExecutionTemplate.Error()
 			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {	// FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -219,17 +220,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//loop through the execution template and getting the built equation
 		executionTemplateString, errInExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 		if errInExecutionTemplateString != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInExecutionTemplateString.Error()
 			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -279,18 +280,18 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		// write the contract to a solidity file
 		fo, errInOutput := os.Create(commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION") + "/" + contractName + `.sol`)
 		if errInOutput != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInOutput.Error()
 			ethFormulaObj.ActualStatus = 104	// WRITING_CONTRACT_TO_FILE_FAILED
 			//call the DB insert method
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -305,17 +306,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		defer fo.Close()
 		_, errInWritingOutput := fo.Write([]byte(template))
 		if errInWritingOutput != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInWritingOutput.Error()
 			ethFormulaObj.ActualStatus = 104	// WRITING_CONTRACT_TO_FILE_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -339,17 +340,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//generate the ABI file
 		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName, reqType)
 		if errWhenGeneratingABI != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
 			ethFormulaObj.ActualStatus = 106	// GENERATING_ABI_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {	// FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -373,17 +374,17 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//generate the BIN file
 		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName, reqType)
 		if errWhenGeneratingBinFile != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
 			ethFormulaObj.ActualStatus = 108	// GENERATING_BIN_FAILED
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {	// FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -432,16 +433,16 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		//add to queue
 		errWhenSendingToQueue := services.SendToQueue(buildQueueObj)
 		if errWhenSendingToQueue != nil {
-			ethFormulaObj.Status = "FAILED"
+			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenSendingToQueue.Error()
-			if deployStatus == "" {
+			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
 					logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == "FAILED" {
+			} else if deployStatus == 119 {
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -456,15 +457,15 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 
 		//call the DB insert method and send to queue
 		logrus.Info("Expert formula is added to the queue")
-		ethFormulaObj.Status = "QUEUE"
-		if deployStatus == "" {
+		ethFormulaObj.Status = 116 // QUEUE
+		if deployStatus == 0 {
 			errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 			if errWhenInsertingFormulaToDB != nil {
 				logrus.Error("Error while inserting formula details to the DB " + errWhenInsertingFormulaToDB.Error())
 				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 				return
 			}
-		} else if deployStatus == "FAILED" {
+		} else if deployStatus == 119 {	// FAILED
 			errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 			if errWhenUpdatingFormulaToDB != nil {
 				logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -484,8 +485,8 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		return
 
 	} else {
-		logrus.Info("Invalid formula status " + deployStatus)
-		commons.JSONErrorReturn(w, r, deployStatus, http.StatusInternalServerError, "Invalid formula status : ")
+		logrus.Info("Invalid formula status " + strconv.Itoa(deployStatus))
+		commons.JSONErrorReturn(w, r, strconv.Itoa(deployStatus), http.StatusInternalServerError, "Invalid formula status : ")
 		return
 	}
 

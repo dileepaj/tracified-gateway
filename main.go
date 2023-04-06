@@ -48,7 +48,7 @@ func main() {
 		services.CheckTempOrphan()
 	})
 
-	c.AddFunc("@every 1m", func() {
+	c.AddFunc("@every 5m", func() {
 		services.CheckContractStatus()
 	})
 	c.Start()
