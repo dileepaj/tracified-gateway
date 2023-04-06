@@ -2068,7 +2068,7 @@ func (cd *Connection) GetTrustNetworkKeyMap(publicKey string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("TrustNetwork")
-		err1 := c.FindOne(context.TODO(), bson.M{"pgppk": publicKey}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"publickey": publicKey}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting trust network key map from db " + err1.Error())
 			reject(err1)
