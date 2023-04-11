@@ -611,4 +611,16 @@ var routes = Routes{
 		"/atatransfer",
 		businessFacades.TransferNFTS, //Calls the MintNFTSolana in the nftHandler to mint in Solana
 	},
+	Route{
+		"LockAquired",
+		"POST",
+		"/lock",
+		businessFacades.BuyHandlerLock, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
+	Route{
+		"ReleaseLock",
+		"POST",
+		"/releaselock",
+		businessFacades.BuyHandlerReleaseLock, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
 }

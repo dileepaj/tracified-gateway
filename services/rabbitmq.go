@@ -113,7 +113,7 @@ func ReceiverRmq() error {
 					Timestamp:             time.Now().String(),
 					TxnUUID:               queue.MetricBinding.TxnUUID,
 					ActivityManageDataMap: queue.MetricBinding.ActivityManageDataMap,
-					TransactionOrderCount:         queue.TransactionCount +1,
+					TransactionOrderCount: queue.TransactionCount + 1,
 				}
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
@@ -196,12 +196,12 @@ func ReceiverRmq() error {
 				// use deployment strategy
 				expertDeployer := &ethereumservices.ContractDeployerContext{}
 				expertDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
-					ABI: queue.EthereumExpertFormula.ABIstring,
-					BIN: queue.EthereumExpertFormula.BINstring,
-					Identifier: queue.EthereumExpertFormula.TransactionUUID,
-					ContractType: 	 "ETHEXPERTFORMULA",
-					OtherParams: []any{queue.EthereumExpertFormula},
-					})			
+					ABI:          queue.EthereumExpertFormula.ABIstring,
+					BIN:          queue.EthereumExpertFormula.BINstring,
+					Identifier:   queue.EthereumExpertFormula.TransactionUUID,
+					ContractType: "ETHEXPERTFORMULA",
+					OtherParams:  []any{queue.EthereumExpertFormula},
+				})
 				//Call the deploy method
 				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := expertDeployer.ExecuteContractDeployment()
 				ethExpertFormulaObj := model.EthereumExpertFormula{
@@ -225,7 +225,7 @@ func ReceiverRmq() error {
 					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
 					Status:              "PENDING",
-					ActualStatus: 	  	 queue.EthereumExpertFormula.ActualStatus,
+					ActualStatus:        queue.EthereumExpertFormula.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -260,11 +260,11 @@ func ReceiverRmq() error {
 				// use deployment strategy
 				metricDeployer := &ethereumservices.ContractDeployerContext{}
 				metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
-					ABI: queue.EthereumMetricBind.ABIstring,
-					BIN: queue.EthereumMetricBind.BINstring,
-					Identifier: queue.EthereumMetricBind.TransactionUUID,
-					ContractType: 	 "ETHMETRICBIND",
-					OtherParams: []any{queue.EthereumMetricBind},
+					ABI:          queue.EthereumMetricBind.ABIstring,
+					BIN:          queue.EthereumMetricBind.BINstring,
+					Identifier:   queue.EthereumMetricBind.TransactionUUID,
+					ContractType: "ETHMETRICBIND",
+					OtherParams:  []any{queue.EthereumMetricBind},
 				})
 				//Call the deploy method
 				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
@@ -289,7 +289,7 @@ func ReceiverRmq() error {
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.EthereumMetricBind.Type,
 					FormulaID:         queue.EthereumMetricBind.FormulaID,
-					ActualStatus: 	   queue.EthereumMetricBind.ActualStatus,
+					ActualStatus:      queue.EthereumMetricBind.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -304,10 +304,10 @@ func ReceiverRmq() error {
 					pendingContract := model.PendingContracts{
 						ContractAddress: ethMetricObj.ContractAddress,
 						ContractType:    "ETHMETRICBIND",
-						Identifier: ethMetricObj.TransactionUUID,
+						Identifier:      ethMetricObj.TransactionUUID,
 						TransactionHash: ethMetricObj.TransactionHash,
-						Status: 		"FAILED",
-						ErrorMessage: ethMetricObj.ErrorMessage,
+						Status:          "FAILED",
+						ErrorMessage:    ethMetricObj.ErrorMessage,
 					}
 					errWhenInvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
 					if errWhenInvalidatingMetric != nil {
@@ -321,7 +321,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
-					logrus.Info("Metric update called with status "+ ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
+					logrus.Info("Metric update called with status " + ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
@@ -380,4 +380,122 @@ func SendToQueue(queue model.SendToQueue) error {
 		logrus.Error("%s: %s", "Failed to publish a message", err)
 	}
 	return nil
+}
+
+func LockRequest(queue model.Queues) error {
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
+	if err != nil {
+		logrus.Error("rabbitmq connection issue ", err)
+	}
+	defer conn.Close()
+	fmt.Println("connection ", conn)
+	channel, err := conn.Channel()
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to open a channel", err)
+	}
+	defer channel.Close()
+	fmt.Println("channel open ", channel)
+	queuelock, err := channel.QueueDeclare(
+		"buyingnfts", // name of the queue
+		true,         // durable flag
+		false,        // delete when unused
+		false,        // exclusive
+		false,        // no-wait
+		nil,          // arguments
+	)
+	if err != nil {
+		// handle error
+	}
+	fmt.Println("declare queue ", queuelock)
+	msg := amqp.Publishing{
+		ContentType: "text/plain",
+		Body:        []byte(queue.ItemID),
+	}
+
+	fmt.Println("message ", msg)
+	err = channel.Publish(
+		"",             // exchange
+		queuelock.Name, // routing key
+		true,           // mandatory
+		false,          // immediate
+		msg,            // message
+	)
+	if err != nil {
+		// handle error
+	}
+	fmt.Println("published -----------------")
+	msg1, err := channel.Consume(
+		queuelock.Name,
+		"",
+		false, // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // arguments
+	)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println("consumed ", msg1)
+	for d := range msg1 {
+		if string(d.Body) == queue.ItemID {
+			d.Ack(false)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("failed to acquire lock")
+}
+
+func ReleaseLock(queue model.Queues) error {
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
+	if err != nil {
+		logrus.Error("rabbitmq connection issue ", err)
+	}
+	defer conn.Close()
+
+	channel, err := conn.Channel()
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to open a channel", err)
+	}
+	defer channel.Close()
+
+	// Declare the queue
+	queuelock, err := channel.QueueDeclare(
+		"buyingnfts",
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return err
+	}
+
+	// Acknowledge the message to release the lock
+	msgs, err := channel.Consume(
+		queuelock.Name,
+		"",
+		false, // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return err
+	}
+
+	for d := range msgs {
+		if string(d.Body) == queue.ItemID {
+			d.Ack(false)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("failed to release lock")
 }

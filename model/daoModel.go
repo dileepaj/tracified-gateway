@@ -471,6 +471,11 @@ type NFTCreactedResponse struct {
 	NFTIssuerPublicKey string
 }
 
+type Queues struct {
+	ItemID string
+	UserID string
+}
+
 type Minter struct {
 	NFTIssuerPK   string `json:"NFTIssuerPK"`
 	NFTTxnHash    string `json:"NFTTxnHash"`
