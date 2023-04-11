@@ -43,8 +43,6 @@ func BuyHandlerReleaseLock(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("This is the start", res)
 	// Try to acquire a distributed lock for the item
-
-	err = services.ReleaseLock(res)
 	if err != nil {
 		logrus.Error("Failed to release lock ", err)
 	}
