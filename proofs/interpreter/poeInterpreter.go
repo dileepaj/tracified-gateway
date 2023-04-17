@@ -1,7 +1,6 @@
 package interpreter
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -30,7 +29,6 @@ type AbstractPOE struct {
 */
 func (AP *AbstractPOE) InterpretPOE(tdpid string) model.POE {
 	var poeObj model.POE
-	fmt.Println("Inside POE verfication with tdp", tdpid)
 	object := stellarRetriever.ConcretePOE{POEStruct: AP.POEStruct}
 
 	poeObj.RetrievePOE = object.RetrievePOE()
@@ -72,19 +70,9 @@ func (AP *AbstractPOE) InterpretPOAC(tdpid string) model.POE {
 
 func matchingHashToCheckPOAC(bcHash string, dbHash string, bcProfile string, dbProfile string, tdpid string) model.Error {
 	var Rerr model.Error
-	fmt.Println("bcHash", "dbHash inside POAC matching hash")
-	fmt.Println(bcHash, dbHash)
 	if strings.ToUpper(bcHash) == strings.ToUpper(dbHash) {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."
-
-		// if bcProfile == dbProfile {
-		// 	Rerr.Code = http.StatusOK
-		// 	Rerr.Message = "POE Success! DB & BC Hash and Profile match."
-		// } else {
-		// 	Rerr.Code = http.StatusOK
-		// 	Rerr.Message = "BC Profile & DB Profile didn't match."
-		// }
 		return Rerr
 
 	} else {
@@ -96,19 +84,9 @@ func matchingHashToCheckPOAC(bcHash string, dbHash string, bcProfile string, dbP
 
 func matchingHash(bcHash string, dbHash string, bcProfile string, dbProfile string, tdpid string) model.Error {
 	var Rerr model.Error
-	fmt.Println("bcHash", "dbHash")
-	fmt.Println(bcHash, dbHash)
 	if strings.ToUpper(bcHash) == strings.ToUpper(dbHash) {
 		Rerr.Code = http.StatusOK
 		Rerr.Message = "BC Hash & DB Hash match."
-
-		// if bcProfile == dbProfile {
-		// 	Rerr.Code = http.StatusOK
-		// 	Rerr.Message = "POE Success! DB & BC Hash and Profile match."
-		// } else {
-		// 	Rerr.Code = http.StatusOK
-		// 	Rerr.Message = "BC Profile & DB Profile didn't match."
-		// }
 		return Rerr
 
 	} else {
@@ -122,7 +100,7 @@ func matchingHash(bcHash string, dbHash string, bcProfile string, dbProfile stri
 			}).Catch(func(error error) error {
 				log.Error("Error while GetTransactionForTdpId " + error.Error())
 				response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
-				fmt.Println(response)
+				log.Info(response)
 				return error
 			}).Await()
 			poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dbHash}
