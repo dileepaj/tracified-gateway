@@ -81,14 +81,14 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					IsMutable:               true,
 					MintData: tokenmeta.Data{
 						Name:                 code_name,
-						Symbol:               "FSMB",
+						Symbol:               "TRACIFIED-NFT",
 						Uri:                  code_url,
-						SellerFeeBasisPoints: 100,
+						SellerFeeBasisPoints: 0,
 						Creators: &[]tokenmeta.Creator{
 							{
 								Address:  fromWallet.PublicKey,
 								Verified: true,
-								Share:    100,
+								Share:    0,
 							},
 						},
 					},
