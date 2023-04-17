@@ -14,7 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -86,7 +87,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
 				NFTTxnHash:         *mintedTxHash,
-				TDPTxnHash:         TrustLineResponseNFT.NFTURL,
+				Imagebase64Hash:    TrustLineResponseNFT.NFTURL,
 				NFTName:            TrustLineResponseNFT.Asset_code,
 				NFTIssuerPublicKey: common.PublicKey(*mintPK).String(),
 			}
