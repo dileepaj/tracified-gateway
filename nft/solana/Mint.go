@@ -82,7 +82,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					IsMutable:               true,
 					MintData: tokenmeta.Data{
 						Name:                 code_name,
-						Symbol:               "FSMB",
+						Symbol:               "TNFT",
 						Uri:                  code_url,
 						SellerFeeBasisPoints: 100,
 						Creators: &[]tokenmeta.Creator{

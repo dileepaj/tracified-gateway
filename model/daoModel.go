@@ -466,7 +466,7 @@ type NFTWithTransactionContracts struct {
 
 type NFTCreactedResponse struct {
 	NFTTxnHash         string
-	TDPTxnHash         string
+	Imagebase64Hash    string
 	NFTName            string
 	NFTIssuerPublicKey string
 }

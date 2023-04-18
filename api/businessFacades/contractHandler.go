@@ -10,7 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -76,7 +77,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 
 		NFTCeactedResponse := model.NFTCreactedResponse{
 			NFTTxnHash:         ResponseNFT.MintNFTTxn,
-			TDPTxnHash:         ResponseNFT.NFTURL,
+			Imagebase64Hash:    ResponseNFT.NFTURL,
 			NFTName:            ResponseNFT.Asset_code,
 			NFTIssuerPublicKey: ResponseNFT.NFTContract,
 		}
