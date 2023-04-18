@@ -372,9 +372,6 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	})
 	p.Await()
 
-	// fmt.Println("response.RetrievePOG.Error.Code")
-	// fmt.Println(response.RetrievePOG.Error.Code)
-
 	return
 
 }

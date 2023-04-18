@@ -424,7 +424,6 @@ GetTransactionForTdpId Retrieve a Transaction Object from TransactionCollection 
 @author - Azeem Ashraf
 */
 func (cd *Connection) GetTransactionForTdpId(TdpId string) *promise.Promise {
-	fmt.Println("tdp id: ", TdpId)
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -458,7 +457,6 @@ func (cd *Connection) GetTransactionCount() *promise.Promise {
 			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
-		fmt.Println("------------------2")
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 		count, er := c.CountDocuments(context.TODO(), bson.M{})
@@ -466,7 +464,6 @@ func (cd *Connection) GetTransactionCount() *promise.Promise {
 			log.Error("Error while retrieving Transactions by tdpid " + err.Error())
 			reject(er)
 		} else {
-			fmt.Println("------------------3")
 			resolve(count)
 		}
 	})
@@ -475,7 +472,6 @@ func (cd *Connection) GetTransactionCount() *promise.Promise {
 
 func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
-	fmt.Println("----------t3")
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -483,7 +479,6 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
-		fmt.Println("----------t4")
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
@@ -515,7 +510,6 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 			log.Error("Error while f.skip " + err1.Error())
 			reject(err1)
 		} else {
-			fmt.Println("----------t5")
 			resolve(result)
 		}
 	})
