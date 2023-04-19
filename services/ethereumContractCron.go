@@ -20,7 +20,7 @@ import (
 func CheckContractStatus() {
 
 	log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
-	logrus.Info("Ethereum cron job started")
+	log.Debug("Ethereum cron job started")
 	cronJobStartTime := time.Now().String()
 
 	object := dao.Connection{}
@@ -279,7 +279,7 @@ func CheckContractStatus() {
 			}
 
 		}
-		logrus.Info("Ethereum cron job completed at " + time.Now().String() + "(for started time : " + cronJobStartTime + ")")
+		log.Debug("Ethereum cron job completed at " + time.Now().String() + "(for started time : " + cronJobStartTime + ")")
 		return nil
 	}).Catch(func(error error) error {
 		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
