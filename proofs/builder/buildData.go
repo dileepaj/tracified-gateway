@@ -35,8 +35,6 @@ to Gateway Signed TXN's to maintain the profile, also records the activity in th
 */
 func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request, NotOrphan bool) {
 	log.Debug("============================= SubmitData ============================")
-	// horizonClient := commons.GetHorizonClient()
-	// netClient := commons.GetHorizonClient()
 	var Done []bool
 	Done = append(Done, NotOrphan)
 
@@ -128,47 +126,10 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 			}
 		}
 	}
-	// for i, _ := range AP.TxnBody {
-
-	// 	if AP.TxnBody[i].Orphan {
-
-	// 		//INSERT THE TXN INTO THE BUFFER
-	// 		err1 := object.InsertToOrphan(AP.TxnBody[i])
-	// 		if err1 != nil {
-	// 			Done = append(Done, false)
-	// 			w.WriteHeader(400)
-	// 			response := apiModel.SubmitXDRSuccess{
-	// 				Status: "Index[" + strconv.Itoa(i) + "] TXN: Orphanage Admission Revoked",
-	// 			}
-	// 			json.NewEncoder(w).Encode(response)
-	// 			return
-	// 		}
-	// 	} else {
-	// 		//SUBMIT THE FIRST XDR SIGNED BY THE USER
-	// 		display := stellarExecuter.ConcreteSubmitXDR{XDR: AP.TxnBody[i].XDR}
-	// 		result1 := display.SubmitXDR()
-	// 		UserTxnHashes = append(UserTxnHashes, result1.TXNID)
-
-	// 		if result1.Error.Code == 400 {
-	// 			Done = append(Done, false)
-	// 			w.WriteHeader(result1.Error.Code)
-	// 			response := apiModel.SubmitXDRSuccess{
-	// 				Status: "Index[" + strconv.Itoa(i) + "] TXN: Blockchain Transaction Failed!",
-	// 			}
-	// 			json.NewEncoder(w).Encode(response)
-	// 			return
-	// 		}
-	// 	}
-	// }
 
 	go func() {
 		for i, TxnBody := range AP.TxnBody {
 			if !TxnBody.Orphan {
-
-				// var PreviousTXNBuilder build.ManageDataBuilder
-				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
-				// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
-				// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
 				client := commons.GetHorizonClient()
 				pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 				pubaccount, err := client.AccountDetail(pubaccountRequest)
@@ -196,19 +157,11 @@ func (AP *AbstractXDRSubmiter) SubmitData(w http.ResponseWriter, r *http.Request
 						SourceAccount:        &pubaccount,
 						IncrementSequenceNum: true,
 						Operations:           []txnbuild.Operation{&PreviousTXNBuilder, &TypeTXNBuilder, &CurrentTXNBuilder},
-						BaseFee:              txnbuild.MinBaseFee,
+						BaseFee:              constants.MinBaseFee,
 						Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
 					},
 				)
-				// BUILD THE GATEWAY XDR
-				// tx, err := build.Transaction(
-				// 	commons.GetHorizonNetwork(),
-				// 	build.SourceAccount{publicKey},
-				// 	build.AutoSequence{horizonClient},
-				// 	build.SetData("Type", []byte("G"+AP.TxnBody[i].TxnType)),
-				// 	PreviousTXNBuilder,
-				// 	build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-				// )
+
 				if err != nil {
 					log.Error("Error while build Transaction @SubmitData " + err.Error())
 				}

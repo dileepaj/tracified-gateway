@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-
 	"strconv"
 	"strings"
 
@@ -39,41 +38,28 @@ type Identifier struct {
 }
 
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
-
-	// log.Debug("------------------------- SubmitSpecial --------------------------")
-	var Done []bool           //array to decide whether the actions are done
-	Done = append(Done, true) //starting with a true for bipass
+	log.Debug("------------------------- SubmitSpecial --------------------------")
+	var Done []bool           // array to decide whether the actions are done
+	Done = append(Done, true) // starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var id apiModel.IdentifierModel
 	object := dao.Connection{}
-	// var UserTxnHashes []string
-
-	// ///HARDCODED CREDENTIALS
-	// publicKey := constants.PublicKey
-	// secretKey := constants.SecretKey
-
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
 		log.Debug("index")
 		log.Debug(i)
 		log.Debug("TxnBody.XDR")
 		log.Debug(TxnBody.XDR)
-		//decode the XDR
+		// decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
 		}
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
-		// AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		// AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		// AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
 
 		AP.TxnBody[i].Status = "pending"
-		// AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 
 		log.Debug(AP.TxnBody[i].Identifier)
 		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
@@ -114,34 +100,23 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 }
 
-//SubmitSpecialData - EXPERIMENTAL
-
 func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.Request) {
-
 	log.Debug("------------------------------------ SubmitSpecialData ----------------------------------")
-
-	var Done []bool           //array to decide whether the actions are done
-	Done = append(Done, true) //starting with a true for bipass
+	var Done []bool           // array to decide whether the actions are done
+	Done = append(Done, true) // starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	object := dao.Connection{}
-	// var UserTxnHashes []string
-
-	// ///HARDCODED CREDENTIALS
-	// publicKey := constants.PublicKey
-	// secretKey := constants.SecretKey
-
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
-		//decode the XDR
+		// decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialData " + err.Error())
 		}
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
+		// GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
@@ -170,15 +145,12 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 }
-
-//SubmitSpecialTransfer - EXPERIMENTAL
 
 func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *http.Request) {
 	log.Debug("-------------------------------- @SubmitSpecialTransfer ----------------------------------")
-	var Done []bool           //array to decide whether the actions are done
-	Done = append(Done, true) //starting with a true for bipass
+	var Done []bool           // array to decide whether the actions are done
+	Done = append(Done, true) // starting with a true for bipass
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 
 	object := dao.Connection{}
@@ -190,12 +162,12 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 
 	for i, TxnBody := range AP.TxnBody {
 		var txe xdr.Transaction
-		//decode the XDR
+		// decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialTransfer " + err.Error())
 		}
-		//GET THE TYPE AND IDENTIFIER FROM THE XDR
+		// GET THE TYPE AND IDENTIFIER FROM THE XDR
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
@@ -227,5 +199,108 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+}
 
+func (AP *AbstractXDRSubmiter) SubmitSpecialSplit(w http.ResponseWriter, r *http.Request) {
+	log.Debug("------------------------- SubmitSpecialSplit --------------------------")
+	var Done []bool           // array to decide whether the actions are done
+	Done = append(Done, true) // starting with a true for bipass
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	object := dao.Connection{}
+	for i, TxnBody := range AP.TxnBody {
+		var txe xdr.Transaction
+		log.Debug("index")
+		log.Debug(i)
+		log.Debug("TxnBody.XDR")
+		log.Debug(TxnBody.XDR)
+		// decode the XDR
+		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
+		if err != nil {
+			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
+		}
+		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+
+		AP.TxnBody[i].Status = "pending"
+
+		log.Debug(AP.TxnBody[i].Identifier)
+		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
+		if err2 != nil {
+			fmt.Println("Error @ InsertSpecialToTempOrphan @SubmitSpecial " + err2.Error())
+			Done = append(Done, false)
+			w.WriteHeader(http.StatusBadRequest)
+			response := apiModel.SubmitXDRSuccess{
+				Status: "Index[" + strconv.Itoa(i) + "] TXN: Scheduling Failed!",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+	}
+
+	if checkBoolArray(Done) {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Success",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+}
+
+func (AP *AbstractXDRSubmiter) SubmitSpecialMerge(w http.ResponseWriter, r *http.Request) {
+	log.Debug("------------------------- SubmitSpecialMerge --------------------------")
+	var Done []bool           // array to decide whether the actions are done
+	Done = append(Done, true) // starting with a true for bipass
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	object := dao.Connection{}
+	for i, TxnBody := range AP.TxnBody {
+		var txe xdr.Transaction
+		log.Debug("index")
+		log.Debug(i)
+		log.Debug("TxnBody.XDR")
+		log.Debug(TxnBody.XDR)
+		// decode the XDR
+		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
+		if err != nil {
+			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
+		}
+		//GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
+		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
+		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].FromIdentifier2 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
+		if len(txe.Operations)==8{
+			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[7].Body.ManageDataOp.DataValue), "&")
+		}
+
+		AP.TxnBody[i].Status = "pending"
+
+		log.Debug(AP.TxnBody[i].Identifier)
+		err2 := object.InsertSpecialToTempOrphan(AP.TxnBody[i])
+		if err2 != nil {
+			fmt.Println("Error @ InsertSpecialToTempOrphan @SubmitSpecial " + err2.Error())
+			Done = append(Done, false)
+			w.WriteHeader(http.StatusBadRequest)
+			response := apiModel.SubmitXDRSuccess{
+				Status: "Index[" + strconv.Itoa(i) + "] TXN: Scheduling Failed!",
+			}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+	}
+
+	if checkBoolArray(Done) {
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Success",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
 }

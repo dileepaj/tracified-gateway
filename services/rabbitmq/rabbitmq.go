@@ -1,4 +1,4 @@
-package services
+package rabbitmq
 
 import (
 	"bytes"
