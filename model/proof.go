@@ -2,11 +2,11 @@ package model
 
 //proof of POE
 type RetrievePOE struct {
-	TdpId       string `json:"txnId"`
-	BCHash    string `json:"bcHash"`
-	DBHash    string `json:"dbHash"`
+	TdpId      string `json:"txnId"`
+	BCHash     string `json:"bcHash"`
+	DBHash     string `json:"dbHash"`
 	Identifier string `json:"identifier"`
-	Error     Error  `json:"error"`
+	Error      Error  `json:"error"`
 }
 
 type POE struct {
@@ -18,7 +18,7 @@ type RetrievePOG struct {
 	CurTxn     string `json:"genesisTxn"`
 	PreTxn     string `json:"previousTxn"`
 	Identifier string `json:"identifier"`
-	Message      Error  `json:"status"`
+	Message    Error  `json:"status"`
 }
 
 type POG struct {
@@ -61,5 +61,7 @@ type POC struct {
 type TDPData struct {
 	Data       string
 	Identifier string
+	TdpId      string
+	Oldtdp     string
 	Error      string
 }

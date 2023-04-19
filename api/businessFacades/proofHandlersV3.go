@@ -164,11 +164,11 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	json.Unmarshal(body, &TdpData)
 
 	h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
- 	dataHash := hex.EncodeToString(h.Sum(nil))
+	dataHash := hex.EncodeToString(h.Sum(nil))
 
 	poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dataHash}
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
-	response = display.InterpretPOE()
+	response = display.InterpretPOE(TdpData.TdpId)
 	w.WriteHeader(response.RetrievePOE.Error.Code)
 
 	//var txe xdr.Transaction
@@ -809,7 +809,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
 	}
 	fmt.Println(string(mapB))
-	
+
 	_, err = object.GetRealIdentifier(res.Identifier).Then(func(data interface{}) interface{} {
 		realIdentifier := data.(apiModel.IdentifierModel)
 		res.Identifier = realIdentifier.Identifier

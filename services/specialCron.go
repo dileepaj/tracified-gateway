@@ -25,7 +25,7 @@ import (
 
 // CheckTempOrphan ...
 func CheckTempOrphan() {
-	if (commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"){
+	if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 		log.Debug("=================== CheckTempOrphan ==================")
 	}
 	adminDBConnectionObj := adminDAO.Connection{}
@@ -48,8 +48,8 @@ func CheckTempOrphan() {
 			stop := false // for infinite loop
 			// loop through sequence incrementally and see match
 			for i := seq + 1; ; i++ {
-				if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
-				log.Info("Find tempOrphan by ", kp.Address(), "    -   ", i)
+				if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
+					log.Info("Find tempOrphan by ", kp.Address(), "    -   ", i)
 				}
 				data, errorAsync := object.GetSpecialForPkAndSeq(kp.Address(), int64(i)).Then(func(data interface{}) interface{} {
 					return data
@@ -84,7 +84,7 @@ func CheckTempOrphan() {
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
-						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 							log.Info("type 0 submission ", response)
 						}
 						if response.Error.Code == 400 {
@@ -182,8 +182,8 @@ func CheckTempOrphan() {
 						}
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
-						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
-						log.Info("type 1 submission ", response)
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
+							log.Info("type 1 submission ", response)
 						}
 						UserTxnHash = response.TXNID
 
@@ -309,7 +309,7 @@ func CheckTempOrphan() {
 						// SUBMIT THE GATEWAY'S SIGNED XDR
 						display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 						response1 := display1.SubmitXDR("G" + result.TxnType)
-						if commons.GoDotEnvVariable("LOGSTYPE")=="DEBUG"{
+						if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
 							log.Info("type 9 submission ", response1)
 						}
 						if response1.Error.Code == 400 {

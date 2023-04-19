@@ -504,7 +504,6 @@ func (cd *Connection) GetTransactionCount() *promise.Promise {
 
 func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
-
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -512,7 +511,6 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 			log.Error("Error while getting db connection " + err.Error())
 			reject(err)
 		}
-
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
@@ -1359,6 +1357,7 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
 	// p := promise.NewPromise()
+	fmt.Println("----------r1")
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
@@ -1367,7 +1366,7 @@ func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page in
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-
+		fmt.Println("----------r2")
 		c := session.Client().Database(dbName).Collection("Transactions")
 		// count, er := c.CountDocuments(context.TODO(), bson.M{"publickey": Publickey})
 		count, er := c.CountDocuments(context.TODO(), bson.M{"$and": []interface{}{bson.M{"publickey": Publickey}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}})
@@ -1395,6 +1394,7 @@ func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page in
 			if err2 != nil || len(result.Transactions) == 0 {
 				reject(err2)
 			} else {
+				fmt.Println("----------r3")
 				resolve(result)
 			}
 		}
@@ -1643,7 +1643,7 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 
 func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
-
+	fmt.Println("----------identifier 1")
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
@@ -1651,7 +1651,7 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-
+		fmt.Println("----------identifier 2")
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
 		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}},options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
 		if err != nil {
@@ -1659,8 +1659,10 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 			reject(err)
 		} else {
 			if result.Identifier != "" {
+				fmt.Println("----------identifier is there")
 				resolve(result)
 			} else {
+				fmt.Println("----------identifier not there")
 				result.MapValue = mapValue
 				result.Identifier = mapValue
 				resolve(result)
