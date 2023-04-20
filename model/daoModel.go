@@ -52,6 +52,7 @@ type TransactionCollectionBody struct {
 	PreviousSplitProfile string
 	CurrentTxnHash       string
 	PreviousTxnHash2     string
+	MergeBlock 	 		 int
 }
 
 type ProfileCollectionBody struct {

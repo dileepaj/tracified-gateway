@@ -459,23 +459,6 @@ func CheckTempOrphan() {
 					case "6":
 						var UserSplitTxnHashes string
 						var PreviousTxn string
-						// ParentIdentifier = Identifier
-						pData, errAsnc := object.GetLastTransactionbyIdentifier(result.Identifier).Then(func(data interface{}) interface{} {
-							return data
-						}).Await()
-
-						if pData == nil || errAsnc != nil {
-							log.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
-							// ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
-							// DUE TO THE CHILD HAVING A NEW IDENTIFIER
-							PreviousTxn = ""
-							result.PreviousTxnHash = ""
-						} else {
-							///ASSIGN PREVIOUS MANAGE DATA BUILDER
-							result := pData.(model.TransactionCollectionBody)
-							PreviousTxn = result.TxnHash
-							result.PreviousTxnHash = result.TxnHash
-						}
 						// SUBMIT THE FIRST XDR SIGNED BY THE USER
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						result1 := display.SubmitXDR(result.TxnType)
@@ -499,18 +482,17 @@ func CheckTempOrphan() {
 								When constructing a backlink transaction(put from gateway) for a split, it is important to exclude the split-parent transaction as its previous transaction.
 								Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
 							*/
-							if result.TxnType == "6" {
-								backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(result.FromIdentifier1).Then(func(data interface{}) interface{} {
-									return data
-								}).Await()
-								if backlinkData == nil || errAsnc != nil {
-									log.Info("Can not find transaction form database ", "build Split")
-								} else {
-									result := backlinkData.(model.TransactionCollectionBody)
-									PreviousTxn = result.TxnHash
-									result.PreviousTxnHash = result.TxnHash
-								}
+							backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(result.FromIdentifier1).Then(func(data interface{}) interface{} {
+								return data
+							}).Await()
+							if backlinkData == nil || errAsnc != nil {
+								log.Info("Can not find transaction form database ", "build Split")
+							} else {
+								result := backlinkData.(model.TransactionCollectionBody)
+								PreviousTxn = result.TxnHash
+								result.PreviousTxnHash = result.TxnHash
 							}
+
 							previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXN", Value: []byte(PreviousTxn)}
 							typeTXNBuilder := txnbuild.ManageData{Name: "Type", Value: []byte("G" + result.TxnType)}
 							currentTXNBuilder := txnbuild.ManageData{Name: "CurrentTXN", Value: []byte(UserSplitTxnHashes)}
@@ -642,8 +624,8 @@ func CheckTempOrphan() {
 								result.PreviousTxnHash = ""
 							} else {
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER
-								result := pData.(model.TransactionCollectionBody)
-								result.PreviousTxnHash = result.TxnHash
+								result1 := pData.(model.TransactionCollectionBody)
+								result.PreviousTxnHash = result1.TxnHash
 								log.Debug(result.PreviousTxnHash)
 							}
 
@@ -674,8 +656,8 @@ func CheckTempOrphan() {
 								result.PreviousTxnHash2 = ""
 							} else {
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER
-								result := pData3.(model.TransactionCollectionBody)
-								result.PreviousTxnHash2 = result.TxnHash
+								result3 := pData3.(model.TransactionCollectionBody)
+								result.PreviousTxnHash2 = result3.TxnHash
 								log.Debug(result.PreviousTxnHash2)
 							}
 						}
@@ -688,6 +670,7 @@ func CheckTempOrphan() {
 						if result1.Error.Code == 400 {
 							log.Error("Index[" + strconv.Itoa(i) + "] TXN: Blockchain Transaction Failed!")
 						} else {
+							// var PreviousTxn string
 							var id apiModel.IdentifierModel
 							id.MapValue = result.Identifier
 							id.Identifier = result.MapIdentifier
@@ -699,39 +682,70 @@ func CheckTempOrphan() {
 							var TypeTXNBuilder txnbuild.ManageData
 							var PreviousTXNBuilder txnbuild.ManageData
 							var MergeIDBuilder txnbuild.ManageData
-
-							// merge one batch
-							TypeTXNBuilder = txnbuild.ManageData{
-								Name:  "Type",
-								Value: []byte("G8"),
-							}
-							PreviousTXNBuilder = txnbuild.ManageData{
-								Name:  "PreviousTXN",
-								Value: []byte(result.PreviousTxnHash),
-							}
-							MergeIDBuilder = txnbuild.ManageData{
-								Name:  "MergeID",
-								Value: []byte(result.PreviousTxnHash2),
-							}
-							result.MergeID = result.PreviousTxnHash2
-
-							pData, errorAsync := object.GetLastTransactionbyIdentifier(result.FromIdentifier2).Then(func(data interface{}) interface{} {
-								return data
-							}).Await()
-
-							if errorAsync != nil || pData == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
-								///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
-								//DUE TO THE CHILD HAVING A NEW IDENTIFIER
-								result.MergeID = ""
+							// FIRST MERGE BLOCK
+							if result.MergeBlock == 0 {
+								// TypeTXNBuilder = build.SetData("Type", []byte("G8"))
+								// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
+								// MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
+								TypeTXNBuilder = txnbuild.ManageData{
+									Name:  "Type",
+									Value: []byte("G8"),
+								}
+								PreviousTXNBuilder = txnbuild.ManageData{
+									Name:  "PreviousTXN",
+									Value: []byte(result.PreviousTxnHash),
+								}
+								MergeIDBuilder = txnbuild.ManageData{
+									Name:  "MergeID",
+									Value: []byte(result.PreviousTxnHash2),
+								}
+								result.MergeID = result.PreviousTxnHash2
 							} else {
-								///ASSIGN PREVIOUS MANAGE DATA BUILDER
-								result := pData.(model.TransactionCollectionBody)
-								// MergeID = result.TxnHash
-								result.MergeID = result.TxnHash
-								log.Error(result.MergeID)
-							}
+								previousTXNHash := ""
+								previousTxn, err := object.GetLastMergeTransactionbyIdentifierAndOrder(result.Identifier, result.MergeBlock-1).Then(func(data interface{}) interface{} {
+									return data
+								}).Await()
+								if err != nil {
+									log.Error("Error while GetLastTransactionbyIdentifier @@SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+								} else if previousTxn == nil {
+									log.Error("Can not find GetLastTransactionbyIdentifier @SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+								} else {
+									previousTxnData := previousTxn.(model.TransactionCollectionBody)
+									previousTXNHash = previousTxnData.TxnHash
+								}
 
+								TypeTXNBuilder = txnbuild.ManageData{
+									Name:  "Type",
+									Value: []byte("G7"),
+								}
+								PreviousTXNBuilder = txnbuild.ManageData{
+									Name:  "PreviousTXN",
+									Value: []byte(previousTXNHash),
+								}
+								MergeIDBuilder = txnbuild.ManageData{
+									Name:  "MergeID",
+									Value: []byte(result.PreviousTxnHash2),
+								}
+								result.MergeID = result.PreviousTxnHash2
+							}
+							if result.MergeBlock == 0 {
+								pData, errorAsync := object.GetLastTransactionbyIdentifier(result.FromIdentifier2).Then(func(data interface{}) interface{} {
+									return data
+								}).Await()
+
+								if errorAsync != nil || pData == nil {
+									log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+									///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
+									//DUE TO THE CHILD HAVING A NEW IDENTIFIER
+									result.MergeID = ""
+								} else {
+									///ASSIGN PREVIOUS MANAGE DATA BUILDER
+									result4 := pData.(model.TransactionCollectionBody)
+									// MergeID = result.TxnHash
+									result.MergeID = result4.TxnHash
+									log.Error(result.MergeID)
+								}
+							}
 							CurrentTXN := txnbuild.ManageData{
 								Name:  "CurrentTXN",
 								Value: []byte(UserMergeTxnHashes),
@@ -787,6 +801,9 @@ func CheckTempOrphan() {
 								}
 								break
 							} else {
+								// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
+								result.TxnHash = response1.TXNID
+								// PreviousTxn = response1.TXNID
 								err1 := object.InsertTransaction(result)
 								if err1 != nil {
 									log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
