@@ -358,7 +358,7 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 	return p
 }
 
-func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier string) *promise.Promise {
+func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier,tenantId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -372,7 +372,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier st
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier ,"txntype":bson.M{"$ne":"5"}})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier ,"txntype":bson.M{"$ne":"5"}, "tenantid": tenantId})
 
 		if err1 != nil {
 			reject(err1)
@@ -2978,7 +2978,7 @@ func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise
 /*
 GetLastTransactionbyIdentifier Retrieve Last merger Transaction Object from TransactionCollection in DB by Identifier and merge block number
 */
-func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier string, mergeBlock int) *promise.Promise {
+func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier,tenantId string, mergeBlock int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -2991,7 +2991,41 @@ func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier str
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier , "txntype": "7", "mergeblock": mergeBlock})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier , "txntype": "7", "mergeblock": mergeBlock, "tenantid": tenantId})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+
+	return p
+}
+
+/*
+GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier and tenantId
+*/
+func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tenantId string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+	// p := promise.NewPromise()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
 
 		if err1 != nil {
 			reject(err1)

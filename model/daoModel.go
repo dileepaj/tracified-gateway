@@ -53,6 +53,8 @@ type TransactionCollectionBody struct {
 	CurrentTxnHash       string
 	PreviousTxnHash2     string
 	MergeBlock 	 		 int
+	TenantID			 string
+	StageID				 string
 }
 
 type ProfileCollectionBody struct {
