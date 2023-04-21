@@ -26,28 +26,32 @@ import (
 @params - ResponseWriter,Request
 */
 func GetCocBySender(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
-
 	object := dao.Connection{}
-	p := object.GetCOCbySender(vars["Sender"])
-	p.Then(func(data interface{}) interface{} {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		// result := apiModel.GetMultiCOCCollection{
-		// 	Collection: data}
-		json.NewEncoder(w).Encode(data)
+
+	data, err := object.GetCOCbySender(vars["Sender"]).Then(func(data interface{}) interface{} {
 		return data
-	}).Catch(func(error error) error {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	}).Await()
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: err.Error(),
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	} else if data == nil {
+		w.WriteHeader(http.StatusNotFound)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
-
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
 }
 
 /*GetCocByReceiver - WORKING MODEL
@@ -57,27 +61,29 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 */
 func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-
 	object := dao.Connection{}
-	p := object.GetCOCbyReceiver(vars["Receiver"])
-	p.Then(func(data interface{}) interface{} {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		// result := apiModel.GetMultiCOCCollection{
-		// 	Collection: data}
-		json.NewEncoder(w).Encode(data)
+	data, err := object.GetCOCbySender(vars["Receiver"]).Then(func(data interface{}) interface{} {
 		return data
-	}).Catch(func(error error) error {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	}).Await()
+	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: err.Error(),
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	} else if data == nil {
+		w.WriteHeader(http.StatusNotFound)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "PublicKey Not Found in Gateway DataStore",
 		}
 		json.NewEncoder(w).Encode(result)
-		return error
-	})
-	p.Await()
-
+		return
+	} else {
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(data)
+		return
+	}
 }
 
 /*InsertCocCollection - WORKING MODEL
