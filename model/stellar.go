@@ -1,4 +1,5 @@
 package model
+
 import "time"
 
 type StellarTransaction struct {
@@ -103,4 +104,12 @@ type ManageData struct {
 	Amount         string
 	To             string
 	From           string
+}
+
+type PendingNFTS struct {
+	Blockchain    string
+	NFTIdentifier string
+	Status        string
+	ImageBase64   string
+	User          string
 }

@@ -635,7 +635,6 @@ func (cd *Connection) EthereumInsertToValueIDMap(valueIDMap model.ValueIDMap) er
 	return err
 }
 
-
 func (cd *Connection) EthereumInsertToMetricLatestContract(contractObj model.MetricLatestContract) error {
 	session, err := cd.connect()
 	if err != nil {
@@ -692,6 +691,27 @@ func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingC
 	_, err = c.InsertOne(context.TODO(), pendingTransaction)
 	if err != nil {
 		logrus.Info("Error when inserting pending transaction to DB " + err.Error())
+	}
+	return err
+}
+
+/*
+InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
+@author - Azeem Ashraf
+*/
+func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
+	fmt.Println("--------------------------- InsertToNFTStatus ------------------------")
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while getting session " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+
+	c := session.Client().Database(dbName).Collection("NFTStatus")
+	_, err = c.InsertOne(context.TODO(), NFT)
+
+	if err != nil {
+		fmt.Println("Error while inserting to NFTStatus " + err.Error())
 	}
 	return err
 }

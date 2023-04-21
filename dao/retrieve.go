@@ -372,7 +372,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier st
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier ,"txntype":bson.M{"$ne":"5"}})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "txntype": bson.M{"$ne": "5"}})
 
 		if err1 != nil {
 			reject(err1)
@@ -1653,7 +1653,7 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 		defer session.EndSession(context.TODO())
 
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}},options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}}, options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
@@ -2944,7 +2944,7 @@ func (cd *Connection) GetEthMetricsByMetricID(metricID string) *promise.Promise 
 			}
 		}
 	})
-	
+
 	return p
 }
 
@@ -2971,4 +2971,31 @@ func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise
 
 	return p
 
+}
+
+func (cd *Connection) GetNFTById1Id2Id3(blockchain string, nftidentifier string, imagebase64 string) *promise.Promise {
+	result := model.PendingNFTS{}
+	// p := promise.NewPromise()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("NFTStatus")
+		err1 := c.FindOne(context.TODO(), bson.M{"blockchain": blockchain, "nftidentiier": nftidentifier, "imagebase64": imagebase64}).Decode(&result)
+
+		if err1 != nil {
+			// fmt.Println(err1)
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+
+	return p
 }

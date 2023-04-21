@@ -15,7 +15,7 @@ import (
 
 func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var res model.Queues
+	var res model.PendingNFTS
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&res)
@@ -28,23 +28,6 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	err = services.LockRequest(res)
 	if err != nil {
 		logrus.Error("Failed to aquire lock ", err)
-	}
-
-}
-
-func BuyHandlerReleaseLock(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var res model.Queues
-	decoder := json.NewDecoder(r.Body)
-	decoder.DisallowUnknownFields()
-	err := decoder.Decode(&res)
-	if err != nil {
-		log.Println(err)
-	}
-	fmt.Println("This is the start", res)
-	// Try to acquire a distributed lock for the item
-	if err != nil {
-		logrus.Error("Failed to release lock ", err)
 	}
 
 }

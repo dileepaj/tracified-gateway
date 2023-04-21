@@ -617,10 +617,4 @@ var routes = Routes{
 		"/lock",
 		businessFacades.BuyHandlerLock, //Calls the MintNFTSolana in the nftHandler to mint in Solana
 	},
-	Route{
-		"ReleaseLock",
-		"POST",
-		"/releaselock",
-		businessFacades.BuyHandlerReleaseLock, //Calls the MintNFTSolana in the nftHandler to mint in Solana
-	},
 }

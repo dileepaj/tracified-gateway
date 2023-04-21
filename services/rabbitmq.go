@@ -384,7 +384,11 @@ func SendToQueue(queue model.SendToQueue) error {
 }
 
 // rabbitmq queue message listener
-func ReleaseLock() error {
+func ReleaseLock() (error, string) {
+	fmt.Println("--------------------------------we in the release lock request-------------------")
+	object := dao.Connection{}
+	var pendingnft model.PendingNFTS
+	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
@@ -408,7 +412,7 @@ func ReleaseLock() error {
 		nil,   // arguments
 	)
 	if err != nil {
-		return err
+		return err, ""
 	}
 
 	// Acknowledge the message to release the lock
@@ -422,7 +426,7 @@ func ReleaseLock() error {
 		nil,   // arguments
 	)
 	if err != nil {
-		return err
+		return err, ""
 	}
 	var forever chan struct{}
 	go func() {
@@ -431,17 +435,40 @@ func ReleaseLock() error {
 			if err := json.Unmarshal(d.Body, &queue); err != nil {
 				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
 			}
+			pendingNFTS := model.PendingNFTS{
+				Blockchain:    pendingnft.Blockchain,
+				NFTIdentifier: pendingnft.NFTIdentifier,
+				Status:        pendingnft.Status,
+				ImageBase64:   pendingnft.ImageBase64,
+				User:          pendingnft.User,
+			}
+			nfts, errWhenGettingNFTS := object.GetNFTById1Id2Id3(pendingNFTS.Blockchain, pendingNFTS.NFTIdentifier, pendingNFTS.ImageBase64).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+			if errWhenGettingNFTS != nil {
+				logrus.Error("error when retrieving the nfts")
+			}
+			pendingNFTS = nfts.(model.PendingNFTS)
+			if pendingNFTS.Status == "PROCESSING" {
+				message = "none"
+			}
+			errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
+			if errWhenUpdatingNFTStatus != nil {
+				logrus.Error("Error when updating the status of the NFT ")
+			}
+			logrus.Info("NFT update called with status 200")
+			message = pendingNFTS.User
 
-			logrus.Info("Received a message println  2")
 		}
 	}()
 	logrus.Info(" [*] release lock Waiting for messages. To exit press CTRL+C")
 	<-forever
-	return nil
+	return nil, message
 }
 
 // push element to rabbitmq queue
-func LockRequest(queue model.Queues) error {
+func LockRequest(pendingNFTS model.PendingNFTS) error {
+	fmt.Println("--------------------------------we in the lock request-------------------")
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
@@ -457,17 +484,17 @@ func LockRequest(queue model.Queues) error {
 
 	q, err := ch.QueueDeclare(
 		"buyingnfts", // name
-		true,          // durable
-		false,          // delete when unused
-		false,          // exclusive
-		false,          // no-wait
-		nil,            // arguments
+		true,         // durable
+		false,        // delete when unused
+		false,        // exclusive
+		false,        // no-wait
+		nil,          // arguments
 	)
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to declare a queue LockRequest", err)
 	}
 	reqBodyBytes := new(bytes.Buffer)
-	json.NewEncoder(reqBodyBytes).Encode(queue)
+	json.NewEncoder(reqBodyBytes).Encode(pendingNFTS)
 	body := reqBodyBytes.Bytes()
 	err = ch.Publish(
 		"",     // exchange
@@ -485,4 +512,3 @@ func LockRequest(queue model.Queues) error {
 	}
 	return nil
 }
-
