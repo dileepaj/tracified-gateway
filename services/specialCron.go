@@ -576,7 +576,7 @@ func CheckTempOrphan() {
 								return data
 							}).Await()
 							if errorAsync != nil || pData == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 								// ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 								// DUE TO THE CHILD HAVING A NEW IDENTIFIER
 								result.PreviousTxnHash = ""
@@ -606,7 +606,7 @@ func CheckTempOrphan() {
 							}).Await()
 
 							if errorAsync3 != nil || pData3 == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync3.Error())
+								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 								result.PreviousTxnHash2 = ""
 							} else {
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER
@@ -799,7 +799,7 @@ func CheckTempOrphan() {
 							}).Await()
 
 							if errorAsync != nil || pData == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 								//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 								result.PreviousTxnHash = ""
@@ -815,7 +815,7 @@ func CheckTempOrphan() {
 							}).Await()
 
 							if errorAsync2 != nil || pData2 == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 								//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 								result.PreviousTxnHash2 = ""
@@ -831,7 +831,7 @@ func CheckTempOrphan() {
 							}).Await()
 
 							if errorAsync3 != nil || pData3 == nil {
-								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync3.Error())
+								log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 								///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 								//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 								result.PreviousTxnHash2 = ""
@@ -915,7 +915,7 @@ func CheckTempOrphan() {
 								}).Await()
 
 								if errorAsync != nil || pData == nil {
-									log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+									log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 									///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 									//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 									result.MergeID = ""
@@ -998,7 +998,7 @@ func CheckTempOrphan() {
 									return data
 								}).Await()
 								if errorAsync != nil || pData == nil {
-									log.Error("Error while GetProfilebyIdentifier @SubmitMerge" + errorAsync.Error())
+									log.Error("Error while GetProfilebyIdentifier @SubmitMerge")
 									PreviousProfile = ""
 								} else {
 									result := pData.(model.ProfileCollectionBody)
