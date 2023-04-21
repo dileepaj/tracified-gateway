@@ -12,7 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
-	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/oklog/ulid"
 	"github.com/sirupsen/logrus"
 )
@@ -279,7 +279,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			Status:             "QUEUE",
 		}
 
-		errWhenSendingToQueue := services.SendToQueue(buildQueueObj)
+		errWhenSendingToQueue := rabbitmq.SendToQueue(buildQueueObj)
 		if errWhenSendingToQueue != nil {
 			ethMetricObj.Status = "FAILED"
 			ethMetricObj.ErrorMessage = errWhenSendingToQueue.Error()

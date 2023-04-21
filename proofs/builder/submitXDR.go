@@ -254,7 +254,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	if checkBoolArray(status) {
 		go func() {
 			for i := 0; i < len(TDP); i++ {
-				p := object.GetLastTransactionbyIdentifier(TDP[i].Identifier)
+				p := object.GetLastTransactionbyIdentifierAndTenantId(TDP[i].Identifier, TDP[i].TenantID)
 				p.Then(func(data interface{}) interface{} {
 					///ASSIGN PREVIOUS MANAGE DATA BUILDER
 					result := data.(model.TransactionCollectionBody)

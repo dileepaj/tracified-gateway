@@ -94,7 +94,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		// FOR THE SPLIT PARENT RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if AP.TxnBody[i].TxnType == "5" {
 			// ParentIdentifier = Identifier
-			pData, errAsnc := object.GetLastTransactionbyIdentifier(AP.TxnBody[i].Identifier).Then(func(data interface{}) interface{} {
+			pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].Identifier, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -150,7 +150,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 			Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
 			*/
 			if TxnBody.TxnType == "6" {
-			backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1).Then(func(data interface{}) interface{} {
+			backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if backlinkData == nil || errAsnc != nil {

@@ -11,7 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
-	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/oklog/ulid"
 	"github.com/stellar/go/txnbuild"
 
@@ -561,7 +561,7 @@ func StellarMetricBinding(w http.ResponseWriter, r *http.Request, metricBindJson
 				Memo:             []byte(memo),
 				Operations:       managedDataOperationArray,
 			}
-			err := services.SendToQueue(buildMetricBind)
+			err := rabbitmq.SendToQueue(buildMetricBind)
 			if err != nil {
 				metricBindingStore.ErrorMessage = err.Error()
 				_, errResult := object.InsertMetricBindingFormula(metricBindingStore)
