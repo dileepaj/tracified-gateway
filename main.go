@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron"
@@ -54,7 +55,7 @@ func main() {
 	c.Start()
 	router := routes.NewRouter()
 	// rabbit mq server
-	go services.ReceiverRmq()
+	go rabbitmq.ReceiverRmq()
 	// serve swagger documentation
 	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.yaml"}
 	sh := middleware.SwaggerUI(opts, nil)

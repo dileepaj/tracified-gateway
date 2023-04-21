@@ -10,7 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	equationbuilding "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula/equationBuilding"
-	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/oklog/ulid"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -269,7 +269,7 @@ func StellarExpertFormulaBuilder(w http.ResponseWriter, r *http.Request, formula
 				Operations:    manageDataOperationArray,
 				Memo:          []byte(memo),
 			}
-			err := services.SendToQueue(buildMetricBind)
+			err := rabbitmq.SendToQueue(buildMetricBind)
 			if err != nil {
 				expertFormulaBuilder.ErrorMessage = err.Error()
 				_, errResult := object.InsertExpertFormula(expertFormulaBuilder)
