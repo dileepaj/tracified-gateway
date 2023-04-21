@@ -1643,16 +1643,16 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 						log.Info("Source: " + assetcode)
 					}
 				}
-				//mapD := map[string]string{"transaction": TxnHash}
-				//mapB, err := json.Marshal(mapD)
-				//if err != nil {
-				//log.Error("Error while json.Marshal(mapD) " + err.Error())
-				//}
-				// fmt.Println(string(mapB))
-				// trans := transaction{transaction:TxnHash}
-				// s := fmt.Sprintf("%v", trans)
-				//encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
-				//text := encoded
+				if TxnBody.Identifier != "" {
+					_, err = object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
+						realIdentifier := data.(apiModel.IdentifierModel)
+						TxnBody.MapIdentifier = realIdentifier.Identifier
+						return nil
+					}).Await()
+					if err != nil {
+						log.Error(TxnBody.Identifier + "Unable to get real identifier ",err)
+					}
+				}
 				temp := model.PrevTxnResponse{
 					Status: status, Txnhash: TxnHash,
 					Url:             commons.GetHorizonClient().HorizonURL + "transactions/" + TxnHash + "/operations",

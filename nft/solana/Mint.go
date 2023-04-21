@@ -84,12 +84,12 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 						Name:                 code_name,
 						Symbol:               "TNFT",
 						Uri:                  code_url,
-						SellerFeeBasisPoints: 100,
+						SellerFeeBasisPoints: 0,
 						Creators: &[]tokenmeta.Creator{
 							{
 								Address:  fromWallet.PublicKey,
 								Verified: true,
-								Share:    100,
+								Share:    0,
 							},
 						},
 					},

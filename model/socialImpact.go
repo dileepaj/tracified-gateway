@@ -1,6 +1,7 @@
 package model
 
 import (
+	"math/big"
 	"time"
 
 	"github.com/stellar/go/txnbuild"
@@ -306,23 +307,25 @@ type MetricDataBindingRequest struct {
 }
 
 type MetricBindingStore struct {
-	MetricId            string
-	MetricMapID         uint64
-	Metric              MetricReq
-	User                User
-	TotalNoOfManageData int
-	NoOfManageDataInTxn int
-	Memo                []byte
-	TxnHash             string
-	TxnSenderPK         string
-	XDR                 string
-	SequenceNo          int64
-	Status              string
-	Timestamp           string
-	ErrorMessage        string
-	TxnUUID             string
-	TransactionTime     string
-	TransactionCost     string
+	MetricId              string
+	MetricMapID           uint64
+	Metric                MetricReq
+	User                  User
+	TotalNoOfManageData   int
+	NoOfManageDataInTxn   int
+	Memo                  []byte
+	TxnHash               string
+	TxnSenderPK           string
+	XDR                   string
+	SequenceNo            int64
+	Status                string
+	Timestamp             string
+	ErrorMessage          string
+	TxnUUID               string
+	TransactionTime       string
+	TransactionCost       string
+	ActivityManageDataMap []ActivityManageDataCountMap
+	TransactionOrderCount int
 }
 
 type MetricReq struct {
@@ -658,6 +661,16 @@ type BindKeyMap struct {
 	ArtifactTemplateId string
 }
 
+type ActivityManageDataCountMap struct {
+	ActivityID               string
+	ActivityMapId            uint64
+	MetricID                 string
+	MetricMapID              uint64
+	ManageDataCountStart     int
+	ManageDataCountEnd       int
+	manageDataPerTransaction int
+}
+
 type ContractGeneral struct {
 	License                   string
 	PragmaLine                string
@@ -693,11 +706,11 @@ type EthereumExpertFormula struct {
 	Timestamp           string
 	TransactionHash     string
 	TransactionCost     string
-	TransactionTime     string
 	TransactionUUID     string
 	TransactionSender   string
 	Verify              Verify
 	ErrorMessage        string
+	ActualStatus 		int
 }
 
 type EthFormulaIDMap struct {
@@ -716,7 +729,6 @@ type EthereumMetricBind struct {
 	ContractAddress   string
 	TransactionHash   string
 	TransactionCost   string
-	TransactionTime   string
 	TransactionUUID   string
 	TransactionSender string
 	User              User
@@ -726,6 +738,7 @@ type EthereumMetricBind struct {
 	ValueIDs          []string
 	Type              string
 	FormulaID         string
+	ActualStatus 	  int
 }
 
 type MetricContractGeneral struct {
@@ -791,4 +804,23 @@ type PreviousCode struct {
 type EthMetricIDMap struct {
 	MetricID string
 	MapID    uint64
+}
+
+type EthErrorMessage struct {
+	ErrorMessage    string
+	Network         string
+	TransactionHash string
+}
+
+type PendingContracts struct {
+	TransactionHash string
+	ContractAddress string
+	Status          string
+	CurrentIndex    int
+	ErrorMessage    string
+	ContractType    string
+	Identifier      string
+	Nonce           *big.Int
+	GasPrice        *big.Int
+	GasLimit        int
 }

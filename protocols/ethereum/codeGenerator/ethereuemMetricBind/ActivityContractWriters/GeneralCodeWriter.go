@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import (
 	"github.com/dileepaj/tracified-gateway/model"

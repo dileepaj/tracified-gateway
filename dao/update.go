@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/model"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -797,23 +798,25 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 	defer session.EndSession(context.TODO())
 
 	up := model.MetricBindingStore{
-		MetricId:            update.MetricId,
-		MetricMapID:         update.MetricMapID,
-		Metric:              update.Metric,
-		User:                update.User,
-		TotalNoOfManageData: update.TotalNoOfManageData,
-		NoOfManageDataInTxn: update.NoOfManageDataInTxn,
-		TransactionTime:     update.TransactionTime,
-		TransactionCost:     update.TransactionCost,
-		Memo:                update.Memo,
-		TxnHash:             update.TxnHash,
-		TxnSenderPK:         update.TxnSenderPK,
-		XDR:                 update.XDR,
-		SequenceNo:          update.SequenceNo,
-		Status:              update.Status,
-		Timestamp:           update.Timestamp,
-		ErrorMessage:        update.ErrorMessage,
-		TxnUUID:             update.TxnUUID,
+		MetricId:              update.MetricId,
+		MetricMapID:           update.MetricMapID,
+		Metric:                update.Metric,
+		User:                  update.User,
+		TotalNoOfManageData:   update.TotalNoOfManageData,
+		NoOfManageDataInTxn:   update.NoOfManageDataInTxn,
+		TransactionTime:       update.TransactionTime,
+		TransactionCost:       update.TransactionCost,
+		Memo:                  update.Memo,
+		TxnHash:               update.TxnHash,
+		TxnSenderPK:           update.TxnSenderPK,
+		XDR:                   update.XDR,
+		SequenceNo:            update.SequenceNo,
+		Status:                update.Status,
+		Timestamp:             update.Timestamp,
+		ErrorMessage:          update.ErrorMessage,
+		TxnUUID:               update.TxnUUID,
+		ActivityManageDataMap: update.ActivityManageDataMap,
+		TransactionOrderCount: update.TransactionOrderCount,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -885,6 +888,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum expert formula", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -905,11 +909,11 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		Timestamp:           update.Timestamp,
 		TransactionHash:     update.TransactionHash,
 		TransactionCost:     update.TransactionCost,
-		TransactionTime:     update.TransactionTime,
 		TransactionUUID:     update.TransactionUUID,
 		TransactionSender:   update.TransactionSender,
 		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
+		ActualStatus: 	     update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -972,6 +976,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -989,7 +994,6 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		Timestamp:         update.Timestamp,
 		TransactionHash:   update.TransactionHash,
 		TransactionCost:   update.TransactionCost,
-		TransactionTime:   update.TransactionTime,
 		TransactionUUID:   update.TransactionUUID,
 		TransactionSender: update.TransactionSender,
 		User:              update.User,
@@ -998,6 +1002,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		ValueIDs:          update.ValueIDs,
 		FormulaID:         update.FormulaID,
 		Type:              update.Type,
+		ActualStatus: 	   update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1101,6 +1106,7 @@ func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum latest metric contract", err.Error())
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1126,4 +1132,247 @@ func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update
 	_, err = c.UpdateOne(context.TODO(), bson.M{"metricid": metricID}, bson.D{{Key: "$set", Value: updateNew}})
 
 	return err
+}
+
+func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, contractAddress, identifier string, update model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum pending contract", err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.PendingContracts{
+		TransactionHash: update.TransactionHash,
+		ContractAddress: update.ContractAddress,
+		Status:          update.Status,
+		CurrentIndex:    update.CurrentIndex,
+		ErrorMessage:    update.ErrorMessage,
+		ContractType:    update.ContractType,
+		Identifier:      update.Identifier,
+		Nonce:           update.Nonce,
+		GasPrice:        update.GasPrice,
+		GasLimit:        update.GasLimit,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"transactionhash": transactionHash, "contractaddress": contractAddress, "identifier": identifier}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}
+
+func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string, errorMessage string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum formula status for the given UUID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	filter := bson.D{{Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}, {Key: "errormessage", Value: errorMessage}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum formula status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status string, errorMessage string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric status for the given UUID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	filter := bson.D{{Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}, {Key: "errormessage", Value: errorMessage}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum metric status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+// UpdateSelectedEthMetricFields updates the selected fields of the Ethereum metric bind except the metric request
+func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID string, metricObj model.EthereumMetricBind) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum metric fields for the given metric ID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumMetricBind")
+	updateFields := bson.D{}
+
+	if metricObj.MetricID != "" {
+		updateFields = append(updateFields, bson.E{Key: "metricid", Value: metricObj.MetricID})
+	}
+	if metricObj.MetricName != "" {
+		updateFields = append(updateFields, bson.E{Key: "metricname", Value: metricObj.MetricName})
+	}
+	if metricObj.ContractName != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractname", Value: metricObj.ContractName})
+	}
+	if metricObj.ContractAddress != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractaddress", Value: metricObj.ContractAddress})
+	}
+	if metricObj.TemplateString != "" {
+		updateFields = append(updateFields, bson.E{Key: "templatestring", Value: metricObj.TemplateString})
+	}
+	if metricObj.BINstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "binstring", Value: metricObj.BINstring})
+	}
+	if metricObj.ABIstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "abistring", Value: metricObj.ABIstring})
+	}
+	if metricObj.Timestamp != "" {
+		updateFields = append(updateFields, bson.E{Key: "timestamp", Value: metricObj.Timestamp})
+	}
+	if metricObj.TransactionHash != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionhash", Value: metricObj.TransactionHash})
+	}
+	if metricObj.TransactionCost != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactioncost", Value: metricObj.TransactionCost})
+	}
+	if metricObj.TransactionUUID != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionuuid", Value: metricObj.TransactionUUID})
+	}
+	if metricObj.TransactionSender != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionsender", Value: metricObj.TransactionSender})
+	}
+	if metricObj.Status != "" {
+		updateFields = append(updateFields, bson.E{Key: "status", Value: metricObj.Status})
+	}
+	if metricObj.ErrorMessage != "" {
+		updateFields = append(updateFields, bson.E{Key: "errormessage", Value: metricObj.ErrorMessage})
+	}
+	if metricObj.Type != "" {
+		updateFields = append(updateFields, bson.E{Key: "type", Value: metricObj.Type})
+	}
+	if metricObj.FormulaID != "" {
+		updateFields = append(updateFields, bson.E{Key: "formulaid", Value: metricObj.FormulaID})
+	}
+	if metricObj.FormulaIDs != nil {
+		updateFields = append(updateFields, bson.E{Key: "formulaid", Value: metricObj.FormulaIDs})
+	}
+	if metricObj.ValueIDs != nil {
+		updateFields = append(updateFields, bson.E{Key: "valueids", Value: metricObj.ValueIDs})
+	}
+	if metricObj.User.ID != "" {
+		updateFields = append(updateFields, bson.E{Key: "user.id", Value: metricObj.User.ID})
+	}
+	if metricObj.User.Publickey != "" {
+		updateFields = append(updateFields, bson.E{Key: "user.publickey", Value: metricObj.User.Publickey})
+	}
+	if metricObj.User.TenantID != "" {
+		updateFields = append(updateFields, bson.E{Key: "user.tenantID", Value: metricObj.User.TenantID})
+	}	
+	filter := bson.D{{Key: "metricid", Value: metricID}, {Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: updateFields}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum metric fields in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+// UpdateSelectedEthFormulaFields updates the selected fields of the Ethereum expert formula except the formula request and execution template
+func (cd *Connection) UpdateSelectedEthFormulaFields(formulaID string, txnUUID string, formulaObj model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Ethereum formula fields for the given formula ID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+	updateFields := bson.D{}
+	if formulaObj.FormulaID != "" {
+		updateFields = append(updateFields, bson.E{Key: "formulaid", Value: formulaObj.FormulaID})
+	}
+	if formulaObj.FormulaName != "" {
+		updateFields = append(updateFields, bson.E{Key: "formulaname", Value: formulaObj.FormulaName})
+	}
+	if formulaObj.VariableCount != 0 {
+		updateFields = append(updateFields, bson.E{Key: "variablecount", Value: formulaObj.VariableCount})
+	}
+	if formulaObj.ContractName != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractname", Value: formulaObj.ContractName})
+	}
+	if formulaObj.TemplateString != "" {
+		updateFields = append(updateFields, bson.E{Key: "templatestring", Value: formulaObj.TemplateString})
+	}
+	if formulaObj.BINstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "binstring", Value: formulaObj.BINstring})
+	}
+	if formulaObj.ABIstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "abistring", Value: formulaObj.ABIstring})
+	}
+	if formulaObj.GOstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "gostring", Value: formulaObj.GOstring})
+	}
+	if formulaObj.SetterNames != nil {
+		updateFields = append(updateFields, bson.E{Key: "setternames", Value: formulaObj.SetterNames})
+	}
+	if formulaObj.ContractAddress != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractaddress", Value: formulaObj.ContractAddress})
+	}
+	if formulaObj.Status != "" {
+		updateFields = append(updateFields, bson.E{Key: "status", Value: formulaObj.Status})
+	}
+	if formulaObj.Timestamp != "" {
+		updateFields = append(updateFields, bson.E{Key: "timestamp", Value: formulaObj.Timestamp})
+	}
+	if formulaObj.TransactionHash != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionhash", Value: formulaObj.TransactionHash})
+	}
+	if formulaObj.TransactionCost != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactioncost", Value: formulaObj.TransactionCost})
+	}
+	if formulaObj.TransactionUUID != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionuuid", Value: formulaObj.TransactionUUID})
+	}
+	if formulaObj.TransactionSender != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionsender", Value: formulaObj.TransactionSender})
+	}
+	if formulaObj.Verify.Payload != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.payload", Value: formulaObj.Verify.Payload})
+	}
+	if formulaObj.Verify.Signature != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.signature", Value: formulaObj.Verify.Signature})
+	}
+	if formulaObj.Verify.PublicKey != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.publickey", Value: formulaObj.Verify.PublicKey})
+	}
+	if formulaObj.ErrorMessage != "" {
+		updateFields = append(updateFields, bson.E{Key: "errormessage", Value: formulaObj.ErrorMessage})
+	}
+	if formulaObj.ActualStatus != 0 {
+		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: formulaObj.ActualStatus})
+	}
+
+	filter := bson.D{{Key: "formulaid", Value: formulaID}, {Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: updateFields}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating ethereum formula fields in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
 }

@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import (
 	"errors"
@@ -31,7 +31,6 @@ func GetFormulaContractAddress(formulaID string) (string, error) {
 		formulaDetData := formulaDet.(model.EthereumExpertFormula)
 		contract = formulaDetData.ContractAddress
 	}
-	
 
 	return contract, nil
 }

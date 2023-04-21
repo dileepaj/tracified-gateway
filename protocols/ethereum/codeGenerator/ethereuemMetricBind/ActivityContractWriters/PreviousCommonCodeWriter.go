@@ -1,4 +1,4 @@
-package activitywriters
+package ActivityContractWriters
 
 import "github.com/dileepaj/tracified-gateway/model"
 
@@ -7,7 +7,6 @@ import "github.com/dileepaj/tracified-gateway/model"
 
 func WritePreviousCommonCode(metricID string) (model.PreviousCode, error) {
 
-	// TODO: get the previous contract address from the DB
 	previousContractAddress, err := getPreviousContractAddress(metricID)
 	if err != nil {
 		return model.PreviousCode{}, err

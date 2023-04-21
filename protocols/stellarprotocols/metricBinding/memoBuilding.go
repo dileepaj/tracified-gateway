@@ -45,7 +45,7 @@ func (metric *MetricBinding) BuildMemo(types uint8, mapMetricId uint64, tenantId
 		return "", errors.New("future used byte building issue in memo building")
 	}
 	// convert data type Int to byte string
-	srtManageDataLength, err := stellarprotocols.Int8ToByteString(managedatalenth) // TODO limite the byte, if the user put 8-byte number this should give an error
+	srtManageDataLength, err := stellarprotocols.Int8ToByteString(managedatalenth)
 	if err != nil {
 		return "", errors.New("error when converting data types to byte in memo " + err.Error())
 	}

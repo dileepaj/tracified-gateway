@@ -19,6 +19,7 @@ import (
 
 func ValidateAgainstTrustNetwork(expertPK string) error {
 	object := dao.Connection{}
+	logrus.Info("Expert's public Key SHA256  ",expertPK)
 	TrustNetworkKeyMap, err := object.GetTrustNetworkKeyMap(expertPK).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()

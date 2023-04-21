@@ -74,7 +74,7 @@ func (stxn *ConcreteStellarTransaction) GetTransactionCollection() (*model.Trans
 	txe.Status = "stellar-" + commons.GetHorizonClientNetworkName()
 	mapAPIOperations(&txe, *oprn)
 	// checked whether the transaction type is a parent. Parent transaction data does not have mange data called Identifier
-	if txe.TxnType == "5" {
+	if txe.TxnType == "5" && txe.ProfileID != "parent" {
 		txe.Identifier = txe.FromIdentifier1
 	}
 
