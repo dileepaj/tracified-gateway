@@ -2987,10 +2987,9 @@ func (cd *Connection) GetNFTById1Id2Id3(blockchain string, nftidentifier string,
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("NFTStatus")
-		err1 := c.FindOne(context.TODO(), bson.M{"blockchain": blockchain, "nftidentiier": nftidentifier, "imagebase64": imagebase64}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"blockchain": blockchain, "nftidentifier": nftidentifier, "imagebase64": imagebase64}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
 			reject(err1)
 		} else {
 			resolve(result)
@@ -2998,4 +2997,22 @@ func (cd *Connection) GetNFTById1Id2Id3(blockchain string, nftidentifier string,
 	})
 
 	return p
+}
+func (cd *Connection) GetQueueData(ImageBase64 string, blockchain string) *promise.Promise {
+	result := model.PendingNFTS{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTStatus")
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"blockchain", blockchain}}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
 }

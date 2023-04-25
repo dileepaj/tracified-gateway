@@ -385,9 +385,7 @@ func SendToQueue(queue model.SendToQueue) error {
 
 // rabbitmq queue message listener
 func ReleaseLock() (error, string) {
-	fmt.Println("--------------------------------we in the release lock request-------------------")
 	object := dao.Connection{}
-	var pendingnft model.PendingNFTS
 	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
@@ -431,8 +429,8 @@ func ReleaseLock() (error, string) {
 	var forever chan struct{}
 	go func() {
 		for d := range msgs {
-			var queue model.Queues
-			if err := json.Unmarshal(d.Body, &queue); err != nil {
+			var pendingnft model.PendingNFTS
+			if err := json.Unmarshal(d.Body, &pendingnft); err != nil {
 				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
 			}
 			pendingNFTS := model.PendingNFTS{
@@ -447,18 +445,24 @@ func ReleaseLock() (error, string) {
 			}).Await()
 			if errWhenGettingNFTS != nil {
 				logrus.Error("error when retrieving the nfts")
+				logrus.Info("retreived nfts: ", nfts)
+				pendingNFTS := model.PendingNFTS{
+					Blockchain:    pendingnft.Blockchain,
+					NFTIdentifier: pendingnft.NFTIdentifier,
+					Status:        "PROCESSED",
+					ImageBase64:   pendingnft.ImageBase64,
+					User:          pendingnft.User,
+				}
+				errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
+				if errWhenUpdatingNFTStatus != nil {
+					logrus.Error("Error when updating the status of the NFT ")
+				}
+				logrus.Info("NFT update called with status 200")
+				message = pendingNFTS.User
 			}
-			pendingNFTS = nfts.(model.PendingNFTS)
-			if pendingNFTS.Status == "PROCESSING" {
+			if pendingNFTS.Status == "Processing" {
 				message = "none"
 			}
-			errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
-			if errWhenUpdatingNFTStatus != nil {
-				logrus.Error("Error when updating the status of the NFT ")
-			}
-			logrus.Info("NFT update called with status 200")
-			message = pendingNFTS.User
-
 		}
 	}()
 	logrus.Info(" [*] release lock Waiting for messages. To exit press CTRL+C")
@@ -468,7 +472,6 @@ func ReleaseLock() (error, string) {
 
 // push element to rabbitmq queue
 func LockRequest(pendingNFTS model.PendingNFTS) error {
-	fmt.Println("--------------------------------we in the lock request-------------------")
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
@@ -510,5 +513,6 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to publish a message LockRequest", err)
 	}
+
 	return nil
 }

@@ -615,6 +615,12 @@ var routes = Routes{
 		"LockAquired",
 		"POST",
 		"/lock",
-		businessFacades.BuyHandlerLock, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+		businessFacades.BuyHandlerLock, //Calls the BuyHandlerLock in the nftHandler to queue the buy requests
+	},
+	Route{
+		"GetQueuedByImageBase64AndBlockchain",
+		"GET",
+		"/queue/{ImageBase64}/{blockchain}",
+		businessFacades.RetrieveQueueData, //Calls the RetrieveQueueData from Queue after being processed
 	},
 }
