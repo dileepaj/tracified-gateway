@@ -16,6 +16,9 @@ import (
 
 func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.Header().Set("Access-Control-Allow-Origin", "https://qa.marketplace.nft.tracified.com")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 	var res model.PendingNFTS
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -34,7 +37,9 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 
 func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
+	w.Header().Set("Access-Control-Allow-Origin", "https://qa.marketplace.nft.tracified.com")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+	w.Header().Set("Access-Control-Allow-Methods", "OPTIONS, POST")
 	vars := mux.Vars(r)
 	object := dao.Connection{}
 	p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"])
