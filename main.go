@@ -56,6 +56,7 @@ func main() {
 	router := routes.NewRouter()
 	// rabbit mq server
 	go rabbitmq.ReceiverRmq()
+	go rabbitmq.ReleaseLock()
 	// serve swagger documentation
 	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.yaml"}
 	sh := middleware.SwaggerUI(opts, nil)
