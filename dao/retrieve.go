@@ -358,7 +358,7 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 	return p
 }
 
-func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier,tenantId string) *promise.Promise {
+func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier, tenantId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -372,7 +372,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier,te
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier ,"txntype":bson.M{"$ne":"5"}, "tenantid": tenantId})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "txntype": bson.M{"$ne": "5"}, "tenantid": tenantId})
 
 		if err1 != nil {
 			reject(err1)
@@ -1643,7 +1643,6 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 
 func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
-	fmt.Println("----------identifier 1")
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
@@ -1651,18 +1650,15 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		fmt.Println("----------identifier 2")
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
-		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}},options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
+		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}}, options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
 		if err != nil {
 			log.Error("Error when fetching data from DB " + err.Error())
 			reject(err)
 		} else {
 			if result.Identifier != "" {
-				fmt.Println("----------identifier is there")
 				resolve(result)
 			} else {
-				fmt.Println("----------identifier not there")
 				result.MapValue = mapValue
 				result.Identifier = mapValue
 				resolve(result)
@@ -2946,7 +2942,7 @@ func (cd *Connection) GetEthMetricsByMetricID(metricID string) *promise.Promise 
 			}
 		}
 	})
-	
+
 	return p
 }
 
@@ -2978,7 +2974,7 @@ func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise
 /*
 GetLastTransactionbyIdentifier Retrieve Last merger Transaction Object from TransactionCollection in DB by Identifier and merge block number
 */
-func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier,tenantId string, mergeBlock int) *promise.Promise {
+func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier, tenantId string, mergeBlock int) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -2991,7 +2987,7 @@ func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier,ten
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier , "txntype": "7", "mergeblock": mergeBlock, "tenantid": tenantId})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "txntype": "7", "mergeblock": mergeBlock, "tenantid": tenantId})
 
 		if err1 != nil {
 			reject(err1)
@@ -3040,4 +3036,48 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 	})
 
 	return p
+}
+
+func (cd *Connection) GetNFTById1Id2Id3(blockchain string, nftidentifier string, imagebase64 string) *promise.Promise {
+	result := model.PendingNFTS{}
+	// p := promise.NewPromise()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("NFTStatus")
+		err1 := c.FindOne(context.TODO(), bson.M{"blockchain": blockchain, "nftidentifier": nftidentifier, "imagebase64": imagebase64}).Decode(&result)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+
+	return p
+}
+func (cd *Connection) GetQueueData(ImageBase64 string, blockchain string) *promise.Promise {
+	result := model.PendingNFTS{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("NFTStatus")
+		err1 := dbclient.FindOne(context.TODO(), bson.D{{"imagebase64", ImageBase64}, {"blockchain", blockchain}}).Decode(&result)
+		if err1 != nil {
+			reject(err)
+		} else {
+			resolve(result)
+		}
+	})
+	return promise
 }

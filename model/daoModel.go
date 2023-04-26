@@ -52,9 +52,9 @@ type TransactionCollectionBody struct {
 	PreviousSplitProfile string
 	CurrentTxnHash       string
 	PreviousTxnHash2     string
-	MergeBlock 	 		 int
-	TenantID			 string
-	StageID				 string
+	MergeBlock           int
+	TenantID             string
+	StageID              string
 }
 
 type ProfileCollectionBody struct {
@@ -546,4 +546,12 @@ type PublicKey struct {
 
 type XDRRuri struct {
 	XDR string
+}
+
+type PendingNFTS struct {
+	Blockchain    string
+	NFTIdentifier string
+	Status        string
+	ImageBase64   string
+	User          string
 }
