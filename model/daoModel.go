@@ -554,4 +554,5 @@ type PendingNFTS struct {
 	Status        string
 	ImageBase64   string
 	User          string
+	Version       string
 }

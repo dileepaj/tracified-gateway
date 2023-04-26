@@ -620,8 +620,7 @@ var routes = Routes{
 	Route{
 		"GetQueuedByImageBase64AndBlockchain",
 		"GET",
-		"/queue/{ImageBase64}/{blockchain}",
+		"/queue/{ImageBase64}/{blockchain}/{version}",
 		businessFacades.RetrieveQueueData, //Calls the RetrieveQueueData from Queue after being processed
 	},
 }
-

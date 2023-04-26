@@ -36,7 +36,7 @@ func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"])
+	p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"], vars["version"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.PendingNFTS)
