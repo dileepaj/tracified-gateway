@@ -34,7 +34,6 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 
 func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
 	vars := mux.Vars(r)
 	object := dao.Connection{}
 	p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"])
