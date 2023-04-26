@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -24,7 +23,6 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Println("This is the start", res)
 	// Try to acquire a distributed lock for the item
 
 	err = rabbitmq.LockRequest(res)
