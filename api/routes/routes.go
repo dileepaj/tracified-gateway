@@ -42,7 +42,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/proof/poe/{Txn}",
+		"/proof/poe",
 		businessFacades.CheckPOEV3, // Calls the Functional POE for Gateway Version 3
 	},
 	Route{

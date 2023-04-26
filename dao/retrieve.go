@@ -3081,3 +3081,26 @@ func (cd *Connection) GetQueueData(ImageBase64 string, blockchain string) *promi
 	})
 	return promise
 }
+
+func (cd *Connection) GetTransactionForTdpIdSequence(TdpId string, sequence int64) *promise.Promise {
+	result := model.TransactionCollectionBody{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		err1 := c.FindOne(context.TODO(), bson.M{"tdpid": TdpId, "sequenceno": sequence}).Decode(&result)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+
+	return p
+}
