@@ -1643,7 +1643,6 @@ func (cd *Connection) GetAllApprovedOrganizations_Paginated(perPage int, page in
 
 func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 	result := apiModel.IdentifierModel{}
-	fmt.Println("----------identifier 1")
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
@@ -1651,7 +1650,6 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		fmt.Println("----------identifier 2")
 		c := session.Client().Database(dbName).Collection("IdentifierMap")
 		err = c.FindOne(context.TODO(), bson.M{"mapvalue": mapValue, "identifier": bson.M{"$ne": ""}}, options.FindOne().SetSort(bson.M{"_id": -1})).Decode(&result)
 		if err != nil {
@@ -1659,10 +1657,8 @@ func (cd *Connection) GetRealIdentifier(mapValue string) *promise.Promise {
 			reject(err)
 		} else {
 			if result.Identifier != "" {
-				fmt.Println("----------identifier is there")
 				resolve(result)
 			} else {
-				fmt.Println("----------identifier not there")
 				result.MapValue = mapValue
 				result.Identifier = mapValue
 				resolve(result)

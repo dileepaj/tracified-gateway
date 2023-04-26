@@ -696,7 +696,6 @@ func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingC
 }
 
 func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
-	fmt.Println("--------------------------- InsertToNFTStatus ------------------------")
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
