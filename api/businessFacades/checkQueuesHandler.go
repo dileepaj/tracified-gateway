@@ -7,7 +7,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -27,7 +27,7 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	fmt.Println("This is the start", res)
 	// Try to acquire a distributed lock for the item
 
-	err = services.LockRequest(res)
+	err = rabbitmq.LockRequest(res)
 	if err != nil {
 		logrus.Error("Failed to aquire lock ", err)
 	}
