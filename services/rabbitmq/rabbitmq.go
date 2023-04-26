@@ -390,6 +390,7 @@ func ReleaseLock() (error, string) {
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("rabbitmq connection issue ", err)
+		return err,""
 	}
 	defer conn.Close()
 
@@ -475,12 +476,14 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("rabbitmq connection issue LockRequest", err)
+		return err
 	}
 	defer conn.Close()
 
 	ch, err := conn.Channel()
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to open a channel LockRequest", err)
+		return err
 	}
 	defer ch.Close()
 
