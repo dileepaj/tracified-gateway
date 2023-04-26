@@ -390,7 +390,7 @@ func ReleaseLock() (error, string) {
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
 		logrus.Error("rabbitmq connection issue ", err)
-		return err,""
+		return err, ""
 	}
 	defer conn.Close()
 
