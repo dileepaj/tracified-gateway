@@ -611,4 +611,10 @@ var routes = Routes{
 		"/atatransfer",
 		businessFacades.TransferNFTS, //Calls the MintNFTSolana in the nftHandler to mint in Solana
 	},
+	Route{
+		"BlockchainTreeRetrieverWithHashMerkleTree",
+		"GET",
+		"/pocv4/merkletree/{txn}",
+		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
+	},
 }

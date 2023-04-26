@@ -1,32 +1,11 @@
 package stellarRetriever
 
-import (
-	"github.com/dileepaj/tracified-gateway/model"
-)
-
-type POCNode struct {
-	Id      string
-	Data    model.TransactionCollectionBody
-	Parents []string
-	Children []string
-	Siblings []string
-	TrustLinks []string
-}
-
-type POCTreeV4 struct {
-	TxnHash string
-	LastTxnHash string
-	Level int
-	Nodes map[string]*POCNode
-	siblings map[string][]string
-}
-
-func (poc *POCTreeV4) ConstructPOC() {
+func (poc *POCTreeV4) ConstructPOCMerkleTree() {
 	poc.generatePOCV4()
 	poc.updateSiblings()
 }
 
-func (poc *POCTreeV4) generatePOCV4() {
+func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 	// initialize tree
 	if poc.Nodes == nil {
 		poc.Nodes = make(map[string]*POCNode)
@@ -251,36 +230,4 @@ func (poc *POCTreeV4) generatePOCV4() {
 			}
 			break
 	}
-}
-
-
-func (poc *POCTreeV4) updateSiblings() {
-	for _, v := range poc.siblings {
-		if len(v) < 2 {
-			continue
-		}
-		for _, hash := range v {
-			for _, shash := range v {
-				if shash != hash {
-					if poc.Nodes[hash].Siblings == nil {
-						poc.Nodes[hash].Siblings = []string{shash}
-					} else {
-						if !contains(poc.Nodes[hash].Siblings, shash) {
-							poc.Nodes[hash].Siblings = append(poc.Nodes[hash].Siblings, shash)
-						}
-					}
-				}
-			}
-		}
-	}
-}
-
-
-func contains(s []string, e string) bool {
-    for _, a := range s {
-        if a == e {
-            return true
-        }
-    }
-    return false
 }
