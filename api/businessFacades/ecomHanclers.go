@@ -297,7 +297,6 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 	log.Info("SearchBy:  ", checkValidVersionByte(txn))
 	switch checkValidVersionByte(txn) {
 	case "pk":
-		fmt.Println("----------response1", txn, page, perPage)
 		qdata, err := object.GetAllTransactionForPK_Paginated(txn, page, perPage).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
@@ -1406,12 +1405,10 @@ func checkValidVersionByte(key string) string {
 
 func RetrievePreviousTranasctionsCount(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
-	fmt.Println("------------------1")
 	var totalRecordCount model.TotalTransaction
 	_, err := object.GetTransactionCount().Then(func(data interface{}) interface{} {
 		totalRecordCount = model.TotalTransaction{TotalTransactionCount: data.(int64)}
 		w.WriteHeader(http.StatusOK)
-		fmt.Println("------------------4")
 		return json.NewEncoder(w).Encode(totalRecordCount)
 	}).Await()
 	if err != nil {
@@ -1427,7 +1424,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["perPage"]
-	fmt.Println("----------t1")
+
 	if !error || len(key1[0]) < 1 {
 		log.Error("Url Parameter 'perPage' is missing")
 		return
@@ -1474,7 +1471,6 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
-	fmt.Println("----------t2", perPage, page, NoPage)
 	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {

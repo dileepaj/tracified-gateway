@@ -623,5 +623,11 @@ var routes = Routes{
 		"/queue/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveQueueData, //Calls the RetrieveQueueData from Queue after being processed
 	},
+	Route{
+		"BlockchainTreeRetrieverWithHashMerkleTree",
+		"GET",
+		"/pocv4/merkletree/{txn}",
+		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
+	},
 }
 
