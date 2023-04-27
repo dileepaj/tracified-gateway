@@ -42,7 +42,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/proof/poe/{Txn}",
+		"/proof/poe",
 		businessFacades.CheckPOEV3, // Calls the Functional POE for Gateway Version 3
 	},
 	Route{
@@ -622,6 +622,12 @@ var routes = Routes{
 		"GET",
 		"/queue/{ImageBase64}/{blockchain}",
 		businessFacades.RetrieveQueueData, //Calls the RetrieveQueueData from Queue after being processed
+	},
+	Route{
+		"BlockchainTreeRetrieverWithHashMerkleTree",
+		"GET",
+		"/pocv4/merkletree/{txn}",
+		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
 }
 
