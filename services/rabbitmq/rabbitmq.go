@@ -439,8 +439,9 @@ func ReleaseLock() (error, string) {
 				Status:        pendingnft.Status,
 				ImageBase64:   pendingnft.ImageBase64,
 				User:          pendingnft.User,
+				Version:       pendingnft.Version,
 			}
-			nfts, errWhenGettingNFTS := object.GetNFTById1Id2Id3(pendingNFTS.Blockchain, pendingNFTS.NFTIdentifier, pendingNFTS.ImageBase64).Then(func(data interface{}) interface{} {
+			nfts, errWhenGettingNFTS := object.GetNFTById1Id2Id3Id4(pendingNFTS.Blockchain, pendingNFTS.NFTIdentifier, pendingNFTS.ImageBase64, pendingNFTS.Version).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if errWhenGettingNFTS != nil {
@@ -452,6 +453,7 @@ func ReleaseLock() (error, string) {
 					Status:        "PROCESSED",
 					ImageBase64:   pendingnft.ImageBase64,
 					User:          pendingnft.User,
+					Version:       pendingnft.Version,
 				}
 				errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
 				if errWhenUpdatingNFTStatus != nil {
