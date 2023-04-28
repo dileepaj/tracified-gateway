@@ -696,6 +696,7 @@ func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingC
 }
 
 func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
+	logrus.Info("-------inserting ----------", NFT)
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while getting session " + err.Error())
@@ -706,7 +707,7 @@ func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
 	_, err = c.InsertOne(context.TODO(), NFT)
 
 	if err != nil {
-		fmt.Println("Error while inserting to NFTStatus " + err.Error())
+		logrus.Info("Error while inserting to NFTStatus " + err.Error())
 	}
 	return err
 }
