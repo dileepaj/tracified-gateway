@@ -3039,6 +3039,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 }
 
 func (cd *Connection) GetNFTById1Id2Id3Id4(blockchain string, nftidentifier string, imagebase64 string, version string) *promise.Promise {
+	logrus.Info("----------data----------", blockchain, nftidentifier, imagebase64, version)
 	result := model.PendingNFTS{}
 	// p := promise.NewPromise()
 
