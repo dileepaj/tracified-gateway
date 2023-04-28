@@ -384,6 +384,7 @@ func SendToQueue(queue model.SendToQueue) error {
 
 // rabbitmq queue message listener
 func ReleaseLock() (error, string) {
+	logrus.Info("-------------------------------Release Lock")
 	object := dao.Connection{}
 	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
@@ -444,9 +445,10 @@ func ReleaseLock() (error, string) {
 			nfts, errWhenGettingNFTS := object.GetNFTById1Id2Id3Id4(pendingNFTS.Blockchain, pendingNFTS.NFTIdentifier, pendingNFTS.ImageBase64, pendingNFTS.Version).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
+			logrus.Info("after getting", errWhenGettingNFTS)
 			if errWhenGettingNFTS != nil {
-				logrus.Error("error when retrieving the nfts")
-				logrus.Info("retreived nfts: ", nfts)
+				logrus.Error("error when retrieving the nfts", nfts)
+				logrus.Info("retreived nfts: ", pendingnft)
 				pendingNFTS := model.PendingNFTS{
 					Blockchain:    pendingnft.Blockchain,
 					NFTIdentifier: pendingnft.NFTIdentifier,
@@ -462,7 +464,7 @@ func ReleaseLock() (error, string) {
 				logrus.Info("NFT update called with status 200")
 				message = pendingNFTS.User
 			}
-			if pendingNFTS.Status == "Processing" {
+			if pendingNFTS.Status == "PROCESSING" {
 				message = "none"
 			}
 		}
