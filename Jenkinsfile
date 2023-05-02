@@ -7,7 +7,7 @@ node {
     checkout scm
 
     stage('Deploy to Staging') {
-      if (env.ENVIRONMENT == 'master') {
+      if (env.BRANCH_NAME == 'master') {
         echo './staging.properties going to load.'
         configFileProvider([configFile(fileId: 'staging-env-file', targetLocation: './')]) {
           load './staging.properties'
@@ -35,7 +35,7 @@ node {
     }
 
     stage('Deploy to qa') {
-      if (env.ENVIRONMENT == 'master') {
+      if (env.BRANCH_NAME == 'master') {
         echo './qa.properties going to load.'
         configFileProvider([configFile(fileId: 'qa-env-file', targetLocation: './')]) {
           load './qa.properties'
