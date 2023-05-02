@@ -9,22 +9,22 @@ node {
     docker.image('golang:1.15.6').inside('-u root') {
         stage('Setup') {
                    echo 'Setting up environment'
-                   echo env.BRANCH_NAME
-                   if (env.BRANCH_NAME == 'staging') {
+                   echo env.ENVIRONMENT
+                   if (env.ENVIRONMENT == 'staging') {
                         echo './staging.properties going to load.'
                         configFileProvider([configFile(fileId: 'staging-env-file', targetLocation: './')]) {
                         load './staging.properties'                        
                         }
                      echo 'load properties done.'
                    }
-                   if (env.BRANCH_NAME == 'qa') {
+                   if (env.ENVIRONMENT == 'qa') {
                         echo './qa.properties going to load.'
                         configFileProvider([configFile(fileId: 'qa-env-file', targetLocation: './')]) {
                         load './qa.properties'
                         }
                       echo 'load properties done.'
                    }
-                   if (env.BRANCH_NAME == 'production') {
+                   if (env.ENVIRONMENT == 'production') {
                         echo './production.properties going to load.'
                         configFileProvider([configFile(fileId: 'production-env-file', targetLocation: './')]) {
                         load './production.properties'
@@ -35,8 +35,8 @@ node {
 
     }
     stage('Deploy to Staging') {
-              echo env.BRANCH_NAME
-              if (env.BRANCH_NAME == 'staging') {
+              echo env.ENVIRONMENT
+              if (env.ENVIRONMENT == 'staging') {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
@@ -57,8 +57,8 @@ node {
               }
     }
         stage('Deploy to qa') {
-              echo env.BRANCH_NAME
-              if (env.BRANCH_NAME == 'qa') {
+              echo env.ENVIRONMENT
+              if (env.ENVIRONMENT == 'qa') {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-qa', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
@@ -79,8 +79,8 @@ node {
               }
     }
         stage('Deploy to production') {
-              echo env.BRANCH_NAME
-              if (env.BRANCH_NAME == 'production') {
+              echo env.ENVIRONMENT
+              if (env.ENVIRONMENT == 'production') {
                 echo 'Building and pushing image'
                 docker.withRegistry('https://453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-prod', 'ecr:ap-south-1:aws-ecr-credentials') {
                   echo 'Building image'
