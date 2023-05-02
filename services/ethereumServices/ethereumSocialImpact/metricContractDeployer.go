@@ -1,6 +1,7 @@
 package ethereumsocialimpact
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -35,10 +36,10 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 	ethMetricObj.ContractAddress = address
 	ethMetricObj.TransactionHash = txnHash
 	ethMetricObj.TransactionCost = deploymentCost
-	ethMetricObj.Status = "PENDING"
+	ethMetricObj.Status = 117
 	if errWhenDeploying != nil {
 		ethMetricObj.ErrorMessage = errWhenDeploying.Error()
-		ethMetricObj.Status = "FAILED"
+		ethMetricObj.Status = 119
 		ethMetricObj.ActualStatus = 111 // DEPLOYMENT_FAILED
 		errorWhenUpdatingStatus1 := object.UpdateSelectedEthMetricFields(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 		if errorWhenUpdatingStatus1 != nil {
@@ -52,10 +53,10 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 			ContractType:    "ETHMETRICBIND",
 			TransactionHash: ethMetricObj.TransactionHash,
 			Identifier:      ethMetricObj.TransactionUUID,
-			Status:          "FAILED",
+			Status:          119,
 			ErrorMessage:    ethMetricObj.ErrorMessage,
 		}
-		errWheninvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, "FAILED", ethMetricObj.ErrorMessage)
+		errWheninvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, 119, ethMetricObj.ErrorMessage)
 		if errWheninvalidatingMetric != nil {
 			logrus.Error("Error when invalidating the metric : " + ethMetricObj.MetricID)
 		}
@@ -69,7 +70,7 @@ func DeployMetricContract(ethMetricObj model.EthereumMetricBind) error {
 		if errWhenUpdatingStatus != nil {
 			logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 		}
-		logrus.Info("Metric update called with status " + ethMetricObj.Status + ". Type: " + ethMetricObj.Type)
+		logrus.Info("Metric update called with status " + strconv.Itoa(ethMetricObj.Status) + ". Type: " + ethMetricObj.Type)
 		logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 		logrus.Info("Deployed expert metric bind smart contract to blockchain")
 		logrus.Info("Contract address : " + address)

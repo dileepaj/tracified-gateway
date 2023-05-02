@@ -2667,7 +2667,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
-		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": "SUCCESS"}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result)	// 118 = SUCCESS
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
@@ -2818,7 +2818,7 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 }
 
 //Get the Ethereum contract status
-func (cd *Connection) GetPendingContractsByStatus(status string) *promise.Promise {
+func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 	result := []model.PendingContracts{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {

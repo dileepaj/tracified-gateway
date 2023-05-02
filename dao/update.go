@@ -1173,7 +1173,7 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 	return err
 }
 
-func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string, errorMessage string) error {
+func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status int, errorMessage string) error {
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
@@ -1191,7 +1191,7 @@ func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status string
 	return nil
 }
 
-func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status string, errorMessage string) error {
+func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status int, errorMessage string) error {
 	session, err := cd.connect()
 	if err != nil {
 		fmt.Println("Error while connecting to DB " + err.Error())
@@ -1256,7 +1256,7 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 	if metricObj.TransactionSender != "" {
 		updateFields = append(updateFields, bson.E{Key: "transactionsender", Value: metricObj.TransactionSender})
 	}
-	if metricObj.Status != "" {
+	if metricObj.Status != 0 {
 		updateFields = append(updateFields, bson.E{Key: "status", Value: metricObj.Status})
 	}
 	if metricObj.ErrorMessage != "" {
@@ -1283,6 +1283,9 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 	if metricObj.User.TenantID != "" {
 		updateFields = append(updateFields, bson.E{Key: "user.tenantID", Value: metricObj.User.TenantID})
 	}	
+	if metricObj.ActualStatus != 0 {
+		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: metricObj.ActualStatus})
+	}
 	filter := bson.D{{Key: "metricid", Value: metricID}, {Key: "transactionuuid", Value: txnUUID}}
 	update := bson.D{{Key: "$set", Value: updateFields}}
 	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
@@ -1333,7 +1336,7 @@ func (cd *Connection) UpdateSelectedEthFormulaFields(formulaID string, txnUUID s
 	if formulaObj.ContractAddress != "" {
 		updateFields = append(updateFields, bson.E{Key: "contractaddress", Value: formulaObj.ContractAddress})
 	}
-	if formulaObj.Status != "" {
+	if formulaObj.Status != 0 {
 		updateFields = append(updateFields, bson.E{Key: "status", Value: formulaObj.Status})
 	}
 	if formulaObj.Timestamp != "" {

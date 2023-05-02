@@ -7,7 +7,7 @@ import (
 )
 
 // Check the contracts type and update the database
-func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, status string) error {
+func UpdateCollectionsWithNewStatus(pendingContract model.PendingContracts, status int) error {
 	object := dao.Connection{}
 
 	// Update main collections

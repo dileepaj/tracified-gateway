@@ -193,13 +193,13 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					pendingContractObj := model.PendingContracts{
 						TransactionHash: "",
 						ContractAddress: "",
-						Status:          "FAILED",
+						Status:          119,	//FAILED
 						CurrentIndex:    0,
 						ErrorMessage:    deploymentError,
 						ContractType:    contractType,
 						Identifier:      contractIdentifier,
 					}
-					errorWhenInvalidating := dbCollectionHandler.InvalidateMetric(pendingContractObj, "FAILED", deploymentError)
+					errorWhenInvalidating := dbCollectionHandler.InvalidateMetric(pendingContractObj, 119, deploymentError)
 					if errorWhenInvalidating != nil {
 						logrus.Error("Error when invalidating the metric, ERROR : " + errorWhenInvalidating.Error())
 					}
@@ -216,7 +216,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				pendingTransaction := model.PendingContracts{
 					TransactionHash: tx.Hash().Hex(),
 					ContractAddress: address.Hex(),
-					Status:          "PENDING",
+					Status:          117,	//PENDING
 					CurrentIndex:    0,
 					ErrorMessage:    "",
 					ContractType:    contractType,
