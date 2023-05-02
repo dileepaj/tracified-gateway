@@ -105,4 +105,4 @@
             RABBITMQ_SERVICE_HOST: "{{ lookup('env','RABBITMQ_SERVICE_HOST') }}"
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
             LOGSTYPE: "{{ lookup('env','LOGSTYPE') }}"
-            QUEUEFLAG:  "{{ lookup('env','QUEUEFLAG') }}"
+            QUEUE_FLAG:  "{{ lookup('env','QUEUE_FLAG') }}"
