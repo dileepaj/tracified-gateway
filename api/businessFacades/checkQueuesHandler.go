@@ -17,7 +17,7 @@ import (
 
 func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if commons.GoDotEnvVariable("QUEUEFLAG") == "TRUE" {
+	if commons.GoDotEnvVariable("QUEUE_FLAG") == "TRUE" {
 		var res model.PendingNFTS
 		decoder := json.NewDecoder(r.Body)
 		decoder.DisallowUnknownFields()
@@ -38,7 +38,7 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 
 func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	if commons.GoDotEnvVariable("QUEUEFLAG") == "TRUE" {
+	if commons.GoDotEnvVariable("QUEUE_FLAG") == "TRUE" {
 		vars := mux.Vars(r)
 		object := dao.Connection{}
 		p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"], vars["version"])
