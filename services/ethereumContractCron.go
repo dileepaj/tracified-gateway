@@ -18,11 +18,6 @@ import (
 )
 
 func CheckContractStatus() {
-
-	log.Debug("---------------------------------------- Check pending Ethereum contracts -----------------------")
-	log.Debug("Ethereum cron job started")
-	cronJobStartTime := time.Now().String()
-
 	object := dao.Connection{}
 	var formulaObj model.EthereumExpertFormula
 	var metricObj model.EthereumMetricBind
@@ -47,7 +42,7 @@ func CheckContractStatus() {
 				if errorInGettingFormulaDetails != nil {
 					logrus.Error("Error when getting the formula details : " + errorInGettingFormulaDetails.Error())
 					continue
-				} 
+				}
 
 				formulaObj = formulaDetails
 			} else if result[i].ContractType == "ETHMETRICBIND" {
@@ -58,7 +53,7 @@ func CheckContractStatus() {
 					continue
 				}
 				metricObj = metricDetails
-				//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction  
+				//check the time difference between the current time and the time of the transaction and if it is less than 10 minutes, skip the transaction
 				givenTimestamp := metricDetails.Timestamp
 				layout := "2006-01-02 15:04:05"
 				// truncate the timestamp to the layout
@@ -74,7 +69,7 @@ func CheckContractStatus() {
 				if timeDifference.Round(time.Second).Minutes() < 10 {
 					// logrus.Info("Transaction " + result[i].TransactionHash + " is less than 10 minutes old, skipping the transaction")
 					continue
-				} 
+				}
 			}
 
 			pendingHash := result[i].TransactionHash
@@ -95,21 +90,21 @@ func CheckContractStatus() {
 				}
 				// updating actual status in the database
 				if result[i].ContractType == "ETHEXPERTFORMULA" {
-					formulaObj.ActualStatus = 115 	// DEPLOYMENT_TRANSACTION_CANCELLED
+					formulaObj.ActualStatus = 115 // DEPLOYMENT_TRANSACTION_CANCELLED
 					errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 					if errWhenUpdatingActualStatus != nil {
 						logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
 						continue
 					}
 				} else if result[i].ContractType == "ETHMETRICBIND" {
-					metricObj.ActualStatus = 115 	// DEPLOYMENT_TRANSACTION_CANCELLED
+					metricObj.ActualStatus = 115 // DEPLOYMENT_TRANSACTION_CANCELLED
 					errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
 					if errWhenUpdatingActualStatus != nil {
 						logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
 						continue
 					}
 				}
-				
+
 				updateCancel.ErrorMessage = "Transaction pending checking capacity met"
 				if result[i].ContractType == "ETHMETRICBIND" {
 					errorWhenInvalidatingTransactions := dbCollectionHandler.InvalidateMetric(updateCancel, updateCancel.Status, updateCancel.ErrorMessage)
@@ -141,12 +136,12 @@ func CheckContractStatus() {
 				} else if transactionReceipt.Status == 1 {
 					//Transaction is successful
 					// update both collections
-					result[i].Status = 118	// SUCCESS
+					result[i].Status = 118 // SUCCESS
 					// use collection update strategy
 					collectionUpdater := &ethereumservices.CollectionServiceContext{}
 					collectionUpdater.SetCollectionServiceStrategy(&ethereumservices.SocialImpactMainCollectionUpdate{
 						PendingContract: result[i],
-						Status:       118,	// SUCCESS
+						Status:          118, // SUCCESS
 					})
 					errInUpdatingDBForSuccessfulTransactions := collectionUpdater.ExecuteCollectionService()
 					if errInUpdatingDBForSuccessfulTransactions != nil {
@@ -156,16 +151,16 @@ func CheckContractStatus() {
 
 					// updating actual status in the database
 					if result[i].ContractType == "ETHEXPERTFORMULA" {
-						formulaObj.Status = 118 // SUCCESS
-						formulaObj.ActualStatus = 113	// DEPLOYMENT_TRANSACTION_SUCCESS
+						formulaObj.Status = 118       // SUCCESS
+						formulaObj.ActualStatus = 113 // DEPLOYMENT_TRANSACTION_SUCCESS
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 						if errWhenUpdatingActualStatus != nil {
 							logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
 							continue
 						}
 					} else if result[i].ContractType == "ETHMETRICBIND" {
-						metricObj.Status = 118 // SUCCESS
-						metricObj.ActualStatus = 113 	// DEPLOYMENT_TRANSACTION_SUCCESS
+						metricObj.Status = 118       // SUCCESS
+						metricObj.ActualStatus = 113 // DEPLOYMENT_TRANSACTION_SUCCESS
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
 						if errWhenUpdatingActualStatus != nil {
 							logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
@@ -194,7 +189,7 @@ func CheckContractStatus() {
 						logrus.Error("Error when inserting the error message : " + errorWhenInsertingErrorMessage.Error())
 					}
 
-					result[i].Status = 119	// FAILED
+					result[i].Status = 119 // FAILED
 					result[i].ErrorMessage = errorOccurred
 
 					if result[i].ContractType == "ETHMETRICBIND" {
@@ -204,8 +199,8 @@ func CheckContractStatus() {
 							continue
 						}
 						// updating status and actual status in the database
-						metricObj.Status = 119 // FAILED
-						metricObj.ActualStatus = 114 	// DEPLOYMENT_TRANSACTION_FAILED
+						metricObj.Status = 119       // FAILED
+						metricObj.ActualStatus = 114 // DEPLOYMENT_TRANSACTION_FAILED
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthMetricFields(metricObj.MetricID, metricObj.TransactionUUID, metricObj)
 						if errWhenUpdatingActualStatus != nil {
 							logrus.Error("Error when updating the actual status of the metric : " + errWhenUpdatingActualStatus.Error())
@@ -218,8 +213,8 @@ func CheckContractStatus() {
 							continue
 						}
 						// updating status and actual status in the database
-						formulaObj.Status = 119 // FAILED
-						formulaObj.ActualStatus = 114	// DEPLOYMENT_TRANSACTION_FAILED
+						formulaObj.Status = 119       // FAILED
+						formulaObj.ActualStatus = 114 // DEPLOYMENT_TRANSACTION_FAILED
 						errWhenUpdatingActualStatus := object.UpdateSelectedEthFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 						if errWhenUpdatingActualStatus != nil {
 							logrus.Error("Error when updating the actual status of the formula : " + errWhenUpdatingActualStatus.Error())
@@ -241,9 +236,9 @@ func CheckContractStatus() {
 								ErrorMessage:    result[i].ErrorMessage,
 								ContractType:    result[i].ContractType,
 								Identifier:      result[i].Identifier,
-								Nonce:    result[i].Nonce,
-								GasPrice: result[i].GasPrice,
-								GasLimit: result[i].GasLimit,
+								Nonce:           result[i].Nonce,
+								GasPrice:        result[i].GasPrice,
+								GasLimit:        result[i].GasLimit,
 							},
 						})
 						contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := deployer.ExecuteContractDeployment()
@@ -253,7 +248,7 @@ func CheckContractStatus() {
 							updatePending := model.PendingContracts{
 								TransactionHash: transactionHash,
 								ContractAddress: contractAddress,
-								Status:          120,	// CANCELLED
+								Status:          120, // CANCELLED
 								CurrentIndex:    result[i].CurrentIndex + 1,
 								ErrorMessage:    errWhenRedeploying.Error(),
 								ContractType:    result[i].ContractType,
@@ -279,7 +274,6 @@ func CheckContractStatus() {
 			}
 
 		}
-		log.Debug("Ethereum cron job completed at " + time.Now().String() + "(for started time : " + cronJobStartTime + ")")
 		return nil
 	}).Catch(func(error error) error {
 		if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
