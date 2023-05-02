@@ -25,7 +25,7 @@ func getPort() string {
 
 func main() {
 	// godotenv package
-	envName := commons.GoDotEnvVariable("BRANCH_NAME")
+	envName := commons.GoDotEnvVariable("ENVIRONMENT")
 
 	// getEnvironment()
 	port := getPort()

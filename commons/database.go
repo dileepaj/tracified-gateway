@@ -41,7 +41,7 @@ func ConstructConnectionPool() {
 	host := GoDotEnvVariable("DBHOST")
 	port := GoDotEnvVariable("DBPORT")
 
-	branch := GoDotEnvVariable("BRANCH_NAME")
+	branch := GoDotEnvVariable("ENVIRONMENT")
 
 	if branch == "production" {
 		mongoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/" + dbName

@@ -243,11 +243,6 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 			TDP[i].TxnHash = response.TXNID
 			UserTxnHashes = append(UserTxnHashes, response.TXNID)
 			status = append(status, true)
-			// TDP[i].Status = "done"
-			// err1 := object.InsertTransaction(TDP[i])
-			// if err1 != nil {
-			// 	status = append(status, false)
-			// }
 		}
 	}
 
