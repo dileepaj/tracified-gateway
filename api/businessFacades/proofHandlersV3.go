@@ -605,6 +605,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	PreviousDecoded, _ := base64.StdEncoding.DecodeString(Previous)
 	CurrentTxnDecoded, _ := base64.StdEncoding.DecodeString(CurrentTxn)
 
+	// POG validation by type and value of the previous  transaction hash
 	if string(TypeDecoded) != "G0" || string(PreviousDecoded) != "" {
 		writer.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "This Transaction is not a Genesis Txn"}
