@@ -49,13 +49,14 @@ func main() {
 		services.CheckTempOrphan()
 	})
 
-	c.AddFunc("@every 1m", func() {
+	c.AddFunc("@every 5m", func() {
 		services.CheckContractStatus()
 	})
 	c.Start()
 	router := routes.NewRouter()
 	// rabbit mq server
 	go rabbitmq.ReceiverRmq()
+	go rabbitmq.ReleaseLock()
 	// serve swagger documentation
 	opts := middleware.SwaggerUIOpts{SpecURL: "/swagger.yaml"}
 	sh := middleware.SwaggerUI(opts, nil)

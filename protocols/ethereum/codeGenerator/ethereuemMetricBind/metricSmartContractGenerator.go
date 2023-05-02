@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -26,7 +27,7 @@ Generate smart contract for metric binding
 */
 func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, metricBindJson model.MetricDataBindingRequest) {
 	object := dao.Connection{}
-	var status string
+	var status int
 	reqType := "METRIC"
 
 	metricDetails, errWhenGettingMetricStatus := object.GetEthMetricStatus(metricBindJson.Metric.ID).Then(func(data interface{}) interface{} {
@@ -36,22 +37,22 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		logrus.Error("An error occurred when getting metric status ", errWhenGettingMetricStatus)
 	}
 	if metricDetails == nil {
-		status = ""
+		status = 0
 	} else {
 		status = metricDetails.(model.EthereumMetricBind).Status
 		logrus.Info("Deploy status : ", status)
 	}
 
-	if status == "SUCCESS" {
+	if status == 118 {
 		logrus.Info("Contract for metric " + metricBindJson.Metric.Name + " has been added to the blockchain")
-		commons.JSONErrorReturn(w, r, "Status : "+status, 400, "Requested metric is in the blockchain")
+		commons.JSONErrorReturn(w, r, "Status : "+ strconv.Itoa(status), 400, "Requested metric is in the blockchain")
 		return
-	} else if status == "QUEUE" {
+	} else if status == 116 {
 		logrus.Info("Requested metric is in the queue, please try again")
-		commons.JSONErrorReturn(w, r, "Status : "+status, 400, "Requested metric is in the queue, please try again")
+		commons.JSONErrorReturn(w, r, "Status : "+strconv.Itoa(status), 400, "Requested metric is in the queue, please try again")
 		return
-	} else if status == "" || status == "FAILED" {
-		if status == "FAILED" {
+	} else if status == 0 || status == 119 {
+		if status == 119 {
 			logrus.Info("Requested metric is in the failed status, trying to redeploy")
 		} else {
 			logrus.Info("New metric bind request, initiating new deployment")
@@ -73,10 +74,10 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 			TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
 			User:              metricBindJson.User,
 			ErrorMessage:      "",
-			Status:            "",
+			Status:            0,
 		}
 
-		if status == "" {
+		if status == 0 {
 			//generate transaction UUID
 			timeNow := time.Now().UTC()
 			entropy := rand.New(rand.NewSource(timeNow.UnixNano()))
@@ -96,16 +97,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		// get the general code snippets (metadata)
 		generalValues, errInGettingCodeSnippets := WriteMetricGeneralCodeSnippets(metricBindJson, contractName)
 		if errInGettingCodeSnippets != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errInGettingCodeSnippets.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -121,16 +122,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		// get the addDetails function code snippet and the valueIDs and formulaIDs
 		formulaIDs, valueIDs, addDetailsFunctionStr, errInGettingAddDetailsFunction := WriteAddDetailsFunction(metricBindJson)
 		if errInGettingAddDetailsFunction != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errInGettingAddDetailsFunction.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -153,16 +154,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//Write contract template into a file
 		fo, errInOutput := os.Create(commons.GoDotEnvVariable("METRICCONTRACTLOCATION") + "/" + contractName + `.sol`)
 		if errInOutput != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errInOutput.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -177,16 +178,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		defer fo.Close()
 		_, errInWritingOutput := fo.Write([]byte(template))
 		if errInWritingOutput != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errInWritingOutput.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -202,16 +203,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//call the ABI generator
 		abiString, errWhenGeneratingABI := deploy.GenerateABI(contractName, reqType)
 		if errWhenGeneratingABI != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errWhenGeneratingABI.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -228,16 +229,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//call the BIN generator
 		binString, errWhenGeneratingBIN := deploy.GenerateBIN(contractName, reqType)
 		if errWhenGeneratingBIN != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errWhenGeneratingBIN.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -255,7 +256,7 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		//generating go file by converting the code to bas64
 		//		goString, errWhenGeneratingGoCode := deploy.GenerateGoCode(contractName)
 		//		if errWhenGeneratingGoCode != nil {
-		//			ethMetricObj.Status = "FAILED"
+		//			ethMetricObj.Status = 119
 		//			ethMetricObj.ErrorMessage = errWhenGeneratingGoCode.Error()
 		//			//call the DB insert method
 		//			errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
@@ -281,16 +282,16 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 
 		errWhenSendingToQueue := rabbitmq.SendToQueue(buildQueueObj)
 		if errWhenSendingToQueue != nil {
-			ethMetricObj.Status = "FAILED"
+			ethMetricObj.Status = 119	//failed
 			ethMetricObj.ErrorMessage = errWhenSendingToQueue.Error()
-			if status == "" {
+			if status == 0 {
 				errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 				if errWhenInsertingMetricToDB != nil {
 					logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 					commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 					return
 				}
-			} else if status == "FAILED" {
+			} else if status == 119 {	//failed
 				errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 				if errWhenUpdatingMetricToDB != nil {
 					logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -304,15 +305,15 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		}
 
 		logrus.Info("Metric details is added to the queue")
-		ethMetricObj.Status = "QUEUE"
-		if status == "" {
+		ethMetricObj.Status = 116	//QUEUE
+		if status == 0 {
 			errWhenInsertingMetricToDB := object.InsertToEthMetricDetails(ethMetricObj)
 			if errWhenInsertingMetricToDB != nil {
 				logrus.Error("Error while inserting metric details to the DB " + errWhenInsertingMetricToDB.Error())
 				commons.JSONErrorReturn(w, r, errWhenInsertingMetricToDB.Error(), http.StatusInternalServerError, "Error while inserting metric details to the DB ")
 				return
 			}
-		} else if status == "FAILED" {
+		} else if status == 119 {	//failed
 			errWhenUpdatingMetricToDB := object.UpdateEthereumMetricStatus(ethMetricObj.MetricID, ethMetricObj.TransactionUUID, ethMetricObj)
 			if errWhenUpdatingMetricToDB != nil {
 				logrus.Error("Error while updating metric details to the DB " + errWhenUpdatingMetricToDB.Error())
@@ -332,8 +333,8 @@ func SmartContractGeneratorForMetric(w http.ResponseWriter, r *http.Request, met
 		return
 
 	} else {
-		logrus.Info("Invalid metric status " + status)
-		commons.JSONErrorReturn(w, r, status, http.StatusInternalServerError, "Invalid metric status : ")
+		logrus.Info("Invalid metric status " + strconv.Itoa(status))
+		commons.JSONErrorReturn(w, r, strconv.Itoa(status), http.StatusInternalServerError, "Invalid metric status : ")
 		return
 	}
 

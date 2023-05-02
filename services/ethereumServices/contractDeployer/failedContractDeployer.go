@@ -178,7 +178,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 				pendingTransaction := model.PendingContracts{
 					TransactionHash: tx.Hash().Hex(),
 					ContractAddress: address.Hex(),
-					Status:          "PENDING",
+					Status:          117,
 					CurrentIndex:    failedContract.CurrentIndex + 1,
 					ErrorMessage:    "",
 					ContractType:    failedContract.ContractType,

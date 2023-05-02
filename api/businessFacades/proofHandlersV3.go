@@ -68,17 +68,34 @@ Finally Returns the Response given by the POE Interpreter
 */
 func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	vars := mux.Vars(r)
 
 	var result model.TransactionCollectionBody
 	object := dao.Connection{}
 	var CurrentTxn string
-	p := object.GetTransactionForTdpId(vars["Txn"])
+	key1, errorInGettingKey1 := r.URL.Query()["tdpId"]
+	if !errorInGettingKey1 || len(key1[0]) < 1 {
+		log.Error("Url Parameter 'tdpId' is missing")
+		return
+	}
+	key2, errorInGettingKey2 := r.URL.Query()["seqNo"]
+	if !errorInGettingKey2 || len(key2[0]) < 1 {
+		log.Error("Url Parameter 'seqNo' is missing")
+		return
+	}
+	sequenceNo, errInConv := strconv.ParseInt(key2[0], 10, 64)
+	if errInConv != nil {
+		log.Error("Error while converting sequenceNo to int64 " + errInConv.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "The parameter should be an integer " + errInConv.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	p := object.GetTransactionForTdpIdSequence(key1[0], sequenceNo)
 	p.Then(func(data interface{}) interface{} {
 		result = data.(model.TransactionCollectionBody)
 		return nil
 	}).Catch(func(error error) error {
-		log.Error("Error while GetTransactionForTdpId " + error.Error())
+		log.Error("Error while GetTransactionForTdpIdSequence " + error.Error())
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(w).Encode(response)

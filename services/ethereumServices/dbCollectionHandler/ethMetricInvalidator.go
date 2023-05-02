@@ -2,13 +2,14 @@ package dbCollectionHandler
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 )
 
-func InvalidateMetric(pendingContract model.PendingContracts, status string, errorMessage string) error {
+func InvalidateMetric(pendingContract model.PendingContracts, status int, errorMessage string) error {
 	object := dao.Connection{}
 
 	metricID := ""
@@ -63,7 +64,7 @@ func InvalidateMetric(pendingContract model.PendingContracts, status string, err
 				return errors.New("error when updating the collections: " + errorWhenUpdatingCollections.Error())
 			}
 		}
-		logrus.Info("Invalidated all the contracts for the metric " + metricID + " with status: " + status)
+		logrus.Info("Invalidated all the contracts for the metric " + metricID + " with status: " + strconv.Itoa(status))
 
 	} else {
 		return errors.New("no metrics found for the given metric id")

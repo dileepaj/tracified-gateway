@@ -42,7 +42,7 @@ var routes = Routes{
 	Route{
 		"POE",
 		"GET",
-		"/proof/poe/{Txn}",
+		"/proof/poe",
 		businessFacades.CheckPOEV3, // Calls the Functional POE for Gateway Version 3
 	},
 	Route{
@@ -610,5 +610,23 @@ var routes = Routes{
 		"POST",
 		"/atatransfer",
 		businessFacades.TransferNFTS, //Calls the MintNFTSolana in the nftHandler to mint in Solana
+	},
+	Route{
+		"LockAquired",
+		"POST",
+		"/lock",
+		businessFacades.BuyHandlerLock, //Calls the BuyHandlerLock in the nftHandler to queue the buy requests
+	},
+	Route{
+		"GetQueuedByImageBase64AndBlockchain",
+		"GET",
+		"/queue/{ImageBase64}/{blockchain}/{version}",
+		businessFacades.RetrieveQueueData, //Calls the RetrieveQueueData from Queue after being processed
+	},
+	Route{
+		"BlockchainTreeRetrieverWithHashMerkleTree",
+		"GET",
+		"/pocv4/merkletree/{txn}",
+		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
 }
