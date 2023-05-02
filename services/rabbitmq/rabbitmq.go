@@ -1,4 +1,4 @@
-package services
+package rabbitmq
 
 import (
 	"bytes"
@@ -114,7 +114,7 @@ func ReceiverRmq() error {
 					Timestamp:             time.Now().String(),
 					TxnUUID:               queue.MetricBinding.TxnUUID,
 					ActivityManageDataMap: queue.MetricBinding.ActivityManageDataMap,
-					TransactionOrderCount:         queue.TransactionCount +1,
+					TransactionOrderCount: queue.TransactionCount + 1,
 				}
 				if err != nil {
 					metricBindingStore.ErrorMessage = err.Error()
@@ -197,12 +197,12 @@ func ReceiverRmq() error {
 				// use deployment strategy
 				expertDeployer := &ethereumservices.ContractDeployerContext{}
 				expertDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
-					ABI: queue.EthereumExpertFormula.ABIstring,
-					BIN: queue.EthereumExpertFormula.BINstring,
-					Identifier: queue.EthereumExpertFormula.TransactionUUID,
-					ContractType: 	 "ETHEXPERTFORMULA",
-					OtherParams: []any{queue.EthereumExpertFormula},
-					})			
+					ABI:          queue.EthereumExpertFormula.ABIstring,
+					BIN:          queue.EthereumExpertFormula.BINstring,
+					Identifier:   queue.EthereumExpertFormula.TransactionUUID,
+					ContractType: "ETHEXPERTFORMULA",
+					OtherParams:  []any{queue.EthereumExpertFormula},
+				})
 				//Call the deploy method
 				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := expertDeployer.ExecuteContractDeployment()
 				ethExpertFormulaObj := model.EthereumExpertFormula{
@@ -261,11 +261,11 @@ func ReceiverRmq() error {
 				// use deployment strategy
 				metricDeployer := &ethereumservices.ContractDeployerContext{}
 				metricDeployer.SetContractDeploymentStrategy(&ethereumservices.AbstractContractDeployment{
-					ABI: queue.EthereumMetricBind.ABIstring,
-					BIN: queue.EthereumMetricBind.BINstring,
-					Identifier: queue.EthereumMetricBind.TransactionUUID,
-					ContractType: 	 "ETHMETRICBIND",
-					OtherParams: []any{queue.EthereumMetricBind},
+					ABI:          queue.EthereumMetricBind.ABIstring,
+					BIN:          queue.EthereumMetricBind.BINstring,
+					Identifier:   queue.EthereumMetricBind.TransactionUUID,
+					ContractType: "ETHMETRICBIND",
+					OtherParams:  []any{queue.EthereumMetricBind},
 				})
 				//Call the deploy method
 				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := metricDeployer.ExecuteContractDeployment()
@@ -290,7 +290,7 @@ func ReceiverRmq() error {
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.EthereumMetricBind.Type,
 					FormulaID:         queue.EthereumMetricBind.FormulaID,
-					ActualStatus: 	   queue.EthereumMetricBind.ActualStatus,
+					ActualStatus:      queue.EthereumMetricBind.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
@@ -305,7 +305,7 @@ func ReceiverRmq() error {
 					pendingContract := model.PendingContracts{
 						ContractAddress: ethMetricObj.ContractAddress,
 						ContractType:    "ETHMETRICBIND",
-						Identifier: ethMetricObj.TransactionUUID,
+						Identifier:      ethMetricObj.TransactionUUID,
 						TransactionHash: ethMetricObj.TransactionHash,
 						Status: 		119,	// FAILED
 						ErrorMessage: ethMetricObj.ErrorMessage,
@@ -380,5 +380,146 @@ func SendToQueue(queue model.SendToQueue) error {
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to publish a message", err)
 	}
+	return nil
+}
+
+// rabbitmq queue message listener
+func ReleaseLock() (error, string) {
+	logrus.Info("-------------------------------Release Lock")
+	object := dao.Connection{}
+	var message string
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
+	if err != nil {
+		logrus.Error("rabbitmq connection issue ", err)
+		return err, ""
+	}
+	defer conn.Close()
+
+	channel, err := conn.Channel()
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to open a channel", err)
+	}
+	defer channel.Close()
+
+	// Declare the queue
+	queuelock, err := channel.QueueDeclare(
+		"buyingnfts",
+		true,  // durable
+		false, // delete when unused
+		false, // exclusive
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return err, ""
+	}
+
+	// Acknowledge the message to release the lock
+	msgs, err := channel.Consume(
+		queuelock.Name,
+		"",
+		false, // auto-ack
+		false, // exclusive
+		false, // no-local
+		false, // no-wait
+		nil,   // arguments
+	)
+	if err != nil {
+		return err, ""
+	}
+	var forever chan struct{}
+	go func() {
+		for d := range msgs {
+			var pendingnft model.PendingNFTS
+			if err := json.Unmarshal(d.Body, &pendingnft); err != nil {
+				logrus.Error("Unmarshal in rabbitmq reciverRmq ", err.Error())
+			}
+			pendingNFTS := model.PendingNFTS{
+				Blockchain:    pendingnft.Blockchain,
+				NFTIdentifier: pendingnft.NFTIdentifier,
+				Status:        pendingnft.Status,
+				ImageBase64:   pendingnft.ImageBase64,
+				User:          pendingnft.User,
+				Version:       pendingnft.Version,
+			}
+			nfts, errWhenGettingNFTS := object.GetNFTById1Id2Id3Id4(pendingNFTS.Blockchain, pendingNFTS.NFTIdentifier, pendingNFTS.ImageBase64, pendingNFTS.Version).Then(func(data interface{}) interface{} {
+				return data
+			}).Await()
+			logrus.Info("after getting", errWhenGettingNFTS)
+			if errWhenGettingNFTS != nil {
+				logrus.Error("error when retrieving the nfts", nfts)
+				logrus.Info("retreived nfts: ", pendingnft)
+				pendingNFTS := model.PendingNFTS{
+					Blockchain:    pendingnft.Blockchain,
+					NFTIdentifier: pendingnft.NFTIdentifier,
+					Status:        "PROCESSED",
+					ImageBase64:   pendingnft.ImageBase64,
+					User:          pendingnft.User,
+					Version:       pendingnft.Version,
+				}
+				errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
+				if errWhenUpdatingNFTStatus != nil {
+					logrus.Error("Error when updating the status of the NFT ")
+				}
+				logrus.Info("NFT update called with status 200")
+				message = pendingNFTS.User
+			}
+			if pendingNFTS.Status == "PROCESSING" {
+				message = "none"
+			}
+		}
+	}()
+	logrus.Info(" [*] release lock Waiting for messages. To exit press CTRL+C")
+	<-forever
+	return nil, message
+}
+
+// push element to rabbitmq queue
+func LockRequest(pendingNFTS model.PendingNFTS) error {
+	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
+	conn, err := amqp.Dial(rabbitConnection)
+	if err != nil {
+		logrus.Error("rabbitmq connection issue LockRequest", err)
+		return err
+	}
+	defer conn.Close()
+
+	ch, err := conn.Channel()
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to open a channel LockRequest", err)
+		return err
+	}
+	defer ch.Close()
+
+	q, err := ch.QueueDeclare(
+		"buyingnfts", // name
+		true,         // durable
+		false,        // delete when unused
+		false,        // exclusive
+		false,        // no-wait
+		nil,          // arguments
+	)
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to declare a queue LockRequest", err)
+	}
+	reqBodyBytes := new(bytes.Buffer)
+	json.NewEncoder(reqBodyBytes).Encode(pendingNFTS)
+	body := reqBodyBytes.Bytes()
+	err = ch.Publish(
+		"",     // exchange
+		q.Name, // routing key
+		false,  // mandatory
+		false,
+		amqp.Publishing{
+			DeliveryMode: amqp.Persistent,
+			ContentType:  "application/json",
+			Body:         []byte(body),
+		})
+
+	if err != nil {
+		logrus.Error("%s: %s", "Failed to publish a message LockRequest", err)
+	}
+
 	return nil
 }

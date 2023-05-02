@@ -307,8 +307,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	//fmt.Println("TDP that came from FO -> Backend", TDP,len(TDP))
-	//fmt.Println("TDP from FO -> Backend", TDP[0].TxnType)
+
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	// display.SubmitData(w,r,true)
 	display.SubmitSpecial(w, r)
@@ -355,7 +354,7 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSplit(w, r)
+	display.SubmitSpecialSplit(w, r)
 
 	return
 }
@@ -400,7 +399,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	logrus.Info(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitMerge(w, r)
+	display.SubmitSpecialMerge(w, r)
 
 	return
 }

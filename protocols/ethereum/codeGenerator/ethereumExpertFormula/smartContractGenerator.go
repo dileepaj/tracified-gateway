@@ -16,7 +16,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula/executionTemplates"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/deploy"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
-	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/oklog/ulid"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/text/cases"
@@ -431,7 +431,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		//add to queue
-		errWhenSendingToQueue := services.SendToQueue(buildQueueObj)
+		errWhenSendingToQueue := rabbitmq.SendToQueue(buildQueueObj)
 		if errWhenSendingToQueue != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenSendingToQueue.Error()
