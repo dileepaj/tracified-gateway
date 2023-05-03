@@ -104,7 +104,7 @@ type PrevTxnResponse struct {
 	Blockchain      string
 	Txnhash         string
 	TxnType         string
-	SequenceNo      int64
+	SequenceNo      string
 	Url             string
 	LabUrl          string
 	From            string
