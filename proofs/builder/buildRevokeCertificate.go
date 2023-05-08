@@ -159,7 +159,7 @@ func (AP *AbstractCertificateSubmiter) SubmitRevokeCertificate(w http.ResponseWr
 			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
 			kp,_ := keypair.Parse(publicKey)
-			client := commons.GetHorizonNetwork()
+			client := commons.GetHorizonClient()
 			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 			pubaccount, err := client.AccountDetail(ar)
 			if err != nil {

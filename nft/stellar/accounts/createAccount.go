@@ -32,7 +32,7 @@ func CreateIssuerAccount() (string, string, []byte, error) {
 	issuerPK := commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")
 	issuerSK := commons.GoDotEnvVariable("NFTSTELLARISSUERSECRETKEY")
 	request := horizonclient.AccountRequest{AccountID: issuerPK}
-	issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
+	issuerAccount, err := commons.GetHorizonClient().AccountDetail(request)
 	if err != nil {
 		logrus.Error(err)
 		return "", "", nil, err

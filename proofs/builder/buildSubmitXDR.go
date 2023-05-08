@@ -50,7 +50,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 	}
 	// accountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	// account, err := netClient.AccountDetail(accountRequest)
-	client := commons.GetHorizonNetwork()
+	client := commons.GetHorizonClient()
 	ar := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := client.AccountDetail(ar)
 	if err != nil {
