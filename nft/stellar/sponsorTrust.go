@@ -7,7 +7,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -57,7 +56,7 @@ func SponsorTrust(buyerPK string, nftname string, issuer string) (string, error)
 	sposorerSK := commons.GoDotEnvVariable("SPONSORERSK")
 	sponsorerKeypair, _ := keypair.ParseFull(sposorerSK)
 
-	txe64, err := tx.Sign(network.TestNetworkPassphrase, sponsorerKeypair)
+	txe64, err := tx.Sign(commons.GetStellarNetwork(), sponsorerKeypair)
 	if err != nil {
 		hError := err.(*horizonclient.Error)
 		log.Fatal("Error when submitting the transaction : ", hError)
