@@ -1,4 +1,4 @@
-package dao
+package connections
 
 import (
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -8,8 +8,9 @@ import (
 // Get db name from .env file
 var dbName = commons.GoDotEnvVariable("DBNAME")
 
-type Connection struct{}
+type DemoConnection struct {
+}
 
-func (cd *Connection) connect() (mongo.Session, error) {
+func (dcd *DemoConnection) DbConnection() (mongo.Session, error) {
 	return commons.GetMongoSession()
 }
