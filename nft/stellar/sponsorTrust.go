@@ -11,7 +11,7 @@ import (
 )
 
 func SponsorTrust(buyerPK string, nftname string, issuer string) (string, error) {
-	client := horizonclient.DefaultTestNetClient
+	client := commons.GetHorizonClient()
 
 	beginSponsorship1 := txnbuild.BeginSponsoringFutureReserves{
 		SponsoredID:   buyerPK,

@@ -11,7 +11,7 @@ import (
 )
 
 func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string, error) {
-	client := horizonclient.DefaultTestNetClient
+	client := commons.GetHorizonClient()
 	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
 		SponsoredID:   buyerPK,
 		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
