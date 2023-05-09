@@ -22,10 +22,12 @@ tags:
   - name: organizations
     description: Get, Insert & Update Organizations
   - name: socialimpact
-    description: Social impact create pool and coin convertions
+    description: Social impact building formulas and mertic binding
   - name: testimonials
     description: Retrieve, insert, update testimonials
   - name: proof presentation
+  - name: trustnetwork
+  - name: pgp
 
 paths:
   /health:
@@ -1275,134 +1277,53 @@ paths:
               schema:
                 $ref: "#/components/schemas/SubmitXDRSuccess"
 
-  /socialimapact/batch/pool:
+  /socialimapact/buildformula:
     post:
       tags:
         - socialimpact
-      description: Creating liquidity pools for the equation - batch
+      description: Storing the social impact equation on blockchain
       requestBody:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/PoolCreate"
+              $ref: "#/components/schemas/FormulaBuildingRequest"
       responses:
         200:
-          description: Pool added to the Queue
-        400:
-          description: Error while Decoding the body
-
-  /socialimapact/batch/coinconvert:
-    post:
-      tags:
-        - socialimpact
-      description: Trade the coin - batch
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CoinConvert"
-      responses:
-        200:
-          description: Path payment added to queue
-        400:
-          description: Error while Decoding the body
-
-  /socialimapact/artifact/pool:
-    post:
-      tags:
-        - socialimpact
-      description: Creating liquidity pools for the equation - artifact
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/PoolCreate"
-      responses:
-        200:
-          description: Pool added to the Queue
-        400:
-          description: Error while Decoding the body
-
-  /socialimapact/artifact/coinconvert:
-    post:
-      tags:
-        - socialimpact
-      description: Trade the coin - artifact
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CoinConvert"
-      responses:
-        200:
-          description: Path payment added to queue
-        400:
-          description: Error while Decoding the body
-
-  /socialimapact/accont:
-    post:
-      tags:
-        - socialimpact
-      description: Calculates the final coin value for both batch and artifact
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/CoinCalculation"
-      responses:
-        200:
-          description: ""
+          description: Success building expert formula
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/CoinCalculationResponse"
+                $ref: "#/components/schemas/SuccessResponseExpertFormula"
         400:
-          description: Error while Decoding the body
-
-  /socialimpact/pathPaymentDetails:
-    get:
-      tags:
-        - socialimpact
-      description: Get path payment details
-      parameters:
-        - in: query
-          name: tenantid
-          description: Tenant ID
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: equationid
-          description: Equation ID
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: formulatype
-          description: Formula Type
-          required: true
-          schema:
-            type: string
-        - in: query
-          name: productname
-          description: Product Name
-          required: true
-          schema:
-            type: string
-      responses:
-        200:
-          description: ""
+          description: Error
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    Coinconertions:
-                      type: array
-                      items:
-                        $ref: "#/components/schemas/Coinconertions"
+                $ref: "#/components/schemas/Error"
+
+  /socialimapact/metricbinding:
+    post:
+      tags:
+        - socialimpact
+      description: Binding metrics with traceability data and Master data
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MetricDataBindingRequest"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponseMetricBinding"
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 
   /blockchain/{txn}:
     get:
@@ -1595,15 +1516,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /nft/mintSolana/getMinter/{ImageBase64}:
+  /nft/minter/{ImageBase64}/{blockchain}:
     get:
       tags:
         - nft
-      description: Get minter by Base64 image
+      description: Get minter by Base64 image and blockchain
       parameters:
         - name: ImageBase64
           in: path
           description: Base64 image
+          required: true
+          schema:
+            type: string
+        - name: blockchain
+          in: path
+          description: Blockchain
           required: true
           schema:
             type: string
@@ -1621,15 +1548,21 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /nft/mintStellar/gettxn/{ImageBase64}:
+  /nft/gettxn/{ImageBase64}/{blockchain}:
     get:
       tags:
         - nft
-      description: Get stellar txn by Base64 image
+      description: Get stellar txn by Base64 image and blockchain
       parameters:
         - name: ImageBase64
           in: path
           description: Base64 image
+          required: true
+          schema:
+            type: string
+        - name: blockchain
+          in: path
+          description: Blockchain
           required: true
           schema:
             type: string
@@ -1647,11 +1580,11 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /nft/retriveNFTByStatusAndPK:
+  /nft/getnft:
     get:
       tags:
         - nft
-      description: Retrieve NFT status by public key
+      description: Retrieve NFT by status and public key
       parameters:
         - in: query
           name: sellingstatus
@@ -1681,7 +1614,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/Error"
 
-  /nft/createNFTIssuerAccount:
+  /nft/issueaccount:
     get:
       tags:
         - nft
@@ -1696,7 +1629,7 @@ paths:
         500:
           description: Internal server error
 
-  /nft/updateStellarMarketplaceSell:
+  /nft/updatesell:
     put:
       tags:
         - nft
@@ -1740,7 +1673,7 @@ paths:
               schema:
                 $ref: "#/components/schemas/SubmitXDRSuccess"
 
-  /nft/updateStellarMarketplaceBuy:
+  /nft/updatebuy:
     put:
       tags:
         - nft
@@ -1835,6 +1768,408 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /nft/sponsor:
+    get:
+      tags:
+        - nft
+      description: Sponsor account
+      parameters:
+        - in: query
+          name: publickey
+          description: Public Key
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: nftName
+          description: NFT Name
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: issuer
+          description: Issuer
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/XDRRuri"
+        400:
+          description: Error when sponsoring account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /nft/sponsortrust:
+    get:
+      tags:
+        - nft
+      description: Sponsor account
+      parameters:
+        - in: query
+          name: publickey
+          description: Public Key
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: nftName
+          description: NFT Name
+          required: true
+          schema:
+            type: string
+        - in: query
+          name: issuer
+          description: Issuer
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/XDRRuri"
+        400:
+          description: Error when updating buying status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /trustnetwork/sponsor:
+    get:
+      tags:
+        - trustnetwork
+      parameters:
+        - name: publickey
+          in: query
+          description: Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/XDRRuri"
+
+        400:
+          description: Error when sponsoring account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
+  /trustnetwork:
+    post:
+      tags:
+        - trustnetwork
+      description: Save Trust Network User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrustNetWorkUser"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RSAKeySaveSuccess"
+        400:
+          description: Error while Decoding the body
+
+    get:
+      tags:
+        - trustnetwork
+      description: Get all trust network users
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoggedInTrustNetworkUser"
+
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+    put:
+      tags:
+        - trustnetwork
+      description: Update Password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UpdateTrustNetworkUserPassword"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /trustnetwork/{id}:
+    get:
+      tags:
+        - trustnetwork
+      description: Get trust networkuser by ID
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoggedInTrustNetworkUser"
+
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /trustnetwork/validate/{password}:
+    get:
+      tags:
+        - trustnetwork
+      description: Get trust networkuser by encryptedpassword
+      parameters:
+        - name: password
+          in: path
+          description: Password
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoggedInTrustNetworkUser"
+
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /trustnetwork/endorse:
+    put:
+      tags:
+        - trustnetwork
+      description: Endorse User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptUserEndorsment"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EndorsmentUpdateSuccess"
+        400:
+          description: Error
+
+  /trustnetwork/login:
+    put:
+      tags:
+        - trustnetwork
+      description: Login User
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserLogin"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoggedInTrustNetworkUser"
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /trustnetwork/endorsements/{id}:
+    get:
+      tags:
+        - trustnetwork
+      description: Get User endorsement count
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/TrustNetworkUserEndorsmentCount"
+
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /trustnetwork/reset:
+    put:
+      tags:
+        - trustnetwork
+      description: Reset Trust Network password
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ResetPasswordRequest"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SuccessResponse"
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /pgp:
+    post:
+      tags:
+        - pgp
+      description: Save PGP Key
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RSAKeyPair"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RSAKeySaveSuccess"
+        400:
+          description: Error while Decoding the body
+
+  /pgp/{sha256pk}:
+    get:
+      tags:
+        - pgp
+      description: Retrieve PGP Public Key
+      parameters:
+        - name: sha256pk
+          in: path
+          description: SHA256 Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RSAPublickey"
+
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /pgp/:
+    post:
+      tags:
+        - pgp
+      description: Save PGP account details
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PGPAccount"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PGPAccount"
+        400:
+          description: Error while Decoding the body
+
+  /pgp/getaccounts/{stellarPublicKey}:
+    get:
+      tags:
+        - pgp
+      description: Get PGP Public Key and Username
+      parameters:
+        - name: stellarPublicKey
+          in: path
+          description: Stellar Public Key
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PGPAccount"
+        400:
+          description: Error
 
   /transaction/type/{TType}:
     post:
@@ -1998,6 +2333,101 @@ paths:
                 $ref: "#/components/schemas/PoeSuccess"
         400:
           description: Error while Decoding the body
+
+  /pocv4/merkletree/{txn}:
+    get:
+      parameters:
+        - name: txn
+          in: path
+          description: Transaction hash
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/POCTreeV4"
+
+  /queue/{ImageBase64}/{blockchain}/{version}:
+    get:
+      tags:
+        - nft
+      description: Get Queued By Image Base64 And Blockchain
+      parameters:
+        - name: ImageBase64
+          in: path
+          description: Base64 Image
+          required: true
+          schema:
+            type: string
+        - name: blockchain
+          in: path
+          description: Blockchain
+          required: true
+          schema:
+            type: string
+        - name: version
+          in: path
+          description: Version
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PendingNFTS"
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /atatransfer:
+    post:
+      tags:
+        - nft
+      description: Transfer NFT on Solana
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NFTTransfer"
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: string
+        400:
+          description: Error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+
+  /lock:
+    post:
+      tags:
+        - nft
+      description: Lock Aquired
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PendingNFTS"
+      responses:
+        200:
+          description: Success
+        400:
+          description: Error
 
 components:
   schemas:
@@ -2609,7 +3039,7 @@ components:
         ProductId:
           type: string
         Metric:
-          type: object  
+          type: object
           properties:
             id:
               type: string
@@ -2633,11 +3063,11 @@ components:
             stageId:
               type: string
             tracifiedItemId:
-              type: string 
+              type: string
             productName:
-              type: string   
+              type: string
         FormulaAsString:
-          type: string    
+          type: string
         Subsets:
           type: array
           items:
@@ -2669,8 +3099,6 @@ components:
         UpdatedAt:
           type: string
 
-
-
     CoinConvert:
       type: object
       properties:
@@ -2680,7 +3108,7 @@ components:
           type: number
           format: float
         Metric:
-          type: object  
+          type: object
           properties:
             id:
               type: string
@@ -2693,7 +3121,7 @@ components:
             fullCoinName:
               type: string
             coinName:
-              type: string  
+              type: string
         Inputs:
           type: array
           items:
@@ -2704,14 +3132,14 @@ components:
               id:
                 type: string
               key:
-                type: string  
+                type: string
               input:
                 type: number
                 format: float
               generatedName:
                 type: string
               description:
-                type: string   
+                type: string
         Event:
           type: array
           items:
@@ -2722,7 +3150,7 @@ components:
               id:
                 type: string
               model:
-                type: string  
+                type: string
               details:
                 type: array
                 items:
@@ -2737,28 +3165,26 @@ components:
                     tracifiedItemId:
                       type: string
                     tracifiedItemName:
-                      type: string 
+                      type: string
                     identifier:
                       type: array
                       items:
-                          type: object
-                          properties:
-                                  identifier:
-                                    type: string
-                                  type:
-                                    type: string
+                        type: object
+                        properties:
+                          identifier:
+                            type: string
+                          type:
+                            type: string
         Type:
-          type: string  
+          type: string
         MetricFormulaId:
-          type: string 
+          type: string
         MetricActivityId:
-          type: string  
+          type: string
         TenantId:
-          type: string  
+          type: string
         CreatedAt:
-          type: string                     
-
-
+          type: string
 
     CoinCalculation:
       type: object
@@ -2977,6 +3403,8 @@ components:
         NFTTxnHash:
           type: string
         NFTIdentifier:
+          type: string
+        CreatorUserID:
           type: string
 
     StellarMintTXN:
@@ -3279,6 +3707,622 @@ components:
         PreviousTXNID:
           type: string
         PreviousProfileID:
+          type: string
+        Message:
+          type: string
+
+    TransactionCollectionBody:
+      type: object
+      properties:
+        Identifier:
+          type: string
+        RealIdentifier:
+          type: string
+        TdpId:
+          type: string
+        SequenceNo:
+          type: integer
+        ProfileID:
+          type: string
+        TxnHash:
+          type: string
+        PreviousTxnHash:
+          type: string
+        FromIdentifier1:
+          type: string
+        FromIdentifier2:
+          type: string
+        ToIdentifier:
+          type: string
+        MapIdentifier1:
+          type: string
+        MapIdentifier2:
+          type: string
+        MapIdentifier:
+          type: string
+        ItemCode:
+          type: string
+        ItemAmount:
+          type: string
+        PublicKey:
+          type: string
+        TxnType:
+          type: string
+        XDR:
+          type: string
+        Status:
+          type: string
+        MergeID:
+          type: string
+        Orphan:
+          type: boolean
+        PreviousStage:
+          type: string
+        CurrentStage:
+          type: string
+        AppAccount:
+          type: string
+        DataHash:
+          type: string
+        ProductName:
+          type: string
+        ProductID:
+          type: string
+        PreviousSplitProfile:
+          type: string
+        CurrentTxnHash:
+          type: string
+        PreviousTxnHash2:
+          type: string
+        MergeBlock:
+          type: integer
+        TenantID:
+          type: string
+        StageID:
+          type: string
+
+    POCNode:
+      type: object
+      properties:
+        Id:
+          type: string
+        Data:
+          $ref: "#/components/schemas/TransactionCollectionBody"
+        Parents:
+          type: array
+          items:
+            type: string
+        Children:
+          type: array
+          items:
+            type: string
+        Siblings:
+          type: array
+          items:
+            type: string
+        TrustLinks:
+          type: array
+          items:
+            type: string
+
+    POCTreeV4:
+      type: object
+      properties:
+        TxnHash:
+          type: string
+        LastTxnHash:
+          type: string
+        Level:
+          type: integer
+        Nodes:
+          type: array
+          items:
+            $ref: "#/components/schemas/POCNode"
+
+    XDRRuri:
+      type: object
+      properties:
+        XDR:
+          type: string
+
+    MetricReference:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        MeasurementUnit:
+          type: string
+        Description:
+          type: string
+        Reference:
+          type: string
+
+    FormulaItemRequest:
+      type: object
+      properties:
+        ID:
+          type: string
+        Value:
+          type: string
+        Name:
+          type: string
+        Description:
+          type: string
+        Key:
+          type: string
+        Type:
+          type: string
+        MeasurementUnit:
+          type: string
+        MetricReferenceId:
+          type: string
+        Precision:
+          type: integer
+        MetricReference:
+          $ref: "#/components/schemas/MetricReference"
+
+    ExpertFormula:
+      type: object
+      properties:
+        Blockchain:
+          type: string
+        ID:
+          type: string
+        Name:
+          type: string
+        Description:
+          type: string
+        Formula:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaItemRequest"
+        FormulaAsString:
+          type: string
+        FormulaAsQuery:
+          type: string
+        CreatedAt:
+          type: string
+        UpdatedAt:
+          type: string
+
+    Verify:
+      type: object
+      properties:
+        Payload:
+          type: string
+        PublicKey:
+          type: string
+        Signature:
+          type: string
+
+    FormulaBuildingRequest:
+      type: object
+      properties:
+        MetricExpertFormula:
+          $ref: "#/components/schemas/ExpertFormula"
+        Verify:
+          $ref: "#/components/schemas/Verify"
+
+    SuccessResponseExpertFormula:
+      type: object
+      properties:
+        Code:
+          type: integer
+        FormulaID:
+          type: string
+        Message:
+          type: string
+
+    StageReq:
+      type: object
+      properties:
+        StageID:
+          type: string
+        Name:
+          type: string
+
+    ArtifactTemplate:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        FieldName:
+          type: string
+
+    FormulaDetails:
+      type: object
+      properties:
+        ID:
+          type: string
+        Key:
+          type: string
+        Field:
+          type: string
+        Type:
+          type: integer
+        ArtifactTemplateID:
+          type: string
+        ArtifactTemplate:
+          $ref: "#/components/schemas/ArtifactTemplate"
+        Description:
+          type: string
+
+    FullFormula:
+      type: object
+      properties:
+        Type:
+          type: string
+        Value:
+          type: string
+        Name:
+          type: string
+        ID:
+          type: integer
+        Key:
+          type: string
+
+    MetricExpertFormula:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        Formula:
+          type: array
+          items:
+            $ref: "#/components/schemas/FullFormula"
+        FormulaAsString:
+          type: string
+        FormulaAsQuery:
+          type: string
+        CreatedAt:
+          type: string
+        UpdatedAt:
+          type: string
+
+    PivotFields:
+      type: object
+      properties:
+        Name:
+          type: string
+        Condition:
+          type: string
+        Value:
+          type: string
+        Key:
+          type: string
+        Field:
+          type: string
+        ArtifactDataId:
+          type: string
+        ArtifactTemplateId:
+          type: string
+
+    MetricFormulaReq:
+      type: object
+      properties:
+        ID:
+          type: string
+        Formula:
+          type: array
+          items:
+            $ref: "#/components/schemas/FormulaDetails"
+        MetricExpertFormula:
+          $ref: "#/components/schemas/MetricExpertFormula"
+        TenantID:
+          type: string
+        PivotFields:
+          type: array
+          items:
+            $ref: "#/components/schemas/PivotFields"
+        Active:
+          type: boolean
+
+    MetricDataBindActivityRequest:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        StageID:
+          type: string
+        Stage:
+          $ref: "#/components/schemas/StageReq"
+        MetricID:
+          type: string
+        MetricFormula:
+          $ref: "#/components/schemas/MetricFormulaReq"
+        WorkflowID:
+          type: string
+        Revision:
+          type: integer
+        TenantId:
+          type: string
+        CreatedAt:
+          type: string
+        UpdatedAt:
+          type: string
+
+    MetricReq:
+      type: object
+      properties:
+        ID:
+          type: string
+        Blockchain:
+          type: string
+        Name:
+          type: string
+        Description:
+          type: string
+        BenchmarkRef:
+          type: string
+        BenchmarkValue:
+          type: string
+        BenchmarkUnit:
+          type: string
+        Status:
+          type: string
+        TenantId:
+          type: string
+        CreatedAt:
+          type: string
+        UpdatedAt:
+          type: string
+        MetricActivities:
+          type: array
+          items:
+            $ref: "#/components/schemas/MetricDataBindActivityRequest"
+
+    User:
+      type: object
+      properties:
+        ID:
+          type: string
+        TenantID:
+          type: string
+        Publickey:
+          type: string
+
+    MetricDataBindingRequest:
+      type: object
+      properties:
+        Metric:
+          $ref: "#/components/schemas/MetricReq"
+        User:
+          $ref: "#/components/schemas/User"
+
+    RSAKeyPair:
+      type: object
+      properties:
+        Sha256PublicKey:
+          type: string
+        Publickey:
+          type: string
+        PrivateKey:
+          type: string
+
+    RSAKeySaveSuccess:
+      type: object
+      properties:
+        Message:
+          type: string
+
+    RSAPublickey:
+      type: object
+      properties:
+        ID:
+          type: string
+        PgpPublickkey:
+          type: string
+        PgpPksha256:
+          type: string
+        StellarPublickey:
+          type: string
+        Username:
+          type: string
+
+    PGPAccount:
+      type: object
+      properties:
+        PGPPublickKey:
+          type: string
+        PGPPKsha256:
+          type: string
+        StellarPublicKey:
+          type: string
+        UserName:
+          type: string
+
+    Endorsments:
+      type: object
+      properties:
+        UserID:
+          type: string
+        EndorserPK:
+          type: string
+        EndorsmentsStatus:
+          type: string
+        TxnVerificationHash:
+          type: string
+
+    TrustNetWorkUser:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        Company:
+          type: string
+        Email:
+          type: string
+        Password:
+          type: string
+        PasswordResetCode:
+          type: array
+          items:
+            type: number
+        Contact:
+          type: string
+        Industry:
+          type: string
+        StellerPK:
+          type: string
+        PGPPK:
+          type: string
+        PGPPKHash:
+          type: string
+        PgpSecret:
+          type: string
+        StellarSecret:
+          type: string
+        DigitalSignature:
+          type: string
+        Signaturehash:
+          type: string
+        Date:
+          type: string
+        Endorsments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Endorsments"
+        TXNOrgRegistration:
+          type: string
+
+    LoggedInTrustNetworkUser:
+      type: object
+      properties:
+        ID:
+          type: string
+        Name:
+          type: string
+        Company:
+          type: string
+        Email:
+          type: string
+        PasswordResetCode:
+          type: array
+          items:
+            type: number
+        Contact:
+          type: string
+        Industry:
+          type: string
+        StellerPK:
+          type: string
+        PGPPK:
+          type: string
+        PGPPKHash:
+          type: string
+        PgpSecret:
+          type: string
+        StellarSecret:
+          type: string
+        DigitalSignature:
+          type: string
+        Signaturehash:
+          type: string
+        Date:
+          type: string
+        Endorsments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Endorsments"
+        TXNOrgRegistration:
+          type: string
+
+    AcceptUserEndorsment:
+      type: object
+      properties:
+        EndorseePKHash:
+          type: string
+        EndorsmentData:
+          $ref: "#/components/schemas/Endorsments"
+
+    EndorsmentUpdateSuccess:
+      type: object
+      properties:
+        Message:
+          type: string
+
+    UserLogin:
+      type: object
+      properties:
+        Email:
+          type: string
+        Password:
+          type: string
+
+    TrustNetworkUserEndorsmentCount:
+      type: object
+      properties:
+        Totalendorsements:
+          type: integer
+        FullEndorsements:
+          type: integer
+        PartialEndorsements:
+          type: integer
+
+    SuccessResponse:
+      type: object
+      properties:
+        Message:
+          type: string
+
+    UpdateTrustNetworkUserPassword:
+      type: object
+      properties:
+        Email:
+          type: string
+        PasswordResetCode:
+          type: string
+        Password:
+          type: string
+
+    ResetPasswordRequest:
+      type: object
+      properties:
+        Email:
+          type: string
+
+    PendingNFTS:
+      type: object
+      properties:
+        Blockchain:
+          type: string
+        NFTIdentifier:
+          type: string
+        Status:
+          type: string
+        ImageBase64:
+          type: string
+        User:
+          type: string
+        Version:
+          type: string
+
+    NFTTransfer:
+      type: object
+      properties:
+        Source:
+          type: string
+        Destination:
+          type: string
+        MintPubKey:
+          type: string
+
+    SuccessResponseMetricBinding:
+      type: object
+      properties:
+        Code:
+          type: integer
+        MetricID:
           type: string
         Message:
           type: string
