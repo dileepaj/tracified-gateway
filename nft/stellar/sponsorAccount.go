@@ -10,7 +10,7 @@ import (
 )
 
 func SponsorAccount(userPK string) (string, error) {
-	client := horizonclient.DefaultTestNetClient
+	client := commons.GetHorizonClient()
 	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
 		SponsoredID:   userPK,
 		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
