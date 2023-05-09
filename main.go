@@ -64,4 +64,12 @@ func main() {
 	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
 	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
+
+	// // API-Demo core re-structure
+	// r := mux.NewRouter()
+	// // Define public routes
+	// route.DefineRoutes(r)
+	// // Start the server
+	// logrus.Println("Listening on port 1776...")
+	// http.ListenAndServe(":1776", handlers.CORS(originsOk, headersOk, methodsOk)(r))
 }
