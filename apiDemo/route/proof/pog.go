@@ -9,5 +9,5 @@ import (
 )
 
 func PogRoutes(r *mux.Router) {
-	r.HandleFunc("/pog", middleware.JSONMiddleware(middleware.AuthenticationMiddleware(controller.HealthCheck))).Methods(http.MethodGet)
+	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(controller.HealthCheck))).Methods(http.MethodGet)
 }

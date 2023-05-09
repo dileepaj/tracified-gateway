@@ -8,7 +8,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-
-func healthRoutes(r *mux.Router){
-	r.HandleFunc("/health", middleware.JSONMiddleware(controller.HealthCheck)).Methods(http.MethodGet)
+func healthRoutes(r *mux.Router) {
+	r.HandleFunc("/health", middleware.HeaderReader(controller.HealthCheck)).Methods(http.MethodGet)
 }

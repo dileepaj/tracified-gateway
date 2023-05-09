@@ -4,22 +4,27 @@ import (
 	"net/http"
 )
 
-func JSONMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func HeaderReader(next http.HandlerFunc) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		switch r.Method {
-		case "GET":
+		case http.MethodGet:
 			next.ServeHTTP(w, r)
-		case "POST":
+		case http.MethodPost:
 			if r.Header.Get("Content-Type") != "application/json" {
 				w.WriteHeader(http.StatusUnsupportedMediaType)
 				w.Write([]byte("415 - Header Content-Type incorrect"))
 				return
 			}
 			next.ServeHTTP(w, r)
-		case "PUT":
+		case http.MethodPut:
+			if r.Header.Get("Content-Type") != "application/json" {
+				w.WriteHeader(http.StatusUnsupportedMediaType)
+				w.Write([]byte("415 - Header Content-Type incorrect"))
+				return
+			}
 			next.ServeHTTP(w, r)
-		case "DELETE":
+		case http.MethodDelete:
 			next.ServeHTTP(w, r)
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)

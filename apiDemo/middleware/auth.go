@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func AuthenticationMiddleware(next http.HandlerFunc) http.HandlerFunc {
+func Authentication(next http.HandlerFunc) http.HandlerFunc {
     return func(w http.ResponseWriter, r *http.Request) {
     	// Perform authentication logic here
 		authHeader := r.Header.Get("Authorization")

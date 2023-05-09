@@ -57,3 +57,8 @@ type IdentifierModel struct {
 	Identifier string
 	Type       string
 }
+
+type Identifier struct {
+	Id   string
+	Type string
+}

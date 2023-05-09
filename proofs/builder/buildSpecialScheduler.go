@@ -32,10 +32,6 @@ import (
 @note -
 @params - ResponseWriter,Request
 */
-type Identifier struct {
-	Id   string
-	Type string
-}
 
 func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Request) {
 	log.Debug("------------------------- SubmitSpecial --------------------------")
@@ -80,7 +76,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 				panic(err)
 			}
 
-			var jsonID Identifier
+			var jsonID apiModel.Identifier
 			json.Unmarshal([]byte(rawDecodedText), &jsonID)
 			id.MapValue = AP.TxnBody[i].Identifier
 			id.Identifier = jsonID.Id
