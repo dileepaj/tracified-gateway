@@ -15,12 +15,14 @@ import (
 
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	var requestBody []request.TransactionCollectionBodyGenesis
+	customerLogger := utilities.NewCustomLogger()
 
 	if !commons.DecodeJSONRequestBody(w, r, &requestBody) {
 		return
 	}
 	err := validations.ValidateGenesisTDPRequest(requestBody)
 	if err != nil {
+		customerLogger.LogWriter("Error when validating TDP request : "+err.Error(), 3)
 	}
 	// Use the make function to preallocate the memory
 	tdps := make([]model.TransactionCollectionBody, len(requestBody))

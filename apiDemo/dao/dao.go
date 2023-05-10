@@ -2,12 +2,12 @@ package dao
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/chebyrash/promise"
 	"github.com/dileepaj/tracified-gateway/apiDemo/dao/connections"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -26,6 +26,7 @@ func Index[inedxObj IndexType](collection string, searchMap map[string]any, obje
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		var returnIndex = objectType
 		db := connections.DemoConnection{}
+		customLogger := utilities.NewCustomLogger()
 		session, err := db.DbConnection()
 
 		bsonDoc := bson.D{}
@@ -34,7 +35,7 @@ func Index[inedxObj IndexType](collection string, searchMap map[string]any, obje
 		}
 
 		if err != nil {
-			// log.Error("Error when connecting to DB " + err.Error())
+			customLogger.LogWriter("Error when connecting to DB "+err.Error(), 3)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -47,7 +48,7 @@ func Index[inedxObj IndexType](collection string, searchMap map[string]any, obje
 			err2 := cursor.All(context.TODO(), &returnIndex)
 
 			if err2 != nil || len(returnIndex) == 0 {
-				// log.Error("Error while getting organizations from db " + err.Error())
+				customLogger.LogWriter("Error while getting organizations from db "+err2.Error(), 3)
 				reject(err2)
 			} else {
 				resolve(returnIndex)
@@ -63,14 +64,15 @@ type CreateType interface {
 
 func Create[T CreateType](model T, collection string) (string, error) {
 	db := connections.DemoConnection{}
+	customerLogger := utilities.NewCustomLogger()
 	session, err := db.DbConnection()
 	if err != nil {
-		fmt.Println("" + err.Error())
+		customerLogger.LogWriter("Error in DB connection : "+err.Error(), 3)
 	}
 	defer session.EndSession(context.TODO())
 	c, err := session.Client().Database(DbName).Collection(collection).InsertOne(context.TODO(), model)
 	if err != nil {
-		fmt.Println(" " + err.Error())
+		customerLogger.LogWriter("Error when getting the DB session : "+err.Error(), 3)
 	}
 	id := c.InsertedID.(primitive.ObjectID)
 	return id.Hex(), err
@@ -113,9 +115,10 @@ func Update(findBy string, value string, update primitive.M, projectionData prim
 
 func Remove(idName string, id, collection string) (int64, error) {
 	db := connections.DemoConnection{}
+	customerLogger := utilities.NewCustomLogger()
 	session, err := db.DbConnection()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		customerLogger.LogWriter("Error while getting session "+err.Error(), 3)
 	}
 
 	defer session.EndSession(context.TODO())
@@ -124,7 +127,7 @@ func Remove(idName string, id, collection string) (int64, error) {
 	rst, err := c.DeleteOne(context.TODO(), bson.M{idName: id})
 
 	if err != nil {
-		fmt.Println("Error while remove from Orphan " + err.Error())
+		customerLogger.LogWriter("Error while remove from Orphan "+err.Error(), 3)
 	}
 	return rst.DeletedCount, err
 }

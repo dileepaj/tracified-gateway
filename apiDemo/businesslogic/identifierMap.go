@@ -3,18 +3,20 @@ package businesslogic
 import (
 	"encoding/base64"
 	"encoding/json"
-	"fmt"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/apiDemo/dao"
+	"github.com/dileepaj/tracified-gateway/utilities"
 )
 
 func insertIdentifierMap(identifier, realIdentifier string) {
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
 	var identifierModel apiModel.IdentifierModel
 	rawDecodedText, err := base64.StdEncoding.DecodeString(identifier)
 	if err != nil {
-		fmt.Println("Decode String failed" + err.Error())
+		logger.LogWriter("Decode String failed" + err.Error(), 3)
 	}
 
 	var jsonID apiModel.Identifier
@@ -24,6 +26,6 @@ func insertIdentifierMap(identifier, realIdentifier string) {
 	identifierModel.Type = jsonID.Type
 	err3, code := object.InsertIdentifier(identifierModel)
 	if err3 != nil {
-		fmt.Println("identifier map failed"+err3.Error(), " ErrorCode:", code)
+		logger.LogWriter("Identifier map failed"+err3.Error() + " ErrorCode:"+ strconv.Itoa(code), 3)
 	}
 }
