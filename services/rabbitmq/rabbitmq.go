@@ -385,7 +385,6 @@ func SendToQueue(queue model.SendToQueue) error {
 
 // rabbitmq queue message listener
 func ReleaseLock() (error, string) {
-	logrus.Info("-------------------------------Release Lock")
 	object := dao.Connection{}
 	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`

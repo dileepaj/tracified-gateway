@@ -35,12 +35,9 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	}
 
 	display := &businesslogic.AbstractXDR{TxnBody: tdps}
-	err, code, _ := display.GenesisAndDataXDRToCron()
+	err, code, status := display.GenesisAndDataXDRToCron()
 	if err == nil && code == http.StatusOK {
-		// result := apiModel.SubmitXDRSuccess{
-		// 	Status: status,
-		// }
-		// httpresponse.SuccessResponse(w, result)
+		utilities.SuccessResponse[string](w, status)
 		return
 	} else {
 		utilities.HandleError(w, "Error when getting genesis and data XDR to cron : "+err.Error(), http.StatusGatewayTimeout)

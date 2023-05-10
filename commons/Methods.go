@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -63,4 +64,22 @@ func DecodeJSONRequestBody(w http.ResponseWriter, r *http.Request, dst interface
 		return false
 	}
 	return true
+}
+
+func CheckTaskStatus(tasks []model.Task) []model.Task {
+	var failedTasks []model.Task
+	for _, task := range tasks {
+		if !task.Status {
+			failedTasks = append(failedTasks, task)
+		}
+	}
+	return failedTasks
+}
+
+func TasksToString(tasks []model.Task) string {
+	var tasksString []string
+	for _, task := range tasks {
+		tasksString = append(tasksString, fmt.Sprintf("%s %v", task.Identifier, task.Status))
+	}
+	return fmt.Sprintf("[%s]", strings.Join(tasksString, ", "))
 }

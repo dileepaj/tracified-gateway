@@ -1,4 +1,4 @@
-package responsedtos
+package responseDtos
 
 type HealthCheckResponse struct {
 	Note    string `json:"note"`

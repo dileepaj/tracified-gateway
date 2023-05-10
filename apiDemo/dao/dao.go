@@ -2,6 +2,7 @@ package dao
 
 import (
 	"context"
+	"net/http"
 
 	"github.com/chebyrash/promise"
 	"github.com/dileepaj/tracified-gateway/apiDemo/dao/connections"
@@ -13,18 +14,15 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var (
-	DbName = commons.GoDotEnvVariable("DBNAME")
-)
+var DbName = commons.GoDotEnvVariable("DBNAME")
 
 type IndexType interface {
 	[]model.RSAPublickey
 }
 
 func Index[inedxObj IndexType](collection string, searchMap map[string]any, objectType inedxObj) *promise.Promise {
-
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		var returnIndex = objectType
+		returnIndex := objectType
 		db := connections.DemoConnection{}
 		customLogger := utilities.NewCustomLogger()
 		session, err := db.DbConnection()
@@ -62,25 +60,25 @@ type CreateType interface {
 	model.TransactionCollectionBody
 }
 
-func Create[T CreateType](model T, collection string) (string, error) {
+func Create[T CreateType](model T, collection string) (string, error, int) {
 	db := connections.DemoConnection{}
 	customerLogger := utilities.NewCustomLogger()
 	session, err := db.DbConnection()
 	if err != nil {
 		customerLogger.LogWriter("Error in DB connection : "+err.Error(), 3)
+		return "", err, http.StatusInternalServerError
 	}
 	defer session.EndSession(context.TODO())
 	c, err := session.Client().Database(DbName).Collection(collection).InsertOne(context.TODO(), model)
 	if err != nil {
 		customerLogger.LogWriter("Error when getting the DB session : "+err.Error(), 3)
+		return "", err, http.StatusInternalServerError
 	}
 	id := c.InsertedID.(primitive.ObjectID)
-	return id.Hex(), err
-
+	return id.Hex(), nil, http.StatusOK
 }
 
-type ShowType interface {
-}
+type ShowType interface{}
 
 func Show[T ShowType](idName string, id T, collection string, searchMap map[string]any, object ShowType) *promise.Promise {
 	result := object
@@ -109,7 +107,7 @@ func Show[T ShowType](idName string, id T, collection string, searchMap map[stri
 }
 
 func Update(findBy string, value string, update primitive.M, projectionData primitive.M, collection string) *mongo.SingleResult {
-	//TODO :  Need to add Update logic
+	// TODO :  Need to add Update logic
 	return nil
 }
 
@@ -125,7 +123,6 @@ func Remove(idName string, id, collection string) (int64, error) {
 
 	c := session.Client().Database(DbName).Collection(collection)
 	rst, err := c.DeleteOne(context.TODO(), bson.M{idName: id})
-
 	if err != nil {
 		customerLogger.LogWriter("Error while remove from Orphan "+err.Error(), 3)
 	}

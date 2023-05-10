@@ -1,10 +1,10 @@
-package httpresponse
+package utilities
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/apiDemo/model/dtos/responsedtos"
+	"github.com/dileepaj/tracified-gateway/apiDemo/model/dtos/responseDtos"
 )
 
 // Move to model interface location or add under Response dtos
@@ -14,7 +14,7 @@ type ResultResponse struct {
 }
 
 type ResultType interface {
-	responsedtos.HealthCheckResponse | string
+	responseDtos.HealthCheckResponse | string
 }
 
 func SuccessResponse[T ResultType](w http.ResponseWriter, result T) {
@@ -25,6 +25,7 @@ func SuccessResponse[T ResultType](w http.ResponseWriter, result T) {
 	}
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
-		// logs.ErrorLogger.Println(err)
+		HandleError(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 }

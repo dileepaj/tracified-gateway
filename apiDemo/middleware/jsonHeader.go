@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"net/http"
+
+	"github.com/dileepaj/tracified-gateway/utilities"
 )
 
 func HeaderReader(next http.HandlerFunc) http.HandlerFunc {
@@ -10,25 +12,26 @@ func HeaderReader(next http.HandlerFunc) http.HandlerFunc {
 		switch r.Method {
 		case http.MethodGet:
 			next.ServeHTTP(w, r)
+			break
 		case http.MethodPost:
 			if r.Header.Get("Content-Type") != "application/json" {
-				w.WriteHeader(http.StatusUnsupportedMediaType)
-				w.Write([]byte("415 - Header Content-Type incorrect"))
+				utilities.HandleError(w, "Header Content-Type incorrect", http.StatusUnsupportedMediaType)
 				return
 			}
 			next.ServeHTTP(w, r)
+			break
 		case http.MethodPut:
 			if r.Header.Get("Content-Type") != "application/json" {
-				w.WriteHeader(http.StatusUnsupportedMediaType)
-				w.Write([]byte("415 - Header Content-Type incorrect"))
+				utilities.HandleError(w, "Header Content-Type incorrect", http.StatusUnsupportedMediaType)
 				return
 			}
 			next.ServeHTTP(w, r)
+			break
 		case http.MethodDelete:
 			next.ServeHTTP(w, r)
+			break
 		default:
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write([]byte("405 - Status method not allowed"))
+			utilities.HandleError(w, "Status method not allowed", http.StatusMethodNotAllowed)
 			return
 		}
 	})

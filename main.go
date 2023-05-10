@@ -6,12 +6,14 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
+	"github.com/dileepaj/tracified-gateway/apiDemo/route"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	"github.com/robfig/cron"
 )
 
@@ -69,13 +71,12 @@ func main() {
 	logger := utilities.NewCustomLogger()
 	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", 1)
 
-	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
+	//http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 
-	// // API-Demo core re-structure
-	// r := mux.NewRouter()
-	// // Define public routes
-	// route.DefineRoutes(r)
-	// // Start the server
-	// logrus.Println("Listening on port 1776...")
-	// http.ListenAndServe(":1776", handlers.CORS(originsOk, headersOk, methodsOk)(r))
+	// API-Demo core re-structure
+	r := mux.NewRouter()
+	// Define public routes
+	route.DefineRoutes(r)
+	// Start the server
+	http.ListenAndServe(":1776", handlers.CORS(originsOk, headersOk, methodsOk)(r))
 }

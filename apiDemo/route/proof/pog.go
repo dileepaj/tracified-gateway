@@ -9,5 +9,6 @@ import (
 )
 
 func PogRoutes(r *mux.Router) {
-	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(controller.HealthCheck))).Methods(http.MethodGet)
+	a:=[]int{1, 2}
+	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(a, controller.SubmitGenesis))).Methods(http.MethodGet)
 }
