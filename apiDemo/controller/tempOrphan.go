@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/apiDemo/businesslogic"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/utilities"
 )
 
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
@@ -25,8 +26,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	} else {
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(err)
+		utilities.HandleError(w, "Error when getting genesis and data XDR to cron : "+err.Error(), http.StatusGatewayTimeout)
 		return
 	}
 }

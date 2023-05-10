@@ -22,8 +22,8 @@ func insertIdentifierMap(identifier, realIdentifier string) {
 	identifierModel.MapValue = realIdentifier
 	identifierModel.Identifier = jsonID.Id
 	identifierModel.Type = jsonID.Type
-	err3,code := object.InsertIdentifier(identifierModel)
+	err3, code := object.InsertIdentifier(identifierModel)
 	if err3 != nil {
-		fmt.Println("identifier map failed" + err3.Error()," ErrorCode:",code)
+		fmt.Println("identifier map failed"+err3.Error(), " ErrorCode:", code)
 	}
 }
