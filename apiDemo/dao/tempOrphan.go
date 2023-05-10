@@ -4,7 +4,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
-func (cd *Connection) InsertTempOrphan(tempOrphan model.TransactionCollectionBody) (error,int) {
+func (cd *Connection) InsertTempOrphan(tempOrphan model.TransactionCollectionBody) (error, int) {
 	// fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------")
 	// session, err := cd.connect()
 	// if err != nil {
@@ -21,5 +21,6 @@ func (cd *Connection) InsertTempOrphan(tempOrphan model.TransactionCollectionBod
 	// return err
 
 	// call common insert
-	return nil,200
+	Create(tempOrphan, "TempOrphan")
+	return nil, 200
 }

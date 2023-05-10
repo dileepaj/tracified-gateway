@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"encoding/json"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -9,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/utilities"
+	"github.com/dileepaj/tracified-gateway/utilities/httpresponse"
 )
 
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +23,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 		result := apiModel.SubmitXDRSuccess{
 			Status: status,
 		}
-		json.NewEncoder(w).Encode(result)
+		httpresponse.SuccessStatus[apiModel.SubmitXDRSuccess](w, result)
 		return
 	} else {
 		utilities.HandleError(w, "Error when getting genesis and data XDR to cron : "+err.Error(), http.StatusGatewayTimeout)

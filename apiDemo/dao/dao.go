@@ -6,14 +6,15 @@ import (
 
 	"github.com/chebyrash/promise"
 	"github.com/dileepaj/tracified-gateway/apiDemo/dao/connections"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	DbName = "test"
+var (
+	DbName = commons.GoDotEnvVariable("DBNAME")
 )
 
 type IndexType interface {
@@ -57,6 +58,7 @@ func Index[inedxObj IndexType](collection string, searchMap map[string]any, obje
 }
 
 type CreateType interface {
+	model.TransactionCollectionBody
 }
 
 func Create[T CreateType](model T, collection string) (string, error) {
