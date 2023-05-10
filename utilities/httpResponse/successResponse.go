@@ -4,27 +4,24 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
-	"github.com/dileepaj/tracified-gateway/apiDemo/model/dtos/responseDtos"
+	"github.com/dileepaj/tracified-gateway/apiDemo/model/dtos/responsedtos"
 )
 
 // Move to model interface location or add under Response dtos
 type ResultResponse struct {
-	Status   int `json:"Status"`
-	Response any `json:"Response"`
+	StatusCode int `json:"Status"`
+	Response   any `json:"Response"`
 }
 
 type ResultType interface {
-	apiModel.SubmitXDRSuccess | responseDtos.HealthCheckResponse
-}
-type Commonresponse struct {
+	responsedtos.HealthCheckResponse | string
 }
 
-func SuccessStatus[T ResultType](w http.ResponseWriter, result T) {
+func SuccessResponse[T ResultType](w http.ResponseWriter, result T) {
 	w.WriteHeader(http.StatusOK)
 	response := ResultResponse{
-		Status:   http.StatusOK,
-		Response: result,
+		StatusCode: http.StatusOK,
+		Response:   result,
 	}
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
