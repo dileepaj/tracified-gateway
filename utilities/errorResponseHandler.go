@@ -14,13 +14,12 @@ type ErrorResponseBody struct {
 
 var ErrorLogger *log.Logger
 
-//400 Bad Request: The request sent to the server was malformed or invalid.
-func BadRequestResponse(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusBadRequest)
+func ErrorResponse(w http.ResponseWriter, message string, statusCode int, errorCode string) {
+	w.WriteHeader(statusCode)
 	response := ErrorResponseBody{
 		Message: message,
-		Status:  http.StatusBadRequest,
-		Error:   "Bad request",
+		Status:  statusCode,
+		Error:   errorCode,
 	}
 	err := json.NewEncoder(w).Encode(response)
 	if err != nil {
@@ -28,156 +27,35 @@ func BadRequestResponse(w http.ResponseWriter, message string) {
 	}
 }
 
-//404 Not Found: The requested resource could not be found on the server.
-func NotFound(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusNotFound)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusNotFound,
-		Error:   "Not found",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//500 Internal Server Error: The server encountered an error while processing the request.
-func InternalError(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusInternalServerError)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusInternalServerError,
-		Error:   "Internal server error",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//500 Internal Server Error: The server encountered a Database connection issue.
-func DBConnectionIssue(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusInternalServerError)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusInternalServerError,
-		Error:   "Database connection issue",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//403 Forbidden: The server refuses to fulfill the request, even if authentication credentials were provided.
-func ForbiddenRequest(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusForbidden)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusForbidden,
-		Error:   "Request forbidden",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//401 Unauthorized: The user does not have permission to access the requested resource.
-func UnauthorizedRequest(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusUnauthorized)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusUnauthorized,
-		Error:   "Request Unauthorized",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//503 Service Unavailable: The server is currently unavailable or overloaded and cannot handle the request.
-func ServiceUnavailable(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusServiceUnavailable)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusServiceUnavailable,
-		Error:   "Requested service unavailable",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//429 Too Many Requests : user has sent too many requests in a given amount of time
-func TooManyRequests(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusTooManyRequests)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusTooManyRequests,
-		Error:   "Too many requests",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//204 No Content : Server has successfully processed the request, but there is no response body to return to the client
-func NoContent(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusNoContent)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusNoContent,
-		Error:   "No Content",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//405 Method Not Allowed: The HTTP method used in the request is not allowed
-func MethodNotAllowed(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusMethodNotAllowed)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusMethodNotAllowed,
-		Error:   "Method not allowed",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//406 Not Acceptable: The server cannot respond with the content requested in the Accept headers of the request.
-func NotAcceptable(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusNotAcceptable)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusNotAcceptable,
-		Error:   "Not acceptable",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
-	}
-}
-
-//504 Gateway Timeout: The server did not receive a timely response from another server while attempting to fulfill the request.
-func GatewayTimeOut(w http.ResponseWriter, message string) {
-	w.WriteHeader(http.StatusGatewayTimeout)
-	response := ErrorResponseBody{
-		Message: message,
-		Status:  http.StatusGatewayTimeout,
-		Error:   "Gateway time out",
-	}
-	err := json.NewEncoder(w).Encode(response)
-	if err != nil {
-		ErrorLogger.Println(err)
+//Handle error responses (Parameters - http.ResponseWriter, message, error code)
+//
+//Supports
+//204, 400, 401, 403, 404, 405, 406, 429, 500, 503, 504.
+func HandleError(w http.ResponseWriter, message string, errorCode int) {
+	switch errorCode {
+	case http.StatusBadRequest:
+		ErrorResponse(w, message, http.StatusBadRequest, "Bad request")
+	case http.StatusNotFound:
+		ErrorResponse(w, message, http.StatusNotFound, "Not found")
+	case http.StatusInternalServerError:
+		ErrorResponse(w, message, http.StatusInternalServerError, "Internal server error")
+	case http.StatusForbidden:
+		ErrorResponse(w, message, http.StatusForbidden, "Request forbidden")
+	case http.StatusUnauthorized:
+		ErrorResponse(w, message, http.StatusUnauthorized, "Request Unauthorized")
+	case http.StatusServiceUnavailable:
+		ErrorResponse(w, message, http.StatusServiceUnavailable, "Requested service unavailable")
+	case http.StatusTooManyRequests:
+		ErrorResponse(w, message, http.StatusTooManyRequests, "Too many requests")
+	case http.StatusNoContent:
+		ErrorResponse(w, message, http.StatusNoContent, "No Content")
+	case http.StatusMethodNotAllowed:
+		ErrorResponse(w, message, http.StatusMethodNotAllowed, "Method not allowed")
+	case http.StatusNotAcceptable:
+		ErrorResponse(w, message, http.StatusNotAcceptable, "Not acceptable")
+	case http.StatusGatewayTimeout:
+		ErrorResponse(w, message, http.StatusGatewayTimeout, "Gateway time out")
+	default:
+		ErrorResponse(w, message, http.StatusInternalServerError, "Unknown error")
 	}
 }

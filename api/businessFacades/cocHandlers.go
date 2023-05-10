@@ -35,10 +35,9 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Await()
 	if err != nil {
-		utilities.BadRequestResponse(w, "Error when getting COC by sender : "+err.Error())
-		return
+		utilities.HandleError(w, "Error when getting COC by sender : "+err.Error(), http.StatusBadRequest)
 	} else if data == nil {
-		utilities.NotFound(w, "PublicKey Not Found in Gateway DataStore")
+		utilities.HandleError(w, "PublicKey Not Found in Gateway DataStore", http.StatusNotFound)
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -59,10 +58,10 @@ func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Await()
 	if err != nil {
-		utilities.BadRequestResponse(w, "Error when getting COC by sender : "+err.Error())
+		utilities.HandleError(w, "Error when getting COC by sender : "+err.Error(), http.StatusBadRequest)
 		return
 	} else if data == nil {
-		utilities.NotFound(w, "PublicKey Not Found in Gateway DataStore")
+		utilities.HandleError(w, "PublicKey Not Found in Gateway DataStore", http.StatusNotFound)
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -82,7 +81,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
 		fmt.Println(err)
-		utilities.BadRequestResponse(w, "Error while Decoding the body : "+err.Error())
+		utilities.HandleError(w, "Error while Decoding the body : "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	var accept xdr.Transaction
@@ -142,7 +141,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	if err2 != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		utilities.BadRequestResponse(w, "Failed to insert : "+err2.Error())
+		utilities.HandleError(w, "Failed to insert : "+err2.Error(), http.StatusBadRequest)
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -169,7 +168,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
-		utilities.BadRequestResponse(w, "Error while Decoding the body : "+err.Error())
+		utilities.HandleError(w, "Error while Decoding the body : "+err.Error(), http.StatusBadRequest)
 		fmt.Println(err)
 		return
 	}
