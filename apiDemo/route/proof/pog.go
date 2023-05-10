@@ -8,7 +8,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var required = []int{1, 2}
+
 func PogRoutes(r *mux.Router) {
-	a:=[]int{1, 2}
-	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(a, controller.SubmitGenesis))).Methods(http.MethodGet)
+	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(required, controller.SubmitGenesis))).Methods(http.MethodGet)
 }

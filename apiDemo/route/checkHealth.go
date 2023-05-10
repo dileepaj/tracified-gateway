@@ -8,6 +8,9 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var required = []int{1, 2}
+
 func healthRoutes(r *mux.Router) {
 	r.HandleFunc("/health", middleware.HeaderReader(controller.HealthCheck)).Methods(http.MethodGet)
+	r.HandleFunc("/health/auth", middleware.HeaderReader(middleware.Authentication(required, controller.HealthCheck))).Methods(http.MethodGet)
 }
