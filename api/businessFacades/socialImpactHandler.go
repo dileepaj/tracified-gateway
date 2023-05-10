@@ -7,8 +7,8 @@ import (
 	"github.com/dileepaj/tracified-gateway/authentication"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
+	protocols "github.com/dileepaj/tracified-gateway/expertformulas"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/protocols"
 	"github.com/dileepaj/tracified-gateway/validations"
 	"github.com/sirupsen/logrus"
 )
