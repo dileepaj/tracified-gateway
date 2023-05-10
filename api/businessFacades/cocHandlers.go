@@ -62,7 +62,7 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	data, err := object.GetCOCbySender(vars["Receiver"]).Then(func(data interface{}) interface{} {
+	data, err := object.GetCOCbyReceiver(vars["Receiver"]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
