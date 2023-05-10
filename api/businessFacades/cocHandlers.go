@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
 
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
@@ -34,18 +35,10 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Await()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: err.Error(),
-		}
-		json.NewEncoder(w).Encode(result)
+		utilities.BadRequestResponse(w, "Error when getting COC by sender : "+err.Error())
 		return
 	} else if data == nil {
-		w.WriteHeader(http.StatusNotFound)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "PublicKey Not Found in Gateway DataStore",
-		}
-		json.NewEncoder(w).Encode(result)
+		utilities.NotFound(w, "PublicKey Not Found in Gateway DataStore")
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -66,18 +59,10 @@ func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 		return data
 	}).Await()
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: err.Error(),
-		}
-		json.NewEncoder(w).Encode(result)
+		utilities.BadRequestResponse(w, "Error when getting COC by sender : "+err.Error())
 		return
 	} else if data == nil {
-		w.WriteHeader(http.StatusNotFound)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "PublicKey Not Found in Gateway DataStore",
-		}
-		json.NewEncoder(w).Encode(result)
+		utilities.NotFound(w, "PublicKey Not Found in Gateway DataStore")
 		return
 	} else {
 		w.WriteHeader(http.StatusOK)
@@ -97,11 +82,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
 		fmt.Println(err)
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
+		utilities.BadRequestResponse(w, "Error while Decoding the body : "+err.Error())
 		return
 	}
 	var accept xdr.Transaction
@@ -111,7 +92,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	brr, _ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
 	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 	t, _ := brr.Hash(network.TestNetworkPassphrase)
@@ -122,7 +103,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 	}
 
-	brr1,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
+	brr1, _ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
 	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
 	t1, _ := brr1.Hash(network.TestNetworkPassphrase)
@@ -161,10 +142,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	if err2 != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.InsertCOCCollectionResponse{
-			Message: "Failed"}
-		json.NewEncoder(w).Encode(result)
+		utilities.BadRequestResponse(w, "Failed to insert : "+err2.Error())
 		return
 	} else {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -191,8 +169,7 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode("Error while Decoding the body")
+		utilities.BadRequestResponse(w, "Error while Decoding the body : "+err.Error())
 		fmt.Println(err)
 		return
 	}

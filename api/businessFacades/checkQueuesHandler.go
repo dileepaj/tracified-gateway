@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -49,9 +50,7 @@ func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(result)
 			return nil
 		}).Catch(func(error error) error {
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "URL Not Found in Gateway DataStore"}
-			json.NewEncoder(w).Encode(response)
+			utilities.NotFound(w, "URL Not Found in Gateway DataStore")
 			return error
 		})
 		p.Await()
