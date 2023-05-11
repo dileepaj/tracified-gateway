@@ -2,7 +2,6 @@ package middleware
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -28,13 +27,11 @@ func Authentication(requiredPermission []int, next http.HandlerFunc) http.Handle
 			utilities.HandleError(w, "Unauthorized", http.StatusUnauthorized)
 			return
 		}
-		fmt.Println("--  ",authHeader[len("Bearer "):])
 		tokenStr := authHeader[len("Bearer "):]
 		token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {
 			// Return the secret key used to sign the token.
 			return []byte("my-secret-key"), nil
 		})
-		fmt.Println(token, err)
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
 				utilities.HandleError(w, "Unauthorized", http.StatusUnauthorized)
