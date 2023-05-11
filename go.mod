@@ -9,6 +9,7 @@ require (
 	github.com/dileepaj/FCL_Go v0.1.3
 	github.com/ethereum/go-ethereum v1.11.2
 	github.com/go-openapi/runtime v0.24.1
+	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/gorilla/handlers v1.5.1
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
@@ -63,7 +64,6 @@ require (
 	github.com/go-openapi/strfmt v0.21.2 // indirect
 	github.com/go-openapi/swag v0.21.1 // indirect
 	github.com/go-openapi/validate v0.21.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20200121045136-8c9f03a8e57e // indirect
 	github.com/google/uuid v1.3.0 // indirect
 	github.com/gorilla/rpc v1.2.0 // indirect
@@ -107,7 +107,7 @@ require (
 	github.com/go-chi/chi v4.0.3+incompatible // indirect
 	github.com/go-errors/errors v0.0.0-20150906023321-a41850380601 // indirect
 	github.com/go-playground/validator/v10 v10.11.0
-	github.com/go-stack/stack v1.8.1
+	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
@@ -136,7 +136,7 @@ require (
 	golang.org/x/crypto v0.1.0 // indirect
 	golang.org/x/net v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0
+	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0
 	gopkg.in/gavv/httpexpect.v1 v1.1.3 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
