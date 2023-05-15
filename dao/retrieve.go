@@ -3102,3 +3102,32 @@ func (cd *Connection) GetTransactionForTdpIdSequence(TdpId string, sequence int6
 
 	return p
 }
+
+func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identifier, tenantId, txnType string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype":txnType})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
+		}
+	})
+
+	return p
+}
