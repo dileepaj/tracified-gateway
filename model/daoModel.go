@@ -16,6 +16,7 @@ type COCCollectionBody struct {
 	RejectTxn  string
 	Identifier string
 	Status     string
+	TenantID   string
 }
 
 type TotalTransaction struct {
