@@ -14,7 +14,7 @@ import (
 
 // FieldCount - unique formula element Count -formula element count, can be VARIABLE, SEMATICCONSTANT, REFERREDCONSTANT
 type AbstractSocialImpact struct {
-	Blockchain    []int
+	Blockchain    string
 	FormulaJSON   model.FormulaBuildingRequest
 	FieldCount    int
 	VariableCount int
@@ -29,8 +29,6 @@ type AbstractSocialImpactMetricBinding struct {
 /*
 SocialImpactExpertFormula
 des-This method check the blockchain Type and call the relevant method according the blockchain
-1 - Stellar
-2 - Ethereum
 */
 func (socialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	if socialImpact.Blockchain == "STELLAR" {
