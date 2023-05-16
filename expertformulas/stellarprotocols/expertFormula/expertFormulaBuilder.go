@@ -32,7 +32,6 @@ des- This method build stellar transactions for expert formula
 		* put XDR to stellar blockchain
 */
 func StellarExpertFormulaBuilder(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int, variableCount int, expId string) {
-	w.Header().Set("Content-Type", "application/json")
 	formulaArray := formulaJSON.MetricExpertFormula.Formula // formula array sent by the backend                               // formula array sent by the backend
 	var manageDataOpArray []txnbuild.ManageData             // manageDataOpArray all manage data append to to this array
 	expertIDMap := model.ExpertIDMap{}
