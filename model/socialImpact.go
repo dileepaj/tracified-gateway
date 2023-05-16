@@ -91,7 +91,7 @@ type FormulaBuildingRequest struct {
 }
 
 type ExpertFormula struct {
-	Blockchain      string               `json:"Blockchain" bson:"blockchain"`
+	Blockchain      []int                `json:"Blockchain" bson:"blockchain"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Description     string               `json:"Description" bson:"description"`
@@ -710,7 +710,7 @@ type EthereumExpertFormula struct {
 	TransactionSender   string
 	Verify              Verify
 	ErrorMessage        string
-	ActualStatus 		int
+	ActualStatus        int
 }
 
 type EthFormulaIDMap struct {
@@ -738,7 +738,7 @@ type EthereumMetricBind struct {
 	ValueIDs          []string
 	Type              string
 	FormulaID         string
-	ActualStatus 	  int
+	ActualStatus      int
 }
 
 type MetricContractGeneral struct {
