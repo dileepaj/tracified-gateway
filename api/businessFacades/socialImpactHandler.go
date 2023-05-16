@@ -9,7 +9,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/configs"
 	protocols "github.com/dileepaj/tracified-gateway/expertformulas"
 	"github.com/dileepaj/tracified-gateway/model"
-	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/dileepaj/tracified-gateway/validations"
 	"github.com/sirupsen/logrus"
 )
@@ -66,11 +65,9 @@ func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 			}
 			formulaJSON.MetricExpertFormula.Formula = formulaArray
 
-			// if the blockchain is not provided in the request, then response with the error
-			if len(formulaJSON.MetricExpertFormula.Blockchain) == 0 {
-				//formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
-				utilities.HandleError(w, "No blockchain specified", http.StatusBadRequest)
-
+			// if the blockchain is not provided in the request, then use the default blockchain
+			if formulaJSON.MetricExpertFormula.Blockchain == "" {
+				formulaJSON.MetricExpertFormula.Blockchain = configs.DefaultBlockchain
 			}
 			// build the abstract struct and call the SocialImpactExpertFormula
 			socialImpactBuilder := protocols.AbstractSocialImpact{

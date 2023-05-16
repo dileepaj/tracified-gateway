@@ -91,7 +91,7 @@ type FormulaBuildingRequest struct {
 }
 
 type ExpertFormula struct {
-	Blockchain      []int                `json:"Blockchain" bson:"blockchain"`
+	Blockchain      string               `json:"Blockchain" bson:"blockchain"`
 	ID              string               `json:"ID" bson:"id" validate:"required"`
 	Name            string               `json:"Name" bson:"name" validate:"required"`
 	Description     string               `json:"Description" bson:"description"`
