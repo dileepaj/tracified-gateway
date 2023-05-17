@@ -5,24 +5,26 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/authentication"
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	protocols "github.com/dileepaj/tracified-gateway/expertformulas"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/dileepaj/tracified-gateway/validations"
-	"github.com/sirupsen/logrus"
 )
 
 func SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	var formulaJSON model.FormulaBuildingRequest
+	customLogger := utilities.NewCustomLogger()
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {
-		commons.JSONErrorReturn(w, r, err.Error(), http.StatusBadRequest, "Error while decoding the body ")
+		customLogger.LogWriter("Error while decoding the body "+err.Error(), 3)
+		utilities.HandleError(w, "Error while decoding the body "+err.Error(), http.StatusBadRequest)
 		return
 	}
 	errInJsonValidation := validations.ValidateFormulaBuilder(formulaJSON)
 	if errInJsonValidation != nil {
-		commons.JSONErrorReturn(w, r, errInJsonValidation.Error(), http.StatusBadRequest, "Request body failed the validation check :")
+		customLogger.LogWriter("Request body failed the validation check :"+errInJsonValidation.Error(), 3)
+		utilities.HandleError(w, "Request body failed the validation check :"+errInJsonValidation.Error(), http.StatusBadRequest)
 		return
 	} else {
 		authLayer := authentication.AuthLayer{
@@ -31,10 +33,11 @@ func SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 			Signature: formulaJSON.Verify.Signature,
 			Plaintext: formulaJSON.Verify.Payload,
 		}
-		logrus.Info("Expert's public key  ", formulaJSON.Verify.PublicKey)
+		customLogger.LogWriter("Expert's public key  "+formulaJSON.Verify.PublicKey, 1)
 		err, errCode, id := authLayer.ValidateExpertRequest()
 		if err != nil {
-			commons.JSONErrorReturn(w, r, err.Error(), errCode, "Authentication Issue, ")
+			customLogger.LogWriter("Authentication Issue : "+err.Error(), 3)
+			utilities.HandleError(w, "Authentication Issue : "+err.Error(), errCode)
 			return
 		} else {
 			formulaArray := formulaJSON.MetricExpertFormula.Formula
