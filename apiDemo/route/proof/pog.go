@@ -11,5 +11,5 @@ import (
 var required = []int{1, 2}
 
 func PogRoutes(r *mux.Router) {
-	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(middleware.Authentication(required, controller.SubmitGenesis))).Methods(http.MethodGet)
+	r.HandleFunc("/transaction/genesis", middleware.HeaderReader(controller.SubmitGenesis)).Methods(http.MethodPost)
 }

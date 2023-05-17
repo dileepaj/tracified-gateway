@@ -11,5 +11,5 @@ import (
 var required = []int{1, 2}
 
 func ExpertFormulaRoutes(r *mux.Router) {
-	r.HandleFunc("/socialimapact/expertformula", middleware.HeaderReader(middleware.Authentication(required, controller.SubmitGenesis))).Methods(http.MethodGet)
+	r.HandleFunc("/socialimapact/expertformula", middleware.HeaderReader(middleware.Authentication(required, controller.SocialImpactExpertFormula))).Methods(http.MethodGet)
 }

@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func BuildSocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
+func SocialImpactExpertFormula(w http.ResponseWriter, r *http.Request) {
 	var formulaJSON model.FormulaBuildingRequest
 	err := json.NewDecoder(r.Body).Decode(&formulaJSON)
 	if err != nil {

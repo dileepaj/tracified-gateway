@@ -15,12 +15,15 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	var requestBody []request.TransactionCollectionBodyGenesis
 	customLogger := utilities.NewCustomLogger()
 
-	if !commons.DecodeJSONRequestBody(w, r, &requestBody) {
-		return
-	}
-	err := validations.ValidateGenesisTDPRequest(requestBody)
+	err := commons.DecodeJSONRequestBody(w, r).Decode(&requestBody)
 	if err != nil {
-		customLogger.LogWriter("Error when validating TDP request : "+err.Error(), 3)
+		customLogger.LogWriter("Error when validating request : "+err.Error(), 3)
+		utilities.HandleError(w, "Error when validating request : "+err.Error(), http.StatusInternalServerError)
+	}
+	err2 := validations.ValidateGenesisTDPRequest(requestBody)
+	if err2 != nil {
+		customLogger.LogWriter(err2.Error(), 3)
+		utilities.HandleError(w, err2.Error(), http.StatusBadRequest)
 	}
 	// Use the make function to preallocate the memory
 	tdps := make([]model.TransactionCollectionBody, len(requestBody))
@@ -36,7 +39,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 
 	display := &businesslogic.AbstractXDR{TxnBody: tdps}
 	err, code, status := display.GenesisAndDataXDRToCron()
-	if err == nil && code == http.StatusOK {
+	if (err == nil) && (code == http.StatusOK) {
 		utilities.SuccessResponse[string](w, status)
 		return
 	} else {

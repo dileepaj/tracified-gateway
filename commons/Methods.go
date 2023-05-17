@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -52,18 +51,8 @@ func ConvertBase64StringToHash256(s string) string {
 	return hex.EncodeToString(h.Sum(nil))
 }
 
-func DecodeJSONRequestBody(w http.ResponseWriter, r *http.Request, dst interface{}) bool {
-	err := json.NewDecoder(r.Body).Decode(dst)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while decoding the request body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return false
-	}
-	return true
+func DecodeJSONRequestBody(w http.ResponseWriter, r *http.Request) (*json.Decoder) {
+	return json.NewDecoder(r.Body)
 }
 
 func CheckTaskStatus(tasks []model.Task) []model.Task {
