@@ -13,7 +13,7 @@ import (
 func FundAccount(buyerPK string) (string, error) {
 
 	request := horizonclient.AccountRequest{AccountID: commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK")}
-	issuerAccount, err := commons.GetHorizonNetwork().AccountDetail(request)
+	issuerAccount, err := commons.GetHorizonClient().AccountDetail(request)
 	if err != nil {
 		return "", err
 	}
@@ -26,7 +26,7 @@ func FundAccount(buyerPK string) (string, error) {
 		txnbuild.TransactionParams{
 			SourceAccount:        &issuerAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: buyerPK, Asset:txnbuild.NativeAsset{}, Amount: "1"}},
+			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: buyerPK, Asset: txnbuild.NativeAsset{}, Amount: "1"}},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},

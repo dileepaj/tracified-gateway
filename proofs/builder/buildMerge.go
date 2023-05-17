@@ -71,7 +71,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
-		if len(txe.Operations)==8{
+		if len(txe.Operations) == 8 {
 			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[7].Body.ManageDataOp.DataValue), "&")
 		}
 
@@ -172,15 +172,15 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(AP.TxnBody[i].PreviousTxnHash))
 				// MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
 				TypeTXNBuilder = txnbuild.ManageData{
-					Name: "Type",
+					Name:  "Type",
 					Value: []byte("G8"),
 				}
 				PreviousTXNBuilder = txnbuild.ManageData{
-					Name: "PreviousTXN",
+					Name:  "PreviousTXN",
 					Value: []byte(AP.TxnBody[i].PreviousTxnHash),
 				}
 				MergeIDBuilder = txnbuild.ManageData{
-					Name: "MergeID",
+					Name:  "MergeID",
 					Value: []byte(AP.TxnBody[i].PreviousTxnHash2),
 				}
 				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
@@ -189,15 +189,15 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				// PreviousTXNBuilder = build.SetData("PreviousTXN", []byte(PreviousTxn))
 				// MergeIDBuilder = build.SetData("MergeID", []byte(AP.TxnBody[i].PreviousTxnHash2))
 				TypeTXNBuilder = txnbuild.ManageData{
-					Name: "Type",
+					Name:  "Type",
 					Value: []byte("G7"),
 				}
 				PreviousTXNBuilder = txnbuild.ManageData{
-					Name: "PreviousTXN",
+					Name:  "PreviousTXN",
 					Value: []byte(PreviousTxn),
 				}
 				MergeIDBuilder = txnbuild.ManageData{
-					Name: "MergeID",
+					Name:  "MergeID",
 					Value: []byte(AP.TxnBody[i].PreviousTxnHash2),
 				}
 				AP.TxnBody[i].MergeID = AP.TxnBody[i].PreviousTxnHash2
@@ -225,12 +225,12 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			// pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 			// pubaccount, err := netClient.AccountDetail(pubaccountRequest)
 
-			kp,_ := keypair.Parse(publicKey)
-			client := commons.GetHorizonNetwork()
+			kp, _ := keypair.Parse(publicKey)
+			client := commons.GetHorizonClient()
 			ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 			pubaccount, err := client.AccountDetail(ar)
-			
-			if err != nil{
+
+			if err != nil {
 				log.Fatal(err)
 			}
 
@@ -245,16 +245,16 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			// 	MergeIDBuilder,
 			// )
 			CurrentTXN := txnbuild.ManageData{
-				Name: "CurrentTXN",
+				Name:  "CurrentTXN",
 				Value: []byte(UserMergeTxnHashes[i]),
 			}
 			tx, err := txnbuild.NewTransaction(
 				txnbuild.TransactionParams{
-					SourceAccount: &pubaccount,
+					SourceAccount:        &pubaccount,
 					IncrementSequenceNum: true,
-					Operations: []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder, &CurrentTXN},
-					BaseFee: constants.MinBaseFee,
-					Preconditions: txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
+					Operations:           []txnbuild.Operation{&TypeTXNBuilder, &PreviousTXNBuilder, &MergeIDBuilder, &CurrentTXN},
+					BaseFee:              constants.MinBaseFee,
+					Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 				},
 			)
 

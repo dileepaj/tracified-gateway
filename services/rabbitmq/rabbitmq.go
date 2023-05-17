@@ -455,6 +455,7 @@ func ReleaseLock() (error, string) {
 					User:          pendingnft.User,
 					Version:       pendingnft.Version,
 				}
+				fmt.Println("data ", pendingNFTS)
 				errWhenUpdatingNFTStatus := object.InsertToNFTStatus(pendingNFTS)
 				if errWhenUpdatingNFTStatus != nil {
 					logrus.Error("Error when updating the status of the NFT ")

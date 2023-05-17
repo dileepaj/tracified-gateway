@@ -1,22 +1,11 @@
 package commons
 
 import (
-	rp "github.com/gagliardetto/solana-go/rpc"
-	"github.com/portto/solana-go-sdk/rpc"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/network"
 )
 
 func GetHorizonClient() *horizonclient.Client {
-	client := GoDotEnvVariable("HORIZONCLIENT")
-	if client == "public" {
-		return horizonclient.DefaultPublicNetClient
-	} else {
-		return horizonclient.DefaultTestNetClient
-	}
-}
-
-func GetHorizonNetwork() *horizonclient.Client {
 	client := GoDotEnvVariable("HORIZONCLIENT")
 	if client == "public" {
 		return horizonclient.DefaultPublicNetClient
@@ -35,26 +24,6 @@ func GetStellarNetwork() string {
 }
 
 //get the connected stellar networ(public or test)
-
-func GetSolanaNetwork() string {
-	client := GoDotEnvVariable("SOLANACLIENT")
-	if client == "public" {
-		return rpc.MainnetRPCEndpoint
-	} else {
-		return rpc.DevnetRPCEndpoint
-	}
-}
-
-//get the connected solana networ(public or test)
-
-func GetSolanaRPC() string {
-	client := GoDotEnvVariable("SOLANACLIENT")
-	if client == "public" {
-		return rp.MainNetBeta_WS
-	} else {
-		return rp.DevNet_WS
-	}
-}
 
 func GetHorizonClientNetworkName() string {
 	clientNetworkName := GoDotEnvVariable("HORIZONCLIENT")

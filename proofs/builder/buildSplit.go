@@ -52,7 +52,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		log.Error(err)
 	}
 	// var result model.SubmitXDRResponse
-	client := commons.GetHorizonNetwork()
+	client := commons.GetHorizonClient()
 	ar := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := client.AccountDetail(ar)
 	// if err != nil {
@@ -130,10 +130,10 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		}
 
 		if AP.TxnBody[i].TxnType == "6" {
-    
+
 			id.MapValue = AP.TxnBody[i].Identifier
 			id.Identifier = AP.TxnBody[i].MapIdentifier
-      
+
 			err3 := object.InsertIdentifier(id)
 			if err3 != nil {
 				fmt.Println("identifier map failed" + err3.Error())
@@ -146,20 +146,20 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		var PreviousSplitProfile string
 		for i, TxnBody := range AP.TxnBody {
 			/*
-			When constructing a backlink transaction(put from gateway) for a split, it is important to exclude the split-parent transaction as its previous transaction.
-			Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
+				When constructing a backlink transaction(put from gateway) for a split, it is important to exclude the split-parent transaction as its previous transaction.
+				Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
 			*/
 			if TxnBody.TxnType == "6" {
-			backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
-				return data
-			}).Await()
-			if backlinkData == nil || errAsnc != nil {
-				log.Info("Can not find transaction form database ","build Split")
-			} else {
-				result := backlinkData.(model.TransactionCollectionBody)
-				PreviousTxn = result.TxnHash
-				AP.TxnBody[i].PreviousTxnHash = result.TxnHash
-			}
+				backlinkData, errAsnc := object.GetLastTransactionbyIdentifierNotSplitParent(AP.TxnBody[i].FromIdentifier1, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+					return data
+				}).Await()
+				if backlinkData == nil || errAsnc != nil {
+					log.Info("Can not find transaction form database ", "build Split")
+				} else {
+					result := backlinkData.(model.TransactionCollectionBody)
+					PreviousTxn = result.TxnHash
+					AP.TxnBody[i].PreviousTxnHash = result.TxnHash
+				}
 			}
 			previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXN", Value: []byte(PreviousTxn)}
 			typeTXNBuilder := txnbuild.ManageData{Name: "Type", Value: []byte("G" + TxnBody.TxnType)}
