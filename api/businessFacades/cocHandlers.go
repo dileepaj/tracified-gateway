@@ -7,10 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/sirupsen/logrus"
 
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
@@ -114,7 +114,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	brr,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
 
-	t, _ := brr.Hash(network.TestNetworkPassphrase)
+	t, _ := brr.Hash(commons.GetStellarNetwork())
 	test := fmt.Sprintf("%x", t)
 
 	err = xdr.SafeUnmarshalBase64(GObj.RejectXdr, &reject)
@@ -124,7 +124,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 
 	brr1,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
 
-	t1, _ := brr1.Hash(network.TestNetworkPassphrase)
+	t1, _ := brr1.Hash(commons.GetStellarNetwork())
 	test1 := fmt.Sprintf("%x", t1)
 
 	var txe xdr.Transaction
