@@ -50,7 +50,7 @@ func XDRSubmitter(TDP []model.TransactionCollectionBody) (bool, model.SubmitXDRR
 	}
 	// Get information about the account we just created
 	kp,_ := keypair.Parse(publicKey)
-	client := horizonclient.DefaultTestNetClient
+	client := commons.GetHorizonClient()
 	ar := horizonclient.AccountRequest{AccountID: kp.Address()}
 	account, err := client.AccountDetail(ar)
 	if err != nil {
