@@ -161,14 +161,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialTransfer " + err.Error())
 		}
 		// GET THE TYPE AND IDENTIFIER FROM THE XDR
-		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].PreviousStage = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].CurrentStage = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
 
 		AP.TxnBody[i].Status = "pending"
 

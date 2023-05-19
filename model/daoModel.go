@@ -124,6 +124,9 @@ type PrevTxnResponse struct {
 	FromIdentifier1 string
 	FromIdentifier2 string
 	ToIdentifier    string
+	CurrentStage 	string
+	PreviousStage 	string
+	TenantID 		string
 }
 
 type POCOCResponse struct {
