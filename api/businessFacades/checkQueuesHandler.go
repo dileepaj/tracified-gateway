@@ -43,11 +43,13 @@ func RetrieveQueueData(w http.ResponseWriter, r *http.Request) {
 		object := dao.Connection{}
 		p := object.GetQueueData(vars["ImageBase64"], vars["blockchain"], vars["version"])
 		p.Then(func(data interface{}) interface{} {
-
-			result := data.(model.PendingNFTS)
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(result)
-			return nil
+			if data != nil {
+				result := data.(model.PendingNFTS)
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(result)
+				return nil
+			}
+			return "No records saved"
 		}).Catch(func(error error) error {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "URL Not Found in Gateway DataStore"}
