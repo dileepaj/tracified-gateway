@@ -493,7 +493,7 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 
 	q, err := ch.QueueDeclare(
 		"buyingnfts", // name
-		true,         // durable
+		false,        // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait
