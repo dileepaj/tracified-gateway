@@ -16,7 +16,7 @@ type WorkflowService struct {
 
 func (wf *WorkflowService) GetWorkflowByTenantId() (workflowmodel.WorkflowData, error) {
 	var workflowData workflowmodel.WorkflowData
-	url := commons.GoDotEnvVariable("TRACIFIEDADMIN") + "/public/latestWorkflow/" + wf.TenantID
+	url := commons.GoDotEnvVariable("TRACIFIED_ADMIN") + "/public/latestWorkflow/" + wf.TenantID
 
 	// Send GET request
 	response, err := http.Get(url)
