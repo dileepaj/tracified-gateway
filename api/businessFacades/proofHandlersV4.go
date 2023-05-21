@@ -8,7 +8,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/model/workflowmodel"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
@@ -28,6 +30,24 @@ func BlockchainDataRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json")
+	object := dao.Connection{}
+	// get transaction details by txn hash
+	data, err := object.GetTransactionByTxnhash(vars["txn"]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"})
+		return
+	}
+	if data == nil {
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "Error while fetching data from Tracified %s"})
+		return
+	}
+	// transaction --> transaction (made by tracified in DB)
+	transaction := data.(model.TransactionCollectionBody)
+
 	s := stellarRetriever.POCTreeV4{TxnHash: vars["txn"]}
 	s.ConstructPOC()
 	pocData := s
@@ -51,7 +71,6 @@ func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 	}
 	// realIdentifiers identifiers that entered by the FO app (Not real)
 	var realIdentifiers []apiModel.IdentifierModel
-	object := dao.Connection{}
 	p := object.GetIdentifierMap(identifiers)
 	p.Then(func(data interface{}) interface{} {
 		realIdentifiers = data.([]apiModel.IdentifierModel)
@@ -60,8 +79,34 @@ func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 		logrus.Error("Identifier is not in the identifierMap DB", error)
 		return nil
 	}).Await()
-	// replace rela identifiers with numbered identifiers if exist
+
+	var stages []workflowmodel.Stage
+	if transaction.TenantID != "" {
+		wf := services.WorkflowService{
+			TenantID: transaction.TenantID,
+		}
+		// get stages by tenantID
+		currentWorkflowData, err := wf.GetWorkflowByTenantId()
+		if err != nil {
+			http.Error(w, "Failed to get workflow data: %s", http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(model.Error{Code: http.StatusInternalServerError, Message: "Failed to get workflow data: %s"})
+			return
+		}
+		stages = currentWorkflowData.Workflow[0].Stages
+	}
+	// replace real identifiers with numbered identifiers if exist
+	// replace current stage and previous stage with stage name if exist
 	for i, node := range pocNodes {
+		if len(stages) > 0 {
+			for _, stage := range stages {
+				if node.Data.CurrentStage == stage.StageID {
+					pocNodes[i].Data.CurrentStage = stage.Name
+				}
+				if node.Data.PreviousStage == stage.StageID {
+					pocNodes[i].Data.PreviousStage = stage.Name
+				}
+			}
+		}
 		if len(realIdentifiers) > 0 {
 			for _, realIdentifier := range realIdentifiers {
 				if node.Data.Identifier == realIdentifier.MapValue && realIdentifier.MapValue != "" && realIdentifier.Identifier != "" {
@@ -75,12 +120,35 @@ func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 		pocData.Nodes[pocNode.Id] = &pocNodes[i]
 	}
 
-	json.NewEncoder(w).Encode(pocData)
+	err = json.NewEncoder(w).Encode(pocData)
+	if err != nil {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusInternalServerError, Message: "Failed to encode data to JSON: %s"})
+		return
+	}
 }
 
 func BlockchainTreeRetreiverWithHashWithMerkleTree(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	w.Header().Set("Content-Type", "application/json")
+
+	object := dao.Connection{}
+	// get transaction details by txn hash
+	data, err := object.GetTransactionByTxnhash(vars["txn"]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"})
+		return
+	}
+	if data == nil {
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "Error while fetching data from Tracified %s"})
+		return
+	}
+	// transaction --> transaction (made by tracified in DB)
+	transaction := data.(model.TransactionCollectionBody)
+
 	s := stellarRetriever.POCTreeV4{TxnHash: vars["txn"]}
 	s.ConstructPOCMerkleTree()
 	pocData := s
@@ -104,7 +172,6 @@ func BlockchainTreeRetreiverWithHashWithMerkleTree(w http.ResponseWriter, r *htt
 	}
 	// realIdentifiers identifiers that entered by the FO app (Not real)
 	var realIdentifiers []apiModel.IdentifierModel
-	object := dao.Connection{}
 	p := object.GetIdentifierMap(identifiers)
 	p.Then(func(data interface{}) interface{} {
 		realIdentifiers = data.([]apiModel.IdentifierModel)
@@ -113,8 +180,33 @@ func BlockchainTreeRetreiverWithHashWithMerkleTree(w http.ResponseWriter, r *htt
 		logrus.Error("Identifier is not in the identifierMap DB", error)
 		return nil
 	}).Await()
-	// replace rela identifiers with numbered identifiers if exist
+	var stages []workflowmodel.Stage
+	if transaction.TenantID != "" {
+		wf := services.WorkflowService{
+			TenantID: transaction.TenantID,
+		}
+		// get stages by tenantID
+		currentWorkflowData, err := wf.GetWorkflowByTenantId()
+		if err != nil {
+			http.Error(w, "Failed to get workflow data: %s", http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(model.Error{Code: http.StatusInternalServerError, Message: "Failed to get workflow data: %s"})
+			return
+		}
+		stages = currentWorkflowData.Workflow[0].Stages
+	}
+	// replace real identifiers with numbered identifiers if exist
+	// replace current stage and previous stage with stage name if exist
 	for i, node := range pocNodes {
+		if len(stages) > 0 {
+			for _, stage := range stages {
+				if node.Data.CurrentStage == stage.StageID {
+					pocNodes[i].Data.CurrentStage = stage.Name
+				}
+				if node.Data.PreviousStage == stage.StageID {
+					pocNodes[i].Data.PreviousStage = stage.Name
+				}
+			}
+		}
 		if len(realIdentifiers) > 0 {
 			for _, realIdentifier := range realIdentifiers {
 				if node.Data.Identifier == realIdentifier.MapValue && realIdentifier.MapValue != "" && realIdentifier.Identifier != "" {
@@ -128,5 +220,9 @@ func BlockchainTreeRetreiverWithHashWithMerkleTree(w http.ResponseWriter, r *htt
 		pocData.Nodes[pocNode.Id] = &pocNodes[i]
 	}
 
-	json.NewEncoder(w).Encode(pocData)
+	err = json.NewEncoder(w).Encode(pocData)
+	if err != nil {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusInternalServerError, Message: "Failed to encode data to JSON: %s"})
+		return
+	}
 }
