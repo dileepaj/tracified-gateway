@@ -88,11 +88,11 @@ func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 		// get stages by tenantID
 		currentWorkflowData, err := wf.GetWorkflowByTenantId()
 		if err != nil {
-			http.Error(w, "Failed to get workflow data: %s", http.StatusInternalServerError)
-			json.NewEncoder(w).Encode(model.Error{Code: http.StatusInternalServerError, Message: "Failed to get workflow data: %s"})
-			return
+			logrus.Error("Failed to get workflow data ", err.Error())
 		}
-		stages = currentWorkflowData.Workflow[0].Stages
+		if currentWorkflowData.Workflow[0].Stages != nil {
+			stages = currentWorkflowData.Workflow[0].Stages
+		}
 	}
 	// replace real identifiers with numbered identifiers if exist
 	// replace current stage and previous stage with stage name if exist

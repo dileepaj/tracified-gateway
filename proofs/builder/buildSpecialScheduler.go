@@ -275,17 +275,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialMerge(w http.ResponseWriter, r *http
 		// GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].FromIdentifier2 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
-		if len(txe.Operations) == 8 {
-			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[7].Body.ManageDataOp.DataValue), "&")
-		}
-
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
 		AP.TxnBody[i].Status = "pending"
 
 		log.Debug(AP.TxnBody[i].Identifier)
