@@ -16,11 +16,12 @@ type AdminStore struct {
 	DBName   string
 }
 
-var adminMgoSession mongo.Session
-var adminMgoConnectionUrl string
+var (
+	adminMgoSession       mongo.Session
+	adminMgoConnectionUrl string
+)
 
 func GetAdminMongoSession() (mongo.Session, error) {
-	//log.Println("-------------------------Get admin mongo session---------------")
 	if adminMgoSession == nil {
 		var err error
 		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(adminMgoConnectionUrl))
@@ -32,7 +33,6 @@ func GetAdminMongoSession() (mongo.Session, error) {
 			return nil, err
 		}
 	}
-
 	return adminMgoSession, nil
 }
 
