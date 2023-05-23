@@ -90,7 +90,7 @@ func BlockchainTreeRetreiverWithHash(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			logrus.Error("Failed to get workflow data ", err.Error())
 		}
-		if (currentWorkflowData.Workflow != nil) && currentWorkflowData.Workflow[0].Stages != nil {
+		if (currentWorkflowData.Workflow != nil) && (currentWorkflowData.Workflow[0].Stages != nil) {
 			stages = currentWorkflowData.Workflow[0].Stages
 		}
 	}
@@ -190,7 +190,7 @@ func BlockchainTreeRetreiverWithHashWithMerkleTree(w http.ResponseWriter, r *htt
 		if err != nil {
 			logrus.Error("Failed to get workflow data ", err.Error())
 		}
-		if currentWorkflowData.Workflow[0].Stages != nil {
+		if (currentWorkflowData.Workflow != nil) && (currentWorkflowData.Workflow[0].Stages != nil) {
 			stages = currentWorkflowData.Workflow[0].Stages
 		}
 	}
