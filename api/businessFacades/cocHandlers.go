@@ -133,13 +133,14 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 		logrus.Error(err1)
 	}
 	useSentSequence := false
-	for i := 0; i < len(txe.Operations); i++ {
-
-		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
-			GObj.SequenceNo = v
-			useSentSequence = true
-		}
+	if len(txe.Operations) > 0 {
+		for i := 0; i < len(txe.Operations); i++ {
+			if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+				v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+				GObj.SequenceNo = v
+				useSentSequence = true
+			}
+	 	}	
 	}
 	if !useSentSequence {
 		v := fmt.Sprint(txe.SeqNum)
