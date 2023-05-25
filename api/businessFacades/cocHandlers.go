@@ -142,7 +142,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 			}
 	 	}	
 	}
-	if !useSentSequence {
+	if useSentSequence {
 		v := fmt.Sprint(txe.SeqNum)
 		GObj.SequenceNo = v
 	}
