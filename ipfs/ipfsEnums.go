@@ -3,7 +3,7 @@ package ipfs
 type BucketName string
 
 const (
-	NFTBucketName        BucketName = "nft"
-	TDPBucketName        BucketName = "tdp"
-	MasterDataBucketName BucketName = "masterdata"
+	NFTBucketName        BucketName = "nfttracified"
+	TDPBucketName        BucketName = "tdptracified"
+	MasterDataBucketName BucketName = "masterdatatracified"
 )
