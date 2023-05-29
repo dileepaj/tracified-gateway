@@ -41,7 +41,7 @@ func GetSolanaNetwork() string {
 	if client == "public" {
 		return rpc.MainnetRPCEndpoint
 	} else {
-		return rpc.TestnetRPCEndpoint
+		return rpc.DevnetRPCEndpoint
 	}
 }
 
@@ -52,7 +52,7 @@ func GetSolanaRPC() string {
 	if client == "public" {
 		return rp.MainNetBeta_WS
 	} else {
-		return rp.TestNet_WS
+		return rp.DevNet_WS
 	}
 }
 
