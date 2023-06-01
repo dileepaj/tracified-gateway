@@ -487,6 +487,7 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 	ch, err := conn.Channel()
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to open a channel LockRequest", err)
+		return err
 	}
 	defer ch.Close()
 

@@ -87,10 +87,10 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 						Uri:                  code_url,
 						SellerFeeBasisPoints: 0,
 						Creators: &[]token_metadata.Creator{
-							{
+              {
 								Address:  fromWallet.PublicKey,
 								Verified: true,
-								Share:    0,
+								Share:    100,
 							},
 						},
 					},
