@@ -52,7 +52,7 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 2s", func() {
+	c.AddFunc("@every 15s", func() {
 		services.CheckTempOrphan()
 	})
 
