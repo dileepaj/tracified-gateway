@@ -48,15 +48,21 @@ paths:
         400:
           description: Error when enabling cors
 
-  /proof/poe/{txn}:
+  /proof/poe:
     get:
       tags:
         - proofs
       description: Returns the proof of POE
       parameters:
-        - name: txn
-          in: path
-          description: Transaction hash
+        - name: tdpId
+          in: query
+          description: TDP ID
+          required: true
+          schema:
+            type: string
+        - name: seqNo
+          in: query
+          description: Sequence Number
           required: true
           schema:
             type: string
