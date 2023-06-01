@@ -34,7 +34,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		log.Error(" Error Message response", error1.Response)
 		log.Error(" Error Response ", response.Error.Message)
 		// Something went wrong on the Horizon server’s end.
-		if error1.Response.StatusCode == 500 && error1.Problem.Status == 504 {
+		if error1.Response.StatusCode == 500 && error1.Problem.Status == 500 {
 			time.Sleep(10 * time.Second)
 			log.Info("Resubmitting transaction (Timeout issue)", cd.XDR)
 			display := ConcreteSubmitXDR{XDR: cd.XDR}
