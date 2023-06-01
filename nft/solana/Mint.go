@@ -12,42 +12,42 @@ import (
 	"github.com/portto/solana-go-sdk/client"
 	"github.com/portto/solana-go-sdk/common"
 	"github.com/portto/solana-go-sdk/pkg/pointer"
-	"github.com/portto/solana-go-sdk/program/assotokenprog"
-	"github.com/portto/solana-go-sdk/program/metaplex/tokenmeta"
-	"github.com/portto/solana-go-sdk/program/sysprog"
-	"github.com/portto/solana-go-sdk/program/tokenprog"
+	"github.com/portto/solana-go-sdk/program/associated_token_account"
+	"github.com/portto/solana-go-sdk/program/metaplex/token_metadata"
+	"github.com/portto/solana-go-sdk/program/system"
+	"github.com/portto/solana-go-sdk/program/token"
 	"github.com/portto/solana-go-sdk/rpc"
 	"github.com/portto/solana-go-sdk/types"
 )
 
 func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
-
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
 
 	c := client.NewClient(commons.GetSolanaNetwork())
 
 	mint := types.NewAccount()
+
 	ata, _, err := common.FindAssociatedTokenAddress(fromWallet.PublicKey, mint.PublicKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	tokenMetadataPubkey, err := tokenmeta.GetTokenMetaPubkey(mint.PublicKey)
+	tokenMetadataPubkey, err := token_metadata.GetTokenMetaPubkey(mint.PublicKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	tokenMasterEditionPubkey, err := tokenmeta.GetMasterEdition(mint.PublicKey)
+	tokenMasterEditionPubkey, err := token_metadata.GetMasterEdition(mint.PublicKey)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	mintAccountRent, err := c.GetMinimumBalanceForRentExemption(context.Background(), tokenprog.MintAccountSize)
+	mintAccountRent, err := c.GetMinimumBalanceForRentExemption(context.Background(), token.MintAccountSize)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	recentBlockhashResponse, err := c.GetRecentBlockhash(context.Background())
+	recentBlockhashResponse, err := c.GetLatestBlockhash(context.Background())
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
@@ -58,21 +58,22 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 			FeePayer:        fromWallet.PublicKey,
 			RecentBlockhash: recentBlockhashResponse.Blockhash,
 			Instructions: []types.Instruction{
-				sysprog.CreateAccount(sysprog.CreateAccountParam{
+				system.CreateAccount(system.CreateAccountParam{
 					From:     fromWallet.PublicKey,
 					New:      mint.PublicKey,
 					Owner:    common.TokenProgramID,
 					Lamports: mintAccountRent,
-					Space:    tokenprog.MintAccountSize,
+					Space:    token.MintAccountSize,
 				}),
-				tokenprog.InitializeMint(tokenprog.InitializeMintParam{
+
+				token.InitializeMint(token.InitializeMintParam{
 					Decimals:   0,
 					Mint:       mint.PublicKey,
 					MintAuth:   fromWallet.PublicKey,
 					FreezeAuth: &fromWallet.PublicKey,
 				}),
 
-				tokenmeta.CreateMetadataAccount(tokenmeta.CreateMetadataAccountParam{
+				token_metadata.CreateMetadataAccount(token_metadata.CreateMetadataAccountParam{
 					Metadata:                tokenMetadataPubkey,
 					Mint:                    mint.PublicKey,
 					MintAuthority:           fromWallet.PublicKey,
@@ -80,13 +81,13 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 					UpdateAuthority:         fromWallet.PublicKey,
 					UpdateAuthorityIsSigner: true,
 					IsMutable:               true,
-					MintData: tokenmeta.Data{
+					MintData: token_metadata.Data{
 						Name:                 code_name,
-						Symbol:               "TNFT",
+						Symbol:               "TRAC",
 						Uri:                  code_url,
-						SellerFeeBasisPoints: 100,
-						Creators: &[]tokenmeta.Creator{
-							{
+						SellerFeeBasisPoints: 0,
+						Creators: &[]token_metadata.Creator{
+              {
 								Address:  fromWallet.PublicKey,
 								Verified: true,
 								Share:    100,
@@ -94,27 +95,28 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 						},
 					},
 				}),
-				assotokenprog.CreateAssociatedTokenAccount(assotokenprog.CreateAssociatedTokenAccountParam{
+
+				associated_token_account.CreateAssociatedTokenAccount(associated_token_account.CreateAssociatedTokenAccountParam{
 					Funder:                 fromWallet.PublicKey,
 					Owner:                  fromWallet.PublicKey,
 					Mint:                   mint.PublicKey,
 					AssociatedTokenAccount: ata,
 				}),
-				tokenprog.MintTo(tokenprog.MintToParam{
+				token.MintTo(token.MintToParam{
 					Mint:   mint.PublicKey,
 					To:     ata,
 					Auth:   fromWallet.PublicKey,
 					Amount: 1,
 				}),
 
-				tokenmeta.CreateMasterEditionV3(tokenmeta.CreateMasterEditionParam{
+				token_metadata.CreateMasterEditionV3(token_metadata.CreateMasterEditionParam{
 					Edition:         tokenMasterEditionPubkey,
 					Mint:            mint.PublicKey,
 					UpdateAuthority: fromWallet.PublicKey,
 					MintAuthority:   fromWallet.PublicKey,
 					Metadata:        tokenMetadataPubkey,
 					Payer:           fromWallet.PublicKey,
-					MaxSupply:       pointer.Uint64(0),
+					MaxSupply:       pointer.Get[uint64](0),
 				}),
 			},
 		}),
@@ -126,6 +128,7 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 	sign, err := c.SendTransactionWithConfig(context.TODO(), tx, client.SendTransactionConfig{
 		SkipPreflight:       false,
 		PreflightCommitment: rpc.CommitmentFinalized,
+		MaxRetries:          0,
 	})
 	if err != nil {
 		return nil, nil, nil, nil, err
