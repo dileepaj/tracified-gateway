@@ -404,7 +404,7 @@ func ReleaseLock() (error, string) {
 	// Declare the queue
 	queuelock, err := channel.QueueDeclare(
 		"buyingnfts",
-		true,  // durable
+		false, // durable
 		false, // delete when unused
 		false, // exclusive
 		false, // no-wait
@@ -418,7 +418,7 @@ func ReleaseLock() (error, string) {
 	msgs, err := channel.Consume(
 		queuelock.Name,
 		"",
-		false, // auto-ack
+		true,  // auto-ack
 		false, // exclusive
 		false, // no-local
 		false, // no-wait

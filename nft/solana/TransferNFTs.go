@@ -11,8 +11,8 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 	"github.com/portto/solana-go-sdk/client"
 	"github.com/portto/solana-go-sdk/common"
-	"github.com/portto/solana-go-sdk/program/assotokenprog"
-	"github.com/portto/solana-go-sdk/program/tokenprog"
+	"github.com/portto/solana-go-sdk/program/associated_token_account"
+	"github.com/portto/solana-go-sdk/program/token"
 	"github.com/portto/solana-go-sdk/rpc"
 	"github.com/portto/solana-go-sdk/types"
 )
@@ -44,13 +44,13 @@ func TransferNFTs(fromWalletSecret string, from string, to string, mintpk string
 			FeePayer:        fromWallet.PublicKey,
 			RecentBlockhash: recentBlockhashResponse.Blockhash,
 			Instructions: []types.Instruction{
-				assotokenprog.CreateAssociatedTokenAccount(assotokenprog.CreateAssociatedTokenAccountParam{
+				associated_token_account.CreateAssociatedTokenAccount(associated_token_account.CreateAssociatedTokenAccountParam{
 					Funder:                 fromWallet.PublicKey,
 					Owner:                  common.PublicKeyFromString(to),
 					Mint:                   common.PublicKeyFromString(mintpk),
 					AssociatedTokenAccount: toata,
 				}),
-				tokenprog.TransferChecked(tokenprog.TransferCheckedParam{
+				token.TransferChecked(token.TransferCheckedParam{
 					From:     ata,
 					To:       toata,
 					Mint:     common.PublicKeyFromString(mintpk),
