@@ -404,7 +404,7 @@ func ReleaseLock() (error, string) {
 	// Declare the queue
 	queuelock, err := channel.QueueDeclare(
 		"buyingnfts",
-		false, // durable
+		true,  // durable
 		false, // delete when unused
 		false, // exclusive
 		false, // no-wait
@@ -492,7 +492,7 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 
 	q, err := ch.QueueDeclare(
 		"buyingnfts", // name
-		false,        // durable
+		true,         // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait
