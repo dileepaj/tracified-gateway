@@ -385,6 +385,7 @@ func SendToQueue(queue model.SendToQueue) error {
 
 // rabbitmq queue message listener
 func ReleaseLock() (error, string) {
+	logrus.Info("-------------------------------Release Lock")
 	object := dao.Connection{}
 	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
@@ -404,7 +405,7 @@ func ReleaseLock() (error, string) {
 	// Declare the queue
 	queuelock, err := channel.QueueDeclare(
 		"buyingnfts",
-		true,  // durable
+		false, // durable
 		false, // delete when unused
 		false, // exclusive
 		false, // no-wait
@@ -418,7 +419,7 @@ func ReleaseLock() (error, string) {
 	msgs, err := channel.Consume(
 		queuelock.Name,
 		"",
-		false, // auto-ack
+		true,  // auto-ack
 		false, // exclusive
 		false, // no-local
 		false, // no-wait
@@ -493,7 +494,7 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 
 	q, err := ch.QueueDeclare(
 		"buyingnfts", // name
-		true,         // durable
+		false,        // durable
 		false,        // delete when unused
 		false,        // exclusive
 		false,        // no-wait

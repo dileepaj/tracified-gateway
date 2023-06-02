@@ -2,6 +2,7 @@ package stellarExecuter
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -22,6 +23,8 @@ type ConcreteSubmitXDR struct {
 @desc - Submits the XDR to stellar horizon api and returns the TXN hash.
 @params - XDR
 */
+var count int = 0
+
 func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 	var count int = 0
 	log.Debug("=========================== submitXDR.go SubmitXDR =============================")
