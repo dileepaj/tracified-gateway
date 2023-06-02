@@ -226,12 +226,10 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 @params - ResponseWriter,Request
 */
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
-	fmt.Println("------------------ SubmitGenesis -------------------------")
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
 
 	if r.Header == nil {
-		fmt.Println("------------------ No Header present! -------------------------")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Header present!",
@@ -241,7 +239,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Header.Get("Content-Type") == "" {
-		fmt.Println("------------------ No Content-Type present! -------------------------")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "No Content-Type present!",
@@ -253,7 +250,6 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
-		fmt.Println("------------------ Error while Decoding the body -------------------------")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error while Decoding the body",
@@ -309,7 +305,6 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	// display.SubmitData(w,r,true)
 	display.SubmitSpecial(w, r)
 
 	return
@@ -485,25 +480,8 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err)
 		return
 	}
-	fmt.Println(TDP)
-
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecialTransfer(w, r)
-
-	// status, _ := builder.XDRSubmitter(TDP)
-	// if status {
-	// 	w.WriteHeader(http.StatusOK)
-	// 	result := apiModel.SubmitXDRSuccess{
-	// 		Status: "Success",
-	// 	}
-	// 	json.NewEncoder(w).Encode(result)
-	// } else {
-	// 	w.WriteHeader(http.StatusBadRequest)
-	// 	result := apiModel.SubmitXDRSuccess{
-	// 		Status: "Failed",
-	// 	}
-	// 	json.NewEncoder(w).Encode(result)
-	// }
 	return
 }
 

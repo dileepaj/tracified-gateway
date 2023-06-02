@@ -250,16 +250,17 @@ func CheckTempOrphan() {
 							Name:  "Type",
 							Value: []byte("G" + result.TxnType),
 						}
-						CurrentTXNBuilder := txnbuild.ManageData{
-							Name:  "CurrentTXN",
-							Value: []byte(UserTxnHash),
-						}
+
 						display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
 						response := display.SubmitXDR(result.TxnType)
 						UserTxnHash = response.TXNID
 						if response.Error.Code == 400 {
-							log.Println("400 SubmitXDR")
+							log.Error(response.Error.Message)
 							break
+						}
+						CurrentTXNBuilder := txnbuild.ManageData{
+							Name:  "CurrentTXN",
+							Value: []byte(UserTxnHash),
 						}
 						// BUILD THE GATEWAY XDR
 						tx, err := txnbuild.NewTransaction(txnbuild.TransactionParams{
@@ -271,19 +272,19 @@ func CheckTempOrphan() {
 							Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 						})
 						if err != nil {
-							log.Println("Error while buliding XDR " + err.Error())
+							log.Error("Error while buliding XDR " + err.Error())
 							break
 						}
 						// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 						GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 						if err != nil {
-							log.Println("Error while getting GatewayTXE " + err.Error())
+							log.Error("Error while getting GatewayTXE " + err.Error())
 							break
 						}
 						// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 						txeB64, err := GatewayTXE.Base64()
 						if err != nil {
-							log.Println("Error while converting to base64 " + err.Error())
+							log.Error("Error while converting to base64 " + err.Error())
 							break
 						}
 						// SUBMIT THE GATEWAY'S SIGNED XDR
@@ -293,7 +294,7 @@ func CheckTempOrphan() {
 							log.Info("type 9 submission ", response1)
 						}
 						if response1.Error.Code != 200 {
-							log.Println("400 from SubmitXDR")
+							log.Error("400 from SubmitXDR")
 							break
 						}
 						result.TxnHash = response1.TXNID
@@ -301,12 +302,12 @@ func CheckTempOrphan() {
 						///INSERT INTO TRANSACTION COLLECTION
 						err2 := object.InsertTransaction(result)
 						if err2 != nil {
-							log.Println("Error while InsertTransaction " + err2.Error())
+							log.Error("Error while InsertTransaction " + err2.Error())
 							break
 						} else {
 							err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
 							if err != nil {
-								log.Println("Error while RemoveFromTempOrphanList " + err.Error())
+								log.Error("Error while RemoveFromTempOrphanList " + err.Error())
 								break
 							}
 						}

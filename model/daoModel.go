@@ -16,6 +16,7 @@ type COCCollectionBody struct {
 	RejectTxn  string
 	Identifier string
 	Status     string
+	TenantID   string
 }
 
 type TotalTransaction struct {
@@ -104,7 +105,7 @@ type PrevTxnResponse struct {
 	Blockchain      string
 	Txnhash         string
 	TxnType         string
-	SequenceNo      int64
+	SequenceNo      string
 	Url             string
 	LabUrl          string
 	From            string
@@ -123,6 +124,9 @@ type PrevTxnResponse struct {
 	FromIdentifier1 string
 	FromIdentifier2 string
 	ToIdentifier    string
+	CurrentStage 	string
+	PreviousStage 	string
+	TenantID 		string
 }
 
 type POCOCResponse struct {

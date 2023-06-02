@@ -16,15 +16,6 @@ func GetHorizonClient() *horizonclient.Client {
 	}
 }
 
-func GetHorizonNetwork() *horizonclient.Client {
-	client := GoDotEnvVariable("HORIZONCLIENT")
-	if client == "public" {
-		return horizonclient.DefaultPublicNetClient
-	} else {
-		return horizonclient.DefaultTestNetClient
-	}
-}
-
 func GetStellarNetwork() string {
 	client := GoDotEnvVariable("HORIZONCLIENT")
 	if client == "public" {

@@ -52,7 +52,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		log.Error(err)
 	}
 	// var result model.SubmitXDRResponse
-	client := commons.GetHorizonNetwork()
+	client := commons.GetHorizonClient()
 	ar := horizonclient.AccountRequest{AccountID: publicKey}
 	account, err := client.AccountDetail(ar)
 	// if err != nil {

@@ -7,9 +7,10 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/sirupsen/logrus"
 
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 
@@ -62,7 +63,7 @@ func GetCocBySender(w http.ResponseWriter, r *http.Request) {
 func GetCocByReceiver(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	object := dao.Connection{}
-	data, err := object.GetCOCbySender(vars["Receiver"]).Then(func(data interface{}) interface{} {
+	data, err := object.GetCOCbyReceiver(vars["Receiver"]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if err != nil {
@@ -96,7 +97,7 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	var GObj model.COCCollectionBody
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error while Decoding the body",
@@ -108,54 +109,45 @@ func InsertCocCollection(w http.ResponseWriter, r *http.Request) {
 	var reject xdr.Transaction
 	err = xdr.SafeUnmarshalBase64(GObj.AcceptXdr, &accept)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 	}
 
 	brr,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
-	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t, _ := brr.Hash(network.TestNetworkPassphrase)
+	t, _ := brr.Hash(commons.GetStellarNetwork())
 	test := fmt.Sprintf("%x", t)
 
 	err = xdr.SafeUnmarshalBase64(GObj.RejectXdr, &reject)
 	if err != nil {
-		fmt.Println(err)
+		logrus.Error(err)
 	}
 
 	brr1,_ := txnbuild.TransactionFromXDR(GObj.AcceptXdr)
-	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 
-	t1, _ := brr1.Hash(network.TestNetworkPassphrase)
+	t1, _ := brr1.Hash(commons.GetStellarNetwork())
 	test1 := fmt.Sprintf("%x", t1)
 
 	var txe xdr.Transaction
 	err1 := xdr.SafeUnmarshalBase64(GObj.AcceptXdr, &txe)
 	if err1 != nil {
-		fmt.Println(err1)
+		logrus.Error(err1)
 	}
 	useSentSequence := false
-
-	for i := 0; i < len(txe.Operations); i++ {
-
-		if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
-			v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
-			fmt.Println(v)
-			GObj.SequenceNo = v
-			useSentSequence = true
-
-		}
+	if len(txe.Operations) > 0 {
+		for i := 0; i < len(txe.Operations); i++ {
+			if txe.Operations[i].Body.Type == xdr.OperationTypeBumpSequence {
+				v := fmt.Sprint(txe.Operations[i].Body.BumpSequenceOp.BumpTo)
+				GObj.SequenceNo = v
+				useSentSequence = true
+			}
+	 	}	
 	}
-	if !useSentSequence {
-		fmt.Println("seq")
-		fmt.Println(txe.SeqNum)
+	if useSentSequence {
 		v := fmt.Sprint(txe.SeqNum)
 		GObj.SequenceNo = v
 	}
-	fmt.Println("SubAcc")
-	fmt.Println(GObj.SubAccount)
 	GObj.AcceptTxn = test
 	GObj.RejectTxn = test1
-	fmt.Println(GObj)
 	object := dao.Connection{}
 	err2 := object.InsertCoc(GObj)
 
@@ -193,10 +185,8 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
 		return
 	}
-	fmt.Println(GObj)
 	object := dao.Connection{}
 	switch GObj.Status {
 	case model.Accepted.String():
@@ -205,12 +195,15 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			var TXNS []model.TransactionCollectionBody
 			TXN := model.TransactionCollectionBody{
 				XDR: GObj.AcceptXdr,
+				TxnType: "10",
+				Identifier: selection.Identifier,
+				PublicKey: selection.SubAccount,
+			}
+			if selection.TenantID != "" {
+				TXN.TenantID = selection.TenantID
 			}
 			TXNS = append(TXNS, TXN)
-			fmt.Println(TXNS)
-
 			status, response := builder.XDRSubmitter(TXNS)
-
 			if !status {
 				w.WriteHeader(502)
 				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
@@ -221,17 +214,13 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 			} else {
 				GObj.TxnHash = response.TXNID
-				fmt.Println(response.TXNID)
-
 				err1 := object.UpdateCOC(selection, GObj)
-
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(400)
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
-
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
@@ -257,7 +246,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			selection = data.(model.COCCollectionBody)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: GObj.RejectXdr}
 			response := display.TDPInsert()
-
 			if response.Error.Code == 400 {
 				w.WriteHeader(502)
 				errors_string := strings.ReplaceAll(response.Error.Message, "op_success? ", "")
@@ -268,7 +256,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 			} else {
 				GObj.TxnHash = response.TXNID
-				fmt.Println(response.TXNID)
 				err1 := object.UpdateCOC(selection, GObj)
 				if err1 != nil {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -276,7 +263,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Failed"}
 					json.NewEncoder(w).Encode(result)
-
 				} else {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
@@ -287,10 +273,8 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 					result = apiModel.InsertCOCCollectionResponse{
 						Message: "Success", Body: body}
 					json.NewEncoder(w).Encode(result)
-
 				}
 			}
-
 			return data
 		}).Await()
 		if err != nil {
@@ -299,7 +283,6 @@ func UpdateCocCollection(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(err)
 		}
 		break
-
 	default:
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(400)

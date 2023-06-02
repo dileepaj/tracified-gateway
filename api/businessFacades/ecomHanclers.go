@@ -507,7 +507,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Ledger:          ledger,
 				SourceAccount:   TxnBody.PublicKey,
 				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
+				SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 				AvailableProof:  GetProofName(TxnBody.TxnType),
 				To:              to,
 				ProductName:     TxnBody.ProductName,
@@ -515,6 +515,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+				CurrentStage: TxnBody.StageID,
+				PreviousStage: TxnBody.PreviousStage,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -740,13 +742,15 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Ledger:          ledger,
 				SourceAccount:   TxnBody.PublicKey,
 				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
+				SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 				AvailableProof:  GetProofName(TxnBody.TxnType),
 				To:              to,
 				ProductName:     TxnBody.ProductName,
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+				CurrentStage: TxnBody.StageID,
+				PreviousStage: TxnBody.PreviousStage,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -969,7 +973,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Ledger:          ledger,
 				SourceAccount:   TxnBody.PublicKey,
 				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
+				SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 				AvailableProof:  GetProofName(TxnBody.TxnType),
 				To:              to,
 				ProductName:     TxnBody.ProductName,
@@ -977,6 +981,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+				CurrentStage: TxnBody.StageID,
+				PreviousStage: TxnBody.PreviousStage,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -1212,7 +1218,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				Ledger:          ledger,
 				SourceAccount:   TxnBody.PublicKey,
 				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
+				SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 				AvailableProof:  GetProofName(TxnBody.TxnType),
 				To:              to,
 				ProductName:     TxnBody.ProductName,
@@ -1220,6 +1226,8 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+				CurrentStage: TxnBody.StageID,
+				PreviousStage: TxnBody.PreviousStage,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -1313,7 +1321,7 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 				Ledger:          ledger,
 				SourceAccount:   TxnBody.PublicKey,
 				From:            from,
-				SequenceNo:      TxnBody.SequenceNo,
+				SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 				AvailableProof:  GetProofName(TxnBody.TxnType),
 				To:              to,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
@@ -1474,17 +1482,9 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 	_, err = object.GetPreviousTransactions(perPage, page, NoPage).Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
-
-			// _, err := object.GetRealIdentifier(TxnBody.Identifier).Then(func(data interface{}) interface{} {
-			// 	realIdentifier := data.(apiModel.IdentifierModel)
-			// 	TxnBody.Identifier = realIdentifier.Identifier
-			// 	return nil
-			// }).Await()
-
 			if err != nil {
 				log.Print("Unable to get real identifier")
 			}
-
 			if TxnBody.TxnType != "11" {
 				TxnHash := TxnBody.TxnHash
 				var txe xdr.Transaction
@@ -1661,13 +1661,16 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					Ledger:          ledger,
 					SourceAccount:   TxnBody.PublicKey,
 					From:            from,
-					SequenceNo:      TxnBody.SequenceNo,
+					SequenceNo:      strconv.FormatInt(TxnBody.SequenceNo, 10),
 					AvailableProof:  GetProofName(TxnBody.TxnType),
 					To:              to,
 					ProductName:     TxnBody.ProductName,
 					AssetCode:       assetcode,
 					FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 					FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
+					CurrentStage: TxnBody.CurrentStage,
+					PreviousStage: TxnBody.PreviousStage,
+					TenantID: TxnBody.TenantID,
 				}
 				result = append(result, temp)
 			}
@@ -1708,6 +1711,8 @@ func GetTransactiontype(Type string) string {
 		return "merge"
 	case "8":
 		return "merge"
+	case "9":
+		return "stage transfer"
 	case "10":
 		return "coc"
 	case "11":
@@ -1732,10 +1737,11 @@ func GetProofName(Type string) []string {
 		result = append(result, "poc")
 	case "8":
 		result = append(result, "poc")
+	case "9":
+		result = append(result, "poc")
 	case "10":
 		result = append(result, "pococ")
 		result = append(result, "poc")
-
 	case "11":
 		result = append(result, "pococ")
 	}

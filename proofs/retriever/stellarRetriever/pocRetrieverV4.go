@@ -250,6 +250,54 @@ func (poc *POCTreeV4) generatePOCV4() {
 				poc.generatePOCV4()
 			}
 			break
+		case "9":
+			if gtxe.PreviousTxnHash == "" {
+				return
+			}
+			p := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
+			pgtxe, err1 := p.GetTransactionCollection()
+			if err1 == nil {
+				if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
+					poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				}
+				if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+					poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
+						Id: pgtxe.TxnHash,
+						Data: *pgtxe,
+						TrustLinks: []string{pgtxe.TxnHash},
+					}
+				}
+				if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+					poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+				}
+				}
+			poc.LastTxnHash = gtxe.PreviousTxnHash
+			poc.generatePOCV4()
+			break
+		case "10":
+			if gtxe.PreviousTxnHash == "" {
+				return
+			}
+			p := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
+			pgtxe, err1 := p.GetTransactionCollection()
+			if err1 == nil {
+				if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
+					poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				}
+				if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+					poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
+						Id: pgtxe.TxnHash,
+						Data: *pgtxe,
+						TrustLinks: []string{pgtxe.TxnHash},
+					}
+				}
+				if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+					poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+				}
+			}
+			poc.LastTxnHash = gtxe.PreviousTxnHash
+			poc.generatePOCV4()
+			break
 	}
 }
 

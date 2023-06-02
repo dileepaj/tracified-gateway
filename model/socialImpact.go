@@ -702,7 +702,7 @@ type EthereumExpertFormula struct {
 	GOstring            string
 	SetterNames         []string
 	ContractAddress     string
-	Status              string
+	Status              int
 	Timestamp           string
 	TransactionHash     string
 	TransactionCost     string
@@ -733,7 +733,7 @@ type EthereumMetricBind struct {
 	TransactionSender string
 	User              User
 	ErrorMessage      string
-	Status            string
+	Status            int
 	FormulaIDs        []string
 	ValueIDs          []string
 	Type              string
@@ -815,7 +815,7 @@ type EthErrorMessage struct {
 type PendingContracts struct {
 	TransactionHash string
 	ContractAddress string
-	Status          string
+	Status          int
 	CurrentIndex    int
 	ErrorMessage    string
 	ContractType    string

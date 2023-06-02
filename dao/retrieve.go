@@ -514,7 +514,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
-		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}})
+		count, er := c.CountDocuments(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "9", "10"}}})
 		// count only genesis, TDP, splitparent, splitchild and COC transactions
 		if er != nil {
 			log.Error("Error while get f.count " + err.Error())
@@ -534,7 +534,7 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 		}
 
 		opt := options.Find().SetSkip(count - int64(page)*int64(perPage)).SetLimit(int64(perPage))
-		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "10"}}}, opt)
+		cursor, err1 := c.Find(context.TODO(), bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "7", "9", "10"}}}, opt)
 		// retrieve only genesis, TDP, splitparent, splitchild and COC transactions
 		err2 := cursor.All(context.TODO(), &result)
 
@@ -2667,7 +2667,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
-		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": "SUCCESS"}).Decode(&result)
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result)	// 118 = SUCCESS
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
@@ -2818,7 +2818,7 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 }
 
 //Get the Ethereum contract status
-func (cd *Connection) GetPendingContractsByStatus(status string) *promise.Promise {
+func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 	result := []model.PendingContracts{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -3097,6 +3097,35 @@ func (cd *Connection) GetTransactionForTdpIdSequence(TdpId string, sequence int6
 			reject(err1)
 		} else {
 			resolve(result)
+		}
+	})
+
+	return p
+}
+
+func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identifier, tenantId, txnType string) *promise.Promise {
+	result := []model.TransactionCollectionBody{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype":txnType})
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			} else {
+				resolve(result[len(result)-1])
+			}
 		}
 	})
 

@@ -59,7 +59,7 @@
             GATEWAY_PORT: "{{ lookup('env','GATEWAY_PORT') }}"
             PublicKey: "{{ lookup('env','PublicKey') }}"
             SecretKey: "{{ lookup('env','SecretKey') }}"
-            BRANCH_NAME: "{{ lookup('env','BRANCH_NAME') }}"
+            ENVIRONMENT: "{{ lookup('env','ENVIRONMENT') }}"
             DBUSERNAME: "{{ lookup('env','DBUSERNAME') }}"
             DBPASSWORD: "{{ lookup('env','DBPASSWORD') }}"
             DBHOST: "{{ lookup('env','DBHOST') }}"
@@ -106,3 +106,4 @@
             RABBITPORT: "{{ lookup('env','RABBITPORT') }}"
             LOGSTYPE: "{{ lookup('env','LOGSTYPE') }}"
             QUEUE_FLAG:  "{{ lookup('env','QUEUE_FLAG') }}"
+            TRACIFIED_ADMIN:  "{{ lookup('env','TRACIFIED_ADMIN') }}"

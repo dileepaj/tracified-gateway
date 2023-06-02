@@ -109,16 +109,6 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				Value: []byte(UserTxnHashes[i]),
 			}
 
-			//BUILD THE GATEWAY XDR
-			// tx, err := build.Transaction(
-			// 	commons.GetHorizonNetwork(),
-			// 	build.SourceAccount{publicKey},
-			// 	build.AutoSequence{commons.GetHorizonClient()},
-			// 	build.SetData("Type", []byte("G"+TxnBody.TxnType)),
-			// 	PreviousTXNBuilder,
-			// 	build.SetData("CurrentTXN", []byte(UserTxnHashes[i])),
-			// )
-
 			tx, err := txnbuild.NewTransaction(
 				txnbuild.TransactionParams{
 					SourceAccount: &pubaccount,
@@ -183,33 +173,6 @@ func (AP *AbstractXDRSubmiter) SubmitGenesis(w http.ResponseWriter, r *http.Requ
 				err = object.InsertTransaction(AP.TxnBody[i])
 				if err != nil {
 					log.Error("Error while InsertTransaction @SubmitGenesis " +err.Error())
-				} else {
-					// var PreviousProfile string
-					// p := object.GetProfilebyIdentifier(AP.TxnBody[i].Identifier)
-					// p.Then(func(data interface{}) interface{} {
-
-					// 	result := data.(model.ProfileCollectionBody)
-					// 	PreviousProfile = result.ProfileTxn
-					// 	return nil
-					// }).Catch(func(error error) error {
-					// 	PreviousProfile = ""
-					// 	return nil
-					// })
-					// p.Await()
-
-					// Profile := model.ProfileCollectionBody{
-					// 	ProfileTxn:         response1.TXNID,
-					// 	ProfileID:          AP.TxnBody[i].ProfileID,
-					// 	Identifier:         AP.TxnBody[i].Identifier,
-					// 	PreviousProfileTxn: PreviousProfile,
-					// 	TriggerTxn:         UserTxnHashes[i],
-					// 	TxnType:            AP.TxnBody[i].TxnType,
-					// }
-					// err3 := object.InsertProfile(Profile)
-					// if err3 != nil {
-
-					// }
-
 				}
 			}
 		}

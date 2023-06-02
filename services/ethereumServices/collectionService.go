@@ -29,7 +29,7 @@ func (context *CollectionServiceContext) ExecuteCollectionService() (error) {
 // struct and function for social impact main collection and pending contract collection updates
 type SocialImpactMainCollectionUpdate struct {
 	PendingContract model.PendingContracts
-	Status          string
+	Status          int
 }
 func (collectionUpdateObject *SocialImpactMainCollectionUpdate) AbstractCollectionService() (error) {
 	// update the collection with the new status
