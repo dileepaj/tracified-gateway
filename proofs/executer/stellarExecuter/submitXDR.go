@@ -2,7 +2,6 @@ package stellarExecuter
 
 import (
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -17,7 +16,8 @@ type ConcreteSubmitXDR struct {
 	XDR string
 }
 
-/*SubmitXDR - WORKING MODEL
+/*
+SubmitXDR - WORKING MODEL
 
 @author - Azeem Ashraf
 @desc - Submits the XDR to stellar horizon api and returns the TXN hash.
@@ -63,7 +63,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 			return response
 		}
 	} else {
-		log.Info( " Ledger: ", resp.Ledger)
+		log.Info(" Ledger: ", resp.Ledger)
 		log.Info(time.Now().UTC().String() + " - TXNType: " + tType + " Hash: " + resp.Hash)
 		response.Error.Code = http.StatusOK
 		response.Error.Message = " Transaction performed in the blockchain. "
