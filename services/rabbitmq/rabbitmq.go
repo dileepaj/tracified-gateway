@@ -225,12 +225,12 @@ func ReceiverRmq() error {
 					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
 					Verify:              queue.EthereumExpertFormula.Verify,
 					ErrorMessage:        "",
-					Status:              117,	// PENDING
-					ActualStatus: 	  	 queue.EthereumExpertFormula.ActualStatus,
+					Status:              117, // PENDING
+					ActualStatus:        queue.EthereumExpertFormula.ActualStatus,
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
-					ethExpertFormulaObj.Status = 119	// FAILED
+					ethExpertFormulaObj.Status = 119 // FAILED
 					ethExpertFormulaObj.ErrorMessage = errWhenDeploying.Error()
 					ethExpertFormulaObj.ActualStatus = 111 // DEPLOYMENT_FAILED
 					logrus.Error("Error when deploying the expert formula smart contract : " + errWhenDeploying.Error())
@@ -285,7 +285,7 @@ func ReceiverRmq() error {
 					TransactionSender: queue.EthereumMetricBind.TransactionSender,
 					User:              queue.EthereumMetricBind.User,
 					ErrorMessage:      "",
-					Status:            117,	// PENDING
+					Status:            117, // PENDING
 					FormulaIDs:        queue.EthereumMetricBind.FormulaIDs,
 					ValueIDs:          queue.EthereumMetricBind.ValueIDs,
 					Type:              queue.EthereumMetricBind.Type,
@@ -294,7 +294,7 @@ func ReceiverRmq() error {
 				}
 				if errWhenDeploying != nil {
 					//Insert to DB with FAILED status
-					ethMetricObj.Status = 119	// FAILED
+					ethMetricObj.Status = 119 // FAILED
 					ethMetricObj.ErrorMessage = errWhenDeploying.Error()
 					logrus.Error("Error when deploying the metric bind smart contract : " + errWhenDeploying.Error())
 					//if deploy method is success update the status into success
@@ -307,8 +307,8 @@ func ReceiverRmq() error {
 						ContractType:    "ETHMETRICBIND",
 						Identifier:      ethMetricObj.TransactionUUID,
 						TransactionHash: ethMetricObj.TransactionHash,
-						Status: 		119,	// FAILED
-						ErrorMessage: ethMetricObj.ErrorMessage,
+						Status:          119, // FAILED
+						ErrorMessage:    ethMetricObj.ErrorMessage,
 					}
 					errWhenInvalidatingMetric := dbCollectionHandler.InvalidateMetric(pendingContract, ethMetricObj.Status, ethMetricObj.ErrorMessage)
 					if errWhenInvalidatingMetric != nil {
@@ -322,7 +322,7 @@ func ReceiverRmq() error {
 					if errWhenUpdatingStatus != nil {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
-					logrus.Info("Metric update called with status "+ strconv.Itoa(ethMetricObj.Status) + ". Type: " + ethMetricObj.Type)
+					logrus.Info("Metric update called with status " + strconv.Itoa(ethMetricObj.Status) + ". Type: " + ethMetricObj.Type)
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
@@ -386,6 +386,7 @@ func SendToQueue(queue model.SendToQueue) error {
 // rabbitmq queue message listener
 func ReleaseLock() (error, string) {
 	logrus.Info("-------------------------------Release Lock")
+	var queuename = (commons.GoDotEnvVariable("NFTQUEUE_NAME"))
 	object := dao.Connection{}
 	var message string
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
@@ -404,12 +405,12 @@ func ReleaseLock() (error, string) {
 
 	// Declare the queue
 	queuelock, err := channel.QueueDeclare(
-		"buyingnfts",
-		false, // durable
-		false, // delete when unused
-		false, // exclusive
-		false, // no-wait
-		nil,   // arguments
+		queuename, //name   previous name was buyingnfts
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	if err != nil {
 		return err, ""
@@ -477,6 +478,7 @@ func ReleaseLock() (error, string) {
 
 // push element to rabbitmq queue
 func LockRequest(pendingNFTS model.PendingNFTS) error {
+	var queuename = (commons.GoDotEnvVariable("NFTQUEUE_NAME"))
 	rabbitConnection := `amqp://` + USER + `:` + PASSWORD + `@` + HOSTNAME + `:` + PORT + `/`
 	conn, err := amqp.Dial(rabbitConnection)
 	if err != nil {
@@ -493,12 +495,12 @@ func LockRequest(pendingNFTS model.PendingNFTS) error {
 	defer ch.Close()
 
 	q, err := ch.QueueDeclare(
-		"buyingnfts", // name
-		false,        // durable
-		false,        // delete when unused
-		false,        // exclusive
-		false,        // no-wait
-		nil,          // arguments
+		queuename, // name
+		true,      // durable
+		false,     // delete when unused
+		false,     // exclusive
+		false,     // no-wait
+		nil,       // arguments
 	)
 	if err != nil {
 		logrus.Error("%s: %s", "Failed to declare a queue LockRequest", err)
