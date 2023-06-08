@@ -169,6 +169,27 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 		case "mergeid": 
 			txe.MergeID = dataValue
 			break
+		case "typename": 
+			txe.TypeName = dataValue
+			break
+		case "geolocation": 
+			txe.GeoLocation = dataValue
+			break
+		case "timestamp": 
+			txe.Timestamp = dataValue
+			break
+		case "tenantname": 
+			txe.TenantNameBase64 = dataValue
+			break
+		case "tenantnamebase64": 
+			txe.TenantNameBase64 = dataValue
+			break
+		case "productnamebase64": 
+			txe.ProductName = dataValue
+			break
+		case "batchname": 
+			txe.RealIdentifier = dataValue
+			break
 	}
 	return txe
 }

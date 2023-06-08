@@ -517,6 +517,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 				CurrentStage: TxnBody.StageID,
 				PreviousStage: TxnBody.PreviousStage,
+				CreatedAt: TxnBody.Timestamp,
+				TenantName: TxnBody.TenantNameBase64,
+				GeoLocation: TxnBody.GeoLocation,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -751,6 +754,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 				CurrentStage: TxnBody.StageID,
 				PreviousStage: TxnBody.PreviousStage,
+				CreatedAt: TxnBody.Timestamp,
+				TenantName: TxnBody.TenantNameBase64,
+				GeoLocation: TxnBody.GeoLocation,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -983,6 +989,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 				CurrentStage: TxnBody.StageID,
 				PreviousStage: TxnBody.PreviousStage,
+				CreatedAt: TxnBody.Timestamp,
+				TenantName: TxnBody.TenantNameBase64,
+				GeoLocation: TxnBody.GeoLocation,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)
@@ -1228,6 +1237,9 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
 				CurrentStage: TxnBody.StageID,
 				PreviousStage: TxnBody.PreviousStage,
+				CreatedAt: TxnBody.Timestamp,
+				TenantName: TxnBody.TenantNameBase64,
+				GeoLocation: TxnBody.GeoLocation,
 			}
 			if response.Message != "" && response.Code != 0 {
 				log.Error(response.Message)

@@ -56,6 +56,10 @@ type TransactionCollectionBody struct {
 	MergeBlock           int
 	TenantID             string
 	StageID              string
+	TypeName             string
+	GeoLocation          string
+	Timestamp            string
+	TenantNameBase64     string
 }
 
 type ProfileCollectionBody struct {
@@ -124,9 +128,12 @@ type PrevTxnResponse struct {
 	FromIdentifier1 string
 	FromIdentifier2 string
 	ToIdentifier    string
-	CurrentStage 	string
-	PreviousStage 	string
-	TenantID 		string
+	CurrentStage    string
+	PreviousStage   string
+	TenantID        string
+	GeoLocation     string
+	CreatedAt       string
+	TenantName      string
 }
 
 type POCOCResponse struct {
