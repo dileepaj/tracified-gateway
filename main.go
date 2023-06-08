@@ -12,7 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
-	"github.com/robfig/cron"
+	"github.com/robfig/cron/v3"
 )
 
 func getPort() string {
@@ -35,7 +35,14 @@ func main() {
 	commons.ConstructConnectionPool()
 	adminDAO.ConstructAdminConnectionPool()
 
-	c := cron.New()
+	// Initialize the cron scheduler with Delay a job's execution if the previous run hasn't completed yet
+	c := cron.New(
+		cron.WithChain(
+			cron.SkipIfStillRunning(cron.DefaultLogger),
+			cron.Recover(cron.DefaultLogger),
+		),
+	)
+
 	c.AddFunc("@every 30m", func() {
 		services.CheckCOCStatus()
 	})
@@ -45,7 +52,7 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 1m", func() {
+	c.AddFunc("@every 15s", func() {
 		services.CheckTempOrphan()
 	})
 

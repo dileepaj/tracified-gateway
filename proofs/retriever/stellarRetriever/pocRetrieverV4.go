@@ -294,7 +294,7 @@ func (poc *POCTreeV4) generatePOCV4() {
 				if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
 					poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
 				}
-				}
+			}
 			poc.LastTxnHash = gtxe.PreviousTxnHash
 			poc.generatePOCV4()
 			break

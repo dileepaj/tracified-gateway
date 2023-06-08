@@ -11,7 +11,7 @@ import (
 	"github.com/gagliardetto/solana-go/rpc/ws"
 	"github.com/portto/solana-go-sdk/client"
 	"github.com/portto/solana-go-sdk/common"
-	"github.com/portto/solana-go-sdk/program/tokenprog"
+	"github.com/portto/solana-go-sdk/program/token"
 	"github.com/portto/solana-go-sdk/rpc"
 	"github.com/portto/solana-go-sdk/types"
 )
@@ -43,7 +43,7 @@ func TransferNFTsToExistingAccount(fromWalletSecret string, from string, to stri
 			FeePayer:        fromWallet.PublicKey,
 			RecentBlockhash: recentBlockhashResponse.Blockhash,
 			Instructions: []types.Instruction{
-				tokenprog.TransferChecked(tokenprog.TransferCheckedParam{
+				token.TransferChecked(token.TransferCheckedParam{
 					From:     ata,
 					To:       toata,
 					Mint:     common.PublicKeyFromString(mintpk),
