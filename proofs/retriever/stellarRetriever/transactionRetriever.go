@@ -181,6 +181,15 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 		case "tenantname": 
 			txe.TenantNameBase64 = dataValue
 			break
+		case "tenantnamebase64": 
+			txe.TenantNameBase64 = dataValue
+			break
+		case "productnamebase64": 
+			txe.ProductName = dataValue
+			break
+		case "batchname": 
+			txe.RealIdentifier = dataValue
+			break
 	}
 	return txe
 }
