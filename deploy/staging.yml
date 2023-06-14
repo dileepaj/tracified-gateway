@@ -43,26 +43,23 @@
     - name: Install AWS CLI
       pip:
         name: awscli
-    - name: Get ECR login credentials and login with Docker
+    - name: Log into docker registry and force re-authorization
       become: true
-      shell: "$(/home/{{ ansible_user }}/.local/bin/aws ecr get-login --no-include-email --region ap-south-1)"
-      environment:
-        AWS_ACCESS_KEY_ID: "{{ lookup('env','AWS_ACCESS_KEY_ID') }}"
-        AWS_SECRET_ACCESS_KEY : "{{ lookup('env','AWS_SECRET_ACCESS_KEY') }}"
+      docker_login:
+        registry: registry.tracified.com
+        username: "{{ lookup('env', 'DOCKER_USER') }}"
+        password: "{{ lookup('env', 'DOCKER_PASS') }}"
+        reauthorize: yes
     - name: Create volume for docker
       become: true
       docker_volume:
         name: gateway_logs
-    - name: Create a network
-      become: true
-      docker_network:
-        name: tillitgatewaynetwork
     - name: Run docker
       become: true
       debugger: on_failed
       docker_container:
         name: tracified-gateway
-        image: 453230908534.dkr.ecr.ap-south-1.amazonaws.com/tracified/gateway-staging
+        image: registry.tracified.com/tracified/gateway-staging
         published_ports: "8000:8000"
         restart: yes
         restart_policy: on-failure
