@@ -515,7 +515,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-				CurrentStage: TxnBody.StageID,
+				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
 				TenantName: TxnBody.TenantNameBase64,
@@ -752,7 +752,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-				CurrentStage: TxnBody.StageID,
+				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
 				TenantName: TxnBody.TenantNameBase64,
@@ -987,7 +987,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-				CurrentStage: TxnBody.StageID,
+				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
 				TenantName: TxnBody.TenantNameBase64,
@@ -1235,7 +1235,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				AssetCode:       assetcode,
 				FromIdentifier1: commons.ValidateStrings(TxnBody.MapIdentifier1, TxnBody.FromIdentifier1),
 				FromIdentifier2: commons.ValidateStrings(TxnBody.MapIdentifier2, TxnBody.FromIdentifier2),
-				CurrentStage: TxnBody.StageID,
+				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
 				TenantName: TxnBody.TenantNameBase64,
@@ -1312,9 +1312,6 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
@@ -1683,6 +1680,7 @@ func RetrievePreviousTranasctions(w http.ResponseWriter, r *http.Request) {
 					CurrentStage: TxnBody.CurrentStage,
 					PreviousStage: TxnBody.PreviousStage,
 					TenantID: TxnBody.TenantID,
+					CreatedAt: TxnBody.Timestamp,
 				}
 				result = append(result, temp)
 			}
