@@ -271,6 +271,8 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 @params - ResponseWriter,Request
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
+	// proper naming
+	// single responsibility 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
 
