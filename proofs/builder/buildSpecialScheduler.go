@@ -108,9 +108,11 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialData(w http.ResponseWriter, r *http.
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialData " + err.Error())
 		}
 		// GET THE TYPE AND IDENTIFIER FROM THE XDR
+		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		AP.TxnBody[i].TxnType = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[0].Body.ManageDataOp.DataValue), "&")
+		AP.TxnBody[i].DataHash = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].Status = "pending"
 
 		err = object.InsertSpecialToTempOrphan(AP.TxnBody[i])
@@ -200,14 +202,6 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialSplit(w http.ResponseWriter, r *http
 		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
 		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
 		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
-
-		if AP.TxnBody[i].TxnType == "5" {
-			AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-			AP.TxnBody[i].ToIdentifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
-		} else {
-			AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
-			AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
-		}
 		AP.TxnBody[i].Status = "pending"
 
 		log.Debug(AP.TxnBody[i].Identifier)
