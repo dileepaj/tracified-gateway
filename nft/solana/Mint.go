@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"log"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/gagliardetto/solana-go"
@@ -20,8 +21,13 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 )
 
-func MintSolana(fromWalletSecret string, code_name string, code_url string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
+func MintSolana(fromWalletSecret string, code_name string, code_url string, royalty string, owner string) (*common.PublicKey, *common.PublicKey, *string, *common.PublicKey, error) {
 	var fromWallet, _ = types.AccountFromBase58(fromWalletSecret)
+
+	royaltyvalue, err := strconv.Atoi(royalty)
+	if err != nil {
+		return nil, nil, nil, nil, err
+	}
 
 	c := client.NewClient(commons.GetSolanaNetwork())
 
@@ -87,10 +93,10 @@ func MintSolana(fromWalletSecret string, code_name string, code_url string) (*co
 						Uri:                  code_url,
 						SellerFeeBasisPoints: 0,
 						Creators: &[]token_metadata.Creator{
-              {
-								Address:  fromWallet.PublicKey,
+							{
+								Address:  common.PublicKeyFromString(owner),
 								Verified: true,
-								Share:    100,
+								Share:    uint8(royaltyvalue),
 							},
 						},
 					},

@@ -381,6 +381,7 @@ type NFTSolana struct {
 	NFTLinks      string
 	ArtistName    string
 	ArtistLink    string
+	Royalty       string
 }
 
 type NFTWithTransactionSolana struct {
@@ -402,6 +403,7 @@ type NFTWithTransactionSolana struct {
 	Description                      string
 	Copies                           string
 	InitialDistributorPK             string
+	Royalty                          string
 }
 
 type NFTTransfer struct {
@@ -436,6 +438,7 @@ type MarketPlaceNFT struct {
 	MainAccountPK                    string
 	PreviousOwnerNFTPK               string
 	CurrentOwnerNFTPK                string
+	Royalty                          string
 }
 
 type NFTContracts struct {
@@ -513,6 +516,7 @@ type NFTWithTransaction struct {
 	TrustLineCreatedAt               string
 	Description                      string
 	Copies                           string
+	Royalty                          string
 }
 
 type TrustLineResponseNFT struct {
@@ -531,6 +535,7 @@ type TrustLineResponseNFT struct {
 	ArtistLink            string
 	Successfull           bool
 	TrustLineCreatedAt    string
+	Royalty               string
 }
 
 type MarketPlaceNFTTrasactionWithCount struct {
