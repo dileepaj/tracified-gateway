@@ -94,7 +94,7 @@ func (AP *AbstractXDRSubmiter) SubmitSplit(w http.ResponseWriter, r *http.Reques
 		// FOR THE SPLIT PARENT RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if AP.TxnBody[i].TxnType == "5" {
 			// ParentIdentifier = Identifier
-			pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].Identifier, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+			pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].Identifier, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 

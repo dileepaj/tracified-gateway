@@ -144,7 +144,7 @@ func CheckTempOrphan() {
 							}
 						}
 					case "2":
-						data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
+						data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 							return data
 						}).Await()
 						var PreviousTXNBuilder txnbuild.ManageData
@@ -229,7 +229,7 @@ func CheckTempOrphan() {
 					case "9":
 						var PreviousTXNBuilder txnbuild.ManageData
 						// var PreviousTxn string
-						data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
+						data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 							return data
 						}).Await()
 						if errorLastTXN != nil || data == nil {
@@ -315,7 +315,7 @@ func CheckTempOrphan() {
 						var UserSplitTxnHashes string
 						var PreviousTxn string
 						// ParentIdentifier = Identifier
-						pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
+						pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 							return data
 						}).Await()
 						if pData == nil || errAsnc != nil {
@@ -573,7 +573,7 @@ func CheckTempOrphan() {
 						var UserMergeTxnHashes string
 						// FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 						if result.Identifier != result.FromIdentifier1 {
-							pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier1, result.TenantID).Then(func(data interface{}) interface{} {
+							pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier1, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 							if errorAsync != nil || pData == nil {
@@ -588,7 +588,7 @@ func CheckTempOrphan() {
 								log.Debug(result.PreviousTxnHash)
 							}
 
-							pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+							pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 
@@ -602,7 +602,7 @@ func CheckTempOrphan() {
 								log.Debug(result.PreviousTxnHash)
 							}
 						} else {
-							pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+							pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 
@@ -679,7 +679,7 @@ func CheckTempOrphan() {
 								result.MergeID = result.PreviousTxnHash2
 							}
 							if result.MergeBlock == 0 {
-								pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+								pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 									return data
 								}).Await()
 
@@ -795,7 +795,7 @@ func CheckTempOrphan() {
 						// var PreviousTxn string
 						// FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 						if result.Identifier != result.FromIdentifier1 {
-							pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier1, result.TenantID).Then(func(data interface{}) interface{} {
+							pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier1, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 
@@ -811,7 +811,7 @@ func CheckTempOrphan() {
 								log.Debug(result.PreviousTxnHash)
 							}
 
-							pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+							pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 
@@ -827,7 +827,7 @@ func CheckTempOrphan() {
 								log.Debug(result.PreviousTxnHash)
 							}
 						} else {
-							pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+							pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 								return data
 							}).Await()
 
@@ -911,7 +911,7 @@ func CheckTempOrphan() {
 								result.MergeID = result.PreviousTxnHash2
 							}
 							if result.MergeBlock == 0 {
-								pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
+								pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID, result.ProductID).Then(func(data interface{}) interface{} {
 									return data
 								}).Await()
 

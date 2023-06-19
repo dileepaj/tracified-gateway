@@ -15,6 +15,7 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/chebyrash/promise"
@@ -3004,24 +3005,26 @@ func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier, te
 /*
 GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier and tenantId
 */
-func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tenantId string) *promise.Promise {
+func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tenantId, productID string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
-	// p := promise.NewPromise()
+	var cursor *mongo.Cursor
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
-		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
 			reject(err)
 		}
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
+		if productID == "" {
+			cursor, err = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
+		}else{
+			cursor, err = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "productid": productID})
+		}
 
-		if err1 != nil {
-			reject(err1)
+		if err != nil {
+			reject(err)
 		} else {
 			err2 := cursor.All(context.TODO(), &result)
 			if err2 != nil || len(result) == 0 {

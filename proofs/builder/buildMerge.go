@@ -15,6 +15,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
@@ -68,17 +69,15 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 		AP.TxnBody[i].Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[1].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].FromIdentifier1 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[2].Body.ManageDataOp.DataValue), "&")
 		AP.TxnBody[i].FromIdentifier2 = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[3].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ItemCode = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[4].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].ItemAmount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[5].Body.ManageDataOp.DataValue), "&")
-		AP.TxnBody[i].AppAccount = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[6].Body.ManageDataOp.DataValue), "&")
 		if len(txe.Operations)==8{
 			AP.TxnBody[i].ProductName = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations[7].Body.ManageDataOp.DataValue), "&")
 		}
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
 
 		log.Debug(AP.TxnBody)
 		//FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if AP.TxnBody[i].Identifier != AP.TxnBody[i].FromIdentifier1 {
-			pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier1, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+			pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier1, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -94,7 +93,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
 			}
 
-			pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier2, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+			pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier2, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -110,7 +109,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 				log.Debug(AP.TxnBody[i].PreviousTxnHash)
 			}
 		} else {
-			pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier2, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+			pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].FromIdentifier2, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
@@ -204,7 +203,7 @@ func (AP *AbstractXDRSubmiter) SubmitMerge(w http.ResponseWriter, r *http.Reques
 			}
 
 			if i == 0 {
-				pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(TxnBody.FromIdentifier2, AP.TxnBody[i].TenantID).Then(func(data interface{}) interface{} {
+				pData, errorAsync := object.GetLastTransactionbyIdentifierAndTenantId(TxnBody.FromIdentifier2, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID).Then(func(data interface{}) interface{} {
 					return data
 				}).Await()
 
