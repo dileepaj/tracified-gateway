@@ -75,7 +75,7 @@ func (AP *AbstractXDRSubmiter) SubmitXDR(w http.ResponseWriter, r *http.Request,
 		AP.TxnBody[i].Status = "pending"
 
 		log.Debug(AP.TxnBody[i].Identifier)
-		p := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].Identifier, AP.TxnBody[i].TenantID, AP.TxnBody[i].ProductID)
+		p := object.GetLastTransactionbyIdentifierAndTenantId(AP.TxnBody[i].Identifier, AP.TxnBody[i].TenantID)
 		p.Then(func(data interface{}) interface{} {
 			///ASSIGN PREVIOUS MANAGE DATA BUILDER
 			result := data.(model.TransactionCollectionBody)
