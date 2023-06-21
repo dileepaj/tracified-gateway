@@ -15,7 +15,6 @@ import (
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 
 	"github.com/chebyrash/promise"
@@ -3005,9 +3004,8 @@ func (cd *Connection) GetLastMergeTransactionbyIdentifierAndOrder(identifier, te
 /*
 GetLastTransactionbyIdentifier Retrieve Last Transaction Object from TransactionCollection in DB by Identifier and tenantId
 */
-func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tenantId, productID string) *promise.Promise {
+func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tenantId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
-	var cursor *mongo.Cursor
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -3017,14 +3015,11 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		if productID == "" {
-			cursor, err = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
-		}else{
-			cursor, err = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "productid": productID})
-		}
 
-		if err != nil {
-			reject(err)
+		var cursor, err1 = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
+
+		if err1 != nil {
+			reject(err1)
 		} else {
 			err2 := cursor.All(context.TODO(), &result)
 			if err2 != nil || len(result) == 0 {
@@ -3039,7 +3034,6 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 }
 
 func (cd *Connection) GetNFTById1Id2Id3Id4(blockchain string, nftidentifier string, imagebase64 string, version string) *promise.Promise {
-	logrus.Info("----------data----------", blockchain, nftidentifier, imagebase64, version)
 	result := model.PendingNFTS{}
 	// p := promise.NewPromise()
 
