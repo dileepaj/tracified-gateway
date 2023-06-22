@@ -458,6 +458,7 @@ type NFTContracts struct {
 	ArtistName          string
 	ArtistLink          string
 	Identifier          string
+	Royalty             string
 }
 
 type NFTWithTransactionContracts struct {
@@ -479,6 +480,7 @@ type NFTWithTransactionContracts struct {
 	NFTArtistURL                     string
 	Description                      string
 	Copies                           string
+	Royalty                          string
 }
 
 type NFTCreactedResponse struct {

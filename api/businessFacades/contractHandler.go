@@ -10,7 +10,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -46,6 +47,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			NFTArtistURL:                     ResponseNFT.ArtistLink,
 			NFTContract:                      ResponseNFT.NFTContract,
 			MarketplaceContract:              ResponseNFT.MarketplaceContract,
+			Royalty:                          ResponseNFT.Royalty,
 		}
 
 		MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
@@ -72,6 +74,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			PreviousOwnerNFTPK:               "TRACIFIED",
 			CurrentOwnerNFTPK:                ResponseNFT.OwnerPK,
 			SellingStatus:                    "NOTFORSALE",
+			Royalty:                          ResponseNFT.Royalty,
 		}
 
 		NFTCeactedResponse := model.NFTCreactedResponse{
