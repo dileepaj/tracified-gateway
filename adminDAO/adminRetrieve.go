@@ -4,14 +4,17 @@ import (
 	"context"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	log "github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-/*GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
+/*
+GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver PublicKey
 @author - Azeem Ashraf
 */
-func (cd *Connection) GetPublicKeysOfFO() []string {
+func (cd *Connection) GetPublicKeysOfFO() ([]string, error) {
 	//log.Debug("----------------- GetPublicKeysOfFO ------------------")
 	var strArray []string
 	var result []FOPK
@@ -30,7 +33,9 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 		}
 
 		if findErr := findCursor.All(context.TODO(), &result); findErr != nil {
-			panic(findErr)
+			logger := utilities.NewCustomLogger()
+			logger.LogWriter("Error GetPublicKeysOfFO : "+err.Error(), constants.ERROR)
+			return strArray, findErr
 		}
 
 		for _, e := range result {
@@ -41,5 +46,5 @@ func (cd *Connection) GetPublicKeysOfFO() []string {
 			}
 		}
 	}
-	return strArray
+	return strArray, nil
 }

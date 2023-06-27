@@ -4,6 +4,8 @@ import (
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -26,7 +28,7 @@ func FundAccount(buyerPK string) (string, error) {
 		txnbuild.TransactionParams{
 			SourceAccount:        &issuerAccount,
 			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: buyerPK, Asset:txnbuild.NativeAsset{}, Amount: "1"}},
+			Operations:           []txnbuild.Operation{&txnbuild.Payment{Destination: buyerPK, Asset: txnbuild.NativeAsset{}, Amount: "1"}},
 			BaseFee:              txnbuild.MinBaseFee,
 			Memo:                 nil,
 			Preconditions:        txnbuild.Preconditions{TimeBounds: txnbuild.NewInfiniteTimeout()},
@@ -43,8 +45,9 @@ func FundAccount(buyerPK string) (string, error) {
 	// submit transaction
 	respn, err := commons.GetHorizonClient().SubmitTransaction(signedTx)
 	if err != nil {
-		log.Fatal("Error submitting transaction:", err)
-		panic(err)
+		logger := utilities.NewCustomLogger()
+		logger.LogWriter("Error submitting transaction :"+err.Error(), constants.ERROR)
+		return "", err
 	}
 	return respn.Hash, nil
 }

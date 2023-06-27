@@ -4,8 +4,10 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
@@ -58,12 +60,22 @@ func SavePGPAccount(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&PGPResponse)
 	if err != nil {
-		panic(err)
+		logger := utilities.NewCustomLogger()
+		logger.LogWriter("Error Decoding body : "+err.Error(), constants.ERROR)
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Error Decoding body"}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	object := dao.Connection{}
 	err1 := object.InsertPGPAccount(PGPResponse)
 	if err1 != nil {
-		panic(err1)
+		logger := utilities.NewCustomLogger()
+		logger.LogWriter("Error Saving PGP key : "+err1.Error(), constants.ERROR)
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Error Saving PGP key"}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(PGPResponse)
@@ -85,4 +97,3 @@ func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(rst)
 
 }
-

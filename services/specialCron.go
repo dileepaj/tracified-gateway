@@ -11,6 +11,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
@@ -23,7 +24,11 @@ func CheckTempOrphan() {
 		log.Debug("=================== CheckTempOrphan ==================")
 	}
 	adminDBConnectionObj := adminDAO.Connection{}
-	clientList := adminDBConnectionObj.GetPublicKeysOfFO()
+	clientList, findErr := adminDBConnectionObj.GetPublicKeysOfFO()
+	if findErr != nil {
+		logger := utilities.NewCustomLogger()
+		logger.LogWriter("Error GetPublicKeysOfFO : "+findErr.Error(), constants.ERROR)
+	}
 	object := dao.Connection{}
 	// loop through clients
 	for _, address := range clientList {
@@ -33,7 +38,7 @@ func CheckTempOrphan() {
 		sourceAccount, err := client.AccountDetail(ar)
 		if err != nil {
 			if commons.GoDotEnvVariable("LOGSTYPE") == "DEBUG" {
-			log.Error("Error while loading account from horizon " + err.Error())
+				log.Error("Error while loading account from horizon " + err.Error())
 			}
 		} else {
 			seq, err := strconv.Atoi(fmt.Sprint(sourceAccount.Sequence))
