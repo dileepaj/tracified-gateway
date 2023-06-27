@@ -9,13 +9,16 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/xdr"
 )
 
-/*SubmitSpecial - EXPERIMENTAL
+/*
+SubmitSpecial - EXPERIMENTAL
 @author - Azeem Ashraf
 @desc -
 //get genesis and tdp transactions and push to temp orphan
@@ -68,7 +71,14 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		if AP.TxnBody[i].TxnType == "0" {
 			rawDecodedText, err := base64.StdEncoding.DecodeString(TxnBody.Identifier)
 			if err != nil {
-				panic(err)
+				logger := utilities.NewCustomLogger()
+				logger.LogWriter("Error decoding txn :"+err.Error(), constants.ERROR)
+				w.WriteHeader(http.StatusBadRequest)
+				response := apiModel.SubmitXDRSuccess{
+					Status: "Index[" + strconv.Itoa(i) + "] TXN: decode Failed!",
+				}
+				json.NewEncoder(w).Encode(response)
+				return
 			}
 
 			var jsonID Identifier

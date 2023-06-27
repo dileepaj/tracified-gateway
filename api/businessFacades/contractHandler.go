@@ -5,16 +5,20 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
 func MintNFTContract(w http.ResponseWriter, r *http.Request) {
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	dt := time.Now()
 	var ResponseNFT model.NFTContracts
@@ -24,7 +28,11 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&ResponseNFT)
 	if err != nil {
-		panic(err)
+		logger.LogWriter("Error minting Stellar NFT : "+err.Error(), constants.ERROR)
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Error minting Stellar NFT"}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 	if ResponseNFT.OwnerPK != "" && ResponseNFT.Asset_code != "" && ResponseNFT.NFTURL != "" {
 		NFTcollectionObj = model.NFTWithTransactionContracts{
