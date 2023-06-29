@@ -8,7 +8,9 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 
 	"github.com/stellar/go/txnbuild"
@@ -302,15 +304,19 @@ func CheckAccountsStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var GObj apiModel.GetSubAccountStatus
 	var result []apiModel.GetSubAccountStatusResponse
+	logger := utilities.NewCustomLogger()
 
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
+		
+		logger.LogWriter("Error while Decoding the body :"+err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(GObj)
+	strGobj,_:= json.Marshal(GObj)
+	logger.LogWriter("Go Object :"+string(strGobj), constants.INFO)
+
 	object := dao.Connection{}
 	for i := 0; i < len(GObj.SubAccounts); i++ {
 
@@ -368,15 +374,18 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 	var Coc apiModel.GetSubAccountStatusResponse
 	var Org apiModel.GetSubAccountStatusResponse
 	var Testimonial apiModel.GetSubAccountStatusResponse
+	logger := utilities.NewCustomLogger()
 
 	err := json.NewDecoder(r.Body).Decode(&GObj)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body :"+err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(GObj)
+	strGObj,_:=json.Marshal(GObj)
+	logger.LogWriter("Calling CheckAccountsStatusExtended : "+string(strGObj), constants.INFO)
+
 	object := dao.Connection{}
 	for i := 0; i < len(GObj.SubAccounts); i++ {
 
@@ -421,15 +430,15 @@ func CheckAccountsStatusExtended(w http.ResponseWriter, r *http.Request) {
 
 		Cocseq, err := strconv.Atoi(Coc.SequenceNo)
 		if err != nil {
-			println(err)
+			logger.LogWriter("Error while retrive Coc Sequence   :"+err.Error(), constants.ERROR)
 		}
 		Testimonialseq, err := strconv.Atoi(Testimonial.SequenceNo)
 		if err != nil {
-			println(err)
+			logger.LogWriter("Error while retrive Testimonial Sequence No  :"+err.Error(), constants.ERROR)
 		}
 		Orgseq, err := strconv.Atoi(Org.SequenceNo)
 		if err != nil {
-			println(err)
+			logger.LogWriter("Error while retrive Org Sequence No  :"+err.Error(), constants.ERROR)
 		}
 
 		if Coc.Available && Org.Available && Testimonial.Available {

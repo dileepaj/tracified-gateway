@@ -9,9 +9,12 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
+	//"github.com/go-openapi/runtime/logger"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/network"
@@ -23,7 +26,9 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 	var Obj model.TestimonialOrganization
 	b, err := ioutil.ReadAll(r.Body)
-	log.Println("request body:", r.Body)
+	strBody,_:=json.Marshal(r.Body)
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("request body   :"+string(strBody), constants.INFO)
 	defer r.Body.Close()
 	//err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil {
@@ -35,8 +40,12 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	log.Println("Decoded Object: ", Obj)
-	log.Println("PGP info", Obj.PGPData)
+	strObj,_:=json.Marshal(Obj)
+	strPGPDataObj,_:=json.Marshal(Obj.PGPData)
+
+	logger.LogWriter("Decoded object :"+string(strObj),constants.INFO)
+	logger.LogWriter("PGP info   :"+string(strPGPDataObj),constants.INFO)
+
 	if Obj.Status != model.Pending.String() {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
@@ -52,7 +61,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 	err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Error while calling SafeUnmarshalBase64(Obj.AcceptXDR, &accept)   :"+err.Error(), constants.ERROR)
 	}
 
 	acceptBuild, _ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
@@ -62,7 +71,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 
 	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Error while calling SafeUnmarshalBase64(Obj.RejectXDR, &reject)  :"+err.Error(), constants.ERROR)
 	}
 
 	rejectBuild, _ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
@@ -76,7 +85,7 @@ func InsertOrganization(w http.ResponseWriter, r *http.Request) {
 	var txe xdr.Transaction
 	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
 	if err1 != nil {
-		fmt.Println(err1)
+		logger.LogWriter("Error occured while SafeUnmarshalBase64  :"+err1.Error(),constants.ERROR)
 	}
 	useSentSequence := false
 
@@ -169,17 +178,19 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 
 	var Obj model.TestimonialOrganization
 	var selection model.TestimonialOrganization
+	logger := utilities.NewCustomLogger()
 	b, err := ioutil.ReadAll(r.Body)
-	log.Println("request body:", r.Body)
+	strBody,_:=json.Marshal(r.Body)
+	logger.LogWriter("request Body :"+string(strBody),constants.INFO)
 	defer r.Body.Close()
 	//err := json.NewDecoder(r.Body).Decode(&Obj)
 
-	log.Println("-----------------end------------------------")
+	logger.LogWriter("-----------------end------------------------",constants.DEBUG)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body"+err.Error(),constants.ERROR)
 		return
 	}
 	errjson := json.Unmarshal(b, &Obj)
@@ -187,10 +198,12 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), 500)
 		return
 	}
-	log.Println("Decoded obj: ", Obj)
+	strObj,_:=json.Marshal(Obj)
+	logger.LogWriter("Decoded Object :"+string(strObj),constants.INFO)
+
 	object := dao.Connection{}
-	log.Println("case STATUS: ", Obj.Status)
-	log.Println("APPROVED STATUS: ", model.Approved.String())
+	logger.LogWriter("case STATUS :"+Obj.Status,constants.INFO)
+	logger.LogWriter("APPROVED STATUS :"+model.Approved.String(),constants.INFO)
 	switch Obj.Status {
 	case model.Approved.String():
 
@@ -198,7 +211,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			selection = data.(model.TestimonialOrganization)
 			display := &deprecatedBuilder.AbstractTDPInsert{XDR: Obj.AcceptXDR}
 			response := display.TDPInsert()
-			fmt.Println(selection.SequenceNo)
+			logger.LogWriter("Selection Sequence  :"+selection.SequenceNo,constants.INFO)
 			if response.Error.Code == 400 {
 				w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 				w.WriteHeader(502)
@@ -211,7 +224,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 			} else {
 
 				Obj.TxnHash = response.TXNID
-				fmt.Println(response.TXNID)
+				logger.LogWriter("response.TXNID  :"+response.TXNID,constants.INFO)
 
 				err1 := object.UpdateOrganizationInfo(Obj)
 
@@ -283,7 +296,7 @@ func UpdateOrganization(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
 					err2 := json.NewEncoder(w).Encode(result)
-					fmt.Println(err2)
+					logger.LogWriter("Error occured while UpdateOrganizationInfo   :"+err2.Error(),constants.ERROR)
 
 				} else {
 

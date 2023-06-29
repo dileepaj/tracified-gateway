@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
+	//"go/constant"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -15,6 +16,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	// "github.com/hpcloud/tail"
 	// "github.com/dileepaj/tracified-gateway/proofs/builder"
@@ -27,6 +29,7 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
 	var TObj apiModel.TrustlineStruct
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -37,7 +40,7 @@ func CreateTrust(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 		display := &deprecatedBuilder.AbstractTrustline{TrustlineStruct: TObj}
@@ -59,6 +62,8 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
 	var TObj apiModel.SendAssest
+	logger := utilities.NewCustomLogger()
+
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -69,7 +74,7 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 		display := &deprecatedBuilder.AbstractAssetTransfer{SendAssest: TObj}
@@ -90,6 +95,7 @@ func SendAssests(w http.ResponseWriter, r *http.Request) {
 func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.RegistrarAccount
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -100,7 +106,7 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 
@@ -125,6 +131,7 @@ func MultisigAccount(w http.ResponseWriter, r *http.Request) {
 func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 
 	var TObj apiModel.AppointRegistrar
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -135,7 +142,7 @@ func AppointRegistrar(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 
@@ -159,6 +166,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
 	var TObj apiModel.AssetTransfer
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -169,7 +177,7 @@ func TransformV2(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 		display := &deprecatedBuilder.AbstractTransformAssets{AssetTransfer: TObj}
@@ -194,6 +202,7 @@ func COC(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
 	var TObj apiModel.ChangeOfCustody
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -204,7 +213,7 @@ func COC(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 		display := &deprecatedBuilder.AbstractCoCTransaction{ChangeOfCustody: TObj}
@@ -226,6 +235,7 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 
 	// var response model.POE
 	var TObj apiModel.ChangeOfCustodyLink
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -236,7 +246,7 @@ func COCLink(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			json.NewEncoder(w).Encode("Error while Decoding the body")
-			fmt.Println(err)
+			logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 			return
 		}
 		display := &deprecatedBuilder.AbstractcocLink{ChangeOfCustodyLink: TObj}
@@ -290,9 +300,10 @@ func RetrieveLogsForToday(w http.ResponseWriter, r *http.Request) {
 
 	s := time.Now().UTC().String()
 	dat, err := ioutil.ReadFile("GatewayLogs" + s[:10])
+	logger := utilities.NewCustomLogger()
 
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Log File is not founnd  :"+err.Error(), constants.ERROR)
 		w.WriteHeader(400)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Log File is not found",
@@ -322,13 +333,14 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 
 	object := dao.Connection{}
 	var pocStructObj apiModel.POCStruct
-
+	logger := utilities.NewCustomLogger()
 	p := object.GetTransactionForTdpId(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
+		strresult,_:=json.Marshal(result)
+		logger.LogWriter("TransactionCollectionBody :"+string(strresult),constants.INFO)
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
@@ -354,17 +366,21 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 						response := model.Error{Message: "Connection to the DataStore was interupted"}
 						json.NewEncoder(w).Encode(response)
 					} else {
-						// fmt.Println(req)
+						strreq,_:=json.Marshal(req)
+						logger.LogWriter("Request :"+string(strreq),constants.INFO)
+						
 						body, _ := ioutil.ReadAll(resq.Body)
 						var raw map[string]interface{}
 						json.Unmarshal(body, &raw)
 
 						h := sha256.New()
 						base64 := raw["data"]
-						// fmt.Println(base64)
+						strbase64,_:=json.Marshal(base64)
+						logger.LogWriter("raw data :"+string(strbase64),constants.INFO)
 
 						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
-						// fmt.Printf("%x", h.Sum(nil))
+					
+						logger.LogWriter( h.Sum(nil),constants.INFO)
 
 						DataStoreTXN := model.Current{
 							TType:      res[i].TxnType,
@@ -391,8 +407,8 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			// display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 			// response = display.InterpretPOC()
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
-
+			//fmt.Println(response.RetrievePOC.Error.Message)
+		
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
@@ -400,7 +416,8 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
 			result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
-			// fmt.Println(result)
+			strresult,_:=json.Marshal(result)
+			logger.LogWriter("PocSuccess result :"+string(strresult),constants.INFO)
 			// fmt.Println(response.RetrievePOC.Error.Message)
 			json.NewEncoder(w).Encode(result)
 			// 		return
@@ -436,6 +453,7 @@ func GatewayRetriever(w http.ResponseWriter, r *http.Request) {
 */
 func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
+	logger := utilities.NewCustomLogger()
 
 	// var response model.POC
 
@@ -448,6 +466,7 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// 	result := data.(model.TransactionCollectionBody)
 	pocStructObj.DBTree = []model.Current{}
 	// fmt.Println(result)
+	
 	gData, err := object.GetTransactionsbyIdentifier(vars["Identifier"]).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
@@ -483,7 +502,8 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 				response := model.Error{Message: "Connection to the DataStore was interupted"}
 				json.NewEncoder(w).Encode(response)
 			} else {
-				// fmt.Println(req)
+				strreq,_:=json.Marshal(req)
+				logger.LogWriter("Request  :"+string(strreq),constants.INFO)
 				body, _ := ioutil.ReadAll(resq.Body)
 				var raw map[string]interface{}
 				json.Unmarshal(body, &raw)
@@ -492,9 +512,9 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 				base64 := raw["data"]
 
 				h.Write([]byte(fmt.Sprintf("%s", base64) + res[i].Identifier))
-				fmt.Printf("%x", h.Sum(nil))
-				fmt.Print("-", res[i].DataHash)
-				fmt.Println("\n")
+				
+				logger.LogWriter(h.Sum(nil), constants.INFO)
+				logger.LogWriter(res[i].DataHash,constants.INFO)
 
 				DataStoreTXN := model.Current{
 					TType:      res[i].TxnType,
@@ -530,8 +550,9 @@ func GatewayRetrieverWithIdentifier(w http.ResponseWriter, r *http.Request) {
 	// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
 	result := apiModel.PocSuccess{Chain: pocStructObj.DBTree}
-	// fmt.Println(result)
-	// fmt.Println(response.RetrievePOC.Error.Message)
+	strresult,_:=json.Marshal(result)
+	logger.LogWriter("POC success result :"+string(strresult),constants.INFO)
+	//fmt.Println(response.RetrievePOC.Error.Message)
 	json.NewEncoder(w).Encode(result)
 	// 		return
 

@@ -11,6 +11,8 @@ import (
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -32,20 +34,21 @@ type tdpToTransaction struct {
 
 func GetTransactionId(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	logger := utilities.NewCustomLogger()
 
 	vars := mux.Vars(r)
 
 	object := dao.Connection{}
 	p := object.GetTransactionForTdpId(vars["id"])
-	fmt.Println(vars["id"])
+	logger.LogWriter("Transaction ID for TDP  :"+vars["id"], constants.INFO)
+	
 	p.Then(func(data interface{}) interface{} {
 		TxnHash := (data.(model.TransactionCollectionBody)).TxnHash
 
 		mapD := map[string]string{"transaction": TxnHash}
 		mapB, _ := json.Marshal(mapD)
-		// fmt.Println(string(mapB))
-		// trans := transaction{transaction:TxnHash}
-		// s := fmt.Sprintf("%v", trans)
+		logger.LogWriter("Map Id for TDP  :"+string(mapB), constants.INFO)
+		
 
 		encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 		text := encoded
@@ -72,8 +75,11 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var result []model.TransactionIds
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
+
 	p := object.GetAllTransactionForTdpId(vars["id"])
-	fmt.Println(vars["id"])
+	logger.LogWriter("All Transaction ID for TDP  :"+vars["id"], constants.INFO)
+
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
@@ -83,9 +89,9 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				log.Error("Error while json.Marshal(mapD) " + err.Error())
 			}
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			
+			logger.LogWriter("All Transaction ID for TDP  :"+string(mapB), constants.INFO)
+
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
@@ -109,8 +115,8 @@ func GetTransactionsForTDP(w http.ResponseWriter, r *http.Request) {
 
 func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	logger := utilities.NewCustomLogger()
 
-	fmt.Println("lol")
 	var TDPs apiModel.GetTransactionId
 
 	if r.Header == nil {
@@ -133,7 +139,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// fmt.Println(TDP)
+	
 	err := json.NewDecoder(r.Body).Decode(&TDPs)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -141,10 +147,11 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body  :"+err.Error(), constants.ERROR)
 		return
 	}
-	// fmt.Println(TDPs)
+	strTDPs,_:=json.Marshal(TDPs)
+	logger.LogWriter("TDPs  :"+string(strTDPs), constants.INFO)
 	object := dao.Connection{}
 
 	var resultArray []model.TransactionIds
@@ -153,7 +160,8 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < arrSize; i++ {
 
 		p := object.GetTransactionForTdpId(TDPs.TdpID[i])
-		fmt.Println(TDPs.TdpID[i])
+		logger.LogWriter("Transaction For TdpId  :"+TDPs.TdpID[i], constants.INFO)
+		
 		p.Then(func(data interface{}) interface{} {
 
 			if TDPs.TdpID[i] == "" {
@@ -163,7 +171,8 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 				Txn := data.(model.TransactionCollectionBody)
 				// mapD := map[string]string{"transaction": Txn.TxnHash}
 				// mapB, _ := json.Marshal(mapD)
-				// fmt.Println(Txn.ProfileID)
+				logger.LogWriter("Profile Id  :"+Txn.ProfileID, constants.INFO)
+				
 				// trans := transaction{transaction:TxnHash}
 				// s := fmt.Sprintf("%v", trans)
 				// identifer = Txn.Identifier
@@ -186,7 +195,8 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 		p.Await()
 
 		q := object.GetPogTransaction(identifer)
-		fmt.Println(identifer)
+		logger.LogWriter("Identifer of POG transaction :"+identifer, constants.INFO)
+		
 		q.Then(func(data interface{}) interface{} {
 
 			// if TDPs.TdpID[i] == "" {
@@ -196,7 +206,7 @@ func GetTransactionsForTdps(w http.ResponseWriter, r *http.Request) {
 			Txn := data.(model.TransactionCollectionBody)
 			// mapD := map[string]string{"transaction": Txn.TxnHash}
 			// mapB, _ := json.Marshal(mapD)
-			// fmt.Println(Txn.TxnHash)
+			logger.LogWriter("TXN Hash  :"+Txn.TxnHash, constants.INFO)
 			// trans := transaction{transaction:TxnHash}
 			// s := fmt.Sprintf("%v", trans)
 
@@ -224,17 +234,20 @@ func GetTransactionsForPK(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var result []model.TransactionIds
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
 	p := object.GetAllTransactionForPK(vars["id"])
-	// fmt.Println(vars["id"])
+	logger.LogWriter("Id  :"+vars["id"], constants.INFO)
+	
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {
 			TxnHash := TxnBody.TxnHash
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			logger.LogWriter("Traansaction :"+string(mapB),constants.INFO)
+			trans := transaction{transaction:TxnHash}
+			strTrans,_:= json.Marshal(trans)
+			logger.LogWriter("Transsaction :"+string(strTrans),constants.INFO)
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.TransactionIds{Txnhash: TxnHash,
@@ -260,20 +273,21 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 	log.Debug("----------------------------- QueryTransactionsByKey --------------------------------")
 	var response model.Error
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	logger := utilities.NewCustomLogger()
 	var result []model.PrevTxnResponse
 	key1, error := r.URL.Query()["perPage"]
 	if !error || len(key1[0]) < 1 {
-		log.Println("Url Param 'perPage' is missing")
+		logger.LogWriter("Url Param 'perPage' is missing  :", constants.ERROR)
 		return
 	}
 	key2, error := r.URL.Query()["page"]
 	if !error || len(key2[0]) < 1 {
-		log.Println("Url Param 'page' is missing")
+		logger.LogWriter("Url Param 'page' is missing  :", constants.ERROR)
 		return
 	}
 	key3, error := r.URL.Query()["txn"]
 	if !error || len(key2[0]) < 1 {
-		log.Println("Url Param 'txn' is missing")
+		logger.LogWriter("Url Param 'txn' is missing  :", constants.ERROR)
 		return
 	}
 	perPage, err := strconv.Atoi(key1[0])
@@ -487,9 +501,10 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			}
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			logger.LogWriter("Transaction :"+string(mapB),constants.INFO)
+			trans := transaction{transaction:TxnHash}
+			strTrans,_:= json.Marshal(trans)
+			logger.LogWriter("Transsaction :"+string(strTrans),constants.INFO)
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.PrevTxnResponse{
@@ -724,9 +739,10 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			}
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			logger.LogWriter("Transaction :"+string(mapB),constants.INFO)
+			trans := transaction{transaction:TxnHash}
+			strTrans,_:= json.Marshal(trans)
+			logger.LogWriter("Transsaction :"+string(strTrans),constants.INFO)
 
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
@@ -959,9 +975,10 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			}
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			logger.LogWriter("Transaction :"+string(mapB),constants.INFO)
+			trans := transaction{transaction:TxnHash}
+			strTrans,_:= json.Marshal(trans)
+			logger.LogWriter("Transsaction :"+string(strTrans),constants.INFO)
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.PrevTxnResponse{
@@ -1207,9 +1224,10 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 			}
 			mapD := map[string]string{"transaction": TxnHash}
 			mapB, _ := json.Marshal(mapD)
-			// fmt.Println(string(mapB))
-			// trans := transaction{transaction:TxnHash}
-			// s := fmt.Sprintf("%v", trans)
+			logger.LogWriter("Transaction :"+string(mapB),constants.INFO)
+			trans := transaction{transaction:TxnHash}
+			strTrans,_:= json.Marshal(trans)
+			logger.LogWriter("Transsaction :"+string(strTrans),constants.INFO)
 			encoded := base64.StdEncoding.EncodeToString([]byte(string(mapB)))
 			text := encoded
 			temp := model.PrevTxnResponse{
@@ -1265,8 +1283,11 @@ func RetriveTransactionId(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	var result []model.PrevTxnResponse
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
+
 	p := object.GetAllTransactionForTxId(vars["id"])
-	fmt.Println(vars["id"])
+	logger.LogWriter("All Transaction ID for TxId  :"+vars["id"], constants.INFO)
+	
 	p.Then(func(data interface{}) interface{} {
 		res := data.([]model.TransactionCollectionBody)
 		for _, TxnBody := range res {

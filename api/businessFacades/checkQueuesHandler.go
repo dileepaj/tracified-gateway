@@ -5,17 +5,19 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 )
 
 //var redisClient *redis.Client
 
 func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if commons.GoDotEnvVariable("QUEUE_FLAG") == "TRUE" {
 		var res model.PendingNFTS
@@ -23,7 +25,7 @@ func BuyHandlerLock(w http.ResponseWriter, r *http.Request) {
 		decoder.DisallowUnknownFields()
 		err := decoder.Decode(&res)
 		if err != nil {
-			log.Println(err)
+			logger.LogWriter("Error occured when Calls the BuyHandlerLock in the nftHandler to queue the buy requests : "+err.Error(), constants.ERROR)
 		}
 		// Try to acquire a distributed lock for the item
 
