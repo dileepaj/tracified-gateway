@@ -6,9 +6,11 @@ import (
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/solana"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/portto/solana-go-sdk/common"
 	log "github.com/sirupsen/logrus"
@@ -24,13 +26,13 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 	var TrustLineResponseNFT model.NFTSolana
 	var NFTcollectionObj model.NFTWithTransactionSolana
 	var MarketplaceNFTcollectionObj model.MarketPlaceNFT
+	logger := utilities.NewCustomLogger()
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
 	if err != nil {
-		log.Println(err)
+		logger.LogWriter("Error when decoding the body : "+err.Error(), constants.ERROR)
 	}
-	log.Println(TrustLineResponseNFT)
 	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
 		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
 
@@ -144,13 +146,13 @@ func RetrieveSolanaMinter(w http.ResponseWriter, r *http.Request) {
 func TransferNFTS(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var MarketplaceNFT model.NFTTransfer
+	logger := utilities.NewCustomLogger()
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&MarketplaceNFT)
 	if err != nil {
-		log.Println(err)
+		logger.LogWriter("Error when decoding body : "+err.Error(), constants.ERROR)
 	}
-	log.Println(MarketplaceNFT)
 	if MarketplaceNFT.Source != "" {
 		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
 		transferTXNX, err := solana.TransferNFTs(WALLETSECRET, MarketplaceNFT.Source, MarketplaceNFT.Destination, MarketplaceNFT.MintPubKey)

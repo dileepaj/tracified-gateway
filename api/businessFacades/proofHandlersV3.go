@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/stellar/go/support/log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -99,7 +100,6 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(w).Encode(response)
-		fmt.Println(response)
 		return error
 	}).Await()
 
@@ -295,7 +295,6 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		pocStructObj.DBTree = []model.Current{}
 		display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 		response = display.InterpretFullPOC()
-		// fmt.Println(response.RetrievePOC.BCHash)
 		var POCTree []model.POCResponse
 		for _, tree := range response.RetrievePOC.BCHash {
 			sr := stellarRetriever.ConcreteStellarTransaction{Txnhash: tree.TXNID}
@@ -332,7 +331,6 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(200)
-		fmt.Println(response.RetrievePOC.Error.Message)
 		json.NewEncoder(w).Encode(POCTree)
 		return
 	}
@@ -360,7 +358,6 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
@@ -382,14 +379,12 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusNotFound)
 					json.NewEncoder(w).Encode(er.Error)
 				} else {
-					// fmt.Println(req)
 					body, _ := ioutil.ReadAll(resq.Body)
 					var raw map[string]interface{}
 					json.Unmarshal(body, &raw)
 
 					h := sha256.New()
 					base64 := raw["data"]
-					// fmt.Println(base64)
 
 					h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 					// fmt.Printf("%x", h.Sum(nil))
@@ -410,8 +405,6 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 			display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 			response = display.InterpretPOC()
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
-
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
@@ -419,12 +412,8 @@ func CheckFullPOCV3(w http.ResponseWriter, r *http.Request) {
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
-			fmt.Println(result)
-			fmt.Println(response.RetrievePOC.Error.Message)
 
 			json.NewEncoder(w).Encode(result)
-			// 		return
-
 			return data
 		}).Catch(func(error error) error {
 			return error
@@ -461,11 +450,11 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 	var UserGenesis string
 
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
-		fmt.Println(LastTxn)
 		g := object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
@@ -494,7 +483,7 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 					//GET THE USER SIGNED GENESIS TXN
 					byteData, _ := base64.StdEncoding.DecodeString(keys[2].Value)
 					UserGenesis = string(byteData)
-					fmt.Println("THE TXN OF THE USER TXN: " + UserGenesis)
+					logger.LogWriter("THE TXN OF THE USER TXN: "+UserGenesis, constants.INFO)
 				}
 			}
 
@@ -526,10 +515,6 @@ func CheckPOGV3(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
-	// fmt.Println("response.RetrievePOG.Error.Code")
-	// fmt.Println(response.RetrievePOG.Error.Code)
-
 	return
 
 }
@@ -560,7 +545,6 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		writer.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
 		json.NewEncoder(writer).Encode(response)
-		fmt.Println(response)
 		return
 	}
 
@@ -676,7 +660,6 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Error("Error while json.Marshal(mapD) " + err.Error())
 	}
-	fmt.Println(string(mapB))
 
 	_, err = object.GetRealIdentifier(res.Identifier).Then(func(data interface{}) interface{} {
 		realIdentifier := data.(apiModel.IdentifierModel)
@@ -777,7 +760,6 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	_, err = object.GetCOCbyAcceptTxn(acceptTxn).Then(func(data interface{}) interface{} {
 		COCAvailable = true
 		COC = data.(model.COCCollectionBody)
-		fmt.Println(COC)
 		return data
 	}).Await()
 
@@ -787,7 +769,6 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "COCTXN NOT FOUND IN GATEWAY DATASTORE " + err.Error()}
 		json.NewEncoder(w).Encode(response)
-		fmt.Println(response)
 	}
 
 	if COC.Status == model.Rejected.String() || COC.Status == model.Expired.String() || COC.Status == model.Pending.String() {
@@ -882,6 +863,7 @@ type KeysResponsePOC struct {
 
 func Base64DecEnc(typ string, msg string) string {
 	var text string
+	logger := utilities.NewCustomLogger()
 
 	if typ == "Encode" {
 		encoded := base64.StdEncoding.EncodeToString([]byte(msg))
@@ -890,7 +872,7 @@ func Base64DecEnc(typ string, msg string) string {
 	} else if typ == "Decode" {
 		decoded, err := base64.StdEncoding.DecodeString(msg)
 		if err != nil {
-			fmt.Println("decode error:", err)
+			logger.LogWriter("Decode error : "+err.Error(), constants.ERROR)
 		} else {
 			text = string(decoded)
 		}

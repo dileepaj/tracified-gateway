@@ -34,7 +34,6 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.TransactionCollectionBody)
-		// fmt.Println(result)
 		var response model.POE
 		// url := "http://localhost:3001/api/v1/dataPackets/raw?id=" + vars["Txn"]
 		url := constants.TracifiedBackend + constants.RawTDP + vars["Txn"]
@@ -53,16 +52,12 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(er.Error)
 
 		} else {
-			// fmt.Println(req)
 			body, _ := ioutil.ReadAll(resq.Body)
 			var raw map[string]interface{}
 			json.Unmarshal(body, &raw)
-			// fmt.Println(string(raw["Data"]))
-			// fmt.Println(body)
 
 			h := sha256.New()
 			lol := raw["data"]
-			fmt.Println(lol)
 
 			h.Write([]byte(fmt.Sprintf("%s", lol) + result.Identifier))
 
@@ -84,7 +79,6 @@ func CheckPOE(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNotFound)
 		response := model.Error{Message: "Not Found"}
 		json.NewEncoder(w).Encode(response)
-		fmt.Println(response)
 		return error
 
 	})
@@ -111,7 +105,6 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
@@ -137,14 +130,12 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 						response := model.Error{Message: "Connection to the DataStore was interupted"}
 						json.NewEncoder(w).Encode(response)
 					} else {
-						// fmt.Println(req)
 						body, _ := ioutil.ReadAll(resq.Body)
 						var raw map[string]interface{}
 						json.Unmarshal(body, &raw)
 
 						h := sha256.New()
 						base64 := raw["data"]
-						// fmt.Println(base64)
 
 						h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 						// fmt.Printf("%x", h.Sum(nil))
@@ -174,8 +165,6 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 			display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 			response = display.InterpretPOC()
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
-
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
@@ -183,12 +172,8 @@ func CheckPOC(w http.ResponseWriter, r *http.Request) {
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
-			fmt.Println(result)
-			fmt.Println(response.RetrievePOC.Error.Message)
 
 			json.NewEncoder(w).Encode(result)
-			// 		return
-
 			return data
 		}).Catch(func(error error) error {
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -234,7 +219,6 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 
 		result := data.(model.TransactionCollectionBody)
 		pocStructObj.DBTree = []model.Current{}
-		// fmt.Println(result)
 		g := object.GetTransactionsbyIdentifier(result.Identifier)
 		g.Then(func(data interface{}) interface{} {
 			res := data.([]model.TransactionCollectionBody)
@@ -256,14 +240,12 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 					w.WriteHeader(http.StatusNotFound)
 					json.NewEncoder(w).Encode(er.Error)
 				} else {
-					// fmt.Println(req)
 					body, _ := ioutil.ReadAll(resq.Body)
 					var raw map[string]interface{}
 					json.Unmarshal(body, &raw)
 
 					h := sha256.New()
 					base64 := raw["data"]
-					// fmt.Println(base64)
 
 					h.Write([]byte(fmt.Sprintf("%s", base64) + result.Identifier))
 					// fmt.Printf("%x", h.Sum(nil))
@@ -284,8 +266,6 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 			display := &interpreter.AbstractPOC{POCStruct: pocStructObj}
 			response = display.InterpretPOC()
 
-			// fmt.Println(response.RetrievePOC.Error.Message)
-
 			w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 			w.WriteHeader(200)
 			// w.WriteHeader(http.StatusBadRequest)
@@ -293,11 +273,7 @@ func CheckFullPOC(w http.ResponseWriter, r *http.Request) {
 			// result := apiModel.PoeSuccess{Message: "response.RetrievePOC.Error.Message", TxNHash: "response.RetrievePOC.Txn"}
 
 			result := apiModel.PocSuccess{Message: response.RetrievePOC.Error.Message, Chain: pocStructObj.DBTree}
-			fmt.Println(result)
-			fmt.Println(response.RetrievePOC.Error.Message)
-
 			json.NewEncoder(w).Encode(result)
-			// 		return
 
 			return data
 		}).Catch(func(error error) error {
@@ -334,14 +310,12 @@ func CheckPOG(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		LastTxn := data.(model.TransactionCollectionBody)
-		fmt.Println(LastTxn)
 
 		//RETRIVE FIRST TRANSACTION HASH FOR THE IDENTIFIER
 		g := object.GetFirstTransactionbyIdentifier(vars["Identifier"])
 		g.Then(func(data interface{}) interface{} {
 
 			FirstTxn := data.(model.TransactionCollectionBody)
-			fmt.Println(FirstTxn)
 
 			pogStructObj := apiModel.POGStruct{LastTxn: LastTxn.TxnHash, POGTxn: FirstTxn.TxnHash, Identifier: vars["Identifier"]}
 			display := &interpreter.AbstractPOG{POGStruct: pogStructObj}

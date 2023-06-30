@@ -7,7 +7,8 @@ import (
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/sirupsen/logrus"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 )
 
 type PermissionStatus struct {
@@ -23,6 +24,7 @@ type PermissionStatus struct {
 
 func HasPermission(reqToken string) PermissionStatus {
 	var ps PermissionStatus
+	logger := utilities.NewCustomLogger()
 
 	if len(reqToken) > 0 {
 		splitToken := strings.Split(reqToken, "Bearer ")
@@ -33,10 +35,10 @@ func HasPermission(reqToken string) PermissionStatus {
 		})
 		if err != nil {
 			if err.Error() == jwt.ErrSignatureInvalid.Error() {
-				logrus.Println(err.Error())
+				logger.LogWriter("JWT signature invalid : "+err.Error(), constants.ERROR)
 				return ps
 			}
-			logrus.Println(err.Error())
+			logger.LogWriter("Error when parsing with claims : "+err.Error(), constants.ERROR)
 			return ps
 		}
 
@@ -50,7 +52,7 @@ func HasPermission(reqToken string) PermissionStatus {
 			if key == "permissions" {
 				v, ok := val.(map[string]interface{})["0"]
 				if !ok {
-					logrus.Println("Permissions not found")
+					logger.LogWriter("Permissions not found", constants.ERROR)
 				}
 				if v != nil {
 					switch reflect.TypeOf(v).Kind() {
@@ -63,7 +65,7 @@ func HasPermission(reqToken string) PermissionStatus {
 						}
 					}
 				} else {
-					logrus.Println("Permissions not found")
+					logger.LogWriter("Permissions not found", constants.ERROR)
 					ps.Status = false
 				}
 			}
@@ -72,7 +74,7 @@ func HasPermission(reqToken string) PermissionStatus {
 			}
 		}
 	} else {
-		logrus.Println("Bearer token not found")
+		logger.LogWriter("Permissions not found", constants.ERROR)
 		return ps
 	}
 	return ps

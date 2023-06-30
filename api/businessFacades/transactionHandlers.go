@@ -13,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/network"
@@ -27,6 +28,7 @@ import (
 func Transaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	TType := (vars["TType"])
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if r.Body == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -40,10 +42,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(GObj)
 			result := model.InsertGenesisResponse{}
 
 			display := &deprecatedBuilder.AbstractGenesisInsert{InsertGenesisStruct: GObj}
@@ -64,10 +65,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(PObj)
 			response := model.InsertProfileResponse{}
 
 			display := &deprecatedBuilder.AbstractProfileInsert{InsertProfileStruct: PObj}
@@ -88,10 +88,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(TDP)
 			response := model.SubmitXDRResponse{}
 
 			// display := &builder.AbstractTDPInsert{Hash: TObj.Data, InsertType: TType, PreviousTXNID: TObj.PreviousTXNID[0], ProfileId: TObj.ProfileID[0]}
@@ -112,10 +111,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(SplitObj)
 			response := model.SplitProfileResponse{}
 
 			// for i := 0; i < len(TObj.Identifiers); i++ {
@@ -142,10 +140,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(MergeObj)
 			response := model.MergeProfileResponse{}
 
 			display := &deprecatedBuilder.AbstractMergeProfile{MergeProfileStruct: MergeObj}
@@ -169,10 +166,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(POA)
 			response := model.InsertDataResponse{}
 
 			display := &deprecatedBuilder.AbstractPOAInsert{InsertPOAStruct: POA}
@@ -192,10 +188,9 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				w.WriteHeader(http.StatusBadRequest)
 				json.NewEncoder(w).Encode("Error while Decoding the body")
-				fmt.Println(err)
+				logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 				return
 			}
-			fmt.Println(Cert)
 			response := model.InsertDataResponse{}
 
 			display := &deprecatedBuilder.AbstractPOCertInsert{InsertPOCertStruct: Cert}
@@ -220,7 +215,6 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
 /*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
@@ -228,6 +222,7 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -255,8 +250,7 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-
+		logger.LogWriter("Error while decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
@@ -272,7 +266,8 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
 	// proper naming
-	// single responsibility 
+	// single responsibility
+	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
 
@@ -302,7 +297,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
 
@@ -319,6 +314,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -345,11 +341,9 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(TDP)
-
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecialSplit(w, r)
 
@@ -363,6 +357,7 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -389,7 +384,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 
 	}
@@ -408,6 +403,7 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -434,10 +430,9 @@ func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(TDP)
 
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitMerge(w, r)
@@ -452,6 +447,7 @@ func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
 func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -479,14 +475,13 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
 	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
 	display.SubmitSpecialTransfer(w, r)
 	return
 }
-
 
 /*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
 @author - Azeem Ashraf
@@ -495,6 +490,7 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP model.CertificateCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -522,10 +518,9 @@ func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
 	temp = append(temp, TDP)
@@ -541,6 +536,7 @@ func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP model.CertificateCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -568,10 +564,10 @@ func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
+
 		return
 	}
-	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
 	temp = append(temp, TDP)
@@ -587,6 +583,7 @@ func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
 func SubmitCertificateRevoke(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP model.CertificateCollectionBody
+	logger := utilities.NewCustomLogger()
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -614,10 +611,10 @@ func SubmitCertificateRevoke(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
+
 		return
 	}
-	fmt.Println(TDP)
 
 	var temp []model.CertificateCollectionBody
 	temp = append(temp, TDP)
@@ -668,6 +665,7 @@ type TranXDR struct {
 */
 func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	logger := utilities.NewCustomLogger()
 
 	var Trans xdr.Transaction
 	// var lol string
@@ -696,7 +694,6 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// fmt.Println(TDP)
 	err := json.NewDecoder(r.Body).Decode(&TDP)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -704,20 +701,19 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
+
 		return
 	}
-	fmt.Println(TDP)
 
 	err1 := xdr.SafeUnmarshalBase64(TDP.XDR, &Trans)
 	if err1 != nil {
-		fmt.Println(err1)
+		logger.LogWriter("Error when safe unmarshal b84: "+err1.Error(), constants.ERROR)
+
 	}
 
 	//brr := txnbuild.TransactionFrom{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	brr,_ := txnbuild.TransactionFromXDR(TDP.XDR)
-	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
-	// fmt.Println(brr.Hash())
+	brr, _ := txnbuild.TransactionFromXDR(TDP.XDR)
 	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
@@ -793,10 +789,8 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 
 func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-
-	fmt.Println("lol")
 	var Artifacts model.ArtifactTransaction
-	fmt.Println("lol")
+	logger := utilities.NewCustomLogger()
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -817,7 +811,6 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// fmt.Println(TDP)
 	err := json.NewDecoder(r.Body).Decode(&Artifacts)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -825,11 +818,9 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : " + err.Error(), constants.ERROR)
 		return
 	}
-	fmt.Println(Artifacts)
-	// fmt.Println(TDPs)
 	object := dao.Connection{}
 	err2 := object.InsertArtifact(Artifacts)
 	if err2 != nil {
@@ -904,7 +895,7 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	//call backend to get identiderby artifactId
-	url := constants.TracifiedBackend+"/api/v2/identifiers/artifact/" + vars["artifactid"]
+	url := constants.TracifiedBackend + "/api/v2/identifiers/artifact/" + vars["artifactid"]
 	bearer := "Bearer " + constants.BackendToken
 	// Create a new request using http
 	req, err := http.NewRequest("GET", url, nil)
@@ -927,45 +918,45 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	}
 	var identifiers []string
 	json.Unmarshal(body, &identifiers)
-	if(resq.StatusCode==200||resq.StatusCode==204){
-	if(len(identifiers)>0){
-	p := object.GetRealIdentifiersByArtifactId(identifiers)
-	p.Then(func(data interface{}) interface{} {
-		dbResult := data.([]model.TransactionCollectionBody)
-			for _, TxnBody := range dbResult {
-			temp := model.TransactionHashWithIdentifier{
-				Status: TxnBody.Status,
-				Txnhash: TxnBody.TxnHash,
-				Identifier:     TxnBody.Identifier,
-				FromIdentifier1: TxnBody.FromIdentifier1,
-				FromIdentifier2: TxnBody.FromIdentifier2,
-				ToIdentifier: TxnBody.ToIdentifier,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				ProductID:  TxnBody.ProductID,
-				ProductName:    TxnBody.ProductName,
+	if resq.StatusCode == 200 || resq.StatusCode == 204 {
+		if len(identifiers) > 0 {
+			p := object.GetRealIdentifiersByArtifactId(identifiers)
+			p.Then(func(data interface{}) interface{} {
+				dbResult := data.([]model.TransactionCollectionBody)
+				for _, TxnBody := range dbResult {
+					temp := model.TransactionHashWithIdentifier{
+						Status:          TxnBody.Status,
+						Txnhash:         TxnBody.TxnHash,
+						Identifier:      TxnBody.Identifier,
+						FromIdentifier1: TxnBody.FromIdentifier1,
+						FromIdentifier2: TxnBody.FromIdentifier2,
+						ToIdentifier:    TxnBody.ToIdentifier,
+						TxnType:         GetTransactiontype(TxnBody.TxnType),
+						AvailableProof:  GetProofName(TxnBody.TxnType),
+						ProductID:       TxnBody.ProductID,
+						ProductName:     TxnBody.ProductName,
+					}
+					result = append(result, temp)
 				}
-			result = append(result, temp)
-				}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-		return nil
-	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: error.Error()}
-		json.NewEncoder(w).Encode(response)
-		return error
-	}).Await()
-	}else{
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Message: "Can not find the identires for artifactid"}
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(result)
+				return nil
+			}).Catch(func(error error) error {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: error.Error()}
+				json.NewEncoder(w).Encode(response)
+				return error
+			}).Await()
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+			response := model.Error{Message: "Can not find the identires for artifactid"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadGateway)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-}else {
-	w.WriteHeader(http.StatusBadGateway)
-	response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
-	json.NewEncoder(w).Encode(response)
-	return
-}
 }

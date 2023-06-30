@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/joho/godotenv"
 )
 
 //!Stages
@@ -34,10 +34,15 @@ func CreateLogFile() {
 
 //Create a logger instance
 func NewCustomLogger() *CustomLogger {
-	envId := commons.GoDotEnvVariable("ENV")
+	//!ENV has been manually loaded in order to overcome the import cycle issue that comes with importing commons package
+	errWhenLoadingTheEnv := godotenv.Load(".env")
+	if errWhenLoadingTheEnv != nil {
+		fmt.Println("[ERROR] - Error when loading the env file")
+	}
+	envId := os.Getenv("ENV")
 	envIdInt, err := strconv.Atoi(envId)
 	if err != nil {
-		fmt.Println("Error when converting log environment ID")
+		fmt.Println("[ERROR] - Error when converting log environment ID")
 	}
 	stage := envIdInt
 

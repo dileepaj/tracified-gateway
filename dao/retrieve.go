@@ -2,7 +2,6 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 	"time"
 
@@ -10,8 +9,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
+	"github.com/dileepaj/tracified-gateway/utilities"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -26,13 +27,14 @@ GetCOCbySender Retrieve All COC Object from COCCollection in DB by Sender Public
 */
 func (cd *Connection) GetCOCbySender(sender string) *promise.Promise {
 	result := []model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -62,13 +64,14 @@ GetLastCOCbySubAccount Retrieve the Last COC Object from COCCollection in DB by 
 func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise {
 	result := model.COCCollectionBody{}
 	result2 := apiModel.GetSubAccountStatusResponse{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -77,7 +80,8 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
 
 		if er != nil {
-			// fmt.Println(er)
+			logger.LogWriter(er, constants.ERROR)
+
 			reject(er)
 		}
 
@@ -87,15 +91,15 @@ func (cd *Connection) GetLastCOCbySubAccount(subAccount string) *promise.Promise
 		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 		result2.Receiver = result.Receiver
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
 		if err == nil {
-			fmt.Println(bumpSeq)
-			// bumpSeq = bumpSeq
-			fmt.Println(bumpSeq)
+			logger.LogWriter(bumpSeq, constants.INFO)
+
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
@@ -125,13 +129,14 @@ GetCOCbyReceiver Retrieve All COC Object from COCCollection in DB by Receiver Pu
 */
 func (cd *Connection) GetCOCbyReceiver(receiver string) *promise.Promise {
 	result := []model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -189,13 +194,14 @@ GetCOCbyRejectTxn Retrieve a COC Object from COCCollection in DB by Reject TXN
 */
 func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 	result := model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -204,7 +210,8 @@ func (cd *Connection) GetCOCbyRejectTxn(rejecttxn string) *promise.Promise {
 		err1 := c.FindOne(context.TODO(), bson.M{"rejecttxn": rejecttxn}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		} else {
 			resolve(result)
@@ -220,13 +227,15 @@ GetCOCbyStatus Retrieve All COC Object from COCCollection in DB by Status
 */
 func (cd *Connection) GetCOCbyStatus(status string) *promise.Promise {
 	result := []model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -255,6 +264,7 @@ GetLastCOCbyIdentifier Retrieve Last COC Object from COCCollection in DB by Iden
 */
 func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise {
 	result := model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
@@ -262,7 +272,7 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -271,7 +281,8 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		count, er := c.CountDocuments(context.TODO(), bson.M{"identifier": identifier})
 
 		if er != nil {
-			// fmt.Println(er)
+			logger.LogWriter(er, constants.ERROR)
+
 			reject(er)
 		}
 
@@ -280,7 +291,7 @@ func (cd *Connection) GetLastCOCbyIdentifier(identifier string) *promise.Promise
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}, options).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 
 			reject(err1)
 		}
@@ -297,6 +308,7 @@ GetCOCByTxn Retrieve COC Object from COCCollection in DB by Txn
 */
 func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 	result := model.COCCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// result2 := apiModel.GetSubAccountStatusResponse{}
 	// p := promise.NewPromise()
 
@@ -304,7 +316,8 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -313,7 +326,8 @@ func (cd *Connection) GetCOCByTxn(txnHash string) *promise.Promise {
 		er := c.FindOne(context.TODO(), bson.M{"txnhash": txnHash}).Decode(&result)
 
 		if er != nil {
-			// fmt.Println(er)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(er)
 		}
 
@@ -329,13 +343,15 @@ GetLastTransactionbyIdentifier Retrieve Last Transaction Object from Transaction
 */
 func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -360,13 +376,15 @@ func (cd *Connection) GetLastTransactionbyIdentifier(identifier string) *promise
 
 func (cd *Connection) GetLastTransactionbyIdentifierNotSplitParent(identifier, tenantId string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -395,13 +413,15 @@ GetFirstTransactionbyIdentifier Retrieve First Transaction Object from Transacti
 */
 func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -410,7 +430,8 @@ func (cd *Connection) GetFirstTransactionbyIdentifier(identifier string) *promis
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 		resolve(result)
@@ -425,13 +446,14 @@ GetTransactionsbyIdentifier Retrieve All Transaction Objects from TransactionCol
 */
 func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -441,7 +463,7 @@ func (cd *Connection) GetTransactionsbyIdentifier(identifier string) *promise.Pr
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 			reject(err1)
 		} else {
 			resolve(result)
@@ -550,13 +572,14 @@ func (cd *Connection) GetPreviousTransactions(perPage int, page int, NoPage int)
 
 func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -565,7 +588,7 @@ func (cd *Connection) GetPogTransaction(Identifer string) *promise.Promise {
 
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": Identifer, "tdpid": ""}).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 			reject(err1)
 		} else {
 			resolve(result)
@@ -612,13 +635,14 @@ GetTdpIdForTransaction Retrieve a Transaction Object from TransactionCollection 
 */
 func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -627,7 +651,8 @@ func (cd *Connection) GetTdpIdForTransaction(Txn string) *promise.Promise {
 
 		err1 := c.FindOne(context.TODO(), bson.M{"txnhash": Txn}).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		} else {
 			resolve(result)
@@ -643,13 +668,15 @@ GetOrphanbyIdentifier Retrieve a Transaction Object from OrphanCollection in DB 
 */
 func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -658,7 +685,8 @@ func (cd *Connection) GetOrphanbyIdentifier(identifier string) *promise.Promise 
 
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 		resolve(result)
@@ -673,13 +701,15 @@ GetProfilebyIdentifier Retrieve a Profile Object from ProfileCollection in DB by
 */
 func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -688,7 +718,8 @@ func (cd *Connection) GetProfilebyIdentifier(identifier string) *promise.Promise
 
 		err1 := c.FindOne(context.TODO(), bson.M{"identifier": identifier}).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 		resolve(result)
@@ -703,13 +734,15 @@ GetProfilebyProfileID Retrieve a Profile Object from ProfileCollection in DB by 
 */
 func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 	result := model.ProfileCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -718,7 +751,8 @@ func (cd *Connection) GetProfilebyProfileID(ProfileID string) *promise.Promise {
 
 		err1 := c.FindOne(context.TODO(), bson.M{"profileid": ProfileID}).Decode(&result)
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 		resolve(result)
@@ -733,13 +767,14 @@ GetLastCertificatebyPublicKey Retrieve a Certificate Object from CertificateColl
 */
 func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -750,7 +785,7 @@ func (cd *Connection) GetLastCertificatebyPublicKey(PublicKey string) *promise.P
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 			reject(err1)
 		} else {
 			resolve(result[len(result)-1])
@@ -766,13 +801,14 @@ GetLastCertificatebyCertificateID Retrieve Last Certificate Object from Certific
 */
 func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -784,7 +820,7 @@ func (cd *Connection) GetLastCertificatebyCertificateID(CertificateID string) *p
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 			reject(err1)
 		} else {
 			resolve(result[len(result)-1])
@@ -799,13 +835,15 @@ GetAllCertificatebyPublicKey Retrieve All Certificate Objects from CertificateCo
 */
 func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Promise {
 	result := []model.CertificateCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -817,7 +855,8 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 		err2 := cursor.All(context.TODO(), &result)
 
 		if err1 != nil || err2 != nil || len(result) == 0 {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		} else {
 			resolve(result)
@@ -829,13 +868,15 @@ func (cd *Connection) GetAllCertificatebyPublicKey(PublicKey string) *promise.Pr
 
 func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 	result := []model.TransactionId{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -859,13 +900,15 @@ func (cd *Connection) GetTransactionId(tdpid string) *promise.Promise {
 
 func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer string) *promise.Promise {
 	result := model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
+
 			reject(err)
 		}
 
@@ -874,7 +917,8 @@ func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer s
 		err1 := c.FindOne(context.TODO(), bson.M{"tdpid": TdpId, "identifer": identifer}).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		} else {
 			resolve(result)
@@ -886,13 +930,14 @@ func (cd *Connection) GetTransactionForTdpIdIdentifier(TdpId string, identifer s
 
 func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -916,13 +961,14 @@ func (cd *Connection) GetAllTransactionForPK(Publickey string) *promise.Promise 
 
 func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise {
 	result := []model.TransactionCollectionBody{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -947,8 +993,9 @@ func (cd *Connection) GetAllTransactionForTxId(Txnhash string) *promise.Promise 
 
 // GetSpecialForPkAndSeq ...
 func (cd *Connection) GetSpecialForPkAndSeq(Publickey string, SequenceNo int64) *promise.Promise {
-	// fmt.Println("Address to get special ", Publickey)
-	// fmt.Println("Sequence no of the address ", SequenceNo)
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("Address to get special "+Publickey, constants.INFO)
+	logger.LogWriter("Sequence no of the address "+strconv.FormatInt(SequenceNo, 10), constants.INFO)
 	result := model.TransactionCollectionBody{}
 	// p := promise.NewPromise()
 
@@ -1216,13 +1263,14 @@ func (cd *Connection) GetTestimonialByRejectTxn(rejectTxn string) *promise.Promi
 func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promise.Promise {
 	result := model.TestimonialOrganization{}
 	result2 := apiModel.GetSubAccountStatusResponse{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -1243,9 +1291,8 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 		result2.Receiver = result.ApprovedBy
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
 		if err == nil {
-			fmt.Println(bumpSeq)
+			logger.LogWriter(bumpSeq, constants.INFO)
 			bumpSeq = bumpSeq
-			fmt.Println(bumpSeq)
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.SubAccount
@@ -1272,13 +1319,14 @@ func (cd *Connection) GetLastOrganizationbySubAccount(subAccount string) *promis
 func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise.Promise {
 	result := model.Testimonial{}
 	result2 := apiModel.GetSubAccountStatusResponse{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -1286,7 +1334,8 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		count, er := c.CountDocuments(context.TODO(), bson.M{"subaccount": subAccount})
 
 		if er != nil {
-			// fmt.Println(er)
+			logger.LogWriter(er, constants.ERROR)
+
 			reject(er)
 		}
 
@@ -1296,16 +1345,16 @@ func (cd *Connection) GetLastTestimonialbySubAccount(subAccount string) *promise
 		err1 := c.FindOne(context.TODO(), bson.M{"subaccount": subAccount}, options).Decode(&result)
 
 		if err1 != nil {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
+
 			reject(err1)
 		}
 
 		result2.Receiver = result.Reciever
 		bumpSeq, err := strconv.Atoi(result.SequenceNo)
 		if err == nil {
-			fmt.Println(bumpSeq)
+			logger.LogWriter(bumpSeq, constants.INFO)
 			bumpSeq = bumpSeq
-			fmt.Println(bumpSeq)
 		}
 		result2.SequenceNo = strconv.Itoa(bumpSeq)
 		result2.SubAccount = result.Subaccount
@@ -1356,12 +1405,13 @@ func (cd *Connection) GetPendingAndRejectedOrganizations() *promise.Promise {
 
 func (cd *Connection) GetAllTransactionForPK_Paginated(Publickey string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -1443,13 +1493,14 @@ func (cd *Connection) GetAllTransactionForTdpId_Paginated(TdpId string, page int
 
 func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, page int, perPage int) *promise.Promise {
 	result := model.TransactionCollectionBodyWithCount{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -1473,9 +1524,9 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 		cursor, err1 := c.Find(context.TODO(), bson.M{"$and": []interface{}{bson.M{"identifier": identifier}, bson.M{"txntype": bson.M{"$in": []string{"0", "2", "5", "6", "10"}}}}}, opt)
 		err2 := cursor.All(context.TODO(), &(result.Transactions))
 		result.Count = int64(count)
-		fmt.Println(count)
+		logger.LogWriter(count, constants.INFO)
 		if err1 != nil || err2 != nil || len(result.Transactions) == 0 {
-			// fmt.Println(err1)
+			logger.LogWriter(err1, constants.ERROR)
 			reject(err1)
 		} else {
 			resolve(result)
@@ -1487,13 +1538,14 @@ func (cd *Connection) GetTransactionsbyIdentifier_Paginated(identifier string, p
 
 func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 	result := []model.Testimonial{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -1518,13 +1570,14 @@ func (cd *Connection) GetTestimonialbyStatus(status string) *promise.Promise {
 
 func (cd *Connection) GetTestimonialOrganizationbyStatus(status string) *promise.Promise {
 	result := []model.TestimonialOrganization{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -2031,10 +2084,11 @@ func (cd *Connection) GetUnitMapID(unit string) *promise.Promise {
 }
 
 func (cd *Connection) GetRequestAmount(reqEntityType string, reqEntity string, fromTime time.Time, toTime time.Time) *promise.Promise {
+	logger := utilities.NewCustomLogger()
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
@@ -2667,7 +2721,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
-		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result)	// 118 = SUCCESS
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result) // 118 = SUCCESS
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
@@ -3035,13 +3089,14 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 
 func (cd *Connection) GetNFTById1Id2Id3Id4(blockchain string, nftidentifier string, imagebase64 string, version string) *promise.Promise {
 	result := model.PendingNFTS{}
+	logger := utilities.NewCustomLogger()
 	// p := promise.NewPromise()
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		// Do something asynchronously.
 		session, err := cd.connect()
 		if err != nil {
-			// fmt.Println(err)
+			logger.LogWriter(err, constants.ERROR)
 			reject(err)
 		}
 
@@ -3112,7 +3167,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype":txnType})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype": txnType})
 
 		if err1 != nil {
 			reject(err1)

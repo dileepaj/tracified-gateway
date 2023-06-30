@@ -2,11 +2,11 @@ package dao
 
 import (
 	"context"
-	"fmt"
-	"log"
 
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,10 +18,11 @@ UpdateTransaction  Update a Transaction Object from TransactionCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
-	fmt.Println("----------------------------------- UpdateTransaction ---------------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("----------------------------------- UpdateTransaction ---------------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 
@@ -72,7 +73,7 @@ func (cd *Connection) UpdateTransaction(selector model.TransactionCollectionBody
 
 	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
-		fmt.Println("Error while updating Transactions " + err.Error())
+		logger.LogWriter("Error while updating Transactions "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -82,10 +83,11 @@ UpdateCOC Update a COC Object from COCCollection in DB on the basis of the statu
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.COCCollectionBody) error {
-	fmt.Println("----------------------------------- UpdateCOC ---------------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("----------------------------------- UpdateCOC ---------------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 
@@ -132,7 +134,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		c := session.Client().Database(dbName).Collection("COC")
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 		if err != nil {
-			fmt.Println("Error while updating COC case accepted" + err.Error())
+			logger.LogWriter("Error while updating COC case accepted"+err.Error(), constants.ERROR)
+
 			return err
 		}
 		break
@@ -166,7 +169,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 
 		if err != nil {
-			fmt.Println("Error while updating COC case rejected" + err.Error())
+			logger.LogWriter("Error while updating COC case rejected"+err.Error(), constants.ERROR)
+
 			return err
 		}
 		break
@@ -200,7 +204,8 @@ func (cd *Connection) UpdateCOC(selector model.COCCollectionBody, update model.C
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: update}})
 
 		if err != nil {
-			fmt.Println("Error while updating COC case expired " + err.Error())
+			logger.LogWriter("Error while updating COC case expired"+err.Error(), constants.ERROR)
+
 			return err
 		}
 		break
@@ -213,10 +218,11 @@ UpdateCertificate Update a Certificate Object from CertificateCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody, update model.TransactionCollectionBody) error {
-	fmt.Println("----------------------------------- UpdateCertificate ---------------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("----------------------------------- UpdateCertificate ---------------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -247,16 +253,19 @@ func (cd *Connection) UpdateCertificate(selector model.TransactionCollectionBody
 	_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {
-		fmt.Println("Error while updating certificates " + err.Error())
+		logger.LogWriter("Error while updating certificates "+err.Error(), constants.ERROR)
+
 	}
 	return err
 }
 
 func (cd *Connection) Updateorganization(selector model.TestimonialOrganization, update model.TestimonialOrganization) error {
-	fmt.Println("----------------------------------- UpdateOrganization---------------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("----------------------------------- UpdateOrganization---------------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
+
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -308,7 +317,7 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Organization " + err.Error())
+			logger.LogWriter("Error while updating Organization "+err.Error(), constants.ERROR)
 		}
 		break
 
@@ -359,7 +368,7 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Organization " + err.Error())
+			logger.LogWriter("Error while updating Organization "+err.Error(), constants.ERROR)
 		}
 		break
 
@@ -409,7 +418,7 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Organization " + err.Error())
+			logger.LogWriter("Error while updating Organization "+err.Error(), constants.ERROR)
 		}
 		break
 	}
@@ -417,10 +426,11 @@ func (cd *Connection) Updateorganization(selector model.TestimonialOrganization,
 }
 
 func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model.Testimonial) error {
-	fmt.Println("----------------------------------- UpdateTestimonial ---------------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("----------------------------------- UpdateTestimonial ---------------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 
@@ -467,7 +477,8 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Testimonials " + err.Error())
+			logger.LogWriter("Error while updating Testimonials "+err.Error(), constants.ERROR)
+
 		}
 		break
 
@@ -512,7 +523,8 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Testimonials " + err.Error())
+			logger.LogWriter("Error while updating Testimonials "+err.Error(), constants.ERROR)
+
 		}
 		break
 
@@ -557,7 +569,7 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 		_, err = c.UpdateOne(context.TODO(), filter, bson.D{{Key: "$set", Value: updateNew}})
 
 		if err != nil {
-			fmt.Println("Error while updating Testimonials " + err.Error())
+			logger.LogWriter("Error while updating Testimonials "+err.Error(), constants.ERROR)
 		}
 		break
 	}
@@ -566,9 +578,11 @@ func (cd *Connection) UpdateTestimonial(selector model.Testimonial, update model
 }
 
 func (cd *Connection) UpdateProofPresesntationProtocol(selector model.ProofProtocol, update model.ProofProtocol) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
+
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -606,15 +620,17 @@ func (cd *Connection) UpdateProofPresesntationProtocol(selector model.ProofProto
 	_, err = c.UpdateOne(context.TODO(), bson.M{"proofname": selector.ProofName}, bson.D{{Key: "$set", Value: updateNew}})
 
 	if err != nil {
-		fmt.Println("Error while updating proof protocols " + err.Error())
+		logger.LogWriter("Error while updating proof protocols "+err.Error(), constants.ERROR)
+
 	}
 	return err
 }
 
 func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateStatus string, updateCurrentPK string, updatePreviousPK string) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -666,15 +682,17 @@ func (cd *Connection) UpdateBuyingStatus(selector model.MarketPlaceNFT, updateSt
 	}
 	_, err = c.UpdateOne(context.TODO(), bson.M{"nfttxnhash": selector.NFTTXNhash}, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
-		log.Println("Error while updating NFT Stellar " + err.Error())
+		logger.LogWriter("Error while updating NFT Stellar "+err.Error(), constants.ERROR)
+
 	}
 	return err
 }
 
 func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateStatus string, updateAmount string, updatePrice string) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -726,17 +744,19 @@ func (cd *Connection) UpdateSellingStatus(selector model.MarketPlaceNFT, updateS
 	}
 	_, err = c.UpdateOne(context.TODO(), bson.M{"nfttxnhash": selector.NFTTXNhash}, bson.D{{Key: "$set", Value: updateNew}})
 	if err != nil {
-		log.Println("Error while updating NFT Stellar " + err.Error())
+		logger.LogWriter("Error while updating NFT Stellar "+err.Error(), constants.ERROR)
+
 	}
 	return err
 }
 
 // auto count sequence incrementer
 func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
+	logger := utilities.NewCustomLogger()
 	var result model.Counters
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return model.Counters{}, err
 	}
 	defer session.EndSession(context.TODO())
@@ -748,15 +768,17 @@ func (cd *Connection) GetNextSequenceValue(Id string) (model.Counters, error) {
 		options.FindOneAndUpdate().SetReturnDocument(options.After), options.FindOneAndUpdate().SetUpsert(true), // <- Set option to return document after update (important)
 	).Decode(&result)
 	if err != nil {
-		fmt.Println("Error while updating proof protocols " + err.Error())
+		logger.LogWriter("Error while updating proof protocols "+err.Error(), constants.ERROR)
+
 	}
 	return result, err
 }
 
 func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex int) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	c := session.Client().Database(dbName).Collection("APIThrottleCounter")
@@ -772,9 +794,10 @@ func (cd *Connection) UpdateCounterOnThrottler(ID primitive.ObjectID, newIndex i
 }
 
 func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	c := session.Client().Database(dbName).Collection("Organizations")
@@ -782,7 +805,8 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 	update := bson.D{{"$set", bson.D{{"pgpdata", data.PGPData}, {"status", data.Status}, {"sequenceno", data.SequenceNo}}}}
 	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
 	if errWhenUpdate != nil {
-		log.Println(err.Error())
+		logger.LogWriter(errWhenUpdate, constants.ERROR)
+
 		return errWhenUpdate
 	}
 	return nil
@@ -790,9 +814,10 @@ func (cd *Connection) UpdateOrganizationInfo(data model.TestimonialOrganization)
 }
 
 func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, update model.MetricBindingStore) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -837,10 +862,11 @@ func (cd *Connection) UpdateMetricBindStatus(metricID string, txnUUID string, up
 }
 
 func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, update model.FormulaStore) error {
+	logger := utilities.NewCustomLogger()
 	logrus.Info("--------", formulaID, "---", txnUUID)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -885,9 +911,10 @@ func (cd *Connection) UpdateFormulaStatus(formulaID string, txnUUID string, upda
 }
 
 func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID string, update model.EthereumExpertFormula) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum expert formula", err.Error())
 		return err
 	}
@@ -913,7 +940,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TransactionSender:   update.TransactionSender,
 		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
-		ActualStatus: 	     update.ActualStatus,
+		ActualStatus:        update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -934,9 +961,10 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 }
 
 func (cd *Connection) UpdateTrustNetworkUserEndorsment(pkhash string, update model.TrustNetWorkUser) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		logrus.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -973,9 +1001,10 @@ func (cd *Connection) UpdateTrustNetworkUserEndorsment(pkhash string, update mod
 	return err
 }
 func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string, update model.EthereumMetricBind) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum metric", err.Error())
 		return err
 	}
@@ -1002,7 +1031,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		ValueIDs:          update.ValueIDs,
 		FormulaID:         update.FormulaID,
 		Type:              update.Type,
-		ActualStatus: 	   update.ActualStatus,
+		ActualStatus:      update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1022,9 +1051,10 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 	return err
 }
 func (cd *Connection) UpdateTrustNetworkUserPassword(pkhash string, update model.TrustNetWorkUser, newPassword string) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		logrus.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1062,9 +1092,10 @@ func (cd *Connection) UpdateTrustNetworkUserPassword(pkhash string, update model
 	return err
 }
 func (cd *Connection) UpdateTrustNetworkResetUserPassword(pkhash string, update model.TrustNetWorkUser, ResetPassword []byte) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		logrus.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		return err
 	}
 	defer session.EndSession(context.TODO())
@@ -1103,9 +1134,10 @@ func (cd *Connection) UpdateTrustNetworkResetUserPassword(pkhash string, update 
 }
 
 func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update model.MetricLatestContract) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum latest metric contract", err.Error())
 		return err
 	}
@@ -1135,9 +1167,10 @@ func (cd *Connection) UpdateEthereumMetricLatestContract(metricID string, update
 }
 
 func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, contractAddress, identifier string, update model.PendingContracts) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum pending contract", err.Error())
 		return err
 	}
@@ -1174,9 +1207,10 @@ func (cd *Connection) UpdateEthereumPendingContract(transactionHash string, cont
 }
 
 func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status int, errorMessage string) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum formula status for the given UUID", err.Error())
 		return err
 	}
@@ -1192,9 +1226,10 @@ func (cd *Connection) UpdateEthFormulaStatusByUUID(txnUUID string, status int, e
 }
 
 func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status int, errorMessage string) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum metric status for the given UUID", err.Error())
 		return err
 	}
@@ -1211,9 +1246,10 @@ func (cd *Connection) UpdateEthMetricStatusByUUID(txnUUID string, status int, er
 
 // UpdateSelectedEthMetricFields updates the selected fields of the Ethereum metric bind except the metric request
 func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID string, metricObj model.EthereumMetricBind) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum metric fields for the given metric ID", err.Error())
 		return err
 	}
@@ -1282,7 +1318,7 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 	}
 	if metricObj.User.TenantID != "" {
 		updateFields = append(updateFields, bson.E{Key: "user.tenantID", Value: metricObj.User.TenantID})
-	}	
+	}
 	if metricObj.ActualStatus != 0 {
 		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: metricObj.ActualStatus})
 	}
@@ -1298,9 +1334,10 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 
 // UpdateSelectedEthFormulaFields updates the selected fields of the Ethereum expert formula except the formula request and execution template
 func (cd *Connection) UpdateSelectedEthFormulaFields(formulaID string, txnUUID string, formulaObj model.EthereumExpertFormula) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while connecting to DB " + err.Error())
+		logger.LogWriter("Error while connecting to DB "+err.Error(), constants.ERROR)
 		notificationhandler.InformDBConnectionIssue("update Ethereum formula fields for the given formula ID", err.Error())
 		return err
 	}

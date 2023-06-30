@@ -7,10 +7,12 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -25,6 +27,7 @@ var dt = time.Now()
 func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	dt := time.Now()
+	logger := utilities.NewCustomLogger()
 	var TrustLineResponseNFT model.TrustLineResponseNFT
 	var NFTcollectionObj model.NFTWithTransaction
 	var MarketplaceNFTNFTcollectionObj model.MarketPlaceNFT
@@ -32,7 +35,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&TrustLineResponseNFT)
 	if err != nil {
-		log.Println(err)
+		logger.LogWriter("Error when decoding the : "+err.Error(), constants.ERROR)
 	}
 	if TrustLineResponseNFT.IssuerPublicKey != "" && TrustLineResponseNFT.TrustLineCreatedAt != "" && TrustLineResponseNFT.DistributorPublickKey != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" && TrustLineResponseNFT.Successfull {
 		var NFTtxnhash, NftContent, err = stellar.IssueNft(TrustLineResponseNFT.IssuerPublicKey, TrustLineResponseNFT.DistributorPublickKey, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
@@ -205,6 +208,7 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 */
 func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	logger := utilities.NewCustomLogger()
 	key1, error := r.URL.Query()["Price"]
 
 	if !error || len(key1[0]) < 1 {
@@ -263,7 +267,7 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore",
 		}
-		log.Println(err1)
+		logger.LogWriter("Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore : "+err1.Error(), constants.ERROR)
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -275,6 +279,7 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["sellingStatus"]
+	logger := utilities.NewCustomLogger()
 
 	if !error || len(key1[0]) < 1 {
 		logrus.Error("Url Parameter 'sellingStatus' is missing")
@@ -332,7 +337,7 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore",
 		}
-		log.Println(err1)
+		logger.LogWriter("Error when fetching the NFT details from Datastore or NFT hash does not exists in the Datastore : "+err1.Error(), constants.ERROR)
 		json.NewEncoder(w).Encode(result)
 	}
 }
@@ -343,6 +348,7 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 */
 func GetNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	logger := utilities.NewCustomLogger()
 	var NFTIssuerPK, EncodedNFTIssuerSK, encSK, err = accounts.CreateIssuerAccount()
 	if err != nil && NFTIssuerPK == "" && EncodedNFTIssuerSK == "" {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -356,7 +362,7 @@ func GetNFTIssuerAccount(w http.ResponseWriter, r *http.Request) {
 		object := dao.Connection{}
 		err := object.InsertStellarNFTKeys(NFTKeys)
 		if err != nil {
-			log.Println(err)
+			logger.LogWriter("Error when inserting stellar NFT keys : "+err.Error(), constants.ERROR)
 		}
 		//send the response
 		result := model.NFTIssuerAccount{
@@ -376,7 +382,6 @@ func GetLastNFTbyIdentifier(w http.ResponseWriter, r *http.Request) {
 	p.Then(func(data interface{}) interface{} {
 
 		result := data.(model.MarketPlaceNFT)
-		log.Println(result)
 		w.WriteHeader(http.StatusOK)
 		json.NewEncoder(w).Encode(result)
 		return nil
@@ -444,6 +449,7 @@ func FundAndGetAccount(w http.ResponseWriter, r *http.Request) {
 func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
+	logger := utilities.NewCustomLogger()
 
 	if !error || len(key1[0]) < 1 {
 		logrus.Error("Url Parameter 'publickey' is missing")
@@ -481,7 +487,13 @@ func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 		result := model.XDRRuri{
 			XDR: txn,
 		}
-		logrus.Println("XDR been passed to frontend : ", result)
+		resultBytes, errWhenMarshalling := json.Marshal(result)
+		if errWhenMarshalling != nil {
+			logger.LogWriter("Error when marshalling result object : "+errWhenMarshalling.Error(), constants.ERROR)
+			return
+		}
+		resultString := string(resultBytes)
+		logger.LogWriter("XDR been passed to frontend : "+resultString, constants.INFO)
 		json.NewEncoder(w).Encode(result)
 	}
 
@@ -490,6 +502,7 @@ func GetSponsorAccountXDR(w http.ResponseWriter, r *http.Request) {
 func SponsorAccount(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
+	logger := utilities.NewCustomLogger()
 
 	if !error || len(key1[0]) < 1 {
 		logrus.Error("Url Parameter 'publickey' is missing")
@@ -512,7 +525,12 @@ func SponsorAccount(w http.ResponseWriter, r *http.Request) {
 		result := model.XDRRuri{
 			XDR: txn,
 		}
-		logrus.Println("XDR been passed to frontend : ", result)
+		resultBytes, errWhenMarshallingResult := json.Marshal(result)
+		if errWhenMarshallingResult != nil {
+			logger.LogWriter("Error when unmarshalling results : "+errWhenMarshallingResult.Error(), constants.ERROR)
+			return
+		}
+		logger.LogWriter("XDR been passed to frontend : "+string(resultBytes), constants.INFO)
 		json.NewEncoder(w).Encode(result)
 	}
 
@@ -521,6 +539,7 @@ func SponsorAccount(w http.ResponseWriter, r *http.Request) {
 func GetSponsorTrustXDR(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	key1, error := r.URL.Query()["publickey"]
+	logger := utilities.NewCustomLogger()
 
 	if !error || len(key1[0]) < 1 {
 		logrus.Error("Url Parameter 'publickey' is missing")
@@ -558,7 +577,12 @@ func GetSponsorTrustXDR(w http.ResponseWriter, r *http.Request) {
 		result := model.XDRRuri{
 			XDR: txn,
 		}
-		logrus.Println("XDR been passed to frontend : ", result)
+		resultBytes, errWhenMarshalling := json.Marshal(result)
+		if errWhenMarshalling != nil {
+			logger.LogWriter("Error when marshalling result object : "+errWhenMarshalling.Error(), constants.ERROR)
+			return
+		}
+		logger.LogWriter("XDR been passed to frontend : "+string(resultBytes), constants.INFO)
 		json.NewEncoder(w).Encode(result)
 	}
 

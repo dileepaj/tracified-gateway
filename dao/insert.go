@@ -2,12 +2,13 @@ package dao
 
 import (
 	"context"
-	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,16 +20,17 @@ InsertCoc Insert a single COC Object to COCCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCoc(Coc model.COCCollectionBody) error {
-	fmt.Println("--------------------------- InsertCoc ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertCoc ------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("COC")
 	_, err = c.InsertOne(context.TODO(), Coc)
 	if err != nil {
-		fmt.Println("Error while inserting to COC " + err.Error())
+		logger.LogWriter("Error while inserting to COC "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -38,11 +40,13 @@ InsertTransaction Insert a single Transaction Object to TransactionCollection in
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) error {
-	log.Println("--------------------------- InsertTransaction ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertTransaction ------------------------", constants.INFO)
+
 	// result := model.TransactionCollectionBody{}
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("Transactions")
@@ -50,11 +54,13 @@ func (cd *Connection) InsertTransaction(Coc model.TransactionCollectionBody) err
 	filter := bson.D{{"txnhash", Coc.TxnHash}}
 	pByte, err := bson.Marshal(Coc)
 	if err != nil {
+		logger.LogWriter("Error when marshalling "+err.Error(), constants.ERROR)
 		return err
 	}
 	var updateNew bson.M
 	err = bson.Unmarshal(pByte, &updateNew)
 	if err != nil {
+		logger.LogWriter("Error when unmarshalling "+err.Error(), constants.ERROR)
 		return err
 	}
 	update := bson.D{{"$set", updateNew}}
@@ -68,10 +74,11 @@ InsertSpecialToTempOrphan Insert a single Transaction Object to TempOrphan in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionBody) error {
-	fmt.Println("--------------------------- InsertSpecialToTempOrphan ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertSpecialToTempOrphan ------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
@@ -79,7 +86,7 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
-		fmt.Println("Error while inserting to TempOrphan " + err.Error())
+		logger.LogWriter("Error while inserting to TempOrphan "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -89,10 +96,12 @@ InsertToOrphan Insert a single Transaction Object to OrphanCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error {
-	fmt.Println("--------------------------- InsertToOrphan ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertToOrphan ------------------------", constants.INFO)
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
@@ -100,7 +109,7 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
-		fmt.Println("Error while inserting to Orphan " + err.Error())
+		logger.LogWriter("Error while inserting to Orphan "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -110,10 +119,12 @@ InsertProfile Insert a single Profile Object to ProfileCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
-	fmt.Println("--------------------------- InsertProfile ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertProfile ------------------------", constants.INFO)
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 
 	defer session.EndSession(context.TODO())
@@ -122,7 +133,7 @@ func (cd *Connection) InsertProfile(Coc model.ProfileCollectionBody) error {
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
-		fmt.Println("Error while inserting to Profiles " + err.Error())
+		logger.LogWriter("Error while inserting to Profiles "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -132,10 +143,11 @@ InsertCertificate Insert a single Certificate Object to CertificateCollection in
 @author - Azeem Ashraf
 */
 func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) error {
-	fmt.Println("--------------------------- InsertCertificate ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertCertificate ------------------------", constants.INFO)
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
@@ -143,16 +155,19 @@ func (cd *Connection) InsertCertificate(Cert model.CertificateCollectionBody) er
 	_, err = c.InsertOne(context.TODO(), Cert)
 
 	if err != nil {
-		fmt.Println("Error while inserting to Certificates " + err.Error())
+		logger.LogWriter("Error while inserting to Certificates "+err.Error(), constants.ERROR)
 	}
 	return err
 }
 
 func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error {
-	fmt.Println("--------------------------- InsertArtifact ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertArtifact ------------------------", constants.INFO)
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
+
 	}
 	defer session.EndSession(context.TODO())
 
@@ -160,32 +175,37 @@ func (cd *Connection) InsertArtifact(artifacts model.ArtifactTransaction) error 
 	_, err = c.InsertOne(context.TODO(), artifacts)
 
 	if err != nil {
-		fmt.Println("Error while inserting to Artifacts " + err.Error())
+		logger.LogWriter("Error while inserting to Artifacts "+err.Error(), constants.ERROR)
 	}
 	return err
 }
 
 func (cd *Connection) InsertOrganization(Org model.TestimonialOrganization) error {
-	fmt.Println("--------------------------- InsertOrganization ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertOrganization ------------------------", constants.INFO)
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("Organizations")
 	_, err = c.InsertOne(context.TODO(), Org)
 	if err != nil {
-		fmt.Println("Error while inserting to organizations " + err.Error())
+		logger.LogWriter("Error while inserting to organizations "+err.Error(), constants.ERROR)
 	}
 	return err
 }
 
 func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
-	fmt.Println("--------------------------- InsertOrganization ------------------------")
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("--------------------------- InsertOrganization ------------------------", constants.INFO)
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
+
 	}
 	defer session.EndSession(context.TODO())
 
@@ -193,31 +213,36 @@ func (cd *Connection) InsertTestimonial(Tes model.Testimonial) error {
 	_, err = c.InsertOne(context.TODO(), Tes)
 
 	if err != nil {
-		fmt.Println("Error while inserting to organizations " + err.Error())
+		logger.LogWriter("Error while inserting to organizations "+err.Error(), constants.ERROR)
 	}
 	return err
 }
 
 // insert new proof presentation protocol
 func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
+	logger := utilities.NewCustomLogger()
+
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
+
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("ProofProtocols")
 	_, err = c.InsertOne(context.TODO(), protocol)
 	if err != nil {
-		fmt.Println("Error when inserting data to DB " + err.Error())
+		logger.LogWriter("Error when inserting data to DB "+err.Error(), constants.ERROR)
+
 	}
 	return err
 }
 
 func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
@@ -225,15 +250,16 @@ func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
 	_, err = c.InsertOne(context.TODO(), id)
 
 	if err != nil {
-		log.Println("Error while inserting to TempOrphan " + err.Error())
+		logger.LogWriter("Error while inserting to TempOrphan "+err.Error(), constants.ERROR)
 	}
 	return err
 }
 
 func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTSolana")
@@ -241,18 +267,19 @@ func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, 
 	_, err2 := c.InsertOne(context.TODO(), solanaNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
 	if err != nil {
-		log.Println("Error when inserting data to NFTSolana DB " + err.Error())
+		logger.LogWriter("Error while inserting to NFTSolana DB "+err.Error(), constants.ERROR)
 	}
 	if err2 != nil {
-		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+		logger.LogWriter("Error while inserting to Marketplace DB "+err2.Error(), constants.ERROR)
 	}
 	return err, err2
 }
 
 func (cd *Connection) InsertPolygonNFT(polyNFT model.NFTWithTransactionContracts, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTPolygon")
@@ -260,18 +287,19 @@ func (cd *Connection) InsertPolygonNFT(polyNFT model.NFTWithTransactionContracts
 	_, err2 := c.InsertOne(context.TODO(), polyNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
 	if err != nil {
-		log.Println("Error when inserting data to NFTPolygon DB " + err.Error())
+		logger.LogWriter("Error while inserting to NFTPolygon DB "+err.Error(), constants.ERROR)
 	}
 	if err2 != nil {
-		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+		logger.LogWriter("Error while inserting to Marketplace DB "+err2.Error(), constants.ERROR)
 	}
 	return err, err2
 }
 
 func (cd *Connection) InsertEthereumNFT(etherNFT model.NFTWithTransactionContracts, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTEthereum")
@@ -279,18 +307,19 @@ func (cd *Connection) InsertEthereumNFT(etherNFT model.NFTWithTransactionContrac
 	_, err2 := c.InsertOne(context.TODO(), etherNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
 	if err != nil {
-		log.Println("Error when inserting data to NFTEthereum DB " + err.Error())
+		logger.LogWriter("Error while inserting to NFTEthereum DB "+err.Error(), constants.ERROR)
 	}
 	if err2 != nil {
-		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+		logger.LogWriter("Error while inserting to Marketplace DB "+err2.Error(), constants.ERROR)
 	}
 	return err, err2
 }
 
 func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTStellar")
@@ -298,24 +327,25 @@ func (cd *Connection) InsertStellarNFT(stellarNFT model.NFTWithTransaction, mark
 	_, err2 := c.InsertOne(context.TODO(), stellarNFT)
 	_, err = c2.InsertOne(context.TODO(), marketPlaceNFT)
 	if err != nil {
-		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		logger.LogWriter("Error while inserting to NFTStellar DB "+err.Error(), constants.ERROR)
 	}
 	if err2 != nil {
-		log.Println("Error when inserting data to MarketPlaceNFT DB " + err.Error())
+		logger.LogWriter("Error while inserting to Marketplace DB "+err2.Error(), constants.ERROR)
 	}
 	return err, err2
 }
 
 func (cd *Connection) InsertStellarNFTKeys(nftKeys model.NFTKeys) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("NFTKeys")
 	_, err = c.InsertOne(context.TODO(), nftKeys)
 	if err != nil {
-		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		logger.LogWriter("Error while inserting to NFTStellar DB "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -476,15 +506,16 @@ func (cd *Connection) InsertMetricBindingFormula(metricBind model.MetricBindingS
 }
 
 func (cd *Connection) InsertRSAKeyPair(rsaKey model.RSAKeyPair) error {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("RSAKeys")
 	_, err = c.InsertOne(context.TODO(), rsaKey)
 	if err != nil {
-		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		logger.LogWriter("Error when inserting data to NFTStellar DB "+err.Error(), constants.ERROR)
 	}
 	return err
 }
@@ -576,16 +607,17 @@ func (cd *Connection) InsertEthFormulaIDMap(formulaIDMap model.EthFormulaIDMap) 
 }
 
 func (cd *Connection) SaveTrustNetworkUser(user model.TrustNetWorkUser) (string, error) {
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		log.Println("Error when connecting to DB " + err.Error())
+		logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
 		return "", err
 	}
 	defer session.EndSession(context.TODO())
 	c := session.Client().Database(dbName).Collection("TracifiedTrustNetwork")
 	result, err1 := c.InsertOne(context.TODO(), user)
 	if err1 != nil {
-		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+		logger.LogWriter("Error when inserting data to NFTStellar DB "+err1.Error(), constants.ERROR)
 		return "", err1
 	}
 	return result.InsertedID.(primitive.ObjectID).Hex(), err
@@ -696,10 +728,10 @@ func (cd *Connection) InsertEthPendingContract(pendingTransaction model.PendingC
 }
 
 func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
-	logrus.Info("-------inserting ----------", NFT)
+	logger := utilities.NewCustomLogger()
 	session, err := cd.connect()
 	if err != nil {
-		fmt.Println("Error while getting session " + err.Error())
+		logger.LogWriter("Error while getting session "+err.Error(), constants.ERROR)
 	}
 	defer session.EndSession(context.TODO())
 
@@ -707,7 +739,7 @@ func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
 	_, err = c.InsertOne(context.TODO(), NFT)
 
 	if err != nil {
-		logrus.Info("Error while inserting to NFTStatus " + err.Error())
+		logger.LogWriter("Error while inserting to NFTStatus "+err.Error(), constants.ERROR)
 	}
 	return err
 }

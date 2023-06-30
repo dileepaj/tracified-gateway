@@ -2,6 +2,7 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -87,13 +88,14 @@ func GetPGPAccountByStellarPK(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	vars := mux.Vars(r)
 	object := dao.Connection{}
+	logger := utilities.NewCustomLogger()
 	p := object.GetPGPAccountByStellarPK(vars["stellarPublicKey"])
 	rst, err := p.Await()
 	if err != nil {
 		json.NewEncoder(w).Encode("failed to Get PGP account : " + err.Error())
 		return
 	}
-	log.Println("Await response:", rst)
+	logger.LogWriter(fmt.Sprintf("Await response: %v", rst), constants.INFO)
 	json.NewEncoder(w).Encode(rst)
 
 }

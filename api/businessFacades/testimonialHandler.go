@@ -7,9 +7,11 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
@@ -17,11 +19,11 @@ import (
 )
 
 func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
-
 	var Obj model.Testimonial
+	logger := utilities.NewCustomLogger()
 	err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Error while decoding the body : "+err.Error(), constants.ERROR)
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -46,10 +48,10 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 
 	err = xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &accept)
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Error when safe unmarshal base64 : "+err.Error(), constants.ERROR)
 	}
 
-	acceptBuild,_ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
+	acceptBuild, _ := txnbuild.TransactionFromXDR(Obj.AcceptXDR)
 
 	acc, _ := acceptBuild.Hash(network.TestNetworkPassphrase)
 	validAccept := fmt.Sprintf("%x", acc)
@@ -57,11 +59,10 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 	err = xdr.SafeUnmarshalBase64(Obj.RejectXDR, &reject)
 
 	if err != nil {
-		fmt.Println(err)
+		logger.LogWriter("Error when safe unmarshal base64 : "+err.Error(), constants.ERROR)
 	}
 
-	rejectBuild,_ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
-	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
+	rejectBuild, _ := txnbuild.TransactionFromXDR(Obj.RejectXDR)
 
 	rej, _ := rejectBuild.Hash(network.TestNetworkPassphrase)
 	validReject := fmt.Sprintf("%x", rej)
@@ -72,7 +73,7 @@ func InsertTestimonial(w http.ResponseWriter, r *http.Request) {
 	var txe xdr.Transaction
 	err1 := xdr.SafeUnmarshalBase64(Obj.AcceptXDR, &txe)
 	if err1 != nil {
-		fmt.Println(err1)
+		logger.LogWriter("Error when safe unmarshal base64 : "+err1.Error(), constants.ERROR)
 	}
 	useSentSequence := false
 
@@ -164,13 +165,14 @@ func GetTestimonialByReciever(w http.ResponseWriter, r *http.Request) {
 func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 	var Obj model.Testimonial
 	var selection model.Testimonial
+	logger := utilities.NewCustomLogger()
 
 	err := json.NewDecoder(r.Body).Decode(&Obj)
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode("Error while Decoding the body")
-		fmt.Println(err)
+		logger.LogWriter("Error while Decoding the body : "+err.Error(), constants.ERROR)
 		return
 	}
 	object := dao.Connection{}
@@ -194,7 +196,6 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 			} else {
 
 				Obj.TxnHash = response.TXNID
-				fmt.Println(response.TXNID)
 
 				err1 := object.UpdateTestimonial(selection, Obj)
 				if err1 != nil {
@@ -250,7 +251,6 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 				Obj.TxnHash = response.TXNID
 				err1 := object.UpdateTestimonial(selection, Obj)
 				if err1 == nil {
-
 					result := model.TestimonialResponse{
 						SequenceNo:  selection.SequenceNo,
 						TxnHash:     response.TXNID,
@@ -260,8 +260,7 @@ func UpdateTestimonial(w http.ResponseWriter, r *http.Request) {
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 					w.WriteHeader(http.StatusOK)
 					err2 := json.NewEncoder(w).Encode(result)
-					fmt.Println(err2)
-
+					logger.LogWriter("Error when updating testimonials : "+err2.Error(), constants.ERROR)
 				} else {
 
 					w.Header().Set("Content-Type", "application/json; charset=UTF-8")

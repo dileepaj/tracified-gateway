@@ -7,6 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
@@ -73,7 +74,7 @@ func main() {
 	utilities.CreateLogFile()
 	//create logger
 	logger := utilities.NewCustomLogger()
-	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", 1)
+	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", constants.INFO)
 
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }

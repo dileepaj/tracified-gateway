@@ -2,7 +2,6 @@ package businessFacades
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -73,7 +72,6 @@ func GetTrustNetWorkUserbyEncryptedPW(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	dbcon := dao.Connection{}
 	objID := (vars["password"])
-	fmt.Println("------pw ", objID)
 	p := dbcon.GetTrustNetWorkUserbyEncryptedPW(objID)
 	p.Then(func(data interface{}) interface{} {
 		result := data.(model.LoggedInTrustNetworkUser)

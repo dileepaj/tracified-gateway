@@ -1,17 +1,20 @@
 package commons
 
 import (
-	"fmt"
-
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/kms"
+	"github.com/dileepaj/tracified-gateway/utilities"
 )
+
+//!As the custom logger constants are in the same level please use the direct int value for log levels
+//!To break the import cycle
 
 func Encrypt(key string) []byte {
 	// Load the Shared AWS Configuration (~/.aws/config)
+	logger := utilities.NewCustomLogger()
 	svc := kms.New(session.New(&aws.Config{
 		Region:      aws.String(GoDotEnvVariable("AWS_REGION")),
 		Credentials: credentials.NewStaticCredentials(GoDotEnvVariable("AWS_ACCESS_KEY"), GoDotEnvVariable("AWS_SECRET_KEY"), ""),
@@ -27,35 +30,33 @@ func Encrypt(key string) []byte {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case kms.ErrCodeNotFoundException:
-				fmt.Println(kms.ErrCodeNotFoundException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeNotFoundException+aerr.Error(), 3)
 			case kms.ErrCodeDisabledException:
-				fmt.Println(kms.ErrCodeDisabledException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeDisabledException+aerr.Error(), 3)
 			case kms.ErrCodeKeyUnavailableException:
-				fmt.Println(kms.ErrCodeKeyUnavailableException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeKeyUnavailableException+aerr.Error(), 3)
 			case kms.ErrCodeDependencyTimeoutException:
-				fmt.Println(kms.ErrCodeDependencyTimeoutException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeDependencyTimeoutException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidKeyUsageException:
-				fmt.Println(kms.ErrCodeInvalidKeyUsageException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidKeyUsageException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidGrantTokenException:
-				fmt.Println(kms.ErrCodeInvalidGrantTokenException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidGrantTokenException+aerr.Error(), 3)
 			case kms.ErrCodeInternalException:
-				fmt.Println(kms.ErrCodeInternalException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInternalException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidStateException:
-				fmt.Println(kms.ErrCodeInvalidStateException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidStateException+aerr.Error(), 3)
 			default:
-				fmt.Println(aerr.Error())
+				logger.LogWriter(aerr.Error(), 3)
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			logger.LogWriter("Error when encrypting : "+err.Error(), 3)
 		}
 		return []byte{}
 	}
 
 	//stgOne := string(result.CiphertextBlob)
-
-	// fmt.Println(stgOne)
 	// bone := []byte(stgOne)
 	// Decrypt(bone)
 
@@ -67,6 +68,7 @@ func Decrypt(arr []byte) string {
 		Region:      aws.String(GoDotEnvVariable("AWS_REGION")),
 		Credentials: credentials.NewStaticCredentials(GoDotEnvVariable("AWS_ACCESS_KEY"), GoDotEnvVariable("AWS_SECRET_KEY"), ""),
 	}))
+	logger := utilities.NewCustomLogger()
 
 	input := &kms.DecryptInput{
 		CiphertextBlob: arr,
@@ -78,36 +80,34 @@ func Decrypt(arr []byte) string {
 		if aerr, ok := err.(awserr.Error); ok {
 			switch aerr.Code() {
 			case kms.ErrCodeNotFoundException:
-				fmt.Println(kms.ErrCodeNotFoundException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeNotFoundException+aerr.Error(), 3)
 			case kms.ErrCodeDisabledException:
-				fmt.Println(kms.ErrCodeDisabledException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeDisabledException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidCiphertextException:
-				fmt.Println(kms.ErrCodeInvalidCiphertextException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidCiphertextException+aerr.Error(), 3)
 			case kms.ErrCodeKeyUnavailableException:
-				fmt.Println(kms.ErrCodeKeyUnavailableException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeKeyUnavailableException+aerr.Error(), 3)
 			case kms.ErrCodeIncorrectKeyException:
-				fmt.Println(kms.ErrCodeIncorrectKeyException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeIncorrectKeyException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidKeyUsageException:
-				fmt.Println(kms.ErrCodeInvalidKeyUsageException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidKeyUsageException+aerr.Error(), 3)
 			case kms.ErrCodeDependencyTimeoutException:
-				fmt.Println(kms.ErrCodeDependencyTimeoutException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeDependencyTimeoutException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidGrantTokenException:
-				fmt.Println(kms.ErrCodeInvalidGrantTokenException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidGrantTokenException+aerr.Error(), 3)
 			case kms.ErrCodeInternalException:
-				fmt.Println(kms.ErrCodeInternalException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInternalException+aerr.Error(), 3)
 			case kms.ErrCodeInvalidStateException:
-				fmt.Println(kms.ErrCodeInvalidStateException, aerr.Error())
+				logger.LogWriter(kms.ErrCodeInvalidStateException+aerr.Error(), 3)
 			default:
-				fmt.Println(aerr.Error())
+				logger.LogWriter("Error when decrypting : "+aerr.Error(), 3)
 			}
 		} else {
 			// Print the error, cast err to awserr.Error to get the Code and
 			// Message from an error.
-			fmt.Println(err.Error())
+			logger.LogWriter("Error when decrypting : "+err.Error(), 3)
 		}
 		return ""
 	}
-
-	// fmt.Println(string(result.Plaintext))
 	return string(result.Plaintext)
 }
