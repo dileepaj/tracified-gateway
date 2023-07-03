@@ -16,7 +16,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -58,6 +59,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				Copies:                           TrustLineResponseNFT.Copies,
 				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
+				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
@@ -84,6 +86,7 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.DistributorPublickKey,
 				SellingStatus:                    "NOTFORSALE",
+				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
@@ -120,7 +123,8 @@ func MintNFTStellar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*RetriveNFTByStatusAndPK
+/*
+RetriveNFTByStatusAndPK
 @desc - Call the GetAllSellingNFTStellar_Paginated method and get all the NFT relevent to the selling status and Public key
 @params - ResponseWriter,Request
 */
@@ -199,7 +203,8 @@ func RetriveNFTByStatusAndPK(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 }
 
-/*UpdateSellingStatus
+/*
+UpdateSellingStatus
 @desc - Update the selling status in the collection when selling the NFT
 @params - ResponseWriter,Request
 */
@@ -268,7 +273,8 @@ func UpdateSellingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*UpdateBuyingStatus
+/*
+UpdateBuyingStatus
 @desc - Update the selling status in the collection when buying the NFT
 @params - ResponseWriter,Request
 */
@@ -337,7 +343,8 @@ func UpdateBuyingStatus(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-/*CreateNFTIssuerAccount
+/*
+CreateNFTIssuerAccount
 @desc - Create issuer accounts, add credentials to the DB and send the PK as the response
 @params - ResponseWriter,Request
 */

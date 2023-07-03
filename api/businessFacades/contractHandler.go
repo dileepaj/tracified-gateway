@@ -54,6 +54,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			NFTArtistURL:                     ResponseNFT.ArtistLink,
 			NFTContract:                      ResponseNFT.NFTContract,
 			MarketplaceContract:              ResponseNFT.MarketplaceContract,
+			Royalty:                          ResponseNFT.Royalty,
 		}
 
 		MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
@@ -80,6 +81,7 @@ func MintNFTContract(w http.ResponseWriter, r *http.Request) {
 			PreviousOwnerNFTPK:               "TRACIFIED",
 			CurrentOwnerNFTPK:                ResponseNFT.OwnerPK,
 			SellingStatus:                    "NOTFORSALE",
+			Royalty:                          ResponseNFT.Royalty,
 		}
 
 		NFTCeactedResponse := model.NFTCreactedResponse{
