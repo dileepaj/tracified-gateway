@@ -39,7 +39,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 	var id apiModel.IdentifierModel
 	object := dao.Connection{}
 	for i, TxnBody := range AP.TxnBody {
-		var txe xdr.Transaction
+		var txe xdr.TransactionEnvelope
 		log.Debug("index")
 		log.Debug(i)
 		log.Debug("TxnBody.XDR")
@@ -49,9 +49,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecial(w http.ResponseWriter, r *http.Requ
 		if err != nil {
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
 		}
-		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
-		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		AP.TxnBody[i].PublicKey = txe.SourceAccount().ToAccountId().Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum())
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations())
 
 		AP.TxnBody[i].Status = "pending"
 
@@ -155,16 +155,16 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialTransfer(w http.ResponseWriter, r *h
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	object := dao.Connection{}
 	for i, TxnBody := range AP.TxnBody {
-		var txe xdr.Transaction
+		var txe xdr.TransactionEnvelope
 		// decode the XDR
 		err := xdr.SafeUnmarshalBase64(TxnBody.XDR, &txe)
 		if err != nil {
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecialTransfer " + err.Error())
 		}
 		// GET THE TYPE AND IDENTIFIER FROM THE XDR
-		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
-		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		AP.TxnBody[i].PublicKey = txe.SourceAccount().ToAccountId().Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum())
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations())
 
 		AP.TxnBody[i].Status = "pending"
 
@@ -198,7 +198,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialSplit(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	object := dao.Connection{}
 	for i, TxnBody := range AP.TxnBody {
-		var txe xdr.Transaction
+		var txe xdr.TransactionEnvelope
 		log.Debug("index")
 		log.Debug(i)
 		log.Debug("TxnBody.XDR")
@@ -209,9 +209,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialSplit(w http.ResponseWriter, r *http
 			log.Error("Error @ SafeUnmarshalBase64 @SubmitSpecial " + err.Error())
 		}
 		// GET THE TYPE AND IDENTIFIER FROM THE XDR
-		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
-		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		AP.TxnBody[i].PublicKey = txe.SourceAccount().ToAccountId().Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum())
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations())
 		AP.TxnBody[i].Status = "pending"
 
 		log.Debug(AP.TxnBody[i].Identifier)
@@ -245,7 +245,7 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialMerge(w http.ResponseWriter, r *http
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	object := dao.Connection{}
 	for i, TxnBody := range AP.TxnBody {
-		var txe xdr.Transaction
+		var txe xdr.TransactionEnvelope
 		log.Debug("index")
 		log.Debug(i)
 		log.Debug("TxnBody.XDR")
@@ -258,9 +258,9 @@ func (AP *AbstractXDRSubmiter) SubmitSpecialMerge(w http.ResponseWriter, r *http
 		AP.TxnBody[i].MergeBlock = i
 
 		// GET THE TYPE, IDENTIFIER, FROM IDENTIFERS, ITEM CODE AND ITEM AMOUNT FROM THE XDR
-		AP.TxnBody[i].PublicKey = txe.SourceAccount.Address()
-		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum)
-		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations)
+		AP.TxnBody[i].PublicKey = txe.SourceAccount().ToAccountId().Address()
+		AP.TxnBody[i].SequenceNo = int64(txe.SeqNum())
+		stellarRetriever.MapXDROperations(&AP.TxnBody[i], txe.Operations())
 		AP.TxnBody[i].Status = "pending"
 
 		log.Debug(AP.TxnBody[i].Identifier)
