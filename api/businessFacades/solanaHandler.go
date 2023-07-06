@@ -14,7 +14,8 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-/*MintNFTStellar
+/*
+MintNFTStellar
 @desc - Call the IssueNft method and store new NFT details in the DB
 @params - ResponseWriter,Request
 */
@@ -31,10 +32,10 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	log.Println(TrustLineResponseNFT)
-	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
+	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" && TrustLineResponseNFT.Royalty != "" {
 		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
 
-		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana(WALLETSECRET, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL)
+		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana(WALLETSECRET, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL, TrustLineResponseNFT.Royalty, TrustLineResponseNFT.OwnerPK)
 		if err == nil {
 
 			NFTcollectionObj = model.NFTWithTransactionSolana{
@@ -56,6 +57,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
 				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
+				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			MarketplaceNFTcollectionObj = model.MarketPlaceNFT{
@@ -82,6 +84,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.OwnerPK,
 				SellingStatus:                    "NOTFORSALE",
+				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{

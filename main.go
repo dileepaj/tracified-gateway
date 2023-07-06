@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"os"
 
@@ -10,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/go-openapi/runtime/middleware"
 	"github.com/gorilla/handlers"
 	"github.com/robfig/cron/v3"
@@ -52,7 +52,7 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 15s", func() {
+	c.AddFunc("@every 1m", func() {
 		services.CheckTempOrphan()
 	})
 
@@ -69,6 +69,11 @@ func main() {
 	sh := middleware.SwaggerUI(opts, nil)
 	router.Handle("/docs", sh)
 	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
-	fmt.Println("Gateway Started @port " + port + " with " + envName + " environment")
+	//initial log file when server starts
+	utilities.CreateLogFile()
+	//create logger
+	logger := utilities.NewCustomLogger()
+	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", 1)
+
 	http.ListenAndServe(port, handlers.CORS(originsOk, headersOk, methodsOk)(router))
 }

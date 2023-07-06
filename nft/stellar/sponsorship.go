@@ -5,6 +5,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
@@ -78,7 +79,9 @@ func SponsorCreateAccount(buyerPK string, nftname string, issuer string) (string
 
 	txe, err := txe64.Base64()
 	if err != nil {
-		panic(err)
+		logger := utilities.NewCustomLogger()
+		logger.LogWriter("Error converting to B64 : "+err.Error(), constants.ERROR)
+		return txe, err
 	}
 
 	return txe, nil

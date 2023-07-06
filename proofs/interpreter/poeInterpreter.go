@@ -22,7 +22,8 @@ type AbstractPOE struct {
 	// Hash      string
 }
 
-/*InterpretPOE - Working Model
+/*
+InterpretPOE - Working Model
 @author - Azeem Ashraf
 @desc - Interprets All the required fields necessary to perform POE
 @params - ResponseWriter,Request
@@ -47,7 +48,7 @@ func (AP *AbstractPOE) InterpretPOE(tdpid string) model.POE {
 	}
 }
 
-func (AP *AbstractPOE) InterpretPOAC(tdpid string) model.POE {
+func (AP *AbstractPOE) InterpretPOAC() model.POE {
 	var poeObj model.POE
 
 	object := stellarRetriever.ConcretePOE{POEStruct: AP.POEStruct}
@@ -62,17 +63,16 @@ func (AP *AbstractPOE) InterpretPOAC(tdpid string) model.POE {
 			poeObj.RetrievePOE.DBHash,
 			AP.POEStruct.ProfileID,
 			poeObj.RetrievePOE.Identifier,
-			tdpid,
 		)
 		return poeObj
 	}
 }
 
-func matchingHashToCheckPOAC(bcHash string, dbHash string, bcProfile string, dbProfile string, tdpid string) model.Error {
+func matchingHashToCheckPOAC(bcHash string, dbHash string, bcProfile string, dbProfile string) model.Error {
 	var Rerr model.Error
 	if strings.ToUpper(bcHash) == strings.ToUpper(dbHash) {
 		Rerr.Code = http.StatusOK
-		Rerr.Message = "BC Hash & DB Hash match."
+		Rerr.Message = "POE failed but POAC is present"
 		return Rerr
 
 	} else {
@@ -105,9 +105,9 @@ func matchingHash(bcHash string, dbHash string, bcProfile string, dbProfile stri
 			}).Await()
 			poeStructObj := apiModel.POEStruct{Txn: result.TxnHash, Hash: dbHash}
 			display := AbstractPOE{POEStruct: poeStructObj}
-			display.InterpretPOAC("")
+			response := display.InterpretPOAC()
 			Rerr.Code = http.StatusOK
-			Rerr.Message = "POE failed but POAC is present"
+			Rerr.Message = response.RetrievePOE.Error.Message
 			return Rerr
 
 		} else {

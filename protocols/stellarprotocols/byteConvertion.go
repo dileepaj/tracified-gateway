@@ -9,10 +9,14 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 )
 
 type bitString string
+
+var logger = utilities.NewCustomLogger()
 
 func stringToBin(s string) (binString string) {
 	for _, c := range s {
@@ -21,7 +25,7 @@ func stringToBin(s string) (binString string) {
 	return
 }
 
-func (b bitString) AsByteSlice() []byte {
+func (b bitString) AsByteSlice() ([]byte, error) {
 	var out []byte
 	var str string
 
@@ -33,26 +37,35 @@ func (b bitString) AsByteSlice() []byte {
 		}
 		v, err := strconv.ParseUint(str, 2, 8)
 		if err != nil {
-			panic(err)
+			logger.LogWriter("Error converting :"+err.Error(), constants.ERROR)
+			return nil, err
 		}
 		out = append([]byte{byte(v)}, out...)
 	}
-	return out
+	return out, nil
 }
 
-func (b bitString) AsHexSlice() []string {
+func (b bitString) AsHexSlice() ([]string, error) {
 	var out []string
-	byteSlice := b.AsByteSlice()
+	byteSlice, sliceErr := b.AsByteSlice()
+	if sliceErr != nil {
+		logger.LogWriter("Error AsByteSlice() in AsHexSlice():"+sliceErr.Error(), constants.ERROR)
+		return nil, sliceErr
+	}
 	for _, b := range byteSlice {
 		out = append(out, "0x"+hex.EncodeToString([]byte{b}))
 	}
-	return out
+	return out, nil
 }
 
-func ConvertingBinaryToByteString(str string) string {
+func ConvertingBinaryToByteString(str string) (string, error) {
 	bitValue := bitString(str)
-	byteValue := bitValue.AsByteSlice()
-	return string(byteValue)
+	byteValue, sliceErr := bitValue.AsByteSlice()
+	if sliceErr != nil {
+		logger.LogWriter("Error AsByteSlice() in ConvertingBinaryToByteString() :"+sliceErr.Error(), constants.ERROR)
+		return "", sliceErr
+	}
+	return string(byteValue), nil
 }
 
 func GetDataType(value string) string {
@@ -75,9 +88,9 @@ func Int8ToByteString(value uint8) (string, error) {
 		// add 0s to the rest of the name
 		remain := 8 - len(binary)
 		setReaminder := fmt.Sprintf("%s", strings.Repeat("0", remain))
-		return ConvertingBinaryToByteString(setReaminder + binary), nil
+		return ConvertingBinaryToByteString(setReaminder + binary)
 	} else if len(binary) == 8 {
-		return ConvertingBinaryToByteString(binary), nil
+		return ConvertingBinaryToByteString(binary)
 	} else {
 		return binary, errors.New("Unit length shouldbe equal to 8")
 	}
