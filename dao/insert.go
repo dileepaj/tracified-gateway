@@ -75,7 +75,7 @@ func (cd *Connection) InsertSpecialToTempOrphan(Coc model.TransactionCollectionB
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("TempOrphan")
+	c := session.Client().Database(dbName).Collection("TempOrphan1")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
@@ -96,7 +96,7 @@ func (cd *Connection) InsertToOrphan(Coc model.TransactionCollectionBody) error 
 	}
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("TempOrphan")
+	c := session.Client().Database(dbName).Collection("TempOrphan1")
 	_, err = c.InsertOne(context.TODO(), Coc)
 
 	if err != nil {
@@ -708,6 +708,21 @@ func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
 
 	if err != nil {
 		logrus.Info("Error while inserting to NFTStatus " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertIssuingAccountKeys(Keys model.TransactionDataKeys) error {
+	fmt.Println("--------------test 5")
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("IssuerAccounts")
+	_, err = c.InsertOne(context.TODO(), Keys)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
 	}
 	return err
 }

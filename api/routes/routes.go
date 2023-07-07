@@ -629,4 +629,10 @@ var routes = Routes{
 		"/pocv4/merkletree/{txn}",
 		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
+	Route{
+		"SponsorFOAppUserTransactions",
+		"GET",
+		"/foapp/txn",
+		businessFacades.SubmitFOData,
+	},
 }
