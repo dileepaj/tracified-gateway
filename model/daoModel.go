@@ -574,3 +574,12 @@ type PendingNFTS struct {
 	User          string
 	Version       string
 }
+type NewPOEResponse struct {
+	TDPData			string
+	Identifier     	string
+	TDPIdentifier   string
+	Txnhash        	string
+	TdpId      		string
+	MapIdentifier   string
+	ProfileID       string
+}

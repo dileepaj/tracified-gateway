@@ -65,3 +65,13 @@ type TDPData struct {
 	Oldtdp     string
 	Error      string
 }
+
+type RetriveTDPDataPOE struct{
+	TdpId      		string
+	Identifier 		string
+	MapIdentifier   string
+	TDPData			TDPData
+	TxnHash 		string
+	ProfileID       string
+	PublicKey		string
+}

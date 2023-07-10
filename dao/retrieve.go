@@ -3128,3 +3128,41 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 
 	return p
 }
+
+func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
+	result := model.RetriveTDPDataPOE{}
+	// result2 := apiModel.GetSubAccountStatusResponse{}
+	// p := promise.NewPromise()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"txnhash": TxnHash})
+
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+		err1 := c.FindOne(context.TODO(), bson.M{"txnhash": TxnHash}, options).Decode(&result)
+
+		if err1 != nil {
+			// fmt.Println(err1)
+
+			reject(err1)
+		}
+
+		resolve(result)
+	})
+
+	return p
+}
