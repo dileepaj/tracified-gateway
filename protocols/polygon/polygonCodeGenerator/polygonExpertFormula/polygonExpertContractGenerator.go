@@ -41,6 +41,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		} else {
 			logger.LogWriter("New expert formula request, initiating new deployment", constants.INFO)
 		}
+
+		//create expert formula
+		//formulaObj := experthelpers.BuildExpertObject(formulaJSON.MetricExpertFormula.ID, formulaJSON.MetricExpertFormula.Name, formulaJSON.MetricExpertFormula, fieldCount, formulaJSON.Verify)
 	}
 
 }
