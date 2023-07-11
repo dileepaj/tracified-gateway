@@ -10,8 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
+	"github.com/dileepaj/tracified-gateway/utilities"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -2667,7 +2669,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
-		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result)	// 118 = SUCCESS
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result) // 118 = SUCCESS
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
@@ -3112,7 +3114,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype":txnType})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype": txnType})
 
 		if err1 != nil {
 			reject(err1)
@@ -3164,5 +3166,30 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 		resolve(result)
 	})
 
+	return p
+}
+
+//Get the polygon fomrula contract status
+func (cd *Connection) GetPolygonFormulaStatus(formulaID string) *promise.Promise {
+	var polygonFormulaMap model.EthereumExpertFormula
+	logger := utilities.NewCustomLogger()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula status by formula ID", err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PolygonExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&polygonFormulaMap)
+		if err != nil {
+			logger.LogWriter("Error when fetching contract status from DB "+err.Error(), constants.ERROR)
+			reject(err)
+		} else {
+			resolve(polygonFormulaMap)
+		}
+	})
 	return p
 }
