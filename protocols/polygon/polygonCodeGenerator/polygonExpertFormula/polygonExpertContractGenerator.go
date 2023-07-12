@@ -43,7 +43,12 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		}
 
 		//create expert formula
-		//formulaObj := experthelpers.BuildExpertObject(formulaJSON.MetricExpertFormula.ID, formulaJSON.MetricExpertFormula.Name, formulaJSON.MetricExpertFormula, fieldCount, formulaJSON.Verify)
+		formulaObj := experthelpers.BuildExpertObject(formulaJSON.MetricExpertFormula.ID, formulaJSON.MetricExpertFormula.Name, formulaJSON.MetricExpertFormula, fieldCount, formulaJSON.Verify)
+
+		if deployStatus == 0 {
+			transactionUuid := experthelpers.GenerateTransactionUUID()
+			formulaObj.TransactionUUID = transactionUuid
+		}
 	}
 
 }
