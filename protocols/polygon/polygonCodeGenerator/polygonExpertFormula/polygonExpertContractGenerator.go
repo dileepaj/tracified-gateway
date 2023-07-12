@@ -3,6 +3,7 @@ package polygonexpertformula
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -10,6 +11,12 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	experthelpers "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula/expertHelpers"
 	"github.com/dileepaj/tracified-gateway/utilities"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+)
+
+var (
+	contractName = ``
 )
 
 func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
@@ -61,6 +68,14 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		} else {
 			formulaObj.TransactionUUID = formulaDetails.(model.EthereumExpertFormula).TransactionUUID
 		}
+
+		//setting up the contract name and starting the contract
+		contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
+		contractName = strings.ReplaceAll(contractName, " ", "")
+		contractName = contractName + "_" + formulaJSON.MetricExpertFormula.ID
+
+		//call the general header writer
+
 	}
 
 }

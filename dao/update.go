@@ -913,7 +913,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TransactionSender:   update.TransactionSender,
 		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
-		ActualStatus: 	     update.ActualStatus,
+		ActualStatus:        update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1002,7 +1002,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		ValueIDs:          update.ValueIDs,
 		FormulaID:         update.FormulaID,
 		Type:              update.Type,
-		ActualStatus: 	   update.ActualStatus,
+		ActualStatus:      update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1282,7 +1282,7 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 	}
 	if metricObj.User.TenantID != "" {
 		updateFields = append(updateFields, bson.E{Key: "user.tenantID", Value: metricObj.User.TenantID})
-	}	
+	}
 	if metricObj.ActualStatus != 0 {
 		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: metricObj.ActualStatus})
 	}
@@ -1378,4 +1378,53 @@ func (cd *Connection) UpdateSelectedEthFormulaFields(formulaID string, txnUUID s
 		return errWhenUpdate
 	}
 	return nil
+}
+
+func (cd *Connection) UpdatePolygonFormulaStatus(formulaID string, txnUUID string, update model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Polygon expert formula", err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.EthereumExpertFormula{
+		FormulaID:           update.FormulaID,
+		FormulaName:         update.FormulaName,
+		ExecutionTemplate:   update.ExecutionTemplate,
+		MetricExpertFormula: update.MetricExpertFormula,
+		VariableCount:       update.VariableCount,
+		TemplateString:      update.TemplateString,
+		BINstring:           update.BINstring,
+		ABIstring:           update.ABIstring,
+		SetterNames:         update.SetterNames,
+		ContractAddress:     update.ContractAddress,
+		ContractName:        update.ContractName,
+		Status:              update.Status,
+		Timestamp:           update.Timestamp,
+		TransactionHash:     update.TransactionHash,
+		TransactionCost:     update.TransactionCost,
+		TransactionUUID:     update.TransactionUUID,
+		TransactionSender:   update.TransactionSender,
+		Verify:              update.Verify,
+		ErrorMessage:        update.ErrorMessage,
+		ActualStatus:        update.ActualStatus,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("PolygonExpertFormula")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"formulaid": formulaID, "transactionuuid": txnUUID}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
 }
