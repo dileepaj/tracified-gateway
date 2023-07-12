@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -46,8 +47,19 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		formulaObj := experthelpers.BuildExpertObject(formulaJSON.MetricExpertFormula.ID, formulaJSON.MetricExpertFormula.Name, formulaJSON.MetricExpertFormula, fieldCount, formulaJSON.Verify)
 
 		if deployStatus == 0 {
+			//generate transaction UUID
 			transactionUuid := experthelpers.GenerateTransactionUUID()
 			formulaObj.TransactionUUID = transactionUuid
+
+			//add new formula to formula ID map
+			errWhenInsertingToFormulaIdMap := experthelpers.InsertToFormulaIdMap(formulaJSON.MetricExpertFormula.ID, 2)
+			if errWhenInsertingToFormulaIdMap != nil {
+				logger.LogWriter("Error when inserting the new formula ID to the polygon formula ID map : "+errWhenInsertingToFormulaIdMap.Error(), constants.ERROR)
+				commons.JSONErrorReturn(w, r, errWhenInsertingToFormulaIdMap.Error(), http.StatusInternalServerError, "Error when inserting the new formula ID to the polygon formula ID map : "+errWhenInsertingToFormulaIdMap.Error())
+				return
+			}
+		} else {
+			formulaObj.TransactionUUID = formulaDetails.(model.EthereumExpertFormula).TransactionUUID
 		}
 	}
 

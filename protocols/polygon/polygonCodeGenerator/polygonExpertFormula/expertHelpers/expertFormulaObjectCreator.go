@@ -7,6 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 )
 
+//Build the expert object
 func BuildExpertObject(formulaID string, formulaName string, metricExpertFormula model.ExpertFormula, fieldCount int, verify model.Verify) model.EthereumExpertFormula {
 
 	polygonFormulaObject := model.EthereumExpertFormula{
