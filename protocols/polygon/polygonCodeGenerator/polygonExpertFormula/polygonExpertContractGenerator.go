@@ -9,6 +9,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	codeGenerator "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
 	experthelpers "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula/expertHelpers"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"golang.org/x/text/cases"
@@ -75,7 +76,18 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		contractName = contractName + "_" + formulaJSON.MetricExpertFormula.ID
 
 		//call the general header writer
+		generalValues, errWhenBuildingGeneralCodeSnippets := codeGenerator.WriteGeneralCodeSnippets(formulaJSON, contractName)
+		if errWhenBuildingGeneralCodeSnippets != nil {
+			//handle the error by logging
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenBuildingGeneralCodeSnippets.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+		}
 
+		logger.LogWriter(generalValues, constants.INFO)
 	}
 
 }
