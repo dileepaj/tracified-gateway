@@ -18,6 +18,7 @@ import (
 
 var (
 	contractName = ``
+	contractBody = ``
 )
 
 func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
@@ -86,8 +87,21 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 				return
 			}
 		}
+		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
+		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
 
-		logger.LogWriter(generalValues, constants.INFO)
+		variableValue, setterName, errInGeneratingValues := codeGenerator.ValueCodeGenerator(formulaJSON)
+		if errInGeneratingValues != nil {
+			//handle the error by logging
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGeneratingValues.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+		}
+		contractBody = contractBody + variableValue
+		formulaObj.SetterNames = setterName
 	}
 
 }
