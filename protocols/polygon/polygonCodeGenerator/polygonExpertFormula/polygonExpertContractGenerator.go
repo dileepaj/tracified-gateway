@@ -130,10 +130,11 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplateString.Error(), http.StatusInternalServerError, "Error in getting execution template string ")
 			return
 		}
-
 		// remove the substring from the last comma
 		lenOfLastCommand := len(", calculations.GetExponent()")
 		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
+
+		contractBody = experthelpers.WriteCalculationGetterCode(contractBody, executionTemplateString)
 	}
 
 }
