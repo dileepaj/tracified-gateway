@@ -10,7 +10,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	codeGenerator "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
+	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula/executionTemplates"
 	experthelpers "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula/expertHelpers"
+	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
@@ -79,7 +81,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippets := codeGenerator.WriteGeneralCodeSnippets(formulaJSON, contractName)
 		if errWhenBuildingGeneralCodeSnippets != nil {
-			//handle the error by logging
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenBuildingGeneralCodeSnippets.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
 			if errWhenUpdatingOrInsertingFormulaDetails != nil {
 				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
@@ -92,7 +93,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 
 		variableValue, setterName, errInGeneratingValues := codeGenerator.ValueCodeGenerator(formulaJSON)
 		if errInGeneratingValues != nil {
-			//handle the error by logging
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGeneratingValues.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
 			if errWhenUpdatingOrInsertingFormulaDetails != nil {
 				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
@@ -102,6 +102,31 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		}
 		contractBody = contractBody + variableValue
 		formulaObj.SetterNames = setterName
+
+		executionTemplate, errInGettingExecutionTemplate := expertformula.BuildExecutionTemplateByQuery(formulaObj.MetricExpertFormula.FormulaAsQuery)
+		if errInGettingExecutionTemplate != nil {
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGettingExecutionTemplate.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+		}
+		formulaObj.ExecutionTemplate = executionTemplate
+
+		executionTemplateString, errInGettingExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
+		if errInGettingExecutionTemplateString != nil {
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGettingExecutionTemplateString.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+		}
+
+		// remove the substring from the last comma
+		lenOfLastCommand := len(", calculations.GetExponent()")
+		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
 	}
 
 }
