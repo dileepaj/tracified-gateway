@@ -134,7 +134,8 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		lenOfLastCommand := len(", calculations.GetExponent()")
 		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
 
-		contractBody = experthelpers.WriteCalculationGetterCode(contractBody, executionTemplateString)
+		contractBody = contractBody + experthelpers.WriteCalculationGetterCode(executionTemplateString) + experthelpers.WriteGetterMethods(generalValues.MetadataGetter)
+
 	}
 
 }
