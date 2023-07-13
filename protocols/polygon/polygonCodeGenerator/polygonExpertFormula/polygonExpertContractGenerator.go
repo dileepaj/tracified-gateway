@@ -148,7 +148,26 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		logger.LogWriter(template, constants.INFO)
+		errWhenWritingSolidityFile := experthelpers.WriteFormulaContractToFile(contractName, template)
+		if errWhenWritingSolidityFile != nil {
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenGeneratingTemplate.Error(), 104, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+			logger.LogWriter("Error when generating the contract template string : "+errWhenGeneratingTemplate.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenGeneratingTemplate.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
+			return
+		}
+
+		formulaObj.ActualStatus = 105
+		errWhenUpdatingAfterSolidityFile := object.UpdateSelectedPolygonFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+		if errWhenUpdatingAfterSolidityFile != nil {
+			logger.LogWriter("Error when updating collections after solidity file creation : "+errWhenUpdatingAfterSolidityFile.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenUpdatingAfterSolidityFile.Error(), http.StatusInternalServerError, "Error when updating collections after solidity file creation : ")
+			return
+		}
 	}
 
 }
