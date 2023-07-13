@@ -53,16 +53,11 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		} else {
 			logger.LogWriter("New expert formula request, initiating new deployment", constants.INFO)
 		}
-
 		//create expert formula
 		formulaObj := experthelpers.BuildExpertObject(formulaJSON.MetricExpertFormula.ID, formulaJSON.MetricExpertFormula.Name, formulaJSON.MetricExpertFormula, fieldCount, formulaJSON.Verify)
-
 		if deployStatus == 0 {
-			//generate transaction UUID
 			transactionUuid := experthelpers.GenerateTransactionUUID()
 			formulaObj.TransactionUUID = transactionUuid
-
-			//add new formula to formula ID map
 			errWhenInsertingToFormulaIdMap := experthelpers.InsertToFormulaIdMap(formulaJSON.MetricExpertFormula.ID, 2)
 			if errWhenInsertingToFormulaIdMap != nil {
 				logger.LogWriter("Error when inserting the new formula ID to the polygon formula ID map : "+errWhenInsertingToFormulaIdMap.Error(), constants.ERROR)
@@ -87,6 +82,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 				return
 			}
+			logger.LogWriter("Error when writing the general code snippet, ERROR : "+errWhenBuildingGeneralCodeSnippets.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenBuildingGeneralCodeSnippets.Error(), http.StatusInternalServerError, "Error when writing the general code snippet, ERROR : ")
+			return
 		}
 		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
 		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
@@ -99,6 +97,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 				return
 			}
+			logger.LogWriter("Error in generating codes for values "+errInGeneratingValues.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errInGeneratingValues.Error(), http.StatusInternalServerError, "Error in getting codes for values ")
+			return
 		}
 		contractBody = contractBody + variableValue
 		formulaObj.SetterNames = setterName
@@ -111,6 +112,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 				return
 			}
+			logger.LogWriter("Error in getting execution template "+errInGettingExecutionTemplate.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplate.Error(), http.StatusInternalServerError, "Error in getting execution template from FCL ")
+			return
 		}
 		formulaObj.ExecutionTemplate = executionTemplate
 
@@ -122,6 +126,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 				return
 			}
+			logger.LogWriter("Error in getting execution template string "+errInGettingExecutionTemplateString.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errInGettingExecutionTemplateString.Error(), http.StatusInternalServerError, "Error in getting execution template string ")
+			return
 		}
 
 		// remove the substring from the last comma
