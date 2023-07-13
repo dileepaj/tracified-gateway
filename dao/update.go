@@ -1428,3 +1428,86 @@ func (cd *Connection) UpdatePolygonFormulaStatus(formulaID string, txnUUID strin
 
 	return err
 }
+
+func (cd *Connection) UpdateSelectedPolygonFormulaFields(formulaID string, txnUUID string, formulaObj model.EthereumExpertFormula) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Polygon formula fields for the given formula ID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("PolygonExpertFormula")
+	updateFields := bson.D{}
+	if formulaObj.FormulaID != "" {
+		updateFields = append(updateFields, bson.E{Key: "formulaid", Value: formulaObj.FormulaID})
+	}
+	if formulaObj.FormulaName != "" {
+		updateFields = append(updateFields, bson.E{Key: "formulaname", Value: formulaObj.FormulaName})
+	}
+	if formulaObj.VariableCount != 0 {
+		updateFields = append(updateFields, bson.E{Key: "variablecount", Value: formulaObj.VariableCount})
+	}
+	if formulaObj.ContractName != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractname", Value: formulaObj.ContractName})
+	}
+	if formulaObj.TemplateString != "" {
+		updateFields = append(updateFields, bson.E{Key: "templatestring", Value: formulaObj.TemplateString})
+	}
+	if formulaObj.BINstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "binstring", Value: formulaObj.BINstring})
+	}
+	if formulaObj.ABIstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "abistring", Value: formulaObj.ABIstring})
+	}
+	if formulaObj.GOstring != "" {
+		updateFields = append(updateFields, bson.E{Key: "gostring", Value: formulaObj.GOstring})
+	}
+	if formulaObj.SetterNames != nil {
+		updateFields = append(updateFields, bson.E{Key: "setternames", Value: formulaObj.SetterNames})
+	}
+	if formulaObj.ContractAddress != "" {
+		updateFields = append(updateFields, bson.E{Key: "contractaddress", Value: formulaObj.ContractAddress})
+	}
+	if formulaObj.Status != 0 {
+		updateFields = append(updateFields, bson.E{Key: "status", Value: formulaObj.Status})
+	}
+	if formulaObj.Timestamp != "" {
+		updateFields = append(updateFields, bson.E{Key: "timestamp", Value: formulaObj.Timestamp})
+	}
+	if formulaObj.TransactionHash != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionhash", Value: formulaObj.TransactionHash})
+	}
+	if formulaObj.TransactionCost != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactioncost", Value: formulaObj.TransactionCost})
+	}
+	if formulaObj.TransactionUUID != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionuuid", Value: formulaObj.TransactionUUID})
+	}
+	if formulaObj.TransactionSender != "" {
+		updateFields = append(updateFields, bson.E{Key: "transactionsender", Value: formulaObj.TransactionSender})
+	}
+	if formulaObj.Verify.Payload != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.payload", Value: formulaObj.Verify.Payload})
+	}
+	if formulaObj.Verify.Signature != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.signature", Value: formulaObj.Verify.Signature})
+	}
+	if formulaObj.Verify.PublicKey != "" {
+		updateFields = append(updateFields, bson.E{Key: "verify.publickey", Value: formulaObj.Verify.PublicKey})
+	}
+	if formulaObj.ErrorMessage != "" {
+		updateFields = append(updateFields, bson.E{Key: "errormessage", Value: formulaObj.ErrorMessage})
+	}
+	if formulaObj.ActualStatus != 0 {
+		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: formulaObj.ActualStatus})
+	}
+
+	filter := bson.D{{Key: "formulaid", Value: formulaID}, {Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: updateFields}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating polygon formula fields in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}

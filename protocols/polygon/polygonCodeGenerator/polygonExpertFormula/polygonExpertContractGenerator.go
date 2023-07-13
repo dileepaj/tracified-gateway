@@ -133,9 +133,22 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		// remove the substring from the last comma
 		lenOfLastCommand := len(", calculations.GetExponent()")
 		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
-
 		contractBody = contractBody + experthelpers.WriteCalculationGetterCode(executionTemplateString) + experthelpers.WriteGetterMethods(generalValues.MetadataGetter)
 
+		template, errWhenGeneratingTemplate := experthelpers.ContractTemplateBuilder(formulaObj, generalValues.License, generalValues.PragmaLine, generalValues.ImportCalculationsSol, generalValues.ContractStart, contractBody, generalValues.ContractEnd)
+		if errWhenGeneratingTemplate != nil {
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenGeneratingTemplate.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+			logger.LogWriter("Error when generating the contract template string : "+errWhenGeneratingTemplate.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenGeneratingTemplate.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
+			return
+		}
+
+		logger.LogWriter(template, constants.INFO)
 	}
 
 }
