@@ -1,6 +1,7 @@
 package polygonexpertformula
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,11 +29,9 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 	var deployStatus int
 	reqType := "POLYGONEXPERT"
 	logger := utilities.NewCustomLogger()
-
 	formulaDetails, errWhenGettingFormulaDetails := object.GetPolygonFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
-
 	if errWhenGettingFormulaDetails != nil {
 		logger.LogWriter("An error occurred when getting formula status, ERROR : "+errWhenGettingFormulaDetails.Error(), constants.ERROR)
 	}
@@ -43,7 +42,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		deployStatus = formulaDetails.(model.EthereumExpertFormula).Status
 		logger.LogWriter("Polygon formula contract deploy status : "+strconv.FormatInt(int64(deployStatus), 10), constants.INFO)
 	}
-
 	if deployStatus != 0 || deployStatus != 119 {
 		//handle Queue, Success, invalid status
 		experthelpers.SuccessOrQueueResponse(w, r, formulaJSON, deployStatus)
@@ -67,12 +65,10 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		} else {
 			formulaObj.TransactionUUID = formulaDetails.(model.EthereumExpertFormula).TransactionUUID
 		}
-
 		//setting up the contract name and starting the contract
 		contractName = cases.Title(language.English).String(formulaJSON.MetricExpertFormula.Name)
 		contractName = strings.ReplaceAll(contractName, " ", "")
 		contractName = contractName + "_" + formulaJSON.MetricExpertFormula.ID
-
 		//call the general header writer
 		generalValues, errWhenBuildingGeneralCodeSnippets := codeGenerator.WriteGeneralCodeSnippets(formulaJSON, contractName)
 		if errWhenBuildingGeneralCodeSnippets != nil {
@@ -88,7 +84,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		}
 		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
 		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
-
 		variableValue, setterName, errInGeneratingValues := codeGenerator.ValueCodeGenerator(formulaJSON)
 		if errInGeneratingValues != nil {
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGeneratingValues.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
@@ -103,7 +98,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		}
 		contractBody = contractBody + variableValue
 		formulaObj.SetterNames = setterName
-
 		executionTemplate, errInGettingExecutionTemplate := expertformula.BuildExecutionTemplateByQuery(formulaObj.MetricExpertFormula.FormulaAsQuery)
 		if errInGettingExecutionTemplate != nil {
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGettingExecutionTemplate.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
@@ -117,7 +111,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			return
 		}
 		formulaObj.ExecutionTemplate = executionTemplate
-
 		executionTemplateString, errInGettingExecutionTemplateString := executionTemplates.ExecutionTemplateDivider(executionTemplate)
 		if errInGettingExecutionTemplateString != nil {
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errInGettingExecutionTemplateString.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
@@ -134,7 +127,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 		lenOfLastCommand := len(", calculations.GetExponent()")
 		executionTemplateString = executionTemplateString[:len(executionTemplateString)-lenOfLastCommand]
 		contractBody = contractBody + experthelpers.WriteCalculationGetterCode(executionTemplateString) + experthelpers.WriteGetterMethods(generalValues.MetadataGetter)
-
 		template, errWhenGeneratingTemplate := experthelpers.ContractTemplateBuilder(formulaObj, generalValues.License, generalValues.PragmaLine, generalValues.ImportCalculationsSol, generalValues.ContractStart, contractBody, generalValues.ContractEnd)
 		if errWhenGeneratingTemplate != nil {
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenGeneratingTemplate.Error(), 102, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
@@ -147,7 +139,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			commons.JSONErrorReturn(w, r, errWhenGeneratingTemplate.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
 			return
 		}
-
 		errWhenWritingSolidityFile := experthelpers.WriteFormulaContractToFile(contractName, template, formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 		if errWhenWritingSolidityFile != nil {
 			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenWritingSolidityFile.Error(), 104, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
@@ -160,7 +151,6 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			commons.JSONErrorReturn(w, r, errWhenWritingSolidityFile.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
 			return
 		}
-
 		//ABI and Bin generator
 		errWhenGeneratingAbiAndBin := experthelpers.AbiAndBinGenerator(contractName, reqType, formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 		if errWhenGeneratingAbiAndBin != nil {
@@ -175,6 +165,34 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			commons.JSONErrorReturn(w, r, errWhenGeneratingAbiAndBin.Error(), http.StatusInternalServerError, "Error when generating ABI and BIN for contract : ")
 			return
 		}
+		formulaObj.ContractName = contractName
+		errWhenSendingToQueue := experthelpers.BuildExpertQueueObjectAndSendToQueue(formulaObj, "POLYGONEXPERTFORMULA", "QUEUE")
+		if errWhenSendingToQueue != nil {
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenSendingToQueue.Error(), formulaObj.ActualStatus, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+			logger.LogWriter("Error when sending request to Queue : "+errWhenSendingToQueue.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenGeneratingAbiAndBin.Error(), http.StatusInternalServerError, "Error when sending to Queue : ")
+			return
+		}
+		logger.LogWriter("Expert formula is added to Queue", constants.INFO)
+		errWhenUpdatingOrInsertingAfterQueue := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 116, "", formulaObj.ActualStatus, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+		if errWhenUpdatingOrInsertingAfterQueue != nil {
+			logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingAfterQueue.Error(), constants.INFO)
+			commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingAfterQueue.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		response := model.SuccessResponseExpertFormula{
+			Code:      http.StatusOK,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
+			Message:   "Expert formula request sent to queue",
+		}
+		json.NewEncoder(w).Encode(response)
+		return
 	}
 
 }
