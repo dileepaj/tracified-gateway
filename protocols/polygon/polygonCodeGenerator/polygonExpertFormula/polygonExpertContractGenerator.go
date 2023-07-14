@@ -26,7 +26,7 @@ var (
 func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Request, formulaJSON model.FormulaBuildingRequest, fieldCount int) {
 	object := dao.Connection{}
 	var deployStatus int
-	// reqType := "POLYGONEXPERT"
+	reqType := "POLYGONEXPERT"
 	logger := utilities.NewCustomLogger()
 
 	formulaDetails, errWhenGettingFormulaDetails := object.GetPolygonFormulaStatus(formulaJSON.MetricExpertFormula.ID).Then(func(data interface{}) interface{} {
@@ -148,24 +148,31 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		errWhenWritingSolidityFile := experthelpers.WriteFormulaContractToFile(contractName, template)
+		errWhenWritingSolidityFile := experthelpers.WriteFormulaContractToFile(contractName, template, formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
 		if errWhenWritingSolidityFile != nil {
-			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenGeneratingTemplate.Error(), 104, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenWritingSolidityFile.Error(), 104, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
 			if errWhenUpdatingOrInsertingFormulaDetails != nil {
 				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
 				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 				return
 			}
-			logger.LogWriter("Error when generating the contract template string : "+errWhenGeneratingTemplate.Error(), constants.ERROR)
-			commons.JSONErrorReturn(w, r, errWhenGeneratingTemplate.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
+			logger.LogWriter("Error when generating the contract template string : "+errWhenWritingSolidityFile.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenWritingSolidityFile.Error(), http.StatusInternalServerError, "Error when generating the contract template string")
 			return
 		}
 
-		formulaObj.ActualStatus = 105
-		errWhenUpdatingAfterSolidityFile := object.UpdateSelectedPolygonFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
-		if errWhenUpdatingAfterSolidityFile != nil {
-			logger.LogWriter("Error when updating collections after solidity file creation : "+errWhenUpdatingAfterSolidityFile.Error(), constants.ERROR)
-			commons.JSONErrorReturn(w, r, errWhenUpdatingAfterSolidityFile.Error(), http.StatusInternalServerError, "Error when updating collections after solidity file creation : ")
+		//ABI and Bin generator
+		errWhenGeneratingAbiAndBin := experthelpers.AbiAndBinGenerator(contractName, reqType, formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+		if errWhenGeneratingAbiAndBin != nil {
+			//108 - ABI AND BIN generation failed
+			errWhenUpdatingOrInsertingFormulaDetails := experthelpers.InsertAndUpdateExpertFormulaDetailsToPolygonCollections(deployStatus, 119, errWhenGeneratingAbiAndBin.Error(), 108, formulaObj, formulaObj.FormulaID, formulaObj.TransactionUUID)
+			if errWhenUpdatingOrInsertingFormulaDetails != nil {
+				logger.LogWriter("Error when updating/inserting to polygon collections : "+errWhenUpdatingOrInsertingFormulaDetails.Error(), constants.INFO)
+				commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingFormulaDetails.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
+				return
+			}
+			logger.LogWriter("Error when generating ABI and BIN for contract : "+errWhenGeneratingAbiAndBin.Error(), constants.ERROR)
+			commons.JSONErrorReturn(w, r, errWhenGeneratingAbiAndBin.Error(), http.StatusInternalServerError, "Error when generating ABI and BIN for contract : ")
 			return
 		}
 	}
