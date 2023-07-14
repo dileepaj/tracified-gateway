@@ -9,11 +9,13 @@ import (
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/txnbuild"
@@ -69,7 +71,7 @@ func ReceiverRmq() error {
 
 	go func() {
 		for d := range msgs {
-
+			logger := utilities.NewCustomLogger()
 			object := dao.Connection{}
 			var queue model.SendToQueue
 			var manageDataOprations []txnbuild.Operation
@@ -256,6 +258,9 @@ func ReceiverRmq() error {
 					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 
 				}
+			} else if queue.Type == "POLYGONEXPERTFORMULA" {
+				logger.LogWriter("Received mgs Type (ETHEXPERTFORMULA)", constants.INFO)
+
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
 				// use deployment strategy
