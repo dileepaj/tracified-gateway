@@ -42,7 +42,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 	}
 
 	//load client and the keys
-	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey(1)
 	if errWhenLoadingClientAndKey != nil {
 		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())

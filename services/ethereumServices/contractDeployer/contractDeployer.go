@@ -37,7 +37,6 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 
 	object := dao.Connection{}
 
-
 	var expertFormulaObj model.EthereumExpertFormula
 	var metricBindObj model.EthereumMetricBind
 
@@ -62,7 +61,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	}
 
 	//load client and the keys
-	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey(1)
 	if errWhenLoadingClientAndKey != nil {
 		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
@@ -193,7 +192,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					pendingContractObj := model.PendingContracts{
 						TransactionHash: "",
 						ContractAddress: "",
-						Status:          119,	//FAILED
+						Status:          119, //FAILED
 						CurrentIndex:    0,
 						ErrorMessage:    deploymentError,
 						ContractType:    contractType,
@@ -216,7 +215,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				pendingTransaction := model.PendingContracts{
 					TransactionHash: tx.Hash().Hex(),
 					ContractAddress: address.Hex(),
-					Status:          117,	//PENDING
+					Status:          117, //PENDING
 					CurrentIndex:    0,
 					ErrorMessage:    "",
 					ContractType:    contractType,
