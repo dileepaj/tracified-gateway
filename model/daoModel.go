@@ -178,7 +178,7 @@ type POEResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Url            string
 	LabUrl         string
 	SourceAccount  string
@@ -195,7 +195,7 @@ type POCResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Identifier     string
 	DataHash       string
 	BlockchainName string

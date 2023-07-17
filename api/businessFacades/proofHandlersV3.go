@@ -241,7 +241,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
-		SequenceNo:     result.SequenceNo,
+		SequenceNo:     strconv.FormatInt(result.SequenceNo, 10),
 		TxnType:        "tdp",
 		Status:         response.RetrievePOE.Error.Message,
 		BlockchainName: "Stellar",
@@ -325,7 +325,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				FeePaid:        feePaid,
 				Identifier:     string(Identifier),
 				SourceAccount:  SourceAccount,
-				SequenceNo:     int64(sequenceNo),
+				SequenceNo:     strconv.FormatInt(int64(sequenceNo), 10),
 			}
 
 			POCTree = append(POCTree, temp)
