@@ -3,7 +3,9 @@ package polygoncontractdeployer
 import (
 	"errors"
 	"math/big"
+	"strconv"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -58,6 +60,28 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	//create the keyed transactor
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Value = big.NewInt(0) // in wei
+
+	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
+	if errInTryConvert != nil {
+		logger.LogWriter("Error when converting the tryout limit , ERROR : "+errInTryConvert.Error(), constants.ERROR)
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
+	}
+
+	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
+	if errInGasLimitCapConcert != nil {
+		logger.LogWriter("Error when converting the gas limit cap , ERROR : "+errInGasLimitCapConcert.Error(), constants.ERROR)
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
+	}
+
+	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASPRICECAP"))
+	if errInGasPriceCapConcert != nil {
+		logger.LogWriter("Error when converting the gas price cap , ERROR : "+errInGasPriceCapConcert.Error(), constants.ERROR)
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
+	}
+
+	logger.LogWriter(tryoutCap, constants.INFO)
+	logger.LogWriter(gasLimitCap, constants.INFO)
+	logger.LogWriter(gasPriceCap, constants.INFO)
 
 	return contractAddress, transactionHash, transactionCost, nil
 }
