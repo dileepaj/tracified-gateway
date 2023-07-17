@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
+	polygongasservice "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/accounts/abi/bind"
 )
@@ -18,6 +19,8 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	contractAddress := ""
 	transactionHash := ""
 	transactionCost := ""
+	var isFailed = true
+	var predictedGasLimit int
 	logger := utilities.NewCustomLogger()
 	object := dao.Connection{}
 	var expertFormulaObj model.EthereumExpertFormula
@@ -82,6 +85,28 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	logger.LogWriter(tryoutCap, constants.INFO)
 	logger.LogWriter(gasLimitCap, constants.INFO)
 	logger.LogWriter(gasPriceCap, constants.INFO)
+
+	for i := 0; i < tryoutCap; i++ {
+		if !isFailed {
+			return contractAddress, transactionHash, transactionCost, nil
+		} else {
+			logger.LogWriter("Deploying the contract for the "+strconv.FormatInt(int64(i+1), 10)+" th time", constants.INFO)
+			if i == 0 {
+				//gas limit estimation
+				gasLimit, errWhenGettingGasLimit := polygongasservice.EstimateGasLimitForPolygon(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", bin)
+				if errWhenGettingGasLimit != nil {
+					logger.LogWriter("Error when getting gas limit "+errWhenGettingGasLimit.Error(), constants.ERROR)
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas limit, ERROR : " + errWhenGettingGasLimit.Error())
+				}
+				predictedGasLimit = int(gasLimit)
+				auth.GasLimit = uint64(predictedGasLimit) // in units
+
+				//gas price estimation
+			} else {
+
+			}
+		}
+	}
 
 	return contractAddress, transactionHash, transactionCost, nil
 }
