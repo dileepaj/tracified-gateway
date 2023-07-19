@@ -127,7 +127,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 					gasLimit = gasLimit + int(gasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-					errorInSendingEmail := RequestFunds()
+					errorInSendingEmail := RequestFunds(1)
 					if errorInSendingEmail != nil {
 						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
 						return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
