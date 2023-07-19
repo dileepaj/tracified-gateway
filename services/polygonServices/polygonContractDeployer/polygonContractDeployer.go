@@ -1,6 +1,7 @@
 package polygoncontractdeployer
 
 import (
+	"context"
 	"errors"
 	"math/big"
 	"strconv"
@@ -11,8 +12,10 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
 	polygongasservice "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService"
+	gaspriceserviceforpolygon "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService/gasPriceServiceForPolygon"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/accounts/abi/bind"
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func PolygonContractDeployer(bin string, abi string, contractIdentifier string, contractType string, otherParams []any) (string, string, string, error) {
@@ -21,6 +24,10 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	transactionCost := ""
 	var isFailed = true
 	var predictedGasLimit int
+	var predictedGasPrice = new(big.Int)
+	var nonce uint64
+	var errWhenGettingNonce error
+	var deploymentError string
 	logger := utilities.NewCustomLogger()
 	object := dao.Connection{}
 	var expertFormulaObj model.EthereumExpertFormula
@@ -102,9 +109,50 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 				auth.GasLimit = uint64(predictedGasLimit) // in units
 
 				//gas price estimation
-			} else {
+				var errWhenGettingGasPrice error
+				predictedGasPrice, errWhenGettingGasPrice = gaspriceserviceforpolygon.MinimumGasPriceGetterForPolygon()
+				if errWhenGettingGasPrice != nil {
+					logger.LogWriter("Error when getting gas price : "+errWhenGettingGasLimit.Error(), constants.ERROR)
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price : " + errWhenGettingGasPrice.Error())
+				}
+				if predictedGasPrice.Cmp(big.NewInt(0)) == 0 {
+					logger.LogWriter("Error when getting gas price , gas price is zero", constants.ERROR)
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas price , gas price is zero")
+				}
 
+				nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
+				if errWhenGettingNonce != nil {
+					logger.LogWriter("Error when getting nonce "+errWhenGettingNonce.Error(), constants.ERROR)
+					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+				}
+			} else {
+				if deploymentError == "nonce too low" {
+					nonce, errWhenGettingNonce = client.PendingNonceAt(context.Background(), common.Address(fromAddress))
+					if errWhenGettingNonce != nil {
+						logger.LogWriter("Error when getting nonce "+errWhenGettingNonce.Error(), constants.ERROR)
+						return contractAddress, transactionHash, transactionCost, errors.New("Error when getting nonce , ERROR : " + errWhenGettingNonce.Error())
+					}
+				} else if deploymentError == "intrinsic gas too low" {
+					//increase gas limit by 10%
+					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
+				} else if deploymentError == "insufficient funds for gas * price + value" {
+					//send email to increase the account balance
+
+				}
 			}
+
+			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
+				logger.LogWriter("Gas values are passing specified thresholds", constants.ERROR)
+				return contractAddress, transactionHash, transactionCost, errors.New("Gas values are passing specified thresholds")
+			}
+
+			logger.LogWriter("Predicted gas limit : "+strconv.FormatInt(int64(predictedGasLimit), 10), constants.INFO)
+			logger.LogWriter("Predicted gas price : "+predictedGasPrice.String(), constants.INFO)
+			logger.LogWriter("Current nonce : "+strconv.FormatUint(nonce, 10), constants.INFO)
+
+			auth.GasLimit = uint64(predictedGasLimit)
+			auth.Nonce = big.NewInt(int64(nonce))
+			auth.GasPrice = predictedGasPrice
 		}
 	}
 
