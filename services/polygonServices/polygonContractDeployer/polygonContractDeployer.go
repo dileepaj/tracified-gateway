@@ -10,6 +10,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	contractdeployer "github.com/dileepaj/tracified-gateway/services/ethereumServices/contractDeployer"
 	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
 	polygongasservice "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService"
 	gaspriceserviceforpolygon "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService/gasPriceServiceForPolygon"
@@ -137,7 +138,12 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-
+					errorInSendingEmail := contractdeployer.RequestFunds(2)
+					if errorInSendingEmail != nil {
+						logger.LogWriter("Error when sending email "+errorInSendingEmail.Error(), constants.ERROR)
+						return contractAddress, transactionHash, transactionCost, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
+					}
+					return contractAddress, transactionHash, transactionCost, errors.New("Gateway Polygon account funds are not enough")
 				}
 			}
 

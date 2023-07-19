@@ -147,7 +147,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-					errorInSendingEmail := RequestFunds()
+					errorInSendingEmail := RequestFunds(1)
 					if errorInSendingEmail != nil {
 						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())

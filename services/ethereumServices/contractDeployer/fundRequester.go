@@ -6,18 +6,38 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 	gomail "gopkg.in/gomail.v2"
 )
 
 //Request funds from the admins via email
-func RequestFunds() error {
-	url := `https://etherscan.io/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
-	message := `<center><h1 style='color: brown;'>Gateway Ethereum account should be funded</h1></center><p>Dear Admins,</p><p> 
-This email is auto-generated to notify that the following gateway Ethereum account is low on Eths, please fund the account.
-<p><b>Public key:</b> ` + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + `</p>` + `<p><a href="` + url + `">View Account</p><br><br><p>Thank you</p>`
-
-	subject := `Gateway Ethereum account should be funded`
+//1 Ethereum, 2 Polygon
+func RequestFunds(blockchainType int) error {
+	var mainnetUrl string
+	var testnetUrl string
+	var message string
+	var subject string
+	logger := utilities.NewCustomLogger()
+	if blockchainType == 1 {
+		subject = `Gateway Ethereum account should be funded`
+		mainnetUrl = `https://etherscan.io/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
+		testnetUrl = `https://sepolia.etherscan.io/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
+		message = `<center><h1 style='color: brown;'>Gateway Ethereum account should be funded</h1></center><p>Dear Admins,</p><p> 
+		This email is auto-generated to notify that the following gateway Ethereum account is low on Eths, please fund the account.
+		<p><b>Public key:</b> ` + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + `</p>` + `<p><a href="` + mainnetUrl + `">View Account on Mainnet</a></p>` + `<p><a href="` + testnetUrl + `">View Account on Testnet</a></p><br><br><p>Thank you</p>`
+	} else if blockchainType == 2 {
+		subject = `Gateway Polygon account should be funded`
+		mainnetUrl = `https://polygonscan.com/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
+		testnetUrl = `https://mumbai.polygonscan.com/address/` + commons.GoDotEnvVariable("ETHEREUMPUBKEY")
+		message = `<center><h1 style='color: brown;'>Gateway Polygon account should be funded</h1></center><p>Dear Admins,</p><p> 
+		This email is auto-generated to notify that the following gateway Polygon account is low on Matics, please fund the account.
+		<p><b>Public key:</b> ` + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + `</p>` + `<p><a href="` + mainnetUrl + `">View Account on Mainnet</a></p>` + `<p><a href="` + testnetUrl + `">View Account on Testnet</a></p><br><br><p>Thank you</p>`
+	} else {
+		logger.LogWriter("Invalid blockchain type", constants.ERROR)
+		return errors.New("Invalid blockchain type")
+	}
 
 	for _, email := range configs.EthereumNotificationEmails {
 		msg := gomail.NewMessage()
