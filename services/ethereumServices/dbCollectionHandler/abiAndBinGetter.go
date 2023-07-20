@@ -12,7 +12,7 @@ func GetAbiAndBin(contractType string, identifier string) (string, string, error
 	object := dao.Connection{}
 
 	if contractType == "ETHEXPERTFORMULA" {
-		expertObject, errInRetrieving := object.GetEthFormulaBinAndAbiByIdentifier(identifier).Then(func(data interface{}) interface{} {
+		expertObject, errInRetrieving := object.GetEthFormulaBinAndAbiByIdentifier(identifier, "EthereumExpertFormula").Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if errInRetrieving != nil {
