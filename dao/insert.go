@@ -741,3 +741,33 @@ func (cd *Connection) InsertToPolygonFormulaDetails(ethFormulaMap model.Ethereum
 	}
 	return err
 }
+
+func (cd *Connection) InsertPolygonErrorMessage(errorMessage model.EthErrorMessage) error {
+	session, err := cd.connect()
+	if err != nil {
+		notificationhandler.InformDBConnectionIssue("insert polygon error message", err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PolygonErrorMessages")
+	_, err = c.InsertOne(context.TODO(), errorMessage)
+	if err != nil {
+		logrus.Info("Error when inserting polygon error messages to DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertPolygonPendingContract(pendingTransaction model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		notificationhandler.InformDBConnectionIssue("insert polygon pending contract", err.Error())
+		logrus.Info("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("PolygonPendingTransactions")
+	_, err = c.InsertOne(context.TODO(), pendingTransaction)
+	if err != nil {
+		logrus.Info("Error when inserting pending transaction to DB " + err.Error())
+	}
+	return err
+}

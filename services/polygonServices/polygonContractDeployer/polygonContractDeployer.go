@@ -3,6 +3,8 @@ package polygoncontractdeployer
 import (
 	"context"
 	"errors"
+	"fmt"
+	"math"
 	"math/big"
 	"strconv"
 
@@ -34,7 +36,6 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	var expertFormulaObj model.EthereumExpertFormula
 
 	logger.LogWriter("Calling the polygon contract deployer service...........", constants.INFO)
-
 	if contractType == "POLYGONEXPERTFORMULA" {
 		expertFormulaObj = otherParams[0].(model.EthereumExpertFormula)
 		expertFormulaObj.ActualStatus = 110 //DEPLOYMENT_STARTED
@@ -45,29 +46,23 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 		}
 	}
 
+	//TODO-Create metric bind object
+
 	//load client and key
 	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey(2)
 	if errWhenLoadingClientAndKey != nil {
 		logger.LogWriter("Error when loading the client and the key : "+errWhenLoadingClientAndKey.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 	}
-
-	logger.LogWriter(client, constants.INFO)
-	logger.LogWriter(fromAddress, constants.INFO)
-
 	ContractBIN, parsed, errWhenLoadingParsedABIAndBIN := generalservices.LoadContractBinAndParsedAbi(bin, abi)
 	if errWhenLoadingParsedABIAndBIN != nil {
 		logger.LogWriter("Error when loading ContractBIN and Parsed ABI : "+errWhenLoadingParsedABIAndBIN.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading ContractBIN and Parsed ABI : " + errWhenLoadingParsedABIAndBIN.Error())
 	}
-
-	logger.LogWriter(ContractBIN, constants.INFO)
-
 	if parsed == nil {
 		logger.LogWriter("GetABI returned nil", constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
 	}
-
 	//create the keyed transactor
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Value = big.NewInt(0) // in wei
@@ -89,10 +84,6 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 		logger.LogWriter("Error when converting the gas price cap , ERROR : "+errInGasPriceCapConcert.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
 	}
-
-	logger.LogWriter(tryoutCap, constants.INFO)
-	logger.LogWriter(gasLimitCap, constants.INFO)
-	logger.LogWriter(gasPriceCap, constants.INFO)
 
 	for i := 0; i < tryoutCap; i++ {
 		if !isFailed {
@@ -159,8 +150,76 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 			auth.GasLimit = uint64(predictedGasLimit)
 			auth.Nonce = big.NewInt(int64(nonce))
 			auth.GasPrice = predictedGasPrice
+
+			//call the bind deployer method
+			address, tx, contract, errWhenDeployingContract := bind.DeployContract(auth, *parsed, common.FromHex(ContractBIN), client)
+			if errWhenDeployingContract != nil {
+				logger.LogWriter("Error when deploying contract "+errWhenDeployingContract.Error(), constants.ERROR)
+				isFailed = true
+				deploymentError = errWhenDeployingContract.Error()
+				// inserting error message to the database
+				errorMessage := model.EthErrorMessage{
+					TransactionHash: "",
+					ErrorMessage:    deploymentError,
+					Network:         "polygon",
+				}
+				errInInsertingErrorMessage := object.InsertPolygonErrorMessage(errorMessage)
+				if errInInsertingErrorMessage != nil {
+					logger.LogWriter("Error in inserting the error message, ERROR : "+errInInsertingErrorMessage.Error(), constants.ERROR)
+				}
+
+				//TODO-handle metric bind request
+			} else {
+				contractAddress = address.Hex()
+				transactionHash = tx.Hash().Hex()
+				_ = contract
+
+				env := commons.GoDotEnvVariable("ENVIRONMENT")
+				if env == "QA" {
+					logger.LogWriter("View contract at : https://mumbai.polygonscan.com/address/"+address.Hex(), constants.INFO)
+					logger.LogWriter("View transaction at : https://mumbai.polygonscan.com/tx/"+tx.Hash().Hex(), constants.INFO)
+				} else if env == "PRODUCTION" {
+					logger.LogWriter("View contract at : https://polygonscan.com/tx/"+address.Hex(), constants.INFO)
+					logger.LogWriter("View transaction at : https://polygonscan.com/address/"+tx.Hash().Hex(), constants.INFO)
+				} else if env == "STAGING" {
+					logger.LogWriter("View contract at : https://mumbai.polygonscan.com/address/"+address.Hex(), constants.INFO)
+					logger.LogWriter("View transaction at : https://mumbai.polygonscan.com/tx/"+tx.Hash().Hex(), constants.INFO)
+				}
+
+				// Insert the pending transaction to the database
+				pendingTransaction := model.PendingContracts{
+					TransactionHash: tx.Hash().Hex(),
+					ContractAddress: address.Hex(),
+					Status:          117, //PENDING
+					CurrentIndex:    0,
+					ErrorMessage:    "",
+					ContractType:    contractType,
+					Identifier:      contractIdentifier,
+					Nonce:           auth.Nonce,
+					GasLimit:        int(auth.GasLimit),
+					GasPrice:        auth.GasPrice,
+				}
+				errInInsertingPendingTx := object.InsertPolygonPendingContract(pendingTransaction)
+				if errInInsertingPendingTx != nil {
+					logger.LogWriter("Error in inserting the pending transaction, ERROR : "+errInInsertingPendingTx.Error(), constants.ERROR)
+					isFailed = true
+				} else {
+					isFailed = false
+				}
+
+				// calculate the predicted transaction cost
+				costInWei := new(big.Int).Mul(big.NewInt(int64(predictedGasLimit)), predictedGasPrice)
+				cost := new(big.Float).Quo(new(big.Float).SetInt(costInWei), big.NewFloat(math.Pow10(18)))
+				transactionCost = fmt.Sprintf("%g", cost) + " MATIC"
+
+				//TODO - handle insert and update for metric binding
+			}
 		}
 	}
+	if !isFailed {
+		return contractAddress, transactionHash, transactionCost, nil
 
-	return contractAddress, transactionHash, transactionCost, nil
+	}
+
+	return contractAddress, transactionHash, transactionCost, errors.New("Threshold for contract redeployment exceeded")
 }
