@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/services"
@@ -32,8 +31,6 @@ func main() {
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	commons.ConstructConnectionPool()
-	adminDAO.ConstructAdminConnectionPool()
 
 	// Initialize the cron scheduler with Delay a job's execution if the previous run hasn't completed yet
 	c := cron.New(
