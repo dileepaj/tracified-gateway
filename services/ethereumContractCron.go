@@ -22,7 +22,7 @@ func CheckContractStatus() {
 	var formulaObj model.EthereumExpertFormula
 	var metricObj model.EthereumMetricBind
 	//Get the transactions with the pending status from the Database
-	p := object.GetPendingContractsByStatus(117) // 117 is the status code for PENDING transactions
+	p := object.GetPendingContractsByStatus(117, "EthereumPendingTransactions") // 117 is the status code for PENDING transactions
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
 		ethClient, errWHenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
@@ -38,7 +38,7 @@ func CheckContractStatus() {
 		for i := 0; i < len(result); i++ {
 			if result[i].ContractType == "ETHEXPERTFORMULA" {
 				// get the formula by uuid
-				formulaDetails, errorInGettingFormulaDetails := dbCollectionHandler.GetEthFormulaByUUID(result[i].Identifier)
+				formulaDetails, errorInGettingFormulaDetails := dbCollectionHandler.GetEthFormulaByUUID(result[i].Identifier, "EthereumExpertFormula")
 				if errorInGettingFormulaDetails != nil {
 					logrus.Error("Error when getting the formula details : " + errorInGettingFormulaDetails.Error())
 					continue

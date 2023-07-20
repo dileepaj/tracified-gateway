@@ -1511,3 +1511,60 @@ func (cd *Connection) UpdateSelectedPolygonFormulaFields(formulaID string, txnUU
 	}
 	return nil
 }
+
+func (cd *Connection) UpdatePolygonFormulaStatusByUUID(txnUUID string, status int, errorMessage string) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update polygob formula status for the given UUID", err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("PolygonExpertFormula")
+	filter := bson.D{{Key: "transactionuuid", Value: txnUUID}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "status", Value: status}, {Key: "errormessage", Value: errorMessage}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error when updating Polygon formula status in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdatePolygonPendingContract(transactionHash string, contractAddress, identifier string, update model.PendingContracts) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		notificationhandler.InformDBConnectionIssue("update Polygon pending contract", err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
+
+	up := model.PendingContracts{
+		TransactionHash: update.TransactionHash,
+		ContractAddress: update.ContractAddress,
+		Status:          update.Status,
+		CurrentIndex:    update.CurrentIndex,
+		ErrorMessage:    update.ErrorMessage,
+		ContractType:    update.ContractType,
+		Identifier:      update.Identifier,
+		Nonce:           update.Nonce,
+		GasPrice:        update.GasPrice,
+		GasLimit:        update.GasLimit,
+	}
+
+	pByte, err := bson.Marshal(up)
+	if err != nil {
+		return err
+	}
+
+	var updateNew bson.M
+	err = bson.Unmarshal(pByte, &updateNew)
+	if err != nil {
+		return err
+	}
+
+	c := session.Client().Database(dbName).Collection("PolygonPendingTransactions")
+	_, err = c.UpdateOne(context.TODO(), bson.M{"transactionhash": transactionHash, "contractaddress": contractAddress, "identifier": identifier}, bson.D{{Key: "$set", Value: updateNew}})
+
+	return err
+}

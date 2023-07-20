@@ -2820,18 +2820,18 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 }
 
 //Get the Ethereum contract status
-func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
+func (cd *Connection) GetPendingContractsByStatus(status int, collection string) *promise.Promise {
 	result := []model.PendingContracts{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
-			notificationhandler.InformDBConnectionIssue("get Ethereum pending contracts by status", err.Error())
+			notificationhandler.InformDBConnectionIssue("get pending contracts by status", err.Error())
 			reject(err)
 		}
 
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+		c := session.Client().Database(dbName).Collection(collection)
 		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
 
 		if err1 != nil {
@@ -2850,7 +2850,7 @@ func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 
 }
 
-func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *promise.Promise {
+func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string, collection string) *promise.Promise {
 	result := model.EthereumExpertFormula{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -2860,7 +2860,7 @@ func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *pro
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+		c := session.Client().Database(dbName).Collection(collection)
 		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula contract abi and bin by uuid from db " + err1.Error())
