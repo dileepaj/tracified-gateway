@@ -23,6 +23,7 @@ var (
 
 func GetAdminMongoSession() (mongo.Session, error) {
 	if adminMgoSession == nil {
+		adminMgoConnectionUrl = commons.GoDotEnvVariable("ADMIN_BE_MONGODB_URI")
 		var err error
 		adminMgoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(adminMgoConnectionUrl))
 		if err != nil {
@@ -34,20 +35,4 @@ func GetAdminMongoSession() (mongo.Session, error) {
 		}
 	}
 	return adminMgoSession, nil
-}
-
-func ConstructAdminConnectionPool() {
-	username := commons.GoDotEnvVariable("ADMINDBUSERNAME")
-	password := commons.GoDotEnvVariable("ADMINDBPASSWORD")
-	dbName := commons.GoDotEnvVariable("ADMINDBNAME")
-	host := commons.GoDotEnvVariable("ADMINDBHOST")
-	port := commons.GoDotEnvVariable("ADMINDBPORT")
-
-	branch := commons.GoDotEnvVariable("ENVIRONMENT")
-
-	if branch == "production" {
-		adminMgoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/?authSource=" + dbName
-	} else {
-		adminMgoConnectionUrl = commons.GoDotEnvVariable("ADMIN_ATLAS")
-	}
 }
