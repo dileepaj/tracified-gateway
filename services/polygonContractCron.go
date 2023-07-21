@@ -8,9 +8,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
+	transactionrecipthandler "github.com/dileepaj/tracified-gateway/services/polygonServices/transactionReciptHandler"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"github.com/sirupsen/logrus"
 )
 
 func CheckPolygonContractStatus() {
@@ -70,7 +70,7 @@ func CheckPolygonContractStatus() {
 				if result[i].ContractType == "POLYGONEXPERTFORMULA" {
 					errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatusForPolygon(updateCancel, 120)
 					if errWhenUpdatingStatus != nil {
-						logrus.Error("Error when updating status of the transaction : " + errWhenUpdatingStatus.Error())
+						logger.LogWriter("Error when updating status of the transaction : "+errWhenUpdatingStatus.Error(), constants.ERROR)
 						continue
 					}
 				}
@@ -78,6 +78,42 @@ func CheckPolygonContractStatus() {
 				continue
 			} else {
 				//Get transaction receipt
+				transactionReceipt, errWhenGettingTheTransactionReceipt := transactionrecipthandler.GetTransactionReceiptForPolygon(pendingHash)
+				if errWhenGettingTheTransactionReceipt != nil {
+					//check the error
+					if errWhenGettingTheTransactionReceipt.Error() == "not found" {
+						logger.LogWriter(pendingHash+" transaction is still at the pending state", constants.INFO)
+					} else {
+						logger.LogWriter("Error when getting the transaction receipt : "+errWhenGettingTheTransactionReceipt.Error(), constants.ERROR)
+					}
+					continue
+				} else if transactionReceipt.Status == "0x1" {
+					//Transaction is successfull
+					result[i].Status = 118 // SUCCESS
+
+					errWhenUpdatingColletion := dbCollectionHandler.UpdateCollectionsWithNewStatusForPolygon(result[i], 118)
+					if errWhenUpdatingColletion != nil {
+						logger.LogWriter("Error when updating collection : "+errWhenUpdatingColletion.Error(), constants.ERROR)
+						continue
+					}
+
+					//updating the actual status in the database
+					if result[i].ContractType == "POLYGONEXPERTFORMULA" {
+						formulaObj.Status = 118       // SUCCESS
+						formulaObj.ActualStatus = 113 // DEPLOYMENT_TRANSACTION_SUCCESS
+						errWhenUpdatingActualStatus := object.UpdateSelectedPolygonFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+						if errWhenUpdatingActualStatus != nil {
+							logger.LogWriter("Error when updating the actual status of the formula : "+errWhenUpdatingActualStatus.Error(), constants.ERROR)
+							continue
+						}
+					}
+					//TODO-handle for metric bind
+					continue
+
+				} else if transactionReceipt.Status == "0x0" {
+					//Transaction is failed
+
+				}
 				logger.LogWriter(ethClient, constants.INFO)
 			}
 
