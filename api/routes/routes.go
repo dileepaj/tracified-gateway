@@ -633,6 +633,18 @@ var routes = Routes{
 		"SponsorFOAppUserTransactions",
 		"GET",
 		"/foapp/txn",
-		businessFacades.SubmitFOData,
+		businessFacades.SubmitFOData, //Calls the SponsorFOAppUserTransactions in the StellarHandler
+	},
+	Route{
+		"GetSponsoringAccount",
+		"GET",
+		"/foapp/{foUser}",
+		businessFacades.CreateSponsorer, //Calls the GetSponsoringAccount in the StellarHandler
+	},
+	Route{
+		"ActivateFoUser",
+		"GET",
+		"/foapp/activate/{foUser}",
+		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
 	},
 }

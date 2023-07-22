@@ -996,7 +996,9 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&Response)
+	fmt.Println("-------------test2", Response)
 	if err != nil {
+		fmt.Println("error is ----------------", err)
 		logger.LogWriter("Error submitting data to the blockchain : "+err.Error(), constants.ERROR)
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.Error{Message: "Error submitting data to the blockchain"}
@@ -1004,7 +1006,7 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	fmt.Println("-------------test2", Response)
-	if Response.Type != "" && Response.FOUser != "" && Response.AppAccount != "" {
+	if Response.XDR != "" && Response.FOUser != "" && Response.AccountIssuer != "" {
 		resp, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + Response.FOUser)
 		if err != nil {
 			fmt.Println("Error making HTTP request:", err)
@@ -1019,128 +1021,19 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 			accountStatus = "1"
 		}
 
-		// body, err := ioutil.ReadAll(resp.Body)
-		// if err != nil {
-		// 	fmt.Println("Error reading HTTP response:", err)
-		// 	return
-		// }
-
-		// var accountResp model.AccountResponse
-		// err = json.Unmarshal(body, &accountResp)
-		// if err != nil {
-		// 	fmt.Println("Error decoding JSON response:", err)
-		// 	return
-		// }
-
-		// fmt.Println("Account is active:", accountResp.AccountID)
-
 		fmt.Println("Account is : ", accountStatus)
 
 		if accountStatus == "0" {
-			var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
-			if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
-				w.WriteHeader(http.StatusInternalServerError)
-				json.NewEncoder(w).Encode(err)
-			} else {
-				var Keys = model.TransactionDataKeys{
-					FOUser:          Response.FOUser,
-					AccountIssuerPK: IssuerPK,
-					AccountIssuerSK: encSK,
-				}
-				//adding the credentials to the DB
-				object := dao.Connection{}
-				err := object.InsertIssuingAccountKeys(Keys)
-				if err != nil {
-					log.Println(err)
-				}
-				var TransactionPayload = model.TransactionData{
-					FOUser:          Response.FOUser,
-					AccountIssuer:   IssuerPK,
-					Type:            Response.Type,
-					Identifier:      Response.Identifier,
-					ProductName:     Response.ProductName,
-					ProductID:       Response.ProductID,
-					AppAccount:      Response.AppAccount,
-					CurrentStage:    Response.CurrentStage,
-					TypeName:        Response.TypeName,
-					TimeStamp:       Response.TimeStamp,
-					DataHash:        Response.DataHash,
-					FromIdentifier:  Response.FromIdentifier,
-					ToIdentifiers:   Response.ToIdentifiers,
-					FromIdentifier1: Response.FromIdentifier1,
-					FromIdentifier2: Response.FromIdentifier2,
-					PreviousStage:   Response.PreviousStage,
-				}
+			fmt.Println("The FO user is inactive")
+		}
 
-				xdr, err := fosponsoring.SponsorNewFOUsers(TransactionPayload)
-				if err != nil {
-					log.Println(err)
-				} else {
-					w.Header().Set("Content-Type", "application/json;")
-					w.WriteHeader(http.StatusOK)
-					result := model.XDRRuri{
-						XDR: xdr,
-					}
-					logrus.Println("XDR been passed to frontend : ", result)
-					json.NewEncoder(w).Encode(result)
-				}
-			}
-
-		} else if accountStatus == "1" {
+		if accountStatus == "1" {
 			object := dao.Connection{}
 			p := object.GetIssuerAccountByFOUser(Response.FOUser)
 			rst, err := p.Await()
 			log.Println("Await response:", rst)
 			if err != nil {
-				fmt.Println("---------------test 3")
-				var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
-				if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
-					w.WriteHeader(http.StatusInternalServerError)
-					json.NewEncoder(w).Encode(err)
-				} else {
-					var Keys = model.TransactionDataKeys{
-						FOUser:          Response.FOUser,
-						AccountIssuerPK: IssuerPK,
-						AccountIssuerSK: encSK,
-					}
-					//adding the credentials to the DB
-					object := dao.Connection{}
-					err := object.InsertIssuingAccountKeys(Keys)
-					if err != nil {
-						log.Println(err)
-					}
-					var TransactionPayload = model.TransactionData{
-						FOUser:          Response.FOUser,
-						AccountIssuer:   IssuerPK,
-						Type:            Response.Type,
-						Identifier:      Response.Identifier,
-						ProductName:     Response.ProductName,
-						ProductID:       Response.ProductID,
-						AppAccount:      Response.AppAccount,
-						CurrentStage:    Response.CurrentStage,
-						TypeName:        Response.TypeName,
-						TimeStamp:       Response.TimeStamp,
-						DataHash:        Response.DataHash,
-						FromIdentifier:  Response.FromIdentifier,
-						ToIdentifiers:   Response.ToIdentifiers,
-						FromIdentifier1: Response.FromIdentifier1,
-						FromIdentifier2: Response.FromIdentifier2,
-						PreviousStage:   Response.PreviousStage,
-					}
-
-					xdr, err := fosponsoring.SponsorExisitingFOUsers(TransactionPayload)
-					if err != nil {
-						log.Println(err)
-					} else {
-						w.Header().Set("Content-Type", "application/json;")
-						w.WriteHeader(http.StatusOK)
-						result := model.XDRRuri{
-							XDR: xdr,
-						}
-						logrus.Println("XDR been passed to frontend : ", result)
-						json.NewEncoder(w).Encode(result)
-					}
-				}
+				fmt.Println("There was an error cant get issuer!")
 			} else {
 				log.Println("Await response in old fo account fo olde issuer:", rst)
 				var data = rst.(model.TransactionDataKeys)
@@ -1167,26 +1060,14 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 						}
 						fmt.Println("funded and hash is : ", hash)
 					}
+
 					var TransactionPayload = model.TransactionData{
-						FOUser:          Response.FOUser,
-						AccountIssuer:   data.AccountIssuerPK,
-						Type:            Response.Type,
-						Identifier:      Response.Identifier,
-						ProductName:     Response.ProductName,
-						ProductID:       Response.ProductID,
-						AppAccount:      Response.AppAccount,
-						CurrentStage:    Response.CurrentStage,
-						TypeName:        Response.TypeName,
-						TimeStamp:       Response.TimeStamp,
-						DataHash:        Response.DataHash,
-						FromIdentifier:  Response.FromIdentifier,
-						ToIdentifiers:   Response.ToIdentifiers,
-						FromIdentifier1: Response.FromIdentifier1,
-						FromIdentifier2: Response.FromIdentifier2,
-						PreviousStage:   Response.PreviousStage,
+						FOUser:        Response.FOUser,
+						AccountIssuer: data.AccountIssuerPK,
+						XDR:           Response.XDR,
 					}
 
-					xdr, err := fosponsoring.SponsorExisitingFOUsers(TransactionPayload)
+					xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
 					if err != nil {
 						log.Println(err)
 					} else {
@@ -1201,10 +1082,76 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 
 				}
 			}
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Can not create XDR"}
+			json.NewEncoder(w).Encode(response)
+		}
+	}
+}
+
+func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	object := dao.Connection{}
+	vars := mux.Vars(r)
+	p := object.GetIssuerAccountByFOUser((vars["foUser"]))
+	rst, err := p.Await()
+	log.Println("Await response:", rst)
+	if err != nil {
+		fmt.Println("There was an error cant get issuer!")
+		var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
+		if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
+			w.WriteHeader(http.StatusInternalServerError)
+			json.NewEncoder(w).Encode(err)
+		} else {
+			var Keys = model.TransactionDataKeys{
+				FOUser:          (vars["foUser"]),
+				AccountIssuerPK: IssuerPK,
+				AccountIssuerSK: encSK,
+			}
+			//adding the credentials to the DB
+			object := dao.Connection{}
+			err := object.InsertIssuingAccountKeys(Keys)
+			if err != nil {
+				log.Println(err)
+			}
+
+			//send the response
+			result := model.NFTIssuerAccount{
+				NFTIssuerPK: IssuerPK,
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
 		}
 	} else {
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Can not create XDR"}
-		json.NewEncoder(w).Encode(response)
+		log.Println("Await response in old fo account fo olde issuer:", rst)
+		var data = rst.(model.TransactionDataKeys)
+		if rst != nil || rst != "" {
+			log.Println("Issuer is:", data.AccountIssuerPK)
+		}
+		result := model.NFTIssuerAccount{
+			NFTIssuerPK: data.AccountIssuerPK,
+		}
+		w.WriteHeader(http.StatusOK)
+		json.NewEncoder(w).Encode(result)
+
 	}
+}
+
+func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	vars := mux.Vars(r)
+	tx, err := fosponsoring.ActivateFOUser((vars["foUser"]))
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Can not activate user"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	result := apiModel.SubmitXDRSuccess{
+		Status: "Success" + tx,
+	}
+	json.NewEncoder(w).Encode(result)
+
 }
