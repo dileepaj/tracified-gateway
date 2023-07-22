@@ -36,7 +36,7 @@ func (cd *Connection) RemoveFromTempOrphanList(Publickey string, SequenceNo int6
 
 	defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("TempOrphan1")
+	c := session.Client().Database(dbName).Collection("TempOrphan")
 	c.DeleteOne(context.TODO(), bson.M{"publickey": Publickey, "sequenceno": SequenceNo})
 
 	if err != nil {
