@@ -2667,7 +2667,7 @@ func (cd *Connection) GetEthFormulaByName(formulaName string) *promise.Promise {
 		}
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
-		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result)	// 118 = SUCCESS
+		err1 := c.FindOne(context.TODO(), bson.M{"formulaname": formulaName, "status": 118}).Decode(&result) // 118 = SUCCESS
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula by name from db " + err1.Error())
 			reject(err1)
@@ -2817,7 +2817,7 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 	return p
 }
 
-//Get the Ethereum contract status
+// Get the Ethereum contract status
 func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 	result := []model.PendingContracts{}
 
@@ -3112,7 +3112,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
-		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype":txnType})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId, "txntype": txnType})
 
 		if err1 != nil {
 			reject(err1)
@@ -3127,6 +3127,52 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 	})
 
 	return p
+}
+
+func (cd *Connection) GetIssuerAccountByFOUser(StellarPK string) *promise.Promise {
+	result := model.TransactionDataKeys{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IssuerAccounts")
+		err1 := c.FindOne(context.TODO(), bson.M{"fouser": StellarPK}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting Issuing Account from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetIssuerSK(isserPK string) *promise.Promise {
+	result := []model.TransactionDataKeys{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("IssuerAccounts")
+		cursor, err := dbclient.Find(context.TODO(), bson.M{"accountissuerpk": isserPK})
+		if err != nil {
+			reject(err)
+		} else {
+			err := cursor.All(context.TODO(), &(result))
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return promise
 }
 
 func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
@@ -3166,3 +3212,4 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 
 	return p
 }
+

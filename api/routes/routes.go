@@ -629,10 +629,29 @@ var routes = Routes{
 		"/pocv4/merkletree/{txn}",
 		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
+	Route{
+		"SponsorFOAppUserTransactions",
+		"GET",
+		"/foapp/txn",
+		businessFacades.SubmitFOData, //Calls the SponsorFOAppUserTransactions in the StellarHandler
+	},
+	Route{
+		"GetSponsoringAccount",
+		"GET",
+		"/foapp/{foUser}",
+		businessFacades.CreateSponsorer, //Calls the GetSponsoringAccount in the StellarHandler
+	},
+	Route{
+		"ActivateFoUser",
+		"GET",
+		"/activate",
+		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
+  },
 		Route{
 		"POC",
 		"GET",
 		"/tdpdata/txnhash",
 		businessFacades.NewCheckPOEV3, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
+
 	},
 }

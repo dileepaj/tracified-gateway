@@ -711,3 +711,17 @@ func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
 	}
 	return err
 }
+
+func (cd *Connection) InsertIssuingAccountKeys(Keys model.TransactionDataKeys) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("IssuerAccounts")
+	_, err = c.InsertOne(context.TODO(), Keys)
+	if err != nil {
+		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
+}
