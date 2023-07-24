@@ -533,6 +533,8 @@ github.com/spf13/viper v1.7.1/go.mod h1:8WkrPz2fc9jxqZNCJI/76HCieCp4Q8HaLFoCha5q
 github.com/status-im/keycard-go v0.2.0 h1:QDLFswOQu1r5jsycloeQh3bVU8n/NatHHaZobtDnDzA=
 github.com/stellar/go v0.0.0-20220713211913-118efe4d14d4 h1:iKx3BvqksAzWhS5MOuD97ApQAwSA6FKLRRWSJW2XEYI=
 github.com/stellar/go v0.0.0-20220713211913-118efe4d14d4/go.mod h1:KwWGjhG5DceU63MoF4eAsjbt++Pn7hwYfdXS66WouGw=
+github.com/stellar/go v0.0.0-20230705215622-2cc9b7e5a36e h1:bxVFIM9YOQtlVEsh3x2V0vtRddpd0lIXkM+h4yPNjbw=
+github.com/stellar/go v0.0.0-20230705215622-2cc9b7e5a36e/go.mod h1:V/VPmrzgeV9QEFlsg6G9r8c9B902wu3KvuKEGEav6kQ=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee h1:fbVs0xmXpBvVS4GBeiRmAE3Le70ofAqFMch1GTiq/e8=
 github.com/stellar/go-xdr v0.0.0-20211103144802-8017fc4bdfee/go.mod h1:yoxyU/M8nl9LKeWIoBrbDPQ7Cy+4jxRcWcOayZ4BMps=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
