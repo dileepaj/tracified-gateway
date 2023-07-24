@@ -2,13 +2,16 @@ package services
 
 import (
 	"context"
-	"github.com/dileepaj/tracified-gateway/commons"
+	amqp "github.com/rabbitmq/amqp091-go"
+	log "github.com/sirupsen/logrus"
+	"strings"
 	"sync"
 	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
+	"github.com/dileepaj/tracified-gateway/commons"
 )
+
+const queuePrefix = "gateway."
 
 var queueConnection *amqp.Connection
 
@@ -21,6 +24,14 @@ var queueChannelOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
 var queuesConsumers = make(map[string]bool)
+
+func getQueueName(queueName string) string {
+	if strings.HasPrefix(queueName, queuePrefix) {
+		return queueName
+	}
+
+	return queuePrefix + queueName
+}
 
 func GetQueueConnection() (*amqp.Connection, error) {
 	queueConnectionOnce.Do(func() {
@@ -59,6 +70,7 @@ func GetQueueChannel() (*amqp.Channel, error) {
 }
 
 func GetQueue(queueName string) (amqp.Queue, error) {
+	queueName = getQueueName(queueName)
 	ch, err := GetQueueChannel()
 
 	if err != nil {
@@ -94,6 +106,7 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 }
 
 func PublishToQueue(queueName string, message string) error {
+	queueName = getQueueName(queueName)
 	q, _ := GetQueue(queueName)
 	ch, _ := GetQueueChannel()
 
@@ -115,7 +128,8 @@ func PublishToQueue(queueName string, message string) error {
 	return err
 }
 
-func RegisterWorker(queueName string, cmd func([]byte)) error {
+func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
+	queueName = getQueueName(queueName)
 	_, ok := queuesConsumers[queueName]
 	if ok {
 		return nil
@@ -142,8 +156,7 @@ func RegisterWorker(queueName string, cmd func([]byte)) error {
 
 	go func() {
 		for d := range messages {
-			cmd(d.Body)
-			d.Ack(false)
+			cmd(d)
 		}
 	}()
 	<-forever
