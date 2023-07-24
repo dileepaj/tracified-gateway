@@ -7,6 +7,8 @@ import (
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 )
 
@@ -19,35 +21,45 @@ type TransactionStatus struct {
 	}
 }
 
-func GetErrorOfFailedTransaction(transactionHash string) (string, error) {
-	url := commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&txhash=" + transactionHash
+//1- Ethereum, 2-Polygon
+func GetErrorOfFailedTransaction(transactionHash string, blockchainType int) (string, error) {
+	var url string
+	logger := utilities.NewCustomLogger()
+	if blockchainType == 1 {
+		url = commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&txhash=" + transactionHash
+	} else if blockchainType == 2 {
+		url = commons.GoDotEnvVariable("POLYGONSCANTESTNETAPI") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("POLYGONSCANAPIKEY") + "&txhash=" + transactionHash
+	} else {
+		logger.LogWriter("Invalid blockchain type", constants.ERROR)
+		return "", errors.New("Invalid blockchain type")
+	}
 	logrus.Info("Calling the transaction status getter at : " + url)
 	method := "GET"
 
 	client := &http.Client{}
 	req, errWhenCallingTheNewRequest := http.NewRequest(method, url, nil)
 	if errWhenCallingTheNewRequest != nil {
-		logrus.Error("Error when calling the new request : ", errWhenCallingTheNewRequest.Error())
+		logger.LogWriter("Error when calling the new request : "+errWhenCallingTheNewRequest.Error(), constants.ERROR)
 		return "", errors.New("Error when calling the new request : " + errWhenCallingTheNewRequest.Error())
 	}
 
 	res, errWhenCallingUrl := client.Do(req)
 	if errWhenCallingUrl != nil {
-		logrus.Error("Error when calling the transaction url : ", errWhenCallingUrl.Error())
+		logger.LogWriter("Error when calling the transaction url : "+errWhenCallingUrl.Error(), constants.ERROR)
 		return "", errors.New("Error when calling the transaction url : " + errWhenCallingUrl.Error())
 	}
 	defer res.Body.Close()
 
 	body, errWhenReadingTheResponse := ioutil.ReadAll(res.Body)
 	if errWhenReadingTheResponse != nil {
-		logrus.Error("Error when reading the responce : ", errWhenReadingTheResponse.Error())
+		logger.LogWriter("Error when reading the responce : "+errWhenReadingTheResponse.Error(), constants.ERROR)
 		return "", errors.New("Error when reading the responce : " + errWhenReadingTheResponse.Error())
 	}
 
 	var transactionStatus TransactionStatus
 	errorWhenUnmarshalling := json.Unmarshal(body, &transactionStatus)
 	if errorWhenUnmarshalling != nil {
-		logrus.Error("Error when unmarshalling the response : ", errorWhenUnmarshalling.Error())
+		logger.LogWriter("Error when unmarshalling the response : "+errorWhenUnmarshalling.Error(), constants.ERROR)
 		return "", errors.New("Error when unmarshalling the response : " + errorWhenUnmarshalling.Error())
 	}
 

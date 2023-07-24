@@ -171,7 +171,7 @@ func CheckContractStatus() {
 				} else if transactionReceipt.Status == 0 {
 					//Transaction failed
 					//Get the error for the transaction
-					errorOccurred, errWhenGettingTheTransactionError := pendingTransactionHandler.GetErrorOfFailedTransaction(pendingHash)
+					errorOccurred, errWhenGettingTheTransactionError := pendingTransactionHandler.GetErrorOfFailedTransaction(pendingHash, 1)
 					if errWhenGettingTheTransactionError != nil {
 						logrus.Error("Error when getting the transaction error : " + errWhenGettingTheTransactionError.Error())
 						continue

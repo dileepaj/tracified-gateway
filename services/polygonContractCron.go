@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
+	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
 	transactionrecipthandler "github.com/dileepaj/tracified-gateway/services/polygonServices/transactionReciptHandler"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -112,6 +113,28 @@ func CheckPolygonContractStatus() {
 
 				} else if transactionReceipt.Status == "0x0" {
 					//Transaction is failed
+					//Get the error for the transaction failure
+					errorOccurred, errWhenGettingTheTransaction := pendingTransactionHandler.GetErrorOfFailedTransaction(pendingHash, 2)
+					if errWhenGettingTheTransaction != nil {
+						logger.LogWriter("Error when getting the transaction error : "+errWhenGettingTheTransaction.Error(), constants.ERROR)
+						continue
+					}
+					logger.LogWriter(pendingHash+" hash failed due to the error : "+errorOccurred, constants.INFO)
+
+					errorMessage := model.EthErrorMessage{
+						TransactionHash: pendingHash,
+						ErrorMessage:    errorOccurred,
+					}
+
+					errWhenInsertingErrorMessage := object.InsertPolygonErrorMessage(errorMessage)
+					if errWhenInsertingErrorMessage != nil {
+						logger.LogWriter("Error when inserting the error message : "+errWhenInsertingErrorMessage.Error(), constants.ERROR)
+					}
+
+					result[i].Status = 119
+					result[i].ErrorMessage = errorOccurred
+
+					//TODO -Handle metric bind
 
 				}
 				logger.LogWriter(ethClient, constants.INFO)
