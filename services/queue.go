@@ -12,6 +12,8 @@ import (
 )
 
 const queuePrefix = "gateway."
+const queueMaxTry = 10
+const queueDeadLetter = "dead-letter"
 
 var queueConnection *amqp.Connection
 
@@ -105,7 +107,7 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 	return q, err
 }
 
-func PublishToQueue(queueName string, message string) error {
+func PublishToQueue(queueName string, message string, args ...interface{}) error {
 	queueName = getQueueName(queueName)
 	q, _ := GetQueue(queueName)
 	ch, _ := GetQueueChannel()
@@ -113,18 +115,21 @@ func PublishToQueue(queueName string, message string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := ch.PublishWithContext(
-		ctx,
-		"",
-		q.Name,
-		false,
-		false,
-		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
-			Body:         []byte(message),
-		})
+	payload := amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		ContentType:  "text/plain",
+		Body:         []byte(message),
+	}
 
+	// TODO add support for others to be passed
+	for _, arg := range args {
+		switch t := arg.(type) {
+		case amqp.Table:
+			payload.Headers = t
+		}
+	}
+
+	err := ch.PublishWithContext(ctx, "", q.Name, false, false, payload)
 	return err
 }
 
@@ -156,7 +161,23 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 
 	go func() {
 		for d := range messages {
-			cmd(d)
+			if d.Redelivered {
+				d.Ack(false)
+				var deliveryCount int32 = 1
+				if d.Headers["x-delivery-count"] != nil {
+					deliveryCount += d.Headers["x-delivery-count"].(int32)
+				}
+				if deliveryCount >= queueMaxTry {
+					PublishToQueue(queueDeadLetter, string(d.Body), amqp.Table{
+						"x-delivery-count":      deliveryCount,
+						"x-delivery-queue-name": queueName,
+					})
+				} else {
+					PublishToQueue(queueName, string(d.Body), amqp.Table{"x-delivery-count": deliveryCount})
+				}
+			} else {
+				cmd(d)
+			}
 		}
 	}()
 	<-forever
