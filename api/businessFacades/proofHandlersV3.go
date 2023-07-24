@@ -12,7 +12,11 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/utilities"
+
+	//"github.com/go-openapi/runtime/logger"
 	"github.com/stellar/go/support/log"
+	//"github.com/stellar/go/xdr"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -184,7 +188,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
 	response = display.InterpretPOE(TdpData.TdpId)
 	w.WriteHeader(response.RetrievePOE.Error.Code)
-
+	
 	//var txe xdr.Transaction
 	TxnHash := CurrentTxn
 	PublicKey := result.PublicKey
@@ -241,7 +245,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
-		SequenceNo:     result.SequenceNo,
+		SequenceNo:     strconv.FormatInt(result.SequenceNo, 10),
 		TxnType:        "tdp",
 		Status:         response.RetrievePOE.Error.Message,
 		BlockchainName: "Stellar",
@@ -325,7 +329,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				FeePaid:        feePaid,
 				Identifier:     string(Identifier),
 				SourceAccount:  SourceAccount,
-				SequenceNo:     int64(sequenceNo),
+				SequenceNo:     strconv.FormatInt(int64(sequenceNo), 10),
 			}
 
 			POCTree = append(POCTree, temp)
@@ -870,6 +874,101 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 	}
 	return
 }
+
+func NewCheckPOEV3(w http.ResponseWriter, r *http.Request) {
+	//vars := mux.Vars(r)
+	logger := utilities.NewCustomLogger()
+	w.Header().Set("Content-Type", "application/json")
+	
+	object := dao.Connection{}
+
+	key1, error := r.URL.Query()["txn"]
+	if !error || len(key1[0]) < 1 {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Cannot find txn from url"})
+		logger.LogWriter("Cannot find txn from url : ", constants.ERROR);
+		return
+	}
+	// get transaction details by txn hash
+	data, err := object.GetTDPDetailsbyTXNhash(key1[0]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"})
+		logger.LogWriter("Unable to connect gateway datastaore : "+err.Error(), constants.ERROR)
+		return
+	}
+	if data == nil {
+		w.WriteHeader(http.StatusNoContent)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "Error while fetching data from Tracified %s"})
+		logger.LogWriter("Error while fetching data from Tracified : "+err.Error(), constants.ERROR)
+		return
+	}
+	// transaction --> transaction (made by tracified in DB)
+	transaction := data.(model.RetriveTDPDataPOE)
+	var finalResult []model.NewPOEResponse
+	
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+
+	var response model.POE
+	url := constants.TracifiedBackend + "/api/v2/dataPackets/" + transaction.ProfileID + `/` + transaction.TdpId
+	bearer := "Bearer " + constants.BackendToken
+
+	req, er := http.NewRequest("GET", url, nil)
+	if er != nil {
+		log.Error("Error while create new request using http " + er.Error())
+	}
+	req.Header.Add("Authorization", bearer)
+	client := &http.Client{}
+	resq, er := client.Do(req)
+	if er != nil {
+		log.Error("Error while getting response " + er.Error())
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	body, err := ioutil.ReadAll(resq.Body)
+	if err != nil {
+		log.Error("Error while ioutil.ReadAll(resq.Body) " + err.Error())
+	}
+	h := sha256.New()
+	var TdpData model.TDPData
+	json.Unmarshal(body, &TdpData)
+
+	h.Write([]byte(fmt.Sprintf("%s", TdpData.Data) + TdpData.Identifier))
+	dataHash := hex.EncodeToString(h.Sum(nil))
+
+	poeStructObj := apiModel.POEStruct{Txn: transaction.TxnHash, Hash: dataHash}
+	display := &interpreter.AbstractPOE{POEStruct: poeStructObj}
+	response = display.InterpretPOE(TdpData.TdpId)
+	w.WriteHeader(response.RetrievePOE.Error.Code)
+	
+	//TxnHash := CurrentTxn
+	temp := model.NewPOEResponse{
+		TDPData: TdpData.Data,
+		Identifier: transaction.Identifier,
+		TDPIdentifier: TdpData.Identifier,
+		Txnhash: transaction.TxnHash,
+		TdpId: transaction.TdpId,
+		MapIdentifier: transaction.MapIdentifier,
+		ProfileID: transaction.ProfileID,}
+
+	finalResult = append(finalResult, temp)
+
+	json.NewEncoder(w).Encode(finalResult)
+	return
+
+}
+
+
+
+
+
+
+
+
 
 type PublicKeyPOC struct {
 	Name  string

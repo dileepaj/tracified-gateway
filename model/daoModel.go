@@ -178,7 +178,7 @@ type POEResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Url            string
 	LabUrl         string
 	SourceAccount  string
@@ -195,7 +195,7 @@ type POCResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Identifier     string
 	DataHash       string
 	BlockchainName string
@@ -577,4 +577,13 @@ type PendingNFTS struct {
 	ImageBase64   string
 	User          string
 	Version       string
+}
+type NewPOEResponse struct {
+	TDPData			string
+	Identifier     	string
+	TDPIdentifier   string
+	Txnhash        	string
+	TdpId      		string
+	MapIdentifier   string
+	ProfileID       string
 }

@@ -16,7 +16,7 @@ require (
 	github.com/rabbitmq/amqp091-go v1.5.0
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/sirupsen/logrus v1.8.1
-	github.com/stellar/go v0.0.0-20220713211913-118efe4d14d4
+	github.com/stellar/go v0.0.0-20230705215622-2cc9b7e5a36e
 	github.com/tidwall/gjson v1.9.3
 	go.mongodb.org/mongo-driver v1.9.1
 	gopkg.in/gomail.v2 v2.0.0-20160411212932-81ebce5c23df
