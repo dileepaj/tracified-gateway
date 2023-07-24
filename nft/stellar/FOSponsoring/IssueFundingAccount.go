@@ -1,7 +1,6 @@
 package fosponsoring
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -19,7 +18,6 @@ CreateNFTIssuerAccount
 @params - None
 */
 func CreateIssuerAccountForFOUser() (string, string, []byte, error) {
-	fmt.Println("--------------test 4")
 	var AccountKeyEncodedPassword string = commons.GoDotEnvVariable("NFTAccountKeyEncodedPassword")
 	// generate new issuer keypair
 	pair, err := keypair.Random()
