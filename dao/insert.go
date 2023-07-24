@@ -713,7 +713,6 @@ func (cd *Connection) InsertToNFTStatus(NFT model.PendingNFTS) error {
 }
 
 func (cd *Connection) InsertIssuingAccountKeys(Keys model.TransactionDataKeys) error {
-	fmt.Println("--------------test 5")
 	session, err := cd.connect()
 	if err != nil {
 		log.Println("Error when connecting to DB " + err.Error())
