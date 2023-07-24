@@ -11,19 +11,26 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
+	fosponsoring "github.com/dileepaj/tracified-gateway/nft/stellar/FOSponsoring"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
 
-/*Transaction - Deprecated
+/*
+Transaction - Deprecated
 @author - Azeem Ashraf, Jajeththanan Sabapathipillai
 @params - ResponseWriter,Request
 */
+
+var accountStatus string
+
 func Transaction(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	TType := (vars["TType"])
@@ -220,8 +227,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 
 }
 
-
-/*SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
+/*
+SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -266,13 +273,14 @@ func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitData - @desc Handles an incoming request and calls the dataBuilder
+/*
+SubmitData - @desc Handles an incoming request and calls the dataBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
 	// proper naming
-	// single responsibility 
+	// single responsibility
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var TDP []model.TransactionCollectionBody
 
@@ -312,7 +320,8 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitSplit - @desc Handles an incoming request and calls the splitBuilder
+/*
+SubmitSplit - @desc Handles an incoming request and calls the splitBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -356,7 +365,8 @@ func SubmitSplit(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitMerge - @desc Handles an incoming request and calls the mergeBuilder
+/*
+SubmitMerge - @desc Handles an incoming request and calls the mergeBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -401,7 +411,8 @@ func SubmitMerge(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitTransformation - Needs to be Refurbished @desc Handles an incoming request and calls the TransformationBuilder
+/*
+SubmitTransformation - Needs to be Refurbished @desc Handles an incoming request and calls the TransformationBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -445,7 +456,8 @@ func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitTransfer - Needs to be Refurbished @desc Handles an incoming request and calls the TransferBuilder
+/*
+SubmitTransfer - Needs to be Refurbished @desc Handles an incoming request and calls the TransferBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -487,8 +499,8 @@ func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-
-/*SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
+/*
+SubmitCertificateInsert - @desc Handles an incoming request and calls the CertificateInsertBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -534,7 +546,8 @@ func SubmitCertificateInsert(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitCertificateRenewal - @desc Handles an incoming request and calls the CertificateRevewalBuilder
+/*
+SubmitCertificateRenewal - @desc Handles an incoming request and calls the CertificateRevewalBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -580,7 +593,8 @@ func SubmitCertificateRenewal(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*SubmitCertificateRevoke - @desc Handles an incoming request and calls the CertificateRevokeBuilder
+/*
+SubmitCertificateRevoke - @desc Handles an incoming request and calls the CertificateRevokeBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -626,7 +640,8 @@ func SubmitCertificateRevoke(w http.ResponseWriter, r *http.Request) {
 	return
 }
 
-/*LastTxn - @desc Handles an incoming request and Returns the Last TXN for the Identifier in the Params
+/*
+LastTxn - @desc Handles an incoming request and Returns the Last TXN for the Identifier in the Params
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -662,7 +677,8 @@ type TranXDR struct {
 	XDR string `json:"XDR"`
 }
 
-/*ConvertXDRToTXN - Test Endpoint @desc Handles an incoming request and Returns the TXN Hash for teh XDR Provided
+/*
+ConvertXDRToTXN - Test Endpoint @desc Handles an incoming request and Returns the TXN Hash for teh XDR Provided
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -715,7 +731,7 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	}
 
 	//brr := txnbuild.TransactionFrom{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
-	brr,_ := txnbuild.TransactionFromXDR(TDP.XDR)
+	brr, _ := txnbuild.TransactionFromXDR(TDP.XDR)
 	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
 	// fmt.Println(brr.Hash())
 	t, _ := brr.Hash(network.TestNetworkPassphrase)
@@ -732,7 +748,8 @@ type TDP struct {
 	TdpId string `json:"tdpId"`
 }
 
-/*TDPForTXN - Test Endpoint @desc Handles an incoming request and Returns the TDP ID for the TXN Provided.
+/*
+TDPForTXN - Test Endpoint @desc Handles an incoming request and Returns the TDP ID for the TXN Provided.
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -762,7 +779,8 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 
 }
 
-/*TXNForTDP - Test Endpoint @desc Handles an incoming request and Returns the TXN ID for the TDP ID Provided.
+/*
+TXNForTDP - Test Endpoint @desc Handles an incoming request and Returns the TXN ID for the TDP ID Provided.
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
@@ -904,7 +922,7 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 
 	//call backend to get identiderby artifactId
-	url := constants.TracifiedBackend+"/api/v2/identifiers/artifact/" + vars["artifactid"]
+	url := constants.TracifiedBackend + "/api/v2/identifiers/artifact/" + vars["artifactid"]
 	bearer := "Bearer " + constants.BackendToken
 	// Create a new request using http
 	req, err := http.NewRequest("GET", url, nil)
@@ -927,45 +945,207 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	}
 	var identifiers []string
 	json.Unmarshal(body, &identifiers)
-	if(resq.StatusCode==200||resq.StatusCode==204){
-	if(len(identifiers)>0){
-	p := object.GetRealIdentifiersByArtifactId(identifiers)
-	p.Then(func(data interface{}) interface{} {
-		dbResult := data.([]model.TransactionCollectionBody)
-			for _, TxnBody := range dbResult {
-			temp := model.TransactionHashWithIdentifier{
-				Status: TxnBody.Status,
-				Txnhash: TxnBody.TxnHash,
-				Identifier:     TxnBody.Identifier,
-				FromIdentifier1: TxnBody.FromIdentifier1,
-				FromIdentifier2: TxnBody.FromIdentifier2,
-				ToIdentifier: TxnBody.ToIdentifier,
-				TxnType:        GetTransactiontype(TxnBody.TxnType),
-				AvailableProof: GetProofName(TxnBody.TxnType),
-				ProductID:  TxnBody.ProductID,
-				ProductName:    TxnBody.ProductName,
+	if resq.StatusCode == 200 || resq.StatusCode == 204 {
+		if len(identifiers) > 0 {
+			p := object.GetRealIdentifiersByArtifactId(identifiers)
+			p.Then(func(data interface{}) interface{} {
+				dbResult := data.([]model.TransactionCollectionBody)
+				for _, TxnBody := range dbResult {
+					temp := model.TransactionHashWithIdentifier{
+						Status:          TxnBody.Status,
+						Txnhash:         TxnBody.TxnHash,
+						Identifier:      TxnBody.Identifier,
+						FromIdentifier1: TxnBody.FromIdentifier1,
+						FromIdentifier2: TxnBody.FromIdentifier2,
+						ToIdentifier:    TxnBody.ToIdentifier,
+						TxnType:         GetTransactiontype(TxnBody.TxnType),
+						AvailableProof:  GetProofName(TxnBody.TxnType),
+						ProductID:       TxnBody.ProductID,
+						ProductName:     TxnBody.ProductName,
+					}
+					result = append(result, temp)
 				}
-			result = append(result, temp)
-				}
-		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(result)
-		return nil
-	}).Catch(func(error error) error {
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: error.Error()}
-		json.NewEncoder(w).Encode(response)
-		return error
-	}).Await()
-	}else{
-		w.WriteHeader(http.StatusNoContent)
-		response := model.Error{Message: "Can not find the identires for artifactid"}
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(result)
+				return nil
+			}).Catch(func(error error) error {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: error.Error()}
+				json.NewEncoder(w).Encode(response)
+				return error
+			}).Await()
+		} else {
+			w.WriteHeader(http.StatusNoContent)
+			response := model.Error{Message: "Can not find the identires for artifactid"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+	} else {
+		w.WriteHeader(http.StatusBadGateway)
+		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
-}else {
-	w.WriteHeader(http.StatusBadGateway)
-	response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
-	json.NewEncoder(w).Encode(response)
-	return
 }
+
+func SubmitFOData(w http.ResponseWriter, r *http.Request) {
+	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
+		logger := utilities.NewCustomLogger()
+		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+		var Response model.TransactionData
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&Response)
+		if err != nil {
+			logger.LogWriter("Error submitting data to the blockchain : "+err.Error(), constants.ERROR)
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Error submitting data to the blockchain"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		if Response.XDR != "" && Response.FOUser != "" && Response.AccountIssuer != "" {
+			resp, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + Response.FOUser)
+			if err != nil {
+				logrus.Error("Error making HTTP request:", err)
+				return
+			}
+			defer resp.Body.Close()
+
+			if resp.StatusCode == http.StatusNotFound {
+				accountStatus = "0"
+			} else {
+				accountStatus = "1"
+			}
+			if accountStatus == "0" {
+				logrus.Error("Account of FO User is inactive")
+			}
+
+			if accountStatus == "1" {
+				object := dao.Connection{}
+				p := object.GetIssuerAccountByFOUser(Response.FOUser)
+				rst, err := p.Await()
+				if err != nil {
+					logrus.Error("There was an error cant get issuer!")
+				} else {
+					var data = rst.(model.TransactionDataKeys)
+					if rst != nil || rst != "" {
+						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + data.AccountIssuerPK)
+						body, err := ioutil.ReadAll(result1.Body)
+						if err != nil {
+							log.Error("Error while read response " + err.Error())
+						}
+						var balances model.BalanceResponse
+						err = json.Unmarshal(body, &balances)
+						if err != nil {
+							log.Error("Error while json.Unmarshal(body, &balance) " + err.Error())
+						}
+
+						balance := balances.Balances[0].Balance
+
+						if balance < "10" {
+							hash, err := fosponsoring.FundAccount(data.AccountIssuerPK)
+							if err != nil {
+								log.Error("Error while funding issuer " + err.Error())
+							}
+							logrus.Info("funded and hash is : ", hash)
+						}
+
+						var TransactionPayload = model.TransactionData{
+							FOUser:        Response.FOUser,
+							AccountIssuer: data.AccountIssuerPK,
+							XDR:           Response.XDR,
+						}
+
+						hash, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
+						if err != nil {
+							log.Error(err)
+						} else {
+							w.Header().Set("Content-Type", "application/json;")
+							w.WriteHeader(http.StatusOK)
+							result := model.Hash{
+								Hash: hash,
+							}
+							logrus.Info("Hash been passed to frontend : ", result)
+							json.NewEncoder(w).Encode(result)
+						}
+
+					}
+				}
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: "Can not create XDR and submit"}
+				json.NewEncoder(w).Encode(response)
+			}
+		}
+	}
+}
+
+func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
+		object := dao.Connection{}
+		vars := mux.Vars(r)
+		p := object.GetIssuerAccountByFOUser((vars["foUser"]))
+		rst, err := p.Await()
+		if err != nil {
+			var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
+			if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
+				w.WriteHeader(http.StatusInternalServerError)
+				json.NewEncoder(w).Encode(err)
+			} else {
+				var Keys = model.TransactionDataKeys{
+					FOUser:          (vars["foUser"]),
+					AccountIssuerPK: IssuerPK,
+					AccountIssuerSK: encSK,
+				}
+				//adding the credentials to the DB
+				object := dao.Connection{}
+				err := object.InsertIssuingAccountKeys(Keys)
+				if err != nil {
+					logrus.Error(err)
+				}
+
+				//send the response
+				result := model.NFTIssuerAccount{
+					NFTIssuerPK: IssuerPK,
+				}
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(result)
+			}
+		} else {
+			var data = rst.(model.TransactionDataKeys)
+			if rst != nil || rst != "" {
+				logrus.Info("Issuer is:", data.AccountIssuerPK)
+			}
+			result := model.NFTIssuerAccount{
+				NFTIssuerPK: data.AccountIssuerPK,
+			}
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(result)
+
+		}
+	}
+}
+
+func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
+		var Response model.ActivateXDR
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&Response)
+		tx, err := fosponsoring.ActivateFOUser(Response.XDR)
+		if err != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Can not activate user"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		result := model.Hash{
+			Hash: tx,
+		}
+		json.NewEncoder(w).Encode(result)
+	}
+
 }

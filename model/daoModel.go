@@ -566,6 +566,10 @@ type XDRRuri struct {
 	XDR string
 }
 
+type Hash struct {
+	Hash string
+}
+
 type PendingNFTS struct {
 	Blockchain    string
 	NFTIdentifier string
