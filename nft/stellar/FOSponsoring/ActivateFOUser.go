@@ -1,68 +1,61 @@
 package fosponsoring
 
 import (
-	"log"
-
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
-	"github.com/dileepaj/tracified-gateway/utilities"
-	"github.com/stellar/go/clients/horizonclient"
+	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/keypair"
+	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
+	"github.com/stellar/go/xdr"
 )
 
-func ActivateFOUser(fouser string) (string, error) {
-	client := commons.GetHorizonClient()
-	beginSponsorship := txnbuild.BeginSponsoringFutureReserves{
-		SponsoredID:   fouser,
-		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
+func ActivateFOUser(xdrs string) (string, error) {
+
+	transactionx, err1 := txnbuild.TransactionFromXDR(xdrs)
+	if err1 != nil {
+		return "", err1
 	}
 
-	createAccount := txnbuild.CreateAccount{
-		Destination:   fouser,
-		Amount:        "0",
-		SourceAccount: commons.GoDotEnvVariable("SPONSORERPK"),
+	txes, vals := transactionx.Transaction()
+	logrus.Info("value to show the GT can be packed is ", vals)
+
+	additionalSigners, err2 := keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
+	if err2 != nil {
+		logrus.Error(err2)
 	}
 
-	endSponsorship := txnbuild.EndSponsoringFutureReserves{
-		SourceAccount: fouser,
+	hashXDRs, err3 := txes.Hash(network.TestNetworkPassphrase)
+	if err3 != nil {
+		logrus.Error(err3)
 	}
 
-	accountRequest := horizonclient.AccountRequest{AccountID: commons.GoDotEnvVariable("SPONSORERPK")}
-	sourceAccount, err := client.AccountDetail(accountRequest)
-	if err != nil {
-		log.Fatal(err)
+	signers, err4 := additionalSigners.SignDecorated(hashXDRs[:])
+	if err4 != nil {
+		logrus.Error(err4)
 	}
 
-	tx, err := txnbuild.NewTransaction(
-		txnbuild.TransactionParams{
-			SourceAccount:        &sourceAccount,
-			IncrementSequenceNum: true,
-			Operations:           []txnbuild.Operation{&beginSponsorship, &createAccount, &endSponsorship},
-			BaseFee:              constants.MinBaseFee,
-			Memo:                 nil,
-			Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
-		},
-	)
-	if err != nil {
-		log.Fatal("Error while trying to build tranaction: ", err)
+	hints := additionalSigners.Hint()
+
+	decoratedSignatures := xdr.DecoratedSignature{
+		Signature: signers.Signature,
+		Hint:      hints,
 	}
 
-	sposorerSK := commons.GoDotEnvVariable("SPONSORERSK")
-	sponsorerKeypair, _ := keypair.ParseFull(sposorerSK)
-
-	txe64, err := tx.Sign(commons.GetStellarNetwork(), sponsorerKeypair)
-	if err != nil {
-		hError := err.(*horizonclient.Error)
-		log.Fatal("Error when submitting the transaction : ", hError)
+	txesignexs, err5 := txes.AddSignatureDecorated(decoratedSignatures)
+	if err5 != nil {
+		return "", err5
 	}
 
-	txe, err := txe64.Base64()
-	if err != nil {
-		logger := utilities.NewCustomLogger()
-		logger.LogWriter("Error converting to B64 : "+err.Error(), constants.ERROR)
-		return txe, err
+	txesignexs.ToXDR()
+	bs64xdrs, errsignex := txesignexs.Base64()
+	if errsignex != nil {
+		return "", errsignex
 	}
+	logrus.Info("xdr signed base 64: ", bs64xdrs)
 
-	return txe, nil
+	respns, errsubmitting := commons.GetHorizonClient().SubmitTransaction(txesignexs)
+	if errsubmitting != nil {
+		logrus.Error("Error submitting transaction:", errsubmitting)
+	}
+	return respns.Hash, nil
 }

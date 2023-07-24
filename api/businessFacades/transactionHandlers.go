@@ -991,55 +991,44 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
 		logger := utilities.NewCustomLogger()
-		fmt.Println("----------test1")
 		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 		var Response model.TransactionData
 		decoder := json.NewDecoder(r.Body)
 		decoder.DisallowUnknownFields()
 		err := decoder.Decode(&Response)
-		fmt.Println("-------------test2", Response)
 		if err != nil {
-			fmt.Println("error is ----------------", err)
 			logger.LogWriter("Error submitting data to the blockchain : "+err.Error(), constants.ERROR)
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Error submitting data to the blockchain"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
-		fmt.Println("-------------test2", Response)
 		if Response.XDR != "" && Response.FOUser != "" && Response.AccountIssuer != "" {
 			resp, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + Response.FOUser)
 			if err != nil {
-				fmt.Println("Error making HTTP request:", err)
+				logrus.Error("Error making HTTP request:", err)
 				return
 			}
 			defer resp.Body.Close()
 
 			if resp.StatusCode == http.StatusNotFound {
-				fmt.Println("Account not found.")
 				accountStatus = "0"
 			} else {
 				accountStatus = "1"
 			}
-
-			fmt.Println("Account is : ", accountStatus)
-
 			if accountStatus == "0" {
-				fmt.Println("The FO user is inactive")
+				logrus.Error("Account of FO User is inactive")
 			}
 
 			if accountStatus == "1" {
 				object := dao.Connection{}
 				p := object.GetIssuerAccountByFOUser(Response.FOUser)
 				rst, err := p.Await()
-				log.Println("Await response:", rst)
 				if err != nil {
-					fmt.Println("There was an error cant get issuer!")
+					logrus.Error("There was an error cant get issuer!")
 				} else {
-					log.Println("Await response in old fo account fo olde issuer:", rst)
 					var data = rst.(model.TransactionDataKeys)
 					if rst != nil || rst != "" {
-						log.Println("Issuer is:", data.AccountIssuerPK)
 						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + data.AccountIssuerPK)
 						body, err := ioutil.ReadAll(result1.Body)
 						if err != nil {
@@ -1052,14 +1041,13 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 						}
 
 						balance := balances.Balances[0].Balance
-						fmt.Println("Account balance:", balance)
 
 						if balance < "10" {
 							hash, err := fosponsoring.FundAccount(data.AccountIssuerPK)
 							if err != nil {
 								log.Error("Error while funding issuer " + err.Error())
 							}
-							fmt.Println("funded and hash is : ", hash)
+							logrus.Info("funded and hash is : ", hash)
 						}
 
 						var TransactionPayload = model.TransactionData{
@@ -1068,16 +1056,16 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 							XDR:           Response.XDR,
 						}
 
-						xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
+						hash, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
 						if err != nil {
-							log.Println(err)
+							log.Error(err)
 						} else {
 							w.Header().Set("Content-Type", "application/json;")
 							w.WriteHeader(http.StatusOK)
-							result := model.XDRRuri{
-								XDR: xdr,
+							result := model.Hash{
+								Hash: hash,
 							}
-							logrus.Println("XDR been passed to frontend : ", result)
+							logrus.Info("Hash been passed to frontend : ", result)
 							json.NewEncoder(w).Encode(result)
 						}
 
@@ -1085,7 +1073,7 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				w.WriteHeader(http.StatusBadRequest)
-				response := model.Error{Message: "Can not create XDR"}
+				response := model.Error{Message: "Can not create XDR and submit"}
 				json.NewEncoder(w).Encode(response)
 			}
 		}
@@ -1099,9 +1087,7 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 		vars := mux.Vars(r)
 		p := object.GetIssuerAccountByFOUser((vars["foUser"]))
 		rst, err := p.Await()
-		log.Println("Await response:", rst)
 		if err != nil {
-			fmt.Println("There was an error cant get issuer!")
 			var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
 			if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
 				w.WriteHeader(http.StatusInternalServerError)
@@ -1116,7 +1102,7 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 				object := dao.Connection{}
 				err := object.InsertIssuingAccountKeys(Keys)
 				if err != nil {
-					log.Println(err)
+					logrus.Error(err)
 				}
 
 				//send the response
@@ -1127,10 +1113,9 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 			}
 		} else {
-			log.Println("Await response in old fo account fo olde issuer:", rst)
 			var data = rst.(model.TransactionDataKeys)
 			if rst != nil || rst != "" {
-				log.Println("Issuer is:", data.AccountIssuerPK)
+				logrus.Info("Issuer is:", data.AccountIssuerPK)
 			}
 			result := model.NFTIssuerAccount{
 				NFTIssuerPK: data.AccountIssuerPK,
@@ -1145,8 +1130,11 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
-		vars := mux.Vars(r)
-		tx, err := fosponsoring.ActivateFOUser((vars["foUser"]))
+		var Response model.ActivateXDR
+		decoder := json.NewDecoder(r.Body)
+		decoder.DisallowUnknownFields()
+		err := decoder.Decode(&Response)
+		tx, err := fosponsoring.ActivateFOUser(Response.XDR)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Can not activate user"}
@@ -1154,8 +1142,8 @@ func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Success" + tx,
+		result := model.Hash{
+			Hash: tx,
 		}
 		json.NewEncoder(w).Encode(result)
 	}

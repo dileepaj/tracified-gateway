@@ -644,7 +644,7 @@ var routes = Routes{
 	Route{
 		"ActivateFoUser",
 		"GET",
-		"/foapp/activate/{foUser}",
+		"/activate",
 		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
 	},
 }

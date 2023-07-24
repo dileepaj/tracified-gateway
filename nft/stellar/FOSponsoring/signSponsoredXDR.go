@@ -1,7 +1,6 @@
 package fosponsoring
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -20,12 +19,12 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 
 	object := dao.Connection{}
 	//getting the issuer secret key
-	data, err := object.GetIssuerSK(payload.AccountIssuer).Then(func(data interface{}) interface{} {
+	data, errkey := object.GetIssuerSK(payload.AccountIssuer).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
-	if err != nil {
-		log.Println(err)
-		return "", err
+	if errkey != nil {
+		log.Println(errkey)
+		return "", errkey
 	} else {
 		Keys := data.([]model.TransactionDataKeys)
 		//decrypt the secret key
@@ -38,35 +37,28 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 		// Parse the transaction XDR
 		transaction, err1 := txnbuild.TransactionFromXDR(transactionXDR)
 		if err1 != nil {
-			fmt.Println("Error parsing transaction XDR:", err1)
 			return "", err1
 		}
 
 		txe, val := transaction.Transaction()
-		fmt.Println("value to show the GT can be packed is ", val)
-		fmt.Println("New Transaction is ", txe)
+		logrus.Info("The value of the transaction is: ", val)
 
-		///////////////////////////
-		additionalSigner, err := keypair.Parse(myStellarSeed) //decryptSK
-		if err != nil {
-			fmt.Println("------------rrrrrrrrr------------", err)
+		additionalSigner, errpair := keypair.Parse(myStellarSeed) //decryptSK
+		if errpair != nil {
+			logrus.Error("Failed to parse into keypair", errpair)
 		}
-		fmt.Println("key pait signer------------- : ", additionalSigner)
 
-		hashXDR, err := txe.Hash(network.TestNetworkPassphrase)
-		if err != nil {
-			panic(err)
+		hashXDR, errhash := txe.Hash(network.TestNetworkPassphrase)
+		if errhash != nil {
+			logrus.Error(errhash)
 		}
-		fmt.Println("hash is ", hashXDR)
 
-		signer, err := additionalSigner.SignDecorated(hashXDR[:])
-		if err != nil {
-			panic(err)
+		signer, errsigner := additionalSigner.SignDecorated(hashXDR[:])
+		if errsigner != nil {
+			logrus.Error(errsigner)
 		}
-		fmt.Println("signer is ", signer)
 
 		hint := additionalSigner.Hint()
-		fmt.Println("hint ", hint)
 
 		decoratedSignature := xdr.DecoratedSignature{
 			Signature: signer.Signature,
@@ -75,44 +67,16 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 
 		txesignex, errx := txe.AddSignatureDecorated(decoratedSignature)
 		if errx != nil {
-			fmt.Println("Error parsing Stellar secret seed:", errx)
 			return "", errx
 		}
-		fmt.Println("sign txe : ", txesignex)
-		////////////////////////////////////////////////
 
-		// txesigned, err3 := txe.SignWithKeyString(myStellarSeed)
-		// if err3 != nil {
-		// 	fmt.Println("Error parsing Stellar secret seed:", err3)
-		// 	return
-		// }
+		txesignex.ToXDR()
 
-		// fmt.Println("signed transaction ", txesigned)
-		xdrsignex := txesignex.ToXDR()
-		bs64xdr, errsignex := txesignex.Base64()
-		if errsignex != nil {
-			fmt.Println("Error parsing Stellar base64:", errsignex)
-			return "", errsignex
+		respn, errsubmitting := commons.GetHorizonClient().SubmitTransaction(txesignex)
+		if errsubmitting != nil {
+			logrus.Error("Error submitting transaction:", errsubmitting)
 		}
-		fmt.Println("xdr signed: ", xdrsignex)
-		fmt.Println("xdr signed base 64: ", bs64xdr)
-
-		// xdrs := txe.ToXDR()
-		// bs64, err64 := txe.Base64()
-		// if err64 != nil {
-		// 	fmt.Println("Error parsing Stellar base64:", err64)
-		// 	return
-		// }
-
-		// fmt.Println("signs are they present? : ", txe.Signatures())
-
-		// fmt.Println("sign txe bs64: ", bs64)
-
-		// fmt.Println("new xdr is : ", xdrs)
-		// xdrstring := xdrs.GoString()
-		// fmt.Println("new xdr string is : ", xdrstring)
-		// fmt.Println("sign : ", xdrs)
-		return bs64xdr, nil
+		return respn.Hash, nil
 	}
 
 }

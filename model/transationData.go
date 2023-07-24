@@ -26,3 +26,7 @@ type BalanceResponse struct {
 type AccountResponse struct {
 	AccountID string `json:"account_id"`
 }
+
+type ActivateXDR struct {
+	XDR string `json:"xdr"`
+}
