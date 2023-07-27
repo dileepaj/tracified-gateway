@@ -14,7 +14,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/gasServices/gasPriceServices"
 	"github.com/dileepaj/tracified-gateway/utilities"
-	"github.com/dileepaj/tracified-gateway/vendor/github.com/ethereum/go-ethereum/ethclient"
+	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func MinimumGasPriceGetterForPolygon() (*big.Int, error) {

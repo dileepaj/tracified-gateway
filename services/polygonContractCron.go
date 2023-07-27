@@ -9,9 +9,9 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/pendingTransactionHandler"
+	polygonservices "github.com/dileepaj/tracified-gateway/services/polygonServices"
 	transactionrecipthandler "github.com/dileepaj/tracified-gateway/services/polygonServices/transactionReciptHandler"
 	"github.com/dileepaj/tracified-gateway/utilities"
-	"github.com/ethereum/go-ethereum/ethclient"
 )
 
 func CheckPolygonContractStatus() {
@@ -21,11 +21,6 @@ func CheckPolygonContractStatus() {
 	p := object.GetPendingContractsByStatus(117, "PolygonPendingTransactions")
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
-		ethClient, errWHenDialingEthClient := ethclient.Dial(commons.GoDotEnvVariable("POLYGONALCHEMYTESTNETLINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY"))
-		if errWHenDialingEthClient != nil {
-			logger.LogWriter("Error when calling th Ethereum client on Cron job, Error : "+errWHenDialingEthClient.Error(), constants.ERROR)
-			return nil
-		}
 		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDINGTHRESHOLD"))
 		if errWhenConvertingPendingCap != nil {
 			logger.LogWriter("Error when converting the pending cap : "+errWhenConvertingPendingCap.Error(), constants.ERROR)
@@ -134,10 +129,71 @@ func CheckPolygonContractStatus() {
 					result[i].Status = 119
 					result[i].ErrorMessage = errorOccurred
 
+					if result[i].ContractType == "POLYGONEXPERTFORMULA" {
+						errWhenUpdatingCollection := dbCollectionHandler.UpdateCollectionsWithNewStatusForPolygon(result[i], 119)
+						if errWhenUpdatingCollection != nil {
+							logger.LogWriter("Error when updating the collection : "+errWhenUpdatingCollection.Error(), constants.ERROR)
+							continue
+						}
+						// updating status and actual status in the database
+						formulaObj.Status = 119       // FAILED
+						formulaObj.ActualStatus = 114 // DEPLOYMENT_TRANSACTION_FAILED
+						errWhenUpdatingActualStatus := object.UpdateSelectedPolygonFormulaFields(formulaObj.FormulaID, formulaObj.TransactionUUID, formulaObj)
+						if errWhenUpdatingActualStatus != nil {
+							logger.LogWriter("Error when updating the actual status of the formula : "+errWhenUpdatingActualStatus.Error(), constants.ERROR)
+							continue
+						}
+					}
 					//TODO -Handle metric bind
 
+					//call the failed contact redeployer
+					if result[i].ContractType == "ETHEXPERTFORMULA" {
+						// use deployment strategy
+						deployer := &polygonservices.PolygonContractDeployerContext{}
+						deployer.SetContractDeploymentStrategyForPolygon(&polygonservices.PolygonAbstractContractRedeployment{
+							PendingContract: model.PendingContracts{
+								TransactionHash: "",
+								ContractAddress: "",
+								Status:          0,
+								CurrentIndex:    result[i].CurrentIndex,
+								ErrorMessage:    result[i].ErrorMessage,
+								ContractType:    result[i].ContractType,
+								Identifier:      result[i].Identifier,
+								Nonce:           result[i].Nonce,
+								GasPrice:        result[i].GasPrice,
+								GasLimit:        result[i].GasLimit,
+							},
+						})
+						contractAddress, transactionHash, _, nonce, gasPrice, gasLimit, errWhenRedeploying := deployer.PolygonExecuteContractDeployment()
+						if errWhenRedeploying != nil {
+							logger.LogWriter("Error when redeploying the failed transaction : "+errWhenRedeploying.Error(), constants.ERROR)
+							//update collection
+							updatePending := model.PendingContracts{
+								TransactionHash: transactionHash,
+								ContractAddress: contractAddress,
+								Status:          120, // CANCELLED
+								CurrentIndex:    result[i].CurrentIndex + 1,
+								ErrorMessage:    errWhenRedeploying.Error(),
+								ContractType:    result[i].ContractType,
+								Identifier:      result[i].Identifier,
+								Nonce:           nonce,
+								GasPrice:        gasPrice,
+								GasLimit:        gasLimit,
+							}
+							errWhenUpdatingStatus := dbCollectionHandler.UpdateCollectionsWithNewStatus(updatePending, 120)
+							if errWhenUpdatingStatus != nil {
+								logger.LogWriter("Error when updating status of the transaction : "+errWhenUpdatingStatus.Error(), constants.ERROR)
+								continue
+							}
+
+							continue
+						}
+					}
+
+				} else {
+					logger.LogWriter("Invalid transaction receipt status for transaction hash : "+pendingHash, constants.ERROR)
+					continue
 				}
-				logger.LogWriter(ethClient, constants.INFO)
 			}
 
 		}
