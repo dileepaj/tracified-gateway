@@ -57,3 +57,11 @@ type IdentifierModel struct {
 	Identifier string
 	Type       string
 }
+
+type TDPOperationRequest struct {
+	Index int
+	Identifier string
+	TDPID string
+	XDR string
+	Status string
+}
