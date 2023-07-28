@@ -28,7 +28,7 @@ func GenerateBIN(contractName string, reqType string) (string, error) {
 		cmdBINGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
 	} else if reqType == "POLYGONEXPERT" {
 		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o polygonformulabuild")
-		cmdBINGen.Dir = commons.GoDotEnvVariable("")
+		cmdBINGen.Dir = commons.GoDotEnvVariable("POLYGONEXPERTLOCATION")
 	} else {
 		logrus.Error("Invalid request type for BIN generator , TYPE : ", reqType)
 		return binString, errors.New("Invalid request type for BIN generator , TYPE : " + reqType)
@@ -50,7 +50,7 @@ func GenerateBIN(contractName string, reqType string) (string, error) {
 	} else if reqType == "METRIC" {
 		location = commons.GoDotEnvVariable("METRICBUILDLOCATION") + "/" + fileName
 	} else if reqType == "POLYGONEXPERT" {
-		location = commons.GoDotEnvVariable("") + "/" + fileName
+		location = commons.GoDotEnvVariable("POLYGONEXPERTBUILDLOCATION") + "/" + fileName
 	} else {
 		logrus.Error("Invalid request type for BIN reader , TYPE : ", reqType)
 		return binString, errors.New("Invalid request type for BIN reader , TYPE : " + reqType)

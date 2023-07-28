@@ -12,6 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	codeGenerator "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula/executionTemplates"
+	deletecontract "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula/deleteContract"
 	experthelpers "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula/expertHelpers"
 	expertformula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/utilities"
@@ -185,6 +186,13 @@ func PolygonExpertFormulaContractGenerator(w http.ResponseWriter, r *http.Reques
 			commons.JSONErrorReturn(w, r, errWhenUpdatingOrInsertingAfterQueue.Error(), http.StatusInternalServerError, "Error when updating/inserting to polygon collections")
 			return
 		}
+
+		//contract, ABI and BIN file deletion
+		errWhenDeleting := deletecontract.DeleteExpertContract(contractName)
+		if errWhenDeleting != nil {
+			logger.LogWriter("Error when deleting the source files : "+errWhenDeleting.Error(), constants.ERROR)
+		}
+
 		w.WriteHeader(http.StatusOK)
 		response := model.SuccessResponseExpertFormula{
 			Code:      http.StatusOK,

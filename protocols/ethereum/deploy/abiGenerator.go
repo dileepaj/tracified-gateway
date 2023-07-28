@@ -28,7 +28,7 @@ func GenerateABI(contractName string, reqType string) (string, error) {
 		cmdABIGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
 	} else if reqType == "POLYGONEXPERT" {
 		cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o polygonformulabuild")
-		cmdABIGen.Dir = commons.GoDotEnvVariable("")
+		cmdABIGen.Dir = commons.GoDotEnvVariable("POLYGONEXPERTLOCATION")
 	} else {
 		logrus.Error("Invalid request type for ABI generator , TYPE : ", reqType)
 		return abiString, errors.New("Invalid request type for ABI generator , TYPE : " + reqType)
@@ -50,7 +50,7 @@ func GenerateABI(contractName string, reqType string) (string, error) {
 	} else if reqType == "METRIC" {
 		location = commons.GoDotEnvVariable("METRICBUILDLOCATION") + "/" + fileName
 	} else if reqType == "POLYGONEXPERT" {
-		location = commons.GoDotEnvVariable("") + "/" + fileName
+		location = commons.GoDotEnvVariable("POLYGONEXPERTBUILDLOCATION") + "/" + fileName
 	} else {
 		logrus.Error("Invalid request type for ABI reader , TYPE : ", reqType)
 		return abiString, errors.New("Invalid request type for ABI reader , TYPE : " + reqType)
