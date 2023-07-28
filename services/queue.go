@@ -157,7 +157,6 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 		log.Error(err)
 		return err
 	}
-	var forever chan struct{}
 
 	go func() {
 		for d := range messages {
@@ -180,7 +179,6 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 			}
 		}
 	}()
-	<-forever
 
 	queuesConsumers[queueName] = true
 	return err
