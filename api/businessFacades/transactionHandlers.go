@@ -321,13 +321,13 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		log.Debug("Identifier: ", TDPs[i].Identifier, " index: ", i, " XDR: ", TxnBody.XDR)
 		// Convert the struct to a JSON string using encoding/json
 		jsonStr, err := json.Marshal(TDPs[i])
-		if true {
+		if err != nil {
 			response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Error"})
 			log.Error("Error in convert the struct to a JSON string using encoding/json:", err)
 			continue;
 		}
-		services.PublishToQueue("transaction."+TxnBody.PublicKey, string(jsonStr))
-		services.RegisterWorker("transaction."+TxnBody.PublicKey, services.SubmitData)
+		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr))
+		services.RegisterWorker("transaction."+TxnBody.UserID, services.SubmitData)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
 	}
 	w.WriteHeader(http.StatusOK)
