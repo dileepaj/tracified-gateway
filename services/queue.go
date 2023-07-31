@@ -2,13 +2,18 @@ package services
 
 import (
 	"context"
-	"github.com/dileepaj/tracified-gateway/commons"
+	amqp "github.com/rabbitmq/amqp091-go"
+	log "github.com/sirupsen/logrus"
+	"strings"
 	"sync"
 	"time"
 
-	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
+	"github.com/dileepaj/tracified-gateway/commons"
 )
+
+const queuePrefix = "gateway."
+const queueMaxTry = 10
+const queueDeadLetter = "dead-letter"
 
 var queueConnection *amqp.Connection
 
@@ -21,6 +26,14 @@ var queueChannelOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
 var queuesConsumers = make(map[string]bool)
+
+func getQueueName(queueName string) string {
+	if strings.HasPrefix(queueName, queuePrefix) {
+		return queueName
+	}
+
+	return queuePrefix + queueName
+}
 
 func GetQueueConnection() (*amqp.Connection, error) {
 	queueConnectionOnce.Do(func() {
@@ -59,6 +72,7 @@ func GetQueueChannel() (*amqp.Channel, error) {
 }
 
 func GetQueue(queueName string) (amqp.Queue, error) {
+	queueName = getQueueName(queueName)
 	ch, err := GetQueueChannel()
 
 	if err != nil {
@@ -93,29 +107,34 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 	return q, err
 }
 
-func PublishToQueue(queueName string, message string) error {
+func PublishToQueue(queueName string, message string, args ...interface{}) error {
+	queueName = getQueueName(queueName)
 	q, _ := GetQueue(queueName)
 	ch, _ := GetQueueChannel()
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	err := ch.PublishWithContext(
-		ctx,
-		"",
-		q.Name,
-		false,
-		false,
-		amqp.Publishing{
-			DeliveryMode: amqp.Persistent,
-			ContentType:  "text/plain",
-			Body:         []byte(message),
-		})
+	payload := amqp.Publishing{
+		DeliveryMode: amqp.Persistent,
+		ContentType:  "text/plain",
+		Body:         []byte(message),
+	}
 
+	// TODO add support for others to be passed
+	for _, arg := range args {
+		switch t := arg.(type) {
+		case amqp.Table:
+			payload.Headers = t
+		}
+	}
+
+	err := ch.PublishWithContext(ctx, "", q.Name, false, false, payload)
 	return err
 }
 
-func RegisterWorker(queueName string, cmd func([]byte)) error {
+func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
+	queueName = getQueueName(queueName)
 	_, ok := queuesConsumers[queueName]
 	if ok {
 		return nil
@@ -138,15 +157,28 @@ func RegisterWorker(queueName string, cmd func([]byte)) error {
 		log.Error(err)
 		return err
 	}
-	var forever chan struct{}
 
 	go func() {
 		for d := range messages {
-			cmd(d.Body)
-			d.Ack(false)
+			if d.Redelivered {
+				d.Ack(false)
+				var deliveryCount int32 = 1
+				if d.Headers["x-delivery-count"] != nil {
+					deliveryCount += d.Headers["x-delivery-count"].(int32)
+				}
+				if deliveryCount >= queueMaxTry {
+					PublishToQueue(queueDeadLetter, string(d.Body), amqp.Table{
+						"x-delivery-count":      deliveryCount,
+						"x-delivery-queue-name": queueName,
+					})
+				} else {
+					PublishToQueue(queueName, string(d.Body), amqp.Table{"x-delivery-count": deliveryCount})
+				}
+			} else {
+				cmd(d)
+			}
 		}
 	}()
-	<-forever
 
 	queuesConsumers[queueName] = true
 	return err
