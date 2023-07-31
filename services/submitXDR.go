@@ -3,6 +3,7 @@ package services
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -14,7 +15,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
-	log "github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/txnbuild"
@@ -23,12 +23,12 @@ import (
 
 func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	// object := dao.Connection{}
-	log.Printf("Reciver a message to @SubmitUserDataToStellar : %s", deliver.Body)
+	log.Printf("@SubmitUserDataToStellar Reciever a message to  : %s", deliver.Body)
 	// Convert the JSON string to the txnBody struct
 	var txnBody model.TransactionCollectionBody
 	err := json.Unmarshal(deliver.Body, &txnBody)
 	if err != nil {
-		log.Error("Error Unmarshal @SubmitData " + err.Error())
+		logrus.Error("Error Unmarshal @SubmitData " + err.Error())
 		return
 	}
 	var txe xdr.TransactionEnvelope
@@ -45,22 +45,21 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	if txnBody.TxnType == "5" {
 		txnBody.Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations()[1].Body.ManageDataOp.DataValue), "&")
 	}
-	logrus.Debug("Identifier: ", txnBody.Identifier, " XDR: ", txnBody.XDR)
 	display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
 	response := display.SubmitXDR(txnBody.TxnType)
-	fmt.Println("------------------------------------------", response)
 	if response.Error.Code != 200 || response.Error.Message != "" {
-		log.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
+		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
 			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 		deliver.Ack(true)
 		return
 	}
 	txnBody.FOUserTXNHash = response.TXNID
-	fmt.Println("-------------------------------------------", txnBody.FOUserTXNHash)
+	logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
+		txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 	deliver.Ack(false)
 	jsonStr, err := json.Marshal(txnBody)
 	if err != nil {
-		log.Error("Error in convert the struct to a JSON string using encoding/json:", err)
+		logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
 		return
 	}
 	PublishToQueue("backlinks", string(jsonStr))
@@ -70,27 +69,26 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 
 func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	object := dao.Connection{}
-	// object := dao.Connection{}
-	log.Printf("Reciver a message to @SubmitbacklinksDataToStellar : %s", deliver.Body)
+	log.Printf("@SubmitbacklinksDataToStellar Reciver a message to  : %s", deliver.Body)
 	// Convert the JSON string to the txnBody struct
 	var result model.TransactionCollectionBody
 	err := json.Unmarshal(deliver.Body, &result)
 	if err != nil {
-		log.Error("Error Unmarshal @SubmitData " + err.Error())
+		logrus.Error("Error Unmarshal @SubmitData " + err.Error())
 		return
 	}
 	var txe xdr.TransactionEnvelope
 	// decode the XDR
 	err1 := xdr.SafeUnmarshalBase64(result.XDR, &txe)
 	if err1 != nil {
-		log.Error("Error SafeUnmarshalBase64 @SubmitData " + err.Error())
+		logrus.Error("Error SafeUnmarshalBase64 @SubmitData " + err.Error())
 		return
 	}
 	publicKey := constants.PublicKey
 	secretKey := constants.SecretKey
 	tracifiedAccount, err := keypair.ParseFull(secretKey)
 	if err != nil {
-		log.Error(err)
+		logrus.Error(err)
 	}
 	client := commons.GetHorizonClient()
 	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
@@ -121,44 +119,33 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 		})
 		if err != nil {
-			log.Println("Error while buliding XDR " + err.Error())
+			logrus.Println("Error while buliding XDR " + err.Error())
 			break
 		}
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
+			logrus.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Println("Error while converting GatewayTXE to base64 " + err.Error())
+			logrus.Println("Error while converting GatewayTXE to base64 " + err.Error())
 			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
 		}
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
-		// INSERT INTO TRANSACTION COLLECTION
-		err2 := object.InsertTransaction(result)
-		if err2 != nil {
-			log.Println("Error while InsertTransaction " + err2.Error())
-			break
-		} else {
-			err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-			if err != nil {
-				log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-				break
-			}
-		}
+		break
 	case "2":
 		data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
 			return data
@@ -196,44 +183,33 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 		})
 		if err != nil {
-			log.Println("Error while buliding XDR " + err.Error())
+			logrus.Println("Error while buliding XDR " + err.Error())
 			break
 		}
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Println("Error while getting GatewayTXE by secretKey " + err.Error())
+			logrus.Println("Error while getting GatewayTXE by secretKey " + err.Error())
 			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Println("Error while converting GatewayTXE to base64 " + err.Error())
+			logrus.Println("Error while converting GatewayTXE to base64 " + err.Error())
 			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
 		}
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
-		///INSERT INTO TRANSACTION COLLECTION
-		err2 := object.InsertTransaction(result)
-		if err2 != nil {
-			log.Println("Error while InsertTransaction " + err2.Error())
-			break
-		} else {
-			err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-			if err != nil {
-				log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-				break
-			}
-		}
+		break
 	case "9":
 		var PreviousTXNBuilder txnbuild.ManageData
 		// var PreviousTxn string
@@ -273,19 +249,19 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			Preconditions:        txnbuild.Preconditions{TimeBounds: constants.TransactionTimeOut},
 		})
 		if err != nil {
-			log.Error("Error while buliding XDR " + err.Error())
+			logrus.Error("Error while buliding XDR " + err.Error())
 			break
 		}
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Error("Error while getting GatewayTXE " + err.Error())
+			logrus.Error("Error while getting GatewayTXE " + err.Error())
 			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Error("Error while converting to base64 " + err.Error())
+			logrus.Error("Error while converting to base64 " + err.Error())
 			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
@@ -293,25 +269,14 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
 		}
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
-		///INSERT INTO TRANSACTION COLLECTION
-		err2 := object.InsertTransaction(result)
-		if err2 != nil {
-			log.Error("Error while InsertTransaction " + err2.Error())
-			break
-		} else {
-			err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-			if err != nil {
-				log.Error("Error while RemoveFromTempOrphanList " + err.Error())
-				break
-			}
-		}
+		break
 	case "5":
 		var UserSplitTxnHashes string
 		var PreviousTxn string
@@ -320,7 +285,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			return data
 		}).Await()
 		if pData == nil || errAsnc != nil {
-			log.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
+			logrus.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
 			// ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 			// DUE TO THE CHILD HAVING A NEW IDENTIFIER
 			PreviousTxn = ""
@@ -365,34 +330,24 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Error("Error @tx.Sign @SubmitSplit " + err.Error())
+			logrus.Error("Error @tx.Sign @SubmitSplit " + err.Error())
 			result.TxnHash = UserSplitTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
-			}
+			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
+			logrus.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
 			result.TxnHash = UserSplitTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
-			}
+			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
@@ -402,18 +357,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			if result.TxnType == "5" {
 				PreviousTxn = response1.TXNID
 			}
-			///INSERT INTO TRANSACTION COLLECTION
-			err1 := object.InsertTransaction(result)
-			if err1 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
-				break
-			} else {
-				err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-				if err != nil {
-					log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-					break
-				}
-			}
+			break
 		}
 	case "6":
 		var UserSplitTxnHashes string
@@ -424,7 +368,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		id.Identifier = result.MapIdentifier
 		err3 := object.InsertIdentifier(id)
 		if err3 != nil {
-			log.Error("identifier map failed" + err3.Error())
+			logrus.Error("identifier map failed" + err3.Error())
 		}
 		var SplitParentProfile string
 		var PreviousSplitProfile string
@@ -436,7 +380,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			return data
 		}).Await()
 		if backlinkData == nil || err != nil {
-			log.Info("Can not find transaction form database ", "build Split")
+			logrus.Info("Can not find transaction form database ", "build Split")
 		} else {
 			result := backlinkData.(model.TransactionCollectionBody)
 			PreviousTxn = result.TxnHash
@@ -469,34 +413,24 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Error("Error @tx.Sign @SubmitSplit " + err.Error())
+			logrus.Error("Error @tx.Sign @SubmitSplit " + err.Error())
 			result.TxnHash = UserSplitTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
-			}
+			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
+			logrus.Error("Error @GatewayTXE.Base64 @SubmitSplit " + err.Error())
 			result.TxnHash = UserSplitTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err2.Error())
-			}
+			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
@@ -506,24 +440,12 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			if result.TxnType == "5" {
 				PreviousTxn = response1.TXNID
 			}
-			///INSERT INTO TRANSACTION COLLECTION
-			err1 := object.InsertTransaction(result)
-			if err1 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
-				break
-			} else {
-				err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-				if err != nil {
-					log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-					break
-				}
-			}
 			var PreviousProfile string
 			pData1, errorAsync1 := object.GetProfilebyIdentifier(result.FromIdentifier1).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if pData1 == nil || errorAsync1 != nil {
-				log.Error("Error @GetProfilebyIdentifier @SubmitSplit ")
+				logrus.Error("Error @GetProfilebyIdentifier @SubmitSplit ")
 				PreviousProfile = ""
 				break
 			} else {
@@ -540,7 +462,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 			err2 := object.InsertProfile(Profile)
 			if err2 != nil {
-				log.Error("Error @InsertProfile @SubmitSplit " + err2.Error())
+				logrus.Error("Error @InsertProfile @SubmitSplit " + err2.Error())
 			}
 			break
 		}
@@ -552,7 +474,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				return data
 			}).Await()
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				// ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				// DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				result.PreviousTxnHash = ""
@@ -560,7 +482,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result1 := pData.(model.TransactionCollectionBody)
 				result.PreviousTxnHash = result1.TxnHash
-				log.Debug(result.PreviousTxnHash)
+				logrus.Debug(result.PreviousTxnHash)
 			}
 
 			pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
@@ -568,13 +490,13 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync2 != nil || pData2 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 				result.PreviousTxnHash2 = ""
 			} else {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result2 := pData2.(model.TransactionCollectionBody)
 				result.PreviousTxnHash2 = result2.TxnHash
-				log.Debug(result.PreviousTxnHash)
+				logrus.Debug(result.PreviousTxnHash)
 			}
 		} else {
 			pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
@@ -582,13 +504,13 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync3 != nil || pData3 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				result.PreviousTxnHash2 = ""
 			} else {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result3 := pData3.(model.TransactionCollectionBody)
 				result.PreviousTxnHash2 = result3.TxnHash
-				log.Debug(result.PreviousTxnHash2)
+				logrus.Debug(result.PreviousTxnHash2)
 			}
 		}
 		// SUBMIT THE FIRST XDR SIGNED BY THE USER
@@ -599,7 +521,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		id.Identifier = result.MapIdentifier
 		err3 := object.InsertIdentifier(id)
 		if err3 != nil {
-			log.Error("identifier map failed" + err3.Error())
+			logrus.Error("identifier map failed" + err3.Error())
 		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
@@ -626,9 +548,9 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				return data
 			}).Await()
 			if err != nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @@SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+				logrus.Error("Error while GetLastTransactionbyIdentifier @@SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
 			} else if previousTxn == nil {
-				log.Error("Can not find GetLastTransactionbyIdentifier @SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+				logrus.Error("Can not find GetLastTransactionbyIdentifier @SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
 			} else {
 				previousTxnData := previousTxn.(model.TransactionCollectionBody)
 				previousTXNHash = previousTxnData.TxnHash
@@ -653,14 +575,14 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge " + errorAsync.Error())
 				result.MergeID = ""
 			} else {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result4 := pData.(model.TransactionCollectionBody)
 				// MergeID = result.TxnHash
 				result.MergeID = result4.TxnHash
-				log.Error(result.MergeID)
+				logrus.Error(result.MergeID)
 			}
 		}
 		CurrentTXN := txnbuild.ManageData{
@@ -680,59 +602,38 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Error("Error while build Transaction @SubmitMerge " + err.Error())
+			logrus.Error("Error while build Transaction @SubmitMerge " + err.Error())
 			result.TxnHash = UserMergeTxnHashes
 			result.Status = "Pending"
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
-			}
+			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
+			logrus.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
 			result.TxnHash = UserMergeTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
-			}
+			break
 		}
 
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
-			// PreviousTxn = response1.TXNID
-			err1 := object.InsertTransaction(result)
-			if err1 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
-				break
-			} else {
-				err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-				if err != nil {
-					log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-					break
-				}
-			}
 			var PreviousProfile string
 			pData, errorAsync := object.GetProfilebyIdentifier(result.FromIdentifier1).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetProfilebyIdentifier @SubmitMerge" + errorAsync.Error())
+				logrus.Error("Error while GetProfilebyIdentifier @SubmitMerge" + errorAsync.Error())
 				PreviousProfile = ""
 			} else {
 				result := pData.(model.ProfileCollectionBody)
@@ -749,7 +650,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 			err3 := object.InsertProfile(Profile)
 			if err3 != nil {
-				log.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
+				logrus.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
 			}
 			break
 		}
@@ -763,7 +664,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				result.PreviousTxnHash = ""
@@ -771,7 +672,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result1 := pData.(model.TransactionCollectionBody)
 				result.PreviousTxnHash = result1.TxnHash
-				log.Debug(result.PreviousTxnHash)
+				logrus.Debug(result.PreviousTxnHash)
 			}
 
 			pData2, errorAsync2 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
@@ -779,7 +680,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync2 != nil || pData2 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				result.PreviousTxnHash2 = ""
@@ -787,7 +688,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result2 := pData2.(model.TransactionCollectionBody)
 				result.PreviousTxnHash2 = result2.TxnHash
-				log.Debug(result.PreviousTxnHash)
+				logrus.Debug(result.PreviousTxnHash)
 			}
 		} else {
 			pData3, errorAsync3 := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier2, result.TenantID).Then(func(data interface{}) interface{} {
@@ -795,7 +696,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync3 != nil || pData3 == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				result.PreviousTxnHash2 = ""
@@ -803,7 +704,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER
 				result3 := pData3.(model.TransactionCollectionBody)
 				result.PreviousTxnHash2 = result3.TxnHash
-				log.Debug(result.PreviousTxnHash2)
+				logrus.Debug(result.PreviousTxnHash2)
 			}
 		}
 		UserMergeTxnHashes = result.FOUserTXNHash
@@ -814,7 +715,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		id.Identifier = result.MapIdentifier
 		err3 := object.InsertIdentifier(id)
 		if err3 != nil {
-			log.Error("identifier map failed" + err3.Error())
+			logrus.Error("identifier map failed" + err3.Error())
 		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
@@ -844,9 +745,9 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				return data
 			}).Await()
 			if err != nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @@SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+				logrus.Error("Error while GetLastTransactionbyIdentifier @@SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
 			} else if previousTxn == nil {
-				log.Error("Can not find GetLastTransactionbyIdentifier @SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
+				logrus.Error("Can not find GetLastTransactionbyIdentifier @SubmitMerge Identifier ", result.Identifier, " mergeBlock: ", result.MergeBlock-1)
 			} else {
 				previousTxnData := previousTxn.(model.TransactionCollectionBody)
 				previousTXNHash = previousTxnData.TxnHash
@@ -872,7 +773,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}).Await()
 
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
+				logrus.Error("Error while GetLastTransactionbyIdentifier @SubmitMerge ")
 				///ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
 				//DUE TO THE CHILD HAVING A NEW IDENTIFIER
 				result.MergeID = ""
@@ -881,7 +782,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 				result4 := pData.(model.TransactionCollectionBody)
 				// MergeID = result.TxnHash
 				result.MergeID = result4.TxnHash
-				log.Error(result.MergeID)
+				logrus.Error(result.MergeID)
 			}
 		}
 		CurrentTXN := txnbuild.ManageData{
@@ -900,58 +801,36 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// SIGN THE GATEWAY BUILT XDR WITH GATEWAYS PRIVATE KEY
 		GatewayTXE, err := tx.Sign(commons.GetStellarNetwork(), tracifiedAccount)
 		if err != nil {
-			log.Error("Error while build Transaction @SubmitMerge " + err.Error())
+			logrus.Error("Error while build Transaction @SubmitMerge " + err.Error())
 			result.TxnHash = UserMergeTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
-			}
+			break
 		}
 		// CONVERT THE SIGNED XDR TO BASE64 to SUBMIT TO STELLAR
 		txeB64, err := GatewayTXE.Base64()
 		if err != nil {
-			log.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
+			logrus.Error("Error while convert GatewayTXE to base64 @SubmitMerge " + err.Error())
 			result.TxnHash = UserMergeTxnHashes
 			result.Status = "Pending"
-
-			///INSERT INTO TRANSACTION COLLECTION
-			err2 := object.InsertTransaction(result)
-			if err2 != nil {
-				log.Error("Error while InsertTransaction @SubmitMerge " + err2.Error())
-			}
+			break
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
-			log.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
+			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Ack(true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
-			// PreviousTxn = response1.TXNID
-			err1 := object.InsertTransaction(result)
-			if err1 != nil {
-				log.Error("Error @InsertTransaction @SubmitSplit " + err1.Error())
-				break
-			} else {
-				err := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-				if err != nil {
-					log.Println("Error while RemoveFromTempOrphanList " + err.Error())
-					break
-				}
-			}
 			var PreviousProfile string
 			pData, errorAsync := object.GetProfilebyIdentifier(result.FromIdentifier1).Then(func(data interface{}) interface{} {
 				return data
 			}).Await()
 			if errorAsync != nil || pData == nil {
-				log.Error("Error while GetProfilebyIdentifier @SubmitMerge")
+				logrus.Error("Error while GetProfilebyIdentifier @SubmitMerge")
 				PreviousProfile = ""
 			} else {
 				result := pData.(model.ProfileCollectionBody)
@@ -967,24 +846,26 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 			err3 := object.InsertProfile(Profile)
 			if err3 != nil {
-				log.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
+				logrus.Error("Error while InsertProfile @SubmitMerge " + err3.Error())
 			}
 			break
 		}
 	}
-
-	log.Debug("Identifier: ", result.Identifier, " XDR: ", result.XDR)
-	display := stellarExecuter.ConcreteSubmitXDR{XDR: result.XDR}
-	response := display.SubmitXDR(result.TxnType)
-	fmt.Println("------------------------------------------", response)
-	if response.Error.Code != 200 || response.Error.Message != "" {
-		log.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
-			result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
+	errInsertTransaction := object.InsertTransaction(result)
+	if errInsertTransaction != nil {
+		logrus.Error("Error while @InsertTransaction " + err1.Error())
 		deliver.Ack(true)
 		return
+	} else {
+		errRemoveFromTempOrphanList := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
+		if errRemoveFromTempOrphanList != nil {
+			logrus.Println("Error while @RemoveFromTempOrphanList " + err.Error())
+			deliver.Ack(true)
+			return
+		}
 	}
-	result.FOUserTXNHash = response.TXNID
-	fmt.Println("-------------------------------------------", result.FOUserTXNHash)
+	logrus.Info("Stellar back-link TXN hash: ", result.TxnHash, " Timestamp: ", result.Timestamp, "TXNType: ", result.TxnType,
+		" Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 	deliver.Ack(false)
 	return
 }

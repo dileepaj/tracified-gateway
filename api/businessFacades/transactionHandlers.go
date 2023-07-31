@@ -318,12 +318,11 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	var response []apiModel.TDPOperationRequest
 	for i, TxnBody := range TDPs {
 		TDPs[i].Status = "pending";
-		log.Debug("Identifier: ", TDPs[i].Identifier, " index: ", i, " XDR: ", TxnBody.XDR)
 		// Convert the struct to a JSON string using encoding/json
 		jsonStr, err := json.Marshal(TDPs[i])
 		if err != nil {
 			response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Error"})
-			log.Error("Error in convert the struct to a JSON string using encoding/json:", err)
+			log.Error("Error in convert the struct to a JSON string using encoding/json:", err, " TxnBody: ", TxnBody)
 			continue;
 		}
 		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr))
