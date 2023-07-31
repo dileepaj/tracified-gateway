@@ -327,7 +327,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			continue;
 		}
 		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr))
-		services.RegisterWorker("transaction."+TxnBody.UserID, services.SubmitData)
+		services.RegisterWorker("transaction."+TxnBody.UserID, services.SubmitUserDataToStellar)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
 	}
 	w.WriteHeader(http.StatusOK)
