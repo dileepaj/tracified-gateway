@@ -386,7 +386,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			PreviousTxn = result.TxnHash
 			result.PreviousTxnHash = result.TxnHash
 		}
-
+		UserSplitTxnHashes = result.FOUserTXNHash
 		previousTXNBuilder := txnbuild.ManageData{Name: "PreviousTXN", Value: []byte(PreviousTxn)}
 		typeTXNBuilder := txnbuild.ManageData{Name: "Type", Value: []byte("G" + result.TxnType)}
 		currentTXNBuilder := txnbuild.ManageData{Name: "CurrentTXN", Value: []byte(UserSplitTxnHashes)}
