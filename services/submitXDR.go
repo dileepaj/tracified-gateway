@@ -96,6 +96,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 
 	switch result.TxnType {
 	case "0":
+		// type 0 = Genesis
 		// var PreviousTXNBuilder txnbuild.ManageData
 		PreviousTXNBuilder := txnbuild.ManageData{
 			Name:  "PreviousTXN",
@@ -147,6 +148,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		result.Status = "done"
 		break
 	case "2":
+		// type 2 = Normal TDP
 		data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
@@ -211,6 +213,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		result.Status = "done"
 		break
 	case "9":
+		// type 9 = Transfer
 		var PreviousTXNBuilder txnbuild.ManageData
 		// var PreviousTxn string
 		data, errorLastTXN := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
@@ -278,6 +281,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		result.Status = "done"
 		break
 	case "5":
+		// type 5 = Split Parent
 		var UserSplitTxnHashes string
 		var PreviousTxn string
 		// ParentIdentifier = Identifier
@@ -360,6 +364,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			break
 		}
 	case "6":
+		// type 0 = Split Child
 		var UserSplitTxnHashes string
 		var PreviousTxn string
 		// SUBMIT THE FIRST XDR SIGNED BY THE USER
@@ -467,6 +472,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			break
 		}
 	case "7":
+		// type 7 = Merge
 		var UserMergeTxnHashes string
 		// FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
 		if result.Identifier != result.FromIdentifier1 {
@@ -655,6 +661,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			break
 		}
 	case "8":
+		// type 8 = Merge
 		var UserMergeTxnHashes string
 		// var PreviousTxn string
 		// FOR THE MERGE FIRST BLOCK RETRIEVE THE PREVIOUS TXN FROM GATEWAY DB
