@@ -172,6 +172,7 @@ type POGResponse struct {
 	FeePaid        string
 	ProductName    string
 	ProductId      string
+	CreatedAt 	   string
 }
 
 type POEResponse struct {

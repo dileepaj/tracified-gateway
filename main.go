@@ -53,9 +53,6 @@ func main() {
 		services.CheckTempOrphan()
 	})
 
-	c.AddFunc("@every 5m", func() {
-		services.CheckContractStatus()
-	})
 	c.Start()
 	router := routes.NewRouter()
 	// rabbit mq server
