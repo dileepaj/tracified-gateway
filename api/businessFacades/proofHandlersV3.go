@@ -11,20 +11,16 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/utilities"
-
-	//"github.com/go-openapi/runtime/logger"
-	"github.com/stellar/go/support/log"
-	//"github.com/stellar/go/xdr"
-
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/interpreter"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stellar/go/support/log"
 )
 
 type PublicKey struct {
@@ -877,15 +873,14 @@ func CheckPOCOCV3(w http.ResponseWriter, r *http.Request) {
 
 func NewCheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	//vars := mux.Vars(r)
-	logger := utilities.NewCustomLogger()
 	w.Header().Set("Content-Type", "application/json")
 	
 	object := dao.Connection{}
 
-	key1, error := r.URL.Query()["txn"]
-	if !error || len(key1[0]) < 1 {
+	key1, error1 := r.URL.Query()["txn"]
+	if !error1 || len(key1[0]) < 1 {
 		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Cannot find txn from url"})
-		logger.LogWriter("Cannot find txn from url : ", constants.ERROR);
+		logrus.Error("Cannot find txn from url : ",  error1);
 		return
 	}
 	// get transaction details by txn hash
@@ -895,13 +890,13 @@ func NewCheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway datastaore"})
-		logger.LogWriter("Unable to connect gateway datastaore : "+err.Error(), constants.ERROR)
+		logrus.Error("Unable to connect the Tracified datastore : " + err.Error())
 		return
 	}
 	if data == nil {
 		w.WriteHeader(http.StatusNoContent)
 		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNoContent, Message: "Error while fetching data from Tracified %s"})
-		logger.LogWriter("Error while fetching data from Tracified : "+err.Error(), constants.ERROR)
+		logrus.Error("Can not find records from the Tracified datastore")
 		return
 	}
 	// transaction --> transaction (made by tracified in DB)
@@ -924,7 +919,7 @@ func NewCheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	if er != nil {
 		log.Error("Error while getting response " + er.Error())
 		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
+		response := model.Error{Message: "Connection to the Traceability DataStore was interrupted " + er.Error()}
 		json.NewEncoder(w).Encode(response)
 		return
 	}
@@ -961,14 +956,6 @@ func NewCheckPOEV3(w http.ResponseWriter, r *http.Request) {
 	return
 
 }
-
-
-
-
-
-
-
-
 
 type PublicKeyPOC struct {
 	Name  string
