@@ -48,7 +48,7 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 			}
 			return display.SubmitXDR(tType)
 			// Timeout - this try to resubmit only 10 times each 20 second
-		} else if (error1.Response.StatusCode == 504 && count < 10 || error1.Problem.Status == 504 && count < 10) || (response.Error.Message == "tx_insufficient_fee" && count < 10) {
+		} else if (error1.Response.StatusCode == 504 || error1.Problem.Status == 504) || (response.Error.Message == "tx_insufficient_fee") {
 			response.Error.Code = http.StatusGatewayTimeout
 			time.Sleep(40 * time.Second)
 			log.Info("Resubmitting transaction (Timeout issue) ", cd.XDR)
