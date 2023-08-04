@@ -59,6 +59,9 @@ func main() {
 	c.AddFunc("@every 5m", func() {
 		services.CheckContractStatus()
 	})
+	c.AddFunc("@every 5m", func() {
+		services.CheckPolygonContractStatus()
+	})
 	c.Start()
 	router := routes.NewRouter()
 	// rabbit mq server

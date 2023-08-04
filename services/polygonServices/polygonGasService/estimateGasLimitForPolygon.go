@@ -95,7 +95,7 @@ func EstimateGasLimitForPolygon(from string, to string, gas string, gasPrice str
 
 	// struct to unmarshal the response
 	type GasLimitResponse struct {
-		Id      string
+		Id      int
 		Jsonrpc string
 		Result  string
 	}

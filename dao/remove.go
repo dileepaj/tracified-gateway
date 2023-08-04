@@ -45,16 +45,16 @@ func (cd *Connection) RemoveFromTempOrphanList(Publickey string, SequenceNo int6
 }
 
 //remove proof presentation protocol by proof name
-func (cd *Connection) DeleteProofPresentationProtocolByProofName(proofName string) error{
+func (cd *Connection) DeleteProofPresentationProtocolByProofName(proofName string) error {
 	session, err := cd.connect()
-	if err != nil{
+	if err != nil {
 		fmt.Println("Error when connecting to DB " + err.Error())
 	}
 	defer session.EndSession(context.TODO())
 
 	c := session.Client().Database(dbName).Collection("ProofProtocols")
-	c.DeleteOne(context.TODO(), bson.M{"proofname" : proofName})
-	if err != nil{
+	c.DeleteOne(context.TODO(), bson.M{"proofname": proofName})
+	if err != nil {
 		fmt.Println("Error when removing the Protocol " + err.Error())
 	}
 	return err

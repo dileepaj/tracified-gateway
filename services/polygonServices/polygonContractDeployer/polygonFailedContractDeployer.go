@@ -17,9 +17,9 @@ import (
 	generalservices "github.com/dileepaj/tracified-gateway/services/ethereumServices/generalServices"
 	gaspriceserviceforpolygon "github.com/dileepaj/tracified-gateway/services/polygonServices/polygonGasService/gasPriceServiceForPolygon"
 	"github.com/dileepaj/tracified-gateway/utilities"
-	"github.com/sirupsen/logrus"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/sirupsen/logrus"
 )
 
 func RedeployFailedContractsOnPolygon(failedContract model.PendingContracts) (string, string, string, *big.Int, *big.Int, int, error) {
@@ -138,10 +138,13 @@ func RedeployFailedContractsOnPolygon(failedContract model.PendingContracts) (st
 					return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gateway Ethereum account funds are not enough")
 				}
 			}
-			//check the gas limit cap and gas price cap
-			if gasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
-				logger.LogWriter("Gas values are passing specified thresholds", constants.ERROR)
-				return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gas values are passing specified thresholds")
+			if gasLimit > gasLimitCap {
+				logger.LogWriter("Gas limit is passing the threshold", constants.ERROR)
+				return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gas limit is passing the threshold")
+			}
+			if predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
+				logger.LogWriter("Gas price is passing the threshold", constants.ERROR)
+				return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Gas price is passing the threshold")
 			}
 
 			logger.LogWriter("Predicted gas limit : "+strconv.Itoa(gasLimit), constants.INFO)

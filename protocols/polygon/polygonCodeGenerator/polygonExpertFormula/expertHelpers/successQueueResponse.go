@@ -35,6 +35,16 @@ func SuccessOrQueueResponse(w http.ResponseWriter, r *http.Request, formulaJSON 
 		}
 		json.NewEncoder(w).Encode(response)
 		return
+	} else if deployStatus == 117 {
+		logger.LogWriter("Requested formula is in the pending status, please try again", constants.INFO)
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.SuccessResponseExpertFormula{
+			Code:      http.StatusBadRequest,
+			FormulaID: formulaJSON.MetricExpertFormula.ID,
+			Message:   "Requested formula is in the pending :  Status : " + strconv.Itoa(deployStatus),
+		}
+		json.NewEncoder(w).Encode(response)
+		return
 	} else {
 		logger.LogWriter("Invalid formula status "+strconv.Itoa(deployStatus), constants.INFO)
 		commons.JSONErrorReturn(w, r, strconv.Itoa(deployStatus), http.StatusInternalServerError, "Invalid formula status : ")

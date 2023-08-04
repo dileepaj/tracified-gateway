@@ -15,6 +15,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols"
 	ethereumservices "github.com/dileepaj/tracified-gateway/services/ethereumServices"
 	"github.com/dileepaj/tracified-gateway/services/ethereumServices/dbCollectionHandler"
+	polygonservices "github.com/dileepaj/tracified-gateway/services/polygonServices"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
@@ -259,8 +260,68 @@ func ReceiverRmq() error {
 
 				}
 			} else if queue.Type == "POLYGONEXPERTFORMULA" {
-				logger.LogWriter("Received mgs Type (ETHEXPERTFORMULA)", constants.INFO)
+				logger.LogWriter("Received mgs Type (POLYGONEXPERTFORMULA)", constants.INFO)
+				polygonDeployer := &polygonservices.PolygonContractDeployerContext{}
+				polygonDeployer.SetContractDeploymentStrategyForPolygon(&polygonservices.PolygonAbstractContractDeployment{
+					ABI:          queue.EthereumExpertFormula.ABIstring,
+					BIN:          queue.EthereumExpertFormula.BINstring,
+					Identifier:   queue.EthereumExpertFormula.TransactionUUID,
+					ContractType: "POLYGONEXPERTFORMULA",
+					OtherParams:  []any{queue.EthereumExpertFormula},
+				})
 
+				//call the deployer method
+				address, txnHash, deploymentCost, _, _, _, errWhenDeploying := polygonDeployer.PolygonExecuteContractDeployment()
+				polygonExpertFormulaObj := model.EthereumExpertFormula{
+					FormulaID:           queue.EthereumExpertFormula.FormulaID,
+					FormulaName:         queue.EthereumExpertFormula.FormulaName,
+					ExecutionTemplate:   queue.EthereumExpertFormula.ExecutionTemplate,
+					MetricExpertFormula: queue.EthereumExpertFormula.MetricExpertFormula,
+					VariableCount:       queue.EthereumExpertFormula.VariableCount,
+					TemplateString:      queue.EthereumExpertFormula.TemplateString,
+					BINstring:           queue.EthereumExpertFormula.BINstring,
+					ABIstring:           queue.EthereumExpertFormula.ABIstring,
+					GOstring:            queue.EthereumExpertFormula.GOstring,
+					SetterNames:         queue.EthereumExpertFormula.SetterNames,
+					ContractName:        queue.EthereumExpertFormula.ContractName,
+					ContractAddress:     address,
+					Timestamp:           time.Now().String(),
+					TransactionHash:     txnHash,
+					TransactionCost:     deploymentCost, //add after deploy
+					TransactionUUID:     queue.EthereumExpertFormula.TransactionUUID,
+					TransactionSender:   queue.EthereumExpertFormula.TransactionSender,
+					Verify:              queue.EthereumExpertFormula.Verify,
+					ErrorMessage:        "",
+					Status:              117, // PENDING
+					ActualStatus:        queue.EthereumExpertFormula.ActualStatus,
+				}
+				if errWhenDeploying != nil {
+					//Insert to DB with FAILED status
+					polygonExpertFormulaObj.Status = 119 // FAILED
+					polygonExpertFormulaObj.ErrorMessage = errWhenDeploying.Error()
+					polygonExpertFormulaObj.ActualStatus = 111 // DEPLOYMENT_FAILED
+					logrus.Error("Error when deploying the expert formula smart contract : " + errWhenDeploying.Error())
+					//if deploy method is success update the status into success
+					errWhenUpdatingStatus := object.UpdatePolygonFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, polygonExpertFormulaObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of formula status for Polygon , formula ID " + polygonExpertFormulaObj.FormulaID)
+					}
+					logrus.Info("Formula update called with FAILED status")
+					logrus.Info("Contract deployment unsuccessful")
+				} else {
+					//if deploy method is success update the status into success
+					polygonExpertFormulaObj.ActualStatus = 112 // DEPLOYMENT_TRANSACTION_PENDING
+					errWhenUpdatingStatus := object.UpdatePolygonFormulaStatus(queue.EthereumExpertFormula.FormulaID, queue.EthereumExpertFormula.TransactionUUID, polygonExpertFormulaObj)
+					if errWhenUpdatingStatus != nil {
+						logrus.Error("Error when updating the status of formula status for Polygon , formula ID " + polygonExpertFormulaObj.FormulaID)
+					}
+					logrus.Info("Formula update called with status ", polygonExpertFormulaObj.Status)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+					logrus.Info("Deployed expert expert formula smart contract to blockchain")
+					logrus.Info("Contract address : " + address)
+					logrus.Info("Transaction hash : " + txnHash)
+					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
+				}
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
 				// use deployment strategy

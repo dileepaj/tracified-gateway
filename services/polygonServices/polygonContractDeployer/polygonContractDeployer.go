@@ -54,6 +54,12 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 		logger.LogWriter("Error when loading the client and the key : "+errWhenLoadingClientAndKey.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 	}
+	chainId, errWhenGettingChainID := client.ChainID(context.Background())
+	if errWhenGettingChainID != nil {
+		logger.LogWriter("Error when getting the chain ID : "+errWhenGettingChainID.Error(), constants.ERROR)
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting the chain ID : " + errWhenGettingChainID.Error())
+	}
+	logger.LogWriter("Current chain ID for transaction replay protection : "+chainId.String(), constants.INFO)
 	ContractBIN, parsed, errWhenLoadingParsedABIAndBIN := generalservices.LoadContractBinAndParsedAbi(bin, abi)
 	if errWhenLoadingParsedABIAndBIN != nil {
 		logger.LogWriter("Error when loading ContractBIN and Parsed ABI : "+errWhenLoadingParsedABIAndBIN.Error(), constants.ERROR)
@@ -64,7 +70,11 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ABI string , ERROR : GetAbi() returned nil")
 	}
 	//create the keyed transactor
-	auth := bind.NewKeyedTransactor(privateKey)
+	auth, errWhenGettingAuthObject := bind.NewKeyedTransactorWithChainID(privateKey, chainId)
+	if errWhenGettingAuthObject != nil {
+		logger.LogWriter("Error when getting the auth object : "+errWhenGettingAuthObject.Error(), constants.ERROR)
+		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting the auth object : " + errWhenGettingAuthObject.Error())
+	}
 	auth.Value = big.NewInt(0) // in wei
 
 	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
@@ -138,9 +148,13 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 				}
 			}
 
-			if predictedGasLimit > gasLimitCap || predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
-				logger.LogWriter("Gas values are passing specified thresholds", constants.ERROR)
-				return contractAddress, transactionHash, transactionCost, errors.New("Gas values are passing specified thresholds")
+			if predictedGasLimit > gasLimitCap {
+				logger.LogWriter("Gas limit is passing the threshold, predicted gas limit : "+strconv.FormatInt(int64(predictedGasLimit), 10), constants.ERROR)
+				return contractAddress, transactionHash, transactionCost, errors.New("Gas limit is passing the threshold")
+			}
+			if predictedGasPrice.Cmp(big.NewInt(int64(gasPriceCap))) == 1 {
+				logger.LogWriter("Gas price is passing the threshold, predicted gas price : "+predictedGasPrice.String(), constants.ERROR)
+				return contractAddress, transactionHash, transactionCost, errors.New("Gas price is passing the threshold")
 			}
 
 			logger.LogWriter("Predicted gas limit : "+strconv.FormatInt(int64(predictedGasLimit), 10), constants.INFO)

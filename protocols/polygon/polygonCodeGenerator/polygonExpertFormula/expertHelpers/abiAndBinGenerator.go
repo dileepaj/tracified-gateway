@@ -10,14 +10,14 @@ import (
 	"github.com/dileepaj/tracified-gateway/utilities"
 )
 
-func AbiAndBinGenerator(contractName string, reqType string, formulaId string, transactionUuid string, formulaObj model.EthereumExpertFormula) error {
+func AbiAndBinGenerator(contractName string, reqType string, formulaId string, transactionUuid string, formulaObj model.EthereumExpertFormula) (error, string, string) {
 	logger := utilities.NewCustomLogger()
 	object := dao.Connection{}
 	//call the ABI generator
 	abiString, errWhenGeneratingAbiString := deploy.GenerateABI(contractName, reqType)
 	if errWhenGeneratingAbiString != nil {
 		logger.LogWriter("Error when generating the ABI file : "+errWhenGeneratingAbiString.Error(), constants.ERROR)
-		return errors.New(errWhenGeneratingAbiString.Error())
+		return errors.New(errWhenGeneratingAbiString.Error()), "", ""
 	}
 
 	//update the collection on abi generation
@@ -26,14 +26,16 @@ func AbiAndBinGenerator(contractName string, reqType string, formulaId string, t
 	errWhenUpdatingAfterAbiGeneration := object.UpdateSelectedPolygonFormulaFields(formulaId, transactionUuid, formulaObj)
 	if errWhenUpdatingAfterAbiGeneration != nil {
 		logger.LogWriter("Error when updating polygon collection after the ABI generation : "+errWhenUpdatingAfterAbiGeneration.Error(), constants.ERROR)
-		return errors.New(errWhenUpdatingAfterAbiGeneration.Error())
+		return errors.New(errWhenUpdatingAfterAbiGeneration.Error()), "", ""
+	} else {
+		logger.LogWriter("ABI inserted to collection", constants.INFO)
 	}
 
 	//call the BIN generator
 	binString, errWhenGeneratingBinString := deploy.GenerateBIN(contractName, reqType)
 	if errWhenGeneratingBinString != nil {
 		logger.LogWriter("Error when generating the BIN file : "+errWhenGeneratingBinString.Error(), constants.ERROR)
-		return errors.New(errWhenGeneratingBinString.Error())
+		return errors.New(errWhenGeneratingBinString.Error()), "", ""
 	}
 
 	formulaObj.BINstring = binString
@@ -41,8 +43,10 @@ func AbiAndBinGenerator(contractName string, reqType string, formulaId string, t
 	errWhenUpdatingAfterBinGeneration := object.UpdateSelectedPolygonFormulaFields(formulaId, transactionUuid, formulaObj)
 	if errWhenUpdatingAfterBinGeneration != nil {
 		logger.LogWriter("Error when updating polygon collection after the BIN generation : "+errWhenUpdatingAfterBinGeneration.Error(), constants.ERROR)
-		return errors.New(errWhenUpdatingAfterBinGeneration.Error())
+		return errors.New(errWhenUpdatingAfterBinGeneration.Error()), "", ""
+	} else {
+		logger.LogWriter("BIN inserted to the collection", constants.INFO)
 	}
 
-	return nil
+	return nil, abiString, binString
 }

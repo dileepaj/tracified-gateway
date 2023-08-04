@@ -4,7 +4,6 @@ import (
 	"errors"
 	"os"
 
-	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/utilities"
 )
@@ -12,7 +11,7 @@ import (
 func DeleteExpertContract(contractName string) error {
 	logger := utilities.NewCustomLogger()
 	//delete the solidity file
-	contractFilePath := commons.GoDotEnvVariable("POLYGONEXPERTLOCATION") + "/" + contractName + `.sol`
+	contractFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts" + "/" + contractName + `.sol`
 	_, err := os.Stat(contractFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -28,7 +27,7 @@ func DeleteExpertContract(contractName string) error {
 	}
 
 	//delete the ABI file
-	abiFilePath := commons.GoDotEnvVariable("POLYGONEXPERTBUILDLOCATION") + "/" + contractName + "_sol_" + contractName + ".abi"
+	abiFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts/polygonformulabuild" + "/" + contractName + "_sol_" + contractName + ".abi"
 	_, errAbi := os.Stat(abiFilePath)
 	if errAbi != nil {
 		if os.IsNotExist(errAbi) {
@@ -38,13 +37,13 @@ func DeleteExpertContract(contractName string) error {
 		return errAbi
 	}
 	// Attempt to delete the file
-	errAbi = os.Remove(contractFilePath)
+	errAbi = os.Remove(abiFilePath)
 	if errAbi != nil {
 		return errAbi
 	}
 
 	//delete the BIN file
-	binFilePath := commons.GoDotEnvVariable("POLYGONEXPERTBUILDLOCATION") + "/" + contractName + "_sol_" + contractName + ".bin"
+	binFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts/polygonformulabuild" + "/" + contractName + "_sol_" + contractName + ".bin"
 	_, errBin := os.Stat(binFilePath)
 	if errBin != nil {
 		if os.IsNotExist(errBin) {
@@ -54,7 +53,7 @@ func DeleteExpertContract(contractName string) error {
 		return errBin
 	}
 	// Attempt to delete the file
-	errBin = os.Remove(contractFilePath)
+	errBin = os.Remove(binFilePath)
 	if errBin != nil {
 		return errBin
 	}
