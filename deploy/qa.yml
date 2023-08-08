@@ -113,5 +113,4 @@
             TRACIFIED_ADMIN:  "{{ lookup('env','TRACIFIED_ADMIN') }}"
             NFTQUEUE_NAME:  "{{ lookup('env','NFTQUEUE_NAME') }}"
             FONEW_FLAG:  "{{ lookup('env','FONEW_FLAG') }}"
-            ENV_NUMBER_FOR_LOGS:  "{{ lookup('env','ENV_NUMBER_FOR_LOGS') }}"
 

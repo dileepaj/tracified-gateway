@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 )
@@ -17,7 +16,7 @@ import (
 type CustomLogger struct {
 	loggerConsole *log.Logger
 	loggerFile    *log.Logger
-	stage         int
+	stage         string
 }
 
 var logFile *os.File
@@ -34,12 +33,7 @@ func CreateLogFile() {
 
 //Create a logger instance
 func NewCustomLogger() *CustomLogger {
-	envId := commons.GoDotEnvVariable("ENV_NUMBER_FOR_LOGS")
-	envIdInt, err := strconv.Atoi(envId)
-	if err != nil {
-		fmt.Println("Error when converting log environment ID")
-	}
-	stage := envIdInt
+	stage := commons.GoDotEnvVariable("ENVIRONMENT")
 
 	return &CustomLogger{
 		loggerConsole: log.New(os.Stdout, "", log.Ldate|log.Ltime|log.Lshortfile),
@@ -53,7 +47,7 @@ func NewCustomLogger() *CustomLogger {
 //INFO - 1 , DEBUG - 2 , ERROR - 3
 func (c *CustomLogger) LogWriter(message interface{}, logLevel int) {
 	switch c.stage {
-	case 1:
+	case "qa":
 		switch logLevel {
 		case 1:
 			c.loggerConsole.Println("[INFO]-[QA] : ", message)
@@ -68,7 +62,7 @@ func (c *CustomLogger) LogWriter(message interface{}, logLevel int) {
 			c.loggerConsole.Println("[QA] - Invalid log level")
 			c.loggerFile.Println("[QA] - Invalid log level")
 		}
-	case 2:
+	case "staging":
 		switch logLevel {
 		case 1:
 			c.loggerConsole.Println("[INFO]-[Staging] : ", message)
@@ -83,7 +77,7 @@ func (c *CustomLogger) LogWriter(message interface{}, logLevel int) {
 			c.loggerConsole.Println("[Staging] - Invalid log level")
 			c.loggerFile.Println("[Staging] - Invalid log level")
 		}
-	case 3:
+	case "production":
 		switch logLevel {
 		case 1:
 			c.loggerConsole.Println("[INFO]-[Production] : ", message)
