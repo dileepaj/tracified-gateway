@@ -14,6 +14,7 @@ import (
 	fosponsoring "github.com/dileepaj/tracified-gateway/nft/stellar/FOSponsoring"
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
+	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -62,7 +63,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				ProfileTxn:  result.ProfileTxn,
 				GenesisTxn:  result.GenesisTxn,
 				Identifiers: GObj.Identifier,
-				Type:        GObj.Type}
+				Type:        GObj.Type,
+			}
 			json.NewEncoder(w).Encode(result2)
 
 		case "1":
@@ -87,7 +89,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				PreviousTXNID:     response.PreviousTXNID,
 				PreviousProfileID: response.PreviousProfileID,
 				Identifiers:       PObj.Identifier,
-				Type:              PObj.Type}
+				Type:              PObj.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 		case "2":
 			var TDP apiModel.TestTDP
@@ -110,7 +113,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: "response.ProfileID",
-				Type:      "TDP.Type"}
+				Type:      "TDP.Type",
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "5":
@@ -141,7 +145,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				SplitTXN:         response.SplitTXN,
 				Identifier:       SplitObj.Identifier,
 				SplitIdentifiers: SplitObj.SplitIdentifiers,
-				Type:             TType}
+				Type:             TType,
+			}
 			json.NewEncoder(w).Encode(result)
 		case "6":
 			var MergeObj apiModel.MergeProfileStruct
@@ -167,7 +172,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Identifier:         MergeObj.Identifier,
 				Type:               TType,
 				MergingIdentifiers: response.PreviousIdentifiers,
-				MergeTXNs:          response.MergeTXNs}
+				MergeTXNs:          response.MergeTXNs,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "10":
@@ -190,7 +196,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: response.ProfileID,
-				Type:      POA.Type}
+				Type:      POA.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		case "11":
@@ -213,7 +220,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 				Message:   response.Error.Message,
 				TxNHash:   response.TDPID,
 				ProfileID: response.ProfileID,
-				Type:      Cert.Type}
+				Type:      Cert.Type,
+			}
 			json.NewEncoder(w).Encode(result)
 
 		default:
@@ -221,10 +229,8 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode("Please send a valid Transaction Type")
 			return
 		}
-
 	}
 	return
-
 }
 
 /*
@@ -279,10 +285,8 @@ SubmitData - @desc Handles an incoming request and calls the dataBuilder
 @params - ResponseWriter,Request
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
-	// proper naming
-	// single responsibility
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
+	var TDPs []model.TransactionCollectionBody
 
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -299,24 +303,34 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			Status: "No Content-Type present!",
 		}
 		json.NewEncoder(w).Encode(result)
-
 		return
 	}
 
-	err := json.NewDecoder(r.Body).Decode(&TDP)
+	err := json.NewDecoder(r.Body).Decode(&TDPs)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
 			Status: "Error while Decoding the body",
 		}
 		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
 		return
 	}
-
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSpecial(w, r)
-
+	var response []apiModel.TDPOperationRequest
+	for i, TxnBody := range TDPs {
+		TDPs[i].Status = "pending";
+		// Convert the struct to a JSON string using encoding/json
+		jsonStr, err := json.Marshal(TDPs[i])
+		if err != nil {
+			response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Error"})
+			log.Error("Error in convert the struct to a JSON string using encoding/json:", err, " TxnBody: ", TxnBody)
+			continue;
+		}
+		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr))
+		services.RegisterWorker("transaction."+TxnBody.UserID, services.SubmitUserDataToStellar)
+		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
 	return
 }
 
@@ -653,7 +667,6 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetLastTransactionbyIdentifier(vars["Identifier"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 		res := model.LastTxnResponse{LastTxn: result.TxnHash}
 		w.WriteHeader(http.StatusOK)
@@ -666,7 +679,6 @@ func LastTxn(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 type Transuc struct {
@@ -730,10 +742,7 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 		fmt.Println(err1)
 	}
 
-	//brr := txnbuild.TransactionFrom{TX: &Trans, NetworkPassphrase: commons.GetHorizonNetwork().Passphrase}
 	brr, _ := txnbuild.TransactionFromXDR(TDP.XDR)
-	//fmt.Println(commons.GetHorizonNetwork().Passphrase)
-	// fmt.Println(brr.Hash())
 	t, _ := brr.Hash(network.TestNetworkPassphrase)
 	test := fmt.Sprintf("%x", t)
 
@@ -741,7 +750,6 @@ func ConvertXDRToTXN(w http.ResponseWriter, r *http.Request) {
 	response := Transuc{TXN: test}
 	json.NewEncoder(w).Encode(response)
 	return
-
 }
 
 type TDP struct {
@@ -761,7 +769,6 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetTdpIdForTransaction(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 
 		res := TDP{TdpId: result.TdpId}
@@ -776,7 +783,6 @@ func TDPForTXN(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 /*
@@ -792,7 +798,6 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 	object := dao.Connection{}
 	p := object.GetTransactionForTdpId(vars["Txn"])
 	p.Then(func(data interface{}) interface{} {
-
 		result := data.(model.TransactionCollectionBody)
 
 		// res := TDP{TdpId: result.TdpId}
@@ -806,7 +811,6 @@ func TXNForTDP(w http.ResponseWriter, r *http.Request) {
 		return error
 	})
 	p.Await()
-
 }
 
 func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
@@ -866,7 +870,6 @@ func ArtifactTransactions(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
-
 }
 
 func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
@@ -915,13 +918,14 @@ func TxnForIdentifier(w http.ResponseWriter, r *http.Request) {
 		return error
 	}).Await()
 }
+
 func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var result []model.TransactionHashWithIdentifier
 	vars := mux.Vars(r)
 	object := dao.Connection{}
 
-	//call backend to get identiderby artifactId
+	// call backend to get identider by artifactId
 	url := constants.TracifiedBackend + "/api/v2/identifiers/artifact/" + vars["artifactid"]
 	bearer := "Bearer " + constants.BackendToken
 	// Create a new request using http
@@ -1027,7 +1031,7 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					logrus.Error("There was an error cant get issuer!")
 				} else {
-					var data = rst.(model.TransactionDataKeys)
+					data := rst.(model.TransactionDataKeys)
 					if rst != nil || rst != "" {
 						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + data.AccountIssuerPK)
 						body, err := ioutil.ReadAll(result1.Body)
@@ -1050,7 +1054,7 @@ func SubmitFOData(w http.ResponseWriter, r *http.Request) {
 							logrus.Info("funded and hash is : ", hash)
 						}
 
-						var TransactionPayload = model.TransactionData{
+						TransactionPayload := model.TransactionData{
 							FOUser:        Response.FOUser,
 							AccountIssuer: data.AccountIssuerPK,
 							XDR:           Response.XDR,
@@ -1088,24 +1092,24 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 		p := object.GetIssuerAccountByFOUser((vars["foUser"]))
 		rst, err := p.Await()
 		if err != nil {
-			var IssuerPK, EncodedIssuerSK, encSK, err = fosponsoring.CreateIssuerAccountForFOUser()
+			IssuerPK, EncodedIssuerSK, encSK, err := fosponsoring.CreateIssuerAccountForFOUser()
 			if err != nil && IssuerPK == "" && EncodedIssuerSK == "" {
 				w.WriteHeader(http.StatusInternalServerError)
 				json.NewEncoder(w).Encode(err)
 			} else {
-				var Keys = model.TransactionDataKeys{
+				Keys := model.TransactionDataKeys{
 					FOUser:          (vars["foUser"]),
 					AccountIssuerPK: IssuerPK,
 					AccountIssuerSK: encSK,
 				}
-				//adding the credentials to the DB
+				// adding the credentials to the DB
 				object := dao.Connection{}
 				err := object.InsertIssuingAccountKeys(Keys)
 				if err != nil {
 					logrus.Error(err)
 				}
 
-				//send the response
+				// send the response
 				result := model.NFTIssuerAccount{
 					NFTIssuerPK: IssuerPK,
 				}
@@ -1113,7 +1117,7 @@ func CreateSponsorer(w http.ResponseWriter, r *http.Request) {
 				json.NewEncoder(w).Encode(result)
 			}
 		} else {
-			var data = rst.(model.TransactionDataKeys)
+			data := rst.(model.TransactionDataKeys)
 			if rst != nil || rst != "" {
 				logrus.Info("Issuer is:", data.AccountIssuerPK)
 			}
@@ -1147,5 +1151,4 @@ func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
 		}
 		json.NewEncoder(w).Encode(result)
 	}
-
 }

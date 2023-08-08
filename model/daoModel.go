@@ -60,6 +60,8 @@ type TransactionCollectionBody struct {
 	GeoLocation          string
 	Timestamp            string
 	TenantNameBase64     string
+	UserID				 string
+	FOUserTXNHash 			 string
 }
 
 type ProfileCollectionBody struct {
