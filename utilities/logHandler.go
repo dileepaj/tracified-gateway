@@ -34,7 +34,7 @@ func CreateLogFile() {
 
 //Create a logger instance
 func NewCustomLogger() *CustomLogger {
-	envId := commons.GoDotEnvVariable("ENV")
+	envId := commons.GoDotEnvVariable("ENV_NUMBER_FOR_LOGS")
 	envIdInt, err := strconv.Atoi(envId)
 	if err != nil {
 		fmt.Println("Error when converting log environment ID")
