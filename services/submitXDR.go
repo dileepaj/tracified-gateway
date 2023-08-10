@@ -51,21 +51,23 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		XDR:           txnBody.XDR,
 		AccountIssuer: txnBody.PublicKey,
 	}
-	// display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
-	// response := display.SubmitXDR(txnBody.TxnType)
-	// if response.Error.Code != 200 || response.Error.Message != "" {
-	// 	logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
-	// 		txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
-	// 	deliver.Ack(true)
-	// 	return
-	// }
-	responsex, errx := SubmitFOData(datax)
+	responsexdr, errx := SubmitFOData(datax)
 	if errx != nil {
 		log.Println("response.Error.Code 400 for SubmitXDR", errx)
 		return
 	}
-	txnBody.FOUserTXNHash = responsex
-	logrus.Info("Stellar FO user created TXN hash: ", responsex, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
+
+	display := stellarExecuter.ConcreteSubmitXDR{XDR: responsexdr}
+	response := display.SubmitXDR(txnBody.TxnType)
+	if response.Error.Code != 200 || response.Error.Message != "" {
+		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
+			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+		deliver.Ack(true)
+		return
+	}
+
+	txnBody.FOUserTXNHash = response.TXNID
+	logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
 		txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 	deliver.Ack(false)
 	jsonStr, err := json.Marshal(txnBody)

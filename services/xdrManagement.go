@@ -58,15 +58,12 @@ func SubmitFOData(Response model.TransactionData) (string, error) {
 					AccountIssuer: Response.AccountIssuer,
 					XDR:           Response.XDR,
 				}
-				hash, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
+				xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
 				if err != nil {
 					log.Error(err)
 				} else {
-					result := model.Hash{
-						Hash: hash,
-					}
-					logrus.Info("Hash been passed to frontend : ", result)
-					return result.Hash, nil
+					logrus.Info("xdr base64 been passed to frontend : ", xdr)
+					return xdr, nil
 				}
 
 			} else {
