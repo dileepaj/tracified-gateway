@@ -45,16 +45,27 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	if txnBody.TxnType == "5" {
 		txnBody.Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations()[1].Body.ManageDataOp.DataValue), "&")
 	}
-	display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
-	response := display.SubmitXDR(txnBody.TxnType)
-	if response.Error.Code != 200 || response.Error.Message != "" {
-		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
-			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
-		deliver.Ack(true)
+
+	var datax = model.TransactionData{
+		FOUser:        txnBody.AppAccount,
+		XDR:           txnBody.XDR,
+		AccountIssuer: txnBody.PublicKey,
+	}
+	// display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
+	// response := display.SubmitXDR(txnBody.TxnType)
+	// if response.Error.Code != 200 || response.Error.Message != "" {
+	// 	logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
+	// 		txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+	// 	deliver.Ack(true)
+	// 	return
+	// }
+	responsex, errx := SubmitFOData(datax)
+	if errx != nil {
+		log.Println("response.Error.Code 400 for SubmitXDR", errx)
 		return
 	}
-	txnBody.FOUserTXNHash = response.TXNID
-	logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
+	txnBody.FOUserTXNHash = responsex
+	logrus.Info("Stellar FO user created TXN hash: ", responsex, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
 		txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 	deliver.Ack(false)
 	jsonStr, err := json.Marshal(txnBody)
@@ -93,7 +104,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	client := commons.GetHorizonClient()
 	pubaccountRequest := horizonclient.AccountRequest{AccountID: publicKey}
 	pubaccount, err := client.AccountDetail(pubaccountRequest)
-
 	switch result.TxnType {
 	case "0":
 		// type 0 = Genesis

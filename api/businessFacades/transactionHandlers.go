@@ -15,7 +15,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/dileepaj/tracified-gateway/services"
-	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
@@ -317,14 +316,15 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	}
 	var response []apiModel.TDPOperationRequest
 	for i, TxnBody := range TDPs {
-		TDPs[i].Status = "pending";
+		TDPs[i].Status = "pending"
 		// Convert the struct to a JSON string using encoding/json
 		jsonStr, err := json.Marshal(TDPs[i])
 		if err != nil {
 			response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Error"})
 			log.Error("Error in convert the struct to a JSON string using encoding/json:", err, " TxnBody: ", TxnBody)
-			continue;
+			continue
 		}
+		fmt.Println("Before setting off to queues")
 		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr))
 		services.RegisterWorker("transaction."+TxnBody.UserID, services.SubmitUserDataToStellar)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
@@ -989,98 +989,6 @@ func TxnForArtifact(w http.ResponseWriter, r *http.Request) {
 		response := model.Error{Message: "Connection to the Traceability DataStore was interupted "}
 		json.NewEncoder(w).Encode(response)
 		return
-	}
-}
-
-func SubmitFOData(w http.ResponseWriter, r *http.Request) {
-	if commons.GoDotEnvVariable("FONEW_FLAG") == "TRUE" {
-		logger := utilities.NewCustomLogger()
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		var Response model.TransactionData
-		decoder := json.NewDecoder(r.Body)
-		decoder.DisallowUnknownFields()
-		err := decoder.Decode(&Response)
-		if err != nil {
-			logger.LogWriter("Error submitting data to the blockchain : "+err.Error(), constants.ERROR)
-			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Error submitting data to the blockchain"}
-			json.NewEncoder(w).Encode(response)
-			return
-		}
-		if Response.XDR != "" && Response.FOUser != "" && Response.AccountIssuer != "" {
-			resp, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + Response.FOUser)
-			if err != nil {
-				logrus.Error("Error making HTTP request:", err)
-				return
-			}
-			defer resp.Body.Close()
-
-			if resp.StatusCode == http.StatusNotFound {
-				accountStatus = "0"
-			} else {
-				accountStatus = "1"
-			}
-			if accountStatus == "0" {
-				logrus.Error("Account of FO User is inactive")
-			}
-
-			if accountStatus == "1" {
-				object := dao.Connection{}
-				p := object.GetIssuerAccountByFOUser(Response.FOUser)
-				rst, err := p.Await()
-				if err != nil {
-					logrus.Error("There was an error cant get issuer!")
-				} else {
-					data := rst.(model.TransactionDataKeys)
-					if rst != nil || rst != "" {
-						result1, err := http.Get(commons.GetHorizonClient().HorizonURL + "accounts/" + data.AccountIssuerPK)
-						body, err := ioutil.ReadAll(result1.Body)
-						if err != nil {
-							log.Error("Error while read response " + err.Error())
-						}
-						var balances model.BalanceResponse
-						err = json.Unmarshal(body, &balances)
-						if err != nil {
-							log.Error("Error while json.Unmarshal(body, &balance) " + err.Error())
-						}
-
-						balance := balances.Balances[0].Balance
-
-						if balance < "10" {
-							hash, err := fosponsoring.FundAccount(data.AccountIssuerPK)
-							if err != nil {
-								log.Error("Error while funding issuer " + err.Error())
-							}
-							logrus.Info("funded and hash is : ", hash)
-						}
-
-						TransactionPayload := model.TransactionData{
-							FOUser:        Response.FOUser,
-							AccountIssuer: data.AccountIssuerPK,
-							XDR:           Response.XDR,
-						}
-
-						hash, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
-						if err != nil {
-							log.Error(err)
-						} else {
-							w.Header().Set("Content-Type", "application/json;")
-							w.WriteHeader(http.StatusOK)
-							result := model.Hash{
-								Hash: hash,
-							}
-							logrus.Info("Hash been passed to frontend : ", result)
-							json.NewEncoder(w).Encode(result)
-						}
-
-					}
-				}
-			} else {
-				w.WriteHeader(http.StatusBadRequest)
-				response := model.Error{Message: "Can not create XDR and submit"}
-				json.NewEncoder(w).Encode(response)
-			}
-		}
 	}
 }
 

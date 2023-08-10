@@ -630,12 +630,6 @@ var routes = Routes{
 		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
 	Route{
-		"SponsorFOAppUserTransactions",
-		"GET",
-		"/foapp/txn",
-		businessFacades.SubmitFOData, //Calls the SponsorFOAppUserTransactions in the StellarHandler
-	},
-	Route{
 		"GetSponsoringAccount",
 		"GET",
 		"/foapp/{foUser}",
@@ -646,8 +640,8 @@ var routes = Routes{
 		"GET",
 		"/activate",
 		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
-  },
-		Route{
+	},
+	Route{
 		"POC",
 		"GET",
 		"/tdpdata/txnhash",

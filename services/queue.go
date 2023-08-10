@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
 	"strings"
 	"sync"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 )
