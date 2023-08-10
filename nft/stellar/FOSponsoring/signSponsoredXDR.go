@@ -1,8 +1,6 @@
 package fosponsoring
 
 import (
-	"log"
-
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -23,7 +21,7 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 		return data
 	}).Await()
 	if errkey != nil {
-		log.Println(errkey)
+		logrus.Error(errkey)
 		return "", errkey
 	} else {
 		Keys := data.([]model.TransactionDataKeys)

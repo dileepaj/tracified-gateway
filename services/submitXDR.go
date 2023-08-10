@@ -53,7 +53,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	}
 	responsexdr, errx := SubmitFOData(datax)
 	if errx != nil {
-		log.Println("response.Error.Code 400 for SubmitXDR", errx)
+		logrus.Error("response.Error.Code 400 for SubmitXDR", errx)
 		return
 	}
 
