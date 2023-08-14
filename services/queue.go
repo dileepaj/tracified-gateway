@@ -89,6 +89,7 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 			false,
 			amqp.Table{
 				"x-single-active-consumer": true,
+				"x-consumer-timeout":       int(2 * time.Minute),
 			},
 		)
 		if err != nil {
@@ -121,15 +122,27 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 		Body:         []byte(message),
 	}
 
+	var registerW func(delivery amqp.Delivery)
 	// TODO add support for others to be passed
 	for _, arg := range args {
 		switch t := arg.(type) {
 		case amqp.Table:
 			payload.Headers = t
+		case func(delivery amqp.Delivery):
+			registerW = t
 		}
 	}
 
 	err := ch.PublishWithContext(ctx, "", q.Name, false, false, payload)
+
+	if err != nil {
+		return err
+	}
+
+	if registerW != nil {
+		err = RegisterWorker(queueName, registerW)
+	}
+
 	return err
 }
 

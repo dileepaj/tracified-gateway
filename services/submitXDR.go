@@ -29,6 +29,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	err := json.Unmarshal(deliver.Body, &txnBody)
 	if err != nil {
 		logrus.Error("Error Unmarshal @SubmitData " + err.Error())
+		deliver.Nack(false, true)
 		return
 	}
 	var txe xdr.TransactionEnvelope
@@ -36,6 +37,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	err1 := xdr.SafeUnmarshalBase64(txnBody.XDR, &txe)
 	if err1 != nil {
 		logrus.Error("Error SafeUnmarshalBase64 @SubmitData " + err.Error())
+		deliver.Nack(false, true)
 		return
 	}
 	txnBody.PublicKey = txe.SourceAccount().ToAccountId().Address()
@@ -50,7 +52,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	if response.Error.Code != 200 || response.Error.Message != "" {
 		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
 			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
-		deliver.Ack(true)
+		deliver.Nack(false, true)
 		return
 	}
 	txnBody.FOUserTXNHash = response.TXNID
@@ -62,8 +64,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
 		return
 	}
-	PublishToQueue("backlinks", string(jsonStr))
-	RegisterWorker("backlinks", SubmitBacklinksDataToStellar)
+	PublishToQueue("backlinks", string(jsonStr), SubmitBacklinksDataToStellar)
 	return
 }
 
@@ -141,7 +142,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		}
 		result.TxnHash = response1.TXNID
@@ -206,7 +207,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		}
 		result.TxnHash = response1.TXNID
@@ -274,7 +275,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		}
 		result.TxnHash = response1.TXNID
@@ -353,7 +354,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -437,7 +438,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -628,7 +629,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -827,7 +828,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			break
 		} else {
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
@@ -861,13 +862,13 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	errInsertTransaction := object.InsertTransaction(result)
 	if errInsertTransaction != nil {
 		logrus.Error("Error while @InsertTransaction " + err1.Error())
-		deliver.Ack(true)
+		deliver.Nack(false, true)
 		return
 	} else {
 		errRemoveFromTempOrphanList := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
 		if errRemoveFromTempOrphanList != nil {
 			logrus.Println("Error while @RemoveFromTempOrphanList " + err.Error())
-			deliver.Ack(true)
+			deliver.Nack(false, true)
 			return
 		}
 	}
