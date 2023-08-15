@@ -8,6 +8,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -64,7 +65,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
 		return
 	}
-	PublishToQueue("backlinks", string(jsonStr), SubmitBacklinksDataToStellar)
+	PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
 	return
 }
 

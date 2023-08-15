@@ -6,6 +6,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
@@ -32,6 +33,11 @@ func main() {
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 
+	// Register services, this will be used to schedule workers
+	// Added here to avoid circular import, refactor if there is a better way
+	configs.QueueBackLinks.Method = services.SubmitBacklinksDataToStellar
+	configs.QueueTransaction.Method = services.SubmitUserDataToStellar
+
 	// Initialize the cron scheduler with Delay a job's execution if the previous run hasn't completed yet
 	c := cron.New(
 		cron.WithChain(
@@ -49,8 +55,8 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 1m", func() {
-		services.CheckTempOrphan()
+	c.AddFunc("@every 30s", func() {
+		services.QueueScheduleWorkers()
 	})
 
 	c.Start()

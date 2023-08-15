@@ -4,16 +4,21 @@ import (
 	"context"
 	amqp "github.com/rabbitmq/amqp091-go"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
+	"github.com/dileepaj/tracified-gateway/services/cache"
 )
 
 const queuePrefix = "gateway."
 const queueMaxTry = 10
 const queueDeadLetter = "dead-letter"
+const QueueCacheName = "gateway:current-queues"
+const queueCacheTime = 60 * 60 * 3
 
 var queueConnection *amqp.Connection
 
@@ -139,6 +144,8 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 		return err
 	}
 
+	cache.InsertSortedSet(QueueCacheName, queueName, float64(time.Now().Unix()+queueCacheTime))
+
 	if registerW != nil {
 		err = RegisterWorker(queueName, registerW)
 	}
@@ -195,4 +202,26 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 
 	queuesConsumers[queueName] = true
 	return err
+}
+
+func QueueScheduleWorkers() {
+	client := cache.Client()
+	client.ZRemRangeByScore(context.Background(), QueueCacheName, "0", strconv.FormatInt(time.Now().Unix(), 10))
+
+	queueNames := client.ZRange(context.Background(), QueueCacheName, 0, -1).Val()
+
+	for _, name := range queueNames {
+		queueName := getQueueName(name)
+		_, ok := queuesConsumers[queueName]
+		if ok {
+			continue
+		}
+
+		for n, queue := range configs.Queues {
+			n = getQueueName(n)
+			if queueName == n || strings.HasPrefix(queueName, n) {
+				RegisterWorker(queueName, queue.Method)
+			}
+		}
+	}
 }

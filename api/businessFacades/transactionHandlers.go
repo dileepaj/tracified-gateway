@@ -8,6 +8,7 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -325,7 +326,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			log.Error("Error in convert the struct to a JSON string using encoding/json:", err, " TxnBody: ", TxnBody)
 			continue
 		}
-		services.PublishToQueue("transaction."+TxnBody.UserID, string(jsonStr), services.SubmitUserDataToStellar)
+		services.PublishToQueue(configs.QueueTransaction.Prefix+TxnBody.UserID, string(jsonStr), configs.QueueTransaction.Method)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
 	}
 	w.WriteHeader(http.StatusOK)
