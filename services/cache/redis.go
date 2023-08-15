@@ -24,6 +24,10 @@ func getConnection() *redis.Client {
 	return cacheClient
 }
 
+func Client() *redis.Client {
+	return getConnection()
+}
+
 func Get(key string) (string, error) {
 	client := getConnection()
 	return client.Get(context.Background(), key).Result()
@@ -51,6 +55,23 @@ func HGet(key string) map[string]string {
 	client := getConnection()
 	collection := client.HGetAll(context.Background(), key)
 	return collection.Val()
+}
+
+func InsertArray(key, val string) *redis.IntCmd {
+	client := getConnection()
+	return client.SAdd(context.Background(), key, val)
+}
+
+func GetArray(key string) *redis.StringSliceCmd {
+	client := getConnection()
+	return client.SMembers(context.Background(), key)
+}
+
+func InsertSortedSet(key, val string, score float64) *redis.IntCmd {
+	return getConnection().ZAdd(context.Background(), key, redis.Z{
+		Score:  score,
+		Member: val,
+	})
 }
 
 func Remember(key string, cmd func() (string, error), expires time.Duration) (string, error) {
