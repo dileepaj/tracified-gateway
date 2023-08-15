@@ -103,3 +103,4 @@
           TRACIFIED_ADMIN: "{{ lookup('env','TRACIFIED_ADMIN') }}"
           NFTQUEUE_NAME: "{{ lookup('env','NFTQUEUE_NAME') }}"
           FONEW_FLAG: "{{ lookup('env','FONEW_FLAG') }}"
+          CACHE_CONNECTION: "{{ lookup('env','CACHE_CONNECTION') }}"
