@@ -210,6 +210,7 @@ func QueueScheduleWorkers() {
 
 	queueNames := client.ZRange(context.Background(), QueueCacheName, 0, -1).Val()
 
+	log.Info("Current Queues: " + strings.Join(queueNames, ", "))
 	for _, name := range queueNames {
 		queueName := getQueueName(name)
 		_, ok := queuesConsumers[queueName]
