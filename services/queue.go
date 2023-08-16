@@ -141,9 +141,11 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 	err := ch.PublishWithContext(ctx, "", q.Name, false, false, payload)
 
 	if err != nil {
+		log.Error(err)
 		return err
 	}
 
+	log.Info("Message published " + queueName + "cache time" + strconv.FormatInt(time.Now().Unix()+queueCacheTime, 10))
 	cache.InsertSortedSet(QueueCacheName, queueName, float64(time.Now().Unix()+queueCacheTime))
 
 	if registerW != nil {
