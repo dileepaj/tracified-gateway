@@ -120,8 +120,6 @@
           POLYGONALCHEMYMAINNETLINK:  "{{ lookup('env','POLYGONALCHEMYMAINNETLINK') }}"
           POLYGONSCANAPILINK:  "{{ lookup('env','POLYGONSCANAPILINK') }}"
           POLYGONSCANAPIKEY:  "{{ lookup('env','POLYGONSCANAPIKEY') }}"
-          POLYGONEXPERTLOCATION:  "{{ lookup('env','POLYGONEXPERTLOCATION') }}"
-          POLYGONEXPERTBUILDLOCATION:  "{{ lookup('env','POLYGONEXPERTBUILDLOCATION') }}"
           ETHEREUMPUBKEY:  "{{ lookup('env','ETHEREUMPUBKEY') }}"
           ETHEREUMSECKEY:  "{{ lookup('env','ETHEREUMSECKEY') }}"
           CONTRACTDEPLOYLIMIT:  "{{ lookup('env','CONTRACTDEPLOYLIMIT') }}"
