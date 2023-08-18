@@ -208,7 +208,7 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 
 func QueueScheduleWorkers() {
 	client := cache.Client()
-	client.ZRemRangeByScore(context.Background(), QueueCacheName, "0", strconv.FormatInt(time.Now().Unix(), 10))
+	//client.ZRemRangeByScore(context.Background(), QueueCacheName, "0", strconv.FormatInt(time.Now().Unix(), 10))
 
 	queueNames := client.ZRange(context.Background(), QueueCacheName, 0, -1).Val()
 
