@@ -26,7 +26,7 @@ func MinimumGasPriceGetterForPolygon() (*big.Int, error) {
 		return nil, errors.New(errWhenDialingClient.Error())
 	}
 
-	blockUrl := commons.GoDotEnvVariable("POLYGONSCANTESTNETAPI") + `?module=block&action=getblocknobytime&timestamp=` + strconv.FormatInt(time.Now().Unix(), 10) + `&closest=before&apikey=` + commons.GoDotEnvVariable("16RXSK5PUS2S428HSFBXP4C1GV81EK3J4F")
+	blockUrl := commons.GoDotEnvVariable("POLYGONSCANAPILINK") + `?module=block&action=getblocknobytime&timestamp=` + strconv.FormatInt(time.Now().Unix(), 10) + `&closest=before&apikey=` + commons.GoDotEnvVariable("POLYGONSCANAPIKEY")
 
 	blockNoRes, errWhenGettingBlockNo := http.Get(blockUrl)
 	if errWhenGettingBlockNo != nil {

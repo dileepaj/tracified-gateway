@@ -28,7 +28,7 @@ func GetErrorOfFailedTransaction(transactionHash string, blockchainType int) (st
 	if blockchainType == 1 {
 		url = commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY") + "&txhash=" + transactionHash
 	} else if blockchainType == 2 {
-		url = commons.GoDotEnvVariable("POLYGONSCANTESTNETAPI") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("POLYGONSCANAPIKEY") + "&txhash=" + transactionHash
+		url = commons.GoDotEnvVariable("POLYGONSCANAPILINK") + "api?module=transaction&action=getstatus&apikey=" + commons.GoDotEnvVariable("POLYGONSCANAPIKEY") + "&txhash=" + transactionHash
 	} else {
 		logger.LogWriter("Invalid blockchain type", constants.ERROR)
 		return "", errors.New("Invalid blockchain type")

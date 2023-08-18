@@ -176,13 +176,13 @@ func RedeployFailedContractsOnPolygon(failedContract model.PendingContracts) (st
 				_ = contract
 
 				env := commons.GoDotEnvVariable("ENVIRONMENT")
-				if env == "QA" {
+				if env == "qa" {
 					logger.LogWriter("View contract at : https://mumbai.polygonscan.com/address/"+address.Hex(), constants.INFO)
 					logger.LogWriter("View transaction at : https://mumbai.polygonscan.com/tx/"+tx.Hash().Hex(), constants.INFO)
-				} else if env == "PRODUCTION" {
+				} else if env == "production" {
 					logger.LogWriter("View contract at : https://polygonscan.com/tx/"+address.Hex(), constants.INFO)
 					logger.LogWriter("View transaction at : https://polygonscan.com/address/"+tx.Hash().Hex(), constants.INFO)
-				} else if env == "STAGING" {
+				} else if env == "staging" {
 					logger.LogWriter("View contract at : https://mumbai.polygonscan.com/address/"+address.Hex(), constants.INFO)
 					logger.LogWriter("View transaction at : https://mumbai.polygonscan.com/tx/"+tx.Hash().Hex(), constants.INFO)
 				}

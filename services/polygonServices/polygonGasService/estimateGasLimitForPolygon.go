@@ -13,7 +13,7 @@ import (
 )
 
 func EstimateGasLimitForPolygon(from string, to string, gas string, gasPrice string, value string, data string) (uint64, error) {
-	url := commons.GoDotEnvVariable("POLYGONALCHEMYTESTNETLINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY")
+	url := commons.GoDotEnvVariable("POLYGONALCHEMYAPILINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY")
 	method := "POST"
 	logger := utilities.NewCustomLogger()
 

@@ -49,7 +49,7 @@ type PolygonTransactionReceiptResponse struct {
 }
 
 func GetTransactionReceiptForPolygon(transactionHash string) (Result, error) {
-	url := commons.GoDotEnvVariable("POLYGONALCHEMYTESTNETLINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY")
+	url := commons.GoDotEnvVariable("POLYGONALCHEMYAPILINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY")
 	method := "POST"
 	logger := utilities.NewCustomLogger()
 

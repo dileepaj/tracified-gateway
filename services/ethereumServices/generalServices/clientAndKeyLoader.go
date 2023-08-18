@@ -30,7 +30,7 @@ func LoadClientAndKey(blockchainType int) (*ethclient.Client, *ecdsa.PrivateKey,
 		}
 	} else if blockchainType == 2 {
 		//dial alchemy client
-		client, errWhenDialingEthClient = ethclient.Dial(commons.GoDotEnvVariable("POLYGONALCHEMYTESTNETLINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY"))
+		client, errWhenDialingEthClient = ethclient.Dial(commons.GoDotEnvVariable("POLYGONALCHEMYAPILINK") + commons.GoDotEnvVariable("POLYGONALCHEMYAPIKEY"))
 		if errWhenDialingEthClient != nil {
 			logrus.Error("Error when dialing the Polygon client : " + errWhenDialingEthClient.Error())
 			return client, privateKey, fromAddress, errWhenDialingEthClient

@@ -20,14 +20,33 @@ func GenerateBIN(contractName string, reqType string) (string, error) {
 	var cmdBINGen *exec.Cmd
 	var location string
 	binString := ""
+	runningOs := commons.GoDotEnvVariable("RUNNING_OS")
 	if reqType == "EXPERT" {
-		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
+		if runningOs == "windows" {
+			cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o build")
+		} else if runningOs == "ubuntu" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "build")
+		} else if runningOs == "linux" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "build")
+		}
 		cmdBINGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
 	} else if reqType == "METRIC" {
-		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o metricbuild")
+		if runningOs == "windows" {
+			cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o metricbuild")
+		} else if runningOs == "ubuntu" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "metricbuild")
+		} else if runningOs == "linux" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "metricbuild")
+		}
 		cmdBINGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
 	} else if reqType == "POLYGONEXPERT" {
-		cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o polygonformulabuild")
+		if runningOs == "windows" {
+			cmdBINGen = exec.Command("cmd", "/C", "solcjs --bin "+contractName+".sol -o polygonformulabuild")
+		} else if runningOs == "ubuntu" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "polygonformulabuild")
+		} else if runningOs == "linux" {
+			cmdBINGen = exec.Command("solcjs", "--bin", contractName+".sol", "-o", "polygonformulabuild")
+		}
 		cmdBINGen.Dir = commons.GoDotEnvVariable("POLYGONEXPERTLOCATION")
 	} else {
 		logrus.Error("Invalid request type for BIN generator , TYPE : ", reqType)
