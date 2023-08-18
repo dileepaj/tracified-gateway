@@ -137,6 +137,13 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			logrus.Println("Error while converting GatewayTXE to base64 " + err.Error())
 			break
 		}
+		var id apiModel.IdentifierModel
+		id.MapValue = result.Identifier
+		id.Identifier = result.MapIdentifier
+		err3 := object.InsertIdentifier(id)
+		if err3 != nil {
+			logrus.Error("identifier map failed" + err3.Error())
+		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		response1 := display1.SubmitXDR("G" + result.TxnType)
@@ -369,14 +376,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// type 0 = Split Child
 		var UserSplitTxnHashes string
 		var PreviousTxn string
-		// SUBMIT THE FIRST XDR SIGNED BY THE USER
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		var SplitParentProfile string
 		var PreviousSplitProfile string
 		/*
@@ -523,14 +522,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE FIRST XDR SIGNED BY THE USER
 		UserMergeTxnHashes = result.FOUserTXNHash
-		// var PreviousTxn string
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
 		var PreviousTXNBuilder txnbuild.ManageData
@@ -717,15 +708,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 		}
 		UserMergeTxnHashes = result.FOUserTXNHash
-
-		// var PreviousTxn string
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
 		var PreviousTXNBuilder txnbuild.ManageData
