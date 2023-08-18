@@ -221,7 +221,7 @@ func QueueScheduleWorkers() {
 		for n, queue := range configs.Queues {
 			n = getQueueName(n)
 			if queueName == n || strings.HasPrefix(queueName, n) {
-				RegisterWorker(queueName, queue.Method)
+				RegisterWorker(queueName, queue().Method)
 			}
 		}
 	}
