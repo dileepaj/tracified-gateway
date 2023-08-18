@@ -103,7 +103,7 @@ var routes = Routes{
 		"SubmitTransformation",
 		"POST",
 		"/transaction/transformation",
-		businessFacades.SubmitTransformation, // Calls the Functional SubmitTransformation for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitTransformation for Gateway Version 3
 	},
 	Route{
 		"SubmitMerge",
