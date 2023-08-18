@@ -20,6 +20,7 @@ var mongoConnectionUrl string
 
 func GetMongoSession() (mongo.Session, error) {
 	if mgoSession == nil {
+		mongoConnectionUrl = GoDotEnvVariable("DB_URI")
 		var err error
 		mongoClient, err := mongo.Connect(context.TODO(), options.Client().ApplyURI(mongoConnectionUrl))
 		if err != nil {
@@ -32,20 +33,4 @@ func GetMongoSession() (mongo.Session, error) {
 	}
 
 	return mgoSession, nil
-}
-
-func ConstructConnectionPool() {
-	username := GoDotEnvVariable("DBUSERNAME")
-	password := GoDotEnvVariable("DBPASSWORD")
-	dbName := GoDotEnvVariable("DBNAME")
-	host := GoDotEnvVariable("DBHOST")
-	port := GoDotEnvVariable("DBPORT")
-
-	branch := GoDotEnvVariable("ENVIRONMENT")
-
-	if branch == "production" {
-		mongoConnectionUrl = "mongodb://" + username + ":" + password + "@" + host + ":" + port + "/" + dbName
-	} else {
-		mongoConnectionUrl = GoDotEnvVariable("GATEWAY_ATLAS")
-	}
 }

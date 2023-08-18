@@ -7,7 +7,8 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-/*RemoveFromOrphanage Remove a single Transaction Object from the OrphanCollection in DB
+/*
+RemoveFromOrphanage Remove a single Transaction Object from the OrphanCollection in DB
 @author - Azeem Ashraf
 */
 func (cd *Connection) RemoveFromOrphanage(Identifier string) error {

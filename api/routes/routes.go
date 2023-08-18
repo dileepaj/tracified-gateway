@@ -91,13 +91,13 @@ var routes = Routes{
 		"SubmitSplit",
 		"POST",
 		"/transaction/split",
-		businessFacades.SubmitSplit, // Calls the Functional SubmitSplit for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitSplit for Gateway Version 3
 	},
 	Route{
 		"SubmitGenesis",
 		"POST",
 		"/transaction/genesis",
-		businessFacades.SubmitGenesis, // Calls the Functional SubmitGenesis for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitGenesis for Gateway Version 3
 	},
 	Route{
 		"SubmitTransformation",
@@ -109,13 +109,13 @@ var routes = Routes{
 		"SubmitMerge",
 		"POST",
 		"/transaction/merge",
-		businessFacades.SubmitMerge, // Calls the Functional SubmitMerge for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitMerge for Gateway Version 3
 	},
 	Route{
 		"SubmitTransfer",
 		"POST",
 		"/transaction/transfer",
-		businessFacades.SubmitTransfer, // Calls the Functional SubmitTransfer for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitTransfer for Gateway Version 3
 	},
 	Route{
 		"InsertCertificate",
@@ -629,10 +629,29 @@ var routes = Routes{
 		"/pocv4/merkletree/{txn}",
 		businessFacades.BlockchainTreeRetreiverWithHashWithMerkleTree,
 	},
+	Route{
+		"SponsorFOAppUserTransactions",
+		"GET",
+		"/foapp/txn",
+		businessFacades.SubmitFOData, //Calls the SponsorFOAppUserTransactions in the StellarHandler
+	},
+	Route{
+		"GetSponsoringAccount",
+		"GET",
+		"/foapp/{foUser}",
+		businessFacades.CreateSponsorer, //Calls the GetSponsoringAccount in the StellarHandler
+	},
+	Route{
+		"ActivateFoUser",
+		"GET",
+		"/activate",
+		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
+  },
 		Route{
 		"POC",
 		"GET",
 		"/tdpdata/txnhash",
 		businessFacades.NewCheckPOEV3, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
+
 	},
 }

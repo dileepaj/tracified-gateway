@@ -245,7 +245,7 @@ func CheckPOEV3(w http.ResponseWriter, r *http.Request) {
 		LabUrl: commons.GetStellarLaboratoryClient() + "/laboratory/#explorer?resource=operations&endpoint=for_transaction&values=" +
 			text + "%3D%3D&network=" + commons.GetHorizonClientNetworkName(),
 		Identifier:     result.Identifier,
-		SequenceNo:     result.SequenceNo,
+		SequenceNo:     strconv.FormatInt(result.SequenceNo, 10),
 		TxnType:        "tdp",
 		Status:         response.RetrievePOE.Error.Message,
 		BlockchainName: "Stellar",
@@ -329,7 +329,7 @@ func CheckPOCV3(w http.ResponseWriter, r *http.Request) {
 				FeePaid:        feePaid,
 				Identifier:     string(Identifier),
 				SourceAccount:  SourceAccount,
-				SequenceNo:     int64(sequenceNo),
+				SequenceNo:     strconv.FormatInt(int64(sequenceNo), 10),
 			}
 
 			POCTree = append(POCTree, temp)
@@ -652,8 +652,9 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 	out8, _ = json.Marshal(raw6["records"])
 	json.Unmarshal(out8, &raw7)
 
-	ProductName := "N/A"
-	ProductId := "N/A"
+	ProductName := ""
+	ProductId := ""
+	CreatedAt := ""
 
 	if len(raw7) > 3 {
 		out9, _ := json.Marshal(raw7[2])
@@ -661,6 +662,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 
 		var raw20 map[string]interface{}
 		var raw40 map[string]interface{}
+
 
 		json.Unmarshal(out9, &raw20)
 		json.Unmarshal(out10, &raw40)
@@ -670,9 +672,18 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 
 		ProductNameDecoded, _ := base64.StdEncoding.DecodeString(ProductNameEncoded)
 		ProductIdDecoded, _ := base64.StdEncoding.DecodeString(ProductIdEncoded)
-
+	
 		ProductName = string(ProductNameDecoded)
 		ProductId = string(ProductIdDecoded)
+		// check POG transaction has timestamp manage data or not
+		if len(raw7) >=7 {
+			out11, _ := json.Marshal(raw7[len(raw7)-1])
+			var raw50 map[string]interface{}
+			json.Unmarshal(out11, &raw50)
+			createdAtEncoded := strings.TrimLeft(fmt.Sprintf("%s", raw50["value"]), "&")
+			createdAtDecoded, _ := base64.StdEncoding.DecodeString(createdAtEncoded)
+			CreatedAt = string(createdAtDecoded)
+		}
 	}
 
 	mapD := map[string]string{"transaction": TxnHash}
@@ -711,6 +722,7 @@ func CheckPOGV3Rewrite(writer http.ResponseWriter, r *http.Request) {
 		SourceAccount:  PublicKey,
 		ProductName:    ProductName,
 		ProductId:      ProductId,
+		CreatedAt: 		CreatedAt,		
 	}
 	result = append(result, temp)
 	json.NewEncoder(writer).Encode(result)

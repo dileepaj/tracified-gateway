@@ -60,6 +60,8 @@ type TransactionCollectionBody struct {
 	GeoLocation          string
 	Timestamp            string
 	TenantNameBase64     string
+	UserID				 string
+	FOUserTXNHash 			 string
 }
 
 type ProfileCollectionBody struct {
@@ -172,13 +174,14 @@ type POGResponse struct {
 	FeePaid        string
 	ProductName    string
 	ProductId      string
+	CreatedAt 	   string
 }
 
 type POEResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Url            string
 	LabUrl         string
 	SourceAccount  string
@@ -195,7 +198,7 @@ type POCResponse struct {
 	Status         string
 	Txnhash        string
 	TxnType        string
-	SequenceNo     int64
+	SequenceNo     string
 	Identifier     string
 	DataHash       string
 	BlockchainName string
@@ -564,6 +567,10 @@ type PublicKey struct {
 
 type XDRRuri struct {
 	XDR string
+}
+
+type Hash struct {
+	Hash string
 }
 
 type PendingNFTS struct {

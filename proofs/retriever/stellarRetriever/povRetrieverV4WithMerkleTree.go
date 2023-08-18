@@ -95,6 +95,9 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 			if !contains(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
 				poc.Nodes[pspgtxe.CurrentTxnHash].Children = append(poc.Nodes[pspgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
 			}
+			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents,pspgtxe.CurrentTxnHash) {
+				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pspgtxe.CurrentTxnHash)
+			}
 		}
 		poc.generatePOCV4WithMerkleTree()
 		break

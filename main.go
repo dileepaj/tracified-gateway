@@ -4,9 +4,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/dileepaj/tracified-gateway/adminDAO"
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/services"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
@@ -32,8 +32,11 @@ func main() {
 	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
-	commons.ConstructConnectionPool()
-	adminDAO.ConstructAdminConnectionPool()
+
+	// Register services, this will be used to schedule workers
+	// Added here to avoid circular import, refactor if there is a better way
+	configs.QueueBackLinks.Method = services.SubmitBacklinksDataToStellar
+	configs.QueueTransaction.Method = services.SubmitUserDataToStellar
 
 	// Initialize the cron scheduler with Delay a job's execution if the previous run hasn't completed yet
 	c := cron.New(
@@ -52,13 +55,10 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 1m", func() {
-		services.CheckTempOrphan()
+	c.AddFunc("@every 30s", func() {
+		services.QueueScheduleWorkers()
 	})
 
-	c.AddFunc("@every 5m", func() {
-		services.CheckContractStatus()
-	})
 	c.AddFunc("@every 5m", func() {
 		services.CheckPolygonContractStatus()
 	})

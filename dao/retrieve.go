@@ -3131,6 +3131,52 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantIdAndTxnType(identi
 	return p
 }
 
+func (cd *Connection) GetIssuerAccountByFOUser(StellarPK string) *promise.Promise {
+	result := model.TransactionDataKeys{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Do something asynchronously.
+		session, err := cd.connect()
+		if err != nil {
+			logrus.Info("Error while connecting to db " + err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("IssuerAccounts")
+		err1 := c.FindOne(context.TODO(), bson.M{"fouser": StellarPK}).Decode(&result)
+		if err1 != nil {
+			logrus.Info("Error while getting Issuing Account from db " + err1.Error())
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+	return p
+}
+
+func (cd *Connection) GetIssuerSK(isserPK string) *promise.Promise {
+	result := []model.TransactionDataKeys{}
+	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		dbclient := session.Client().Database(dbName).Collection("IssuerAccounts")
+		cursor, err := dbclient.Find(context.TODO(), bson.M{"accountissuerpk": isserPK})
+		if err != nil {
+			reject(err)
+		} else {
+			err := cursor.All(context.TODO(), &(result))
+			if err != nil {
+				reject(err)
+			} else {
+				resolve(result)
+			}
+		}
+	})
+	return promise
+}
+
 func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 	result := model.RetriveTDPDataPOE{}
 	// result2 := apiModel.GetSubAccountStatusResponse{}

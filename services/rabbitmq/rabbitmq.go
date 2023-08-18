@@ -482,6 +482,16 @@ func ReleaseLock() (error, string) {
 		return err, ""
 	}
 
+	// Set QoS to process one message at a time
+	err = channel.Qos(
+		1,     // prefetch count
+		0,     // prefetch size
+		false, // global
+	)
+	if err != nil {
+		return err, ""
+	}
+
 	// Acknowledge the message to release the lock
 	msgs, err := channel.Consume(
 		queuelock.Name,

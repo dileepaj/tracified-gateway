@@ -6,7 +6,7 @@ import (
 )
 
 //Get db name from .env file
-var dbName = commons.GoDotEnvVariable("DBNAME")
+var dbName = commons.GoDotEnvVariable("DB_NAME")
 
 /*Connection The Mgo Connection
 @author - Azeem Ashraf
