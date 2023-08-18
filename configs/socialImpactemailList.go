@@ -4,6 +4,8 @@ var NotificationEmails = [2]string{"bhawanthas@tracified.com", "ishinik@tracifie
 
 var JWTAuthEnableBindMetricEndpoint = false
 
+var JWTAuthenticationEnabledForMintingWalletNFT = true
+
 var ValidateAgainstTrustNetworkExpertFormulaEnable = true
 
 var PGPkeyEnableExpertFormula = true
