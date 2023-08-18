@@ -138,9 +138,7 @@ func ReceiverRmq() error {
 						logrus.Error("Error while updating the metric binding formula into DB: ", errWhenUpdatingMetricBind)
 					}
 					logrus.Info("Metric update called with success status")
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Stellar transacion submitting to blockchain (METRICBINDINIG) , Transaction Hash : ", hash)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			} else if queue.Type == "EXPERTFORMULA" {
 				logrus.Info("Received mgs Type (EXPERTFORMULA)")
@@ -191,9 +189,7 @@ func ReceiverRmq() error {
 						logrus.Error("Error while updating the expert formula into DB: ", err)
 					}
 					logrus.Info("Formula update called with success status")
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Stellar transaction submitting to blockchain (EXPERTFORMULA) , Transaction Hash : ", hash)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			} else if queue.Type == "ETHEXPERTFORMULA" {
 				logrus.Info("Received mgs Type (ETHEXPERTFORMULA)")
@@ -252,12 +248,9 @@ func ReceiverRmq() error {
 						logrus.Error("Error when updating the status of formula status for Eth , formula ID " + ethExpertFormulaObj.FormulaID)
 					}
 					logrus.Info("Formula update called with status ", ethExpertFormulaObj.Status)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert expert formula smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
 					logrus.Info("Transaction hash : " + txnHash)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
-
 				}
 			} else if queue.Type == "POLYGONEXPERTFORMULA" {
 				logger.LogWriter("Received mgs Type (POLYGONEXPERTFORMULA)", constants.INFO)
@@ -316,11 +309,9 @@ func ReceiverRmq() error {
 						logrus.Error("Error when updating the status of formula status for Polygon , formula ID " + polygonExpertFormulaObj.FormulaID)
 					}
 					logrus.Info("Formula update called with status ", polygonExpertFormulaObj.Status)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert expert formula smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
 					logrus.Info("Transaction hash : " + txnHash)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			} else if queue.Type == "ETHMETRICBIND" {
 				logrus.Info("Received mgs Type (ETHMETRICBIND)")
@@ -389,11 +380,9 @@ func ReceiverRmq() error {
 						logrus.Error("Error when updating the status of metric status for Eth , formula ID " + ethMetricObj.MetricID)
 					}
 					logrus.Info("Metric update called with status " + strconv.Itoa(ethMetricObj.Status) + ". Type: " + ethMetricObj.Type)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 					logrus.Info("Deployed expert metric bind smart contract to blockchain")
 					logrus.Info("Contract address : " + address)
 					logrus.Info("Transaction hash : " + txnHash)
-					logrus.Info("-------------------------------------------------------------------------------------------------------------------------------------")
 				}
 			}
 		}
