@@ -41,7 +41,7 @@ func RequestFunds(blockchainType int) error {
 
 	for _, email := range configs.EthereumNotificationEmails {
 		msg := gomail.NewMessage()
-		msg.SetHeader("From", commons.GoDotEnvVariable("sender_emailadress"))
+		msg.SetHeader("From", commons.GoDotEnvVariable("EMAILADRESSFORNOTIFICATIONSENDER"))
 		msg.SetHeader("To", email)
 		msg.SetHeader("Subject", subject)
 		msg.SetBody("text/html", message)
@@ -50,7 +50,7 @@ func RequestFunds(blockchainType int) error {
 			logrus.Error("Issue when converting string to int, ERROR : " + errWhenConvertingToStr.Error())
 			return errors.New("Issue when converting string to int, ERROR : " + errWhenConvertingToStr.Error())
 		}
-		n := gomail.NewDialer(commons.GoDotEnvVariable("GMAILHOST"), port, commons.GoDotEnvVariable("sender_emailadress"), commons.GoDotEnvVariable("SENDER_EMAILADRESS_APPPWD"))
+		n := gomail.NewDialer(commons.GoDotEnvVariable("GMAILHOST"), port, commons.GoDotEnvVariable("EMAILADRESSFORNOTIFICATIONSENDER"), commons.GoDotEnvVariable("SENDER_EMAILADRESS_APPPWD"))
 		errWhenDialAndSending := n.DialAndSend(msg)
 		if errWhenDialAndSending != nil {
 			logrus.Error("Email sending issue, ERROR : " + errWhenDialAndSending.Error())
