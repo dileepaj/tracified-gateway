@@ -438,7 +438,7 @@ var routes = Routes{
 	Route{
 		"MintNFTStellarAndAddToDB",
 		"POST",
-		"/nft/wallet/mintStellar",
+		"/nft/wallet/mint-stellar",
 		businessFacades.MintWalletNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
 	},
 	Route{
