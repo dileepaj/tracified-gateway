@@ -29,7 +29,7 @@ func main() {
 
 	// getEnvironment()
 	port := getPort()
-	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "Token"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
 	commons.ConstructConnectionPool()
