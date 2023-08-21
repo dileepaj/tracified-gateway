@@ -436,6 +436,12 @@ var routes = Routes{
 		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
 	},
 	Route{
+		"MintNFTStellarAndAddToDB",
+		"POST",
+		"/nft/wallet/mint-stellar",
+		businessFacades.MintWalletNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
+	},
+	Route{
 		"MintNFTSolanaAndAddToDB",
 		"POST",
 		"/nft/mintSolana",
@@ -646,8 +652,8 @@ var routes = Routes{
 		"GET",
 		"/activate",
 		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
-  },
-		Route{
+	},
+	Route{
 		"POC",
 		"GET",
 		"/tdpdata/txnhash",

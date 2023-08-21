@@ -145,7 +145,6 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 		return err
 	}
 
-	log.Info("Message published " + queueName + "cache time" + strconv.FormatInt(time.Now().Unix()+queueCacheTime, 10))
 	cache.InsertSortedSet(QueueCacheName, queueName, float64(time.Now().Unix()+queueCacheTime))
 
 	if registerW != nil {
@@ -212,7 +211,6 @@ func QueueScheduleWorkers() {
 
 	queueNames := client.ZRange(context.Background(), QueueCacheName, 0, -1).Val()
 
-	log.Info("Current Queues: " + strings.Join(queueNames, ", "))
 	for _, name := range queueNames {
 		queueName := getQueueName(name)
 		_, ok := queuesConsumers[queueName]
@@ -223,7 +221,7 @@ func QueueScheduleWorkers() {
 		for n, queue := range configs.Queues {
 			n = getQueueName(n)
 			if queueName == n || strings.HasPrefix(queueName, n) {
-				RegisterWorker(queueName, queue.Method)
+				RegisterWorker(queueName, queue().Method)
 			}
 		}
 	}
