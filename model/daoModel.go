@@ -61,7 +61,8 @@ type TransactionCollectionBody struct {
 	Timestamp            string
 	TenantNameBase64     string
 	UserID				 string
-	FOUserTXNHash 			 string
+	FOUserTXNHash 		 string
+	RequestId            string
 }
 
 type ProfileCollectionBody struct {
