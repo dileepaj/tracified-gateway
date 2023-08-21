@@ -21,7 +21,7 @@ func CheckPolygonContractStatus() {
 	p := object.GetPendingContractsByStatus(117, "PolygonPendingTransactions")
 	p.Then(func(data interface{}) interface{} {
 		result := data.([]model.PendingContracts)
-		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDINGTHRESHOLD"))
+		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDING_THRESHOLD"))
 		if errWhenConvertingPendingCap != nil {
 			logger.LogWriter("Error when converting the pending cap : "+errWhenConvertingPendingCap.Error(), constants.ERROR)
 			return nil

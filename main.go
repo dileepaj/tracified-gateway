@@ -59,7 +59,7 @@ func main() {
 		services.QueueScheduleWorkers()
 	})
 
-	c.AddFunc("@every 5m", func() {
+	c.AddFunc("@every 60m", func() {
 		services.CheckPolygonContractStatus()
 	})
 	c.Start()

@@ -30,7 +30,7 @@ func CheckContractStatus() {
 			logrus.Error("Error when calling th Ethereum client on Cron job, Error : " + errWHenDialingEthClient.Error())
 			return nil
 		}
-		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDINGTHRESHOLD"))
+		pendingCap, errWhenConvertingPendingCap := strconv.Atoi(commons.GoDotEnvVariable("PENDING_THRESHOLD"))
 		if errWhenConvertingPendingCap != nil {
 			logrus.Error("Error when converting the pending cap : " + errWhenConvertingPendingCap.Error())
 			return nil

@@ -20,14 +20,13 @@ import (
 func MinimumGasPriceGetterForPolygon() (*big.Int, error) {
 	logger := utilities.NewCustomLogger()
 
-	client, errWhenDialingClient := ethclient.Dial(commons.GoDotEnvVariable("POLYGONALCHEMYMAINNETLINK"))
+	client, errWhenDialingClient := ethclient.Dial(commons.GoDotEnvVariable("POLYGON_ALCHEMY_MAINNET_LINK"))
 	if errWhenDialingClient != nil {
 		logger.LogWriter("Error when dialing client : "+errWhenDialingClient.Error(), constants.ERROR)
 		return nil, errors.New(errWhenDialingClient.Error())
 	}
 
-	blockUrl := commons.GoDotEnvVariable("POLYGONSCANAPILINK") + `?module=block&action=getblocknobytime&timestamp=` + strconv.FormatInt(time.Now().Unix(), 10) + `&closest=before&apikey=` + commons.GoDotEnvVariable("POLYGONSCANAPIKEY")
-
+	blockUrl := commons.GoDotEnvVariable("POLYGON_SCAN_API_LINK") + `?module=block&action=getblocknobytime&timestamp=` + strconv.FormatInt(time.Now().Unix(), 10) + `&closest=before&apikey=` + commons.GoDotEnvVariable("POLYGON_SCAN_API_KEY")
 	blockNoRes, errWhenGettingBlockNo := http.Get(blockUrl)
 	if errWhenGettingBlockNo != nil {
 		logger.LogWriter("Error when getting block No :"+errWhenGettingBlockNo.Error(), constants.ERROR)
@@ -62,7 +61,6 @@ func MinimumGasPriceGetterForPolygon() (*big.Int, error) {
 	}
 
 	count := 0
-
 	min := block.Transactions()[0].GasPrice()
 	//query block transactions
 	for _, tx := range block.Transactions() {

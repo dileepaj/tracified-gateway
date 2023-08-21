@@ -21,7 +21,7 @@ func BuildExpertObject(formulaID string, formulaName string, metricExpertFormula
 		TransactionCost:     "",
 		TransactionUUID:     "",
 		GOstring:            "",
-		TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
+		TransactionSender:   commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"),
 		Verify:              verify,
 		ErrorMessage:        "",
 		ActualStatus:        101, // SMART_CONTRACT_GENERATION_STARTED

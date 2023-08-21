@@ -77,19 +77,19 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 	}
 	auth.Value = big.NewInt(0) // in wei
 
-	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
+	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACT_DEPLOY_LIMIT"))
 	if errInTryConvert != nil {
 		logger.LogWriter("Error when converting the tryout limit , ERROR : "+errInTryConvert.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 	}
 
-	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
+	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_LIMIT_CAP"))
 	if errInGasLimitCapConcert != nil {
 		logger.LogWriter("Error when converting the gas limit cap , ERROR : "+errInGasLimitCapConcert.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
 	}
 
-	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASPRICECAP"))
+	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_PRICE_CAP"))
 	if errInGasPriceCapConcert != nil {
 		logger.LogWriter("Error when converting the gas price cap , ERROR : "+errInGasPriceCapConcert.Error(), constants.ERROR)
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
@@ -102,7 +102,7 @@ func PolygonContractDeployer(bin string, abi string, contractIdentifier string, 
 			logger.LogWriter("Deploying the contract for the "+strconv.FormatInt(int64(i+1), 10)+" th time", constants.INFO)
 			if i == 0 {
 				//gas limit estimation
-				gasLimit, errWhenGettingGasLimit := polygongasservice.EstimateGasLimitForPolygon(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", bin)
+				gasLimit, errWhenGettingGasLimit := polygongasservice.EstimateGasLimitForPolygon(commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"), "", "", "", "", bin)
 				if errWhenGettingGasLimit != nil {
 					logger.LogWriter("Error when getting gas limit "+errWhenGettingGasLimit.Error(), constants.ERROR)
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas limit, ERROR : " + errWhenGettingGasLimit.Error())
