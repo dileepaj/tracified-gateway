@@ -127,7 +127,7 @@ func MintWalletNFTStellar(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	if configs.JWTAuthenticationEnabledForMintingWalletNFT {
 		permissionStatus := authentication.WalletUserHasPermissionToMint(r.Header.Get("Authorization"))
-		if !permissionStatus.Status || !permissionStatus.IsSubscriptionPaid {
+		if !permissionStatus.Status {
 			commons.JSONErrorReturn(w, r, "", http.StatusUnauthorized, "Status Unauthorized")
 			return
 		}
