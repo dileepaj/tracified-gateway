@@ -20,6 +20,12 @@ type PermissionStatus struct {
 	IsSubscriptionPaid bool
 }
 
+type WalletPermissionStatus struct {
+	Status   bool
+	TenantId string
+	UserId   string
+}
+
 /*
  * The HasPermission function will return a boolean value which will be used to check if the user has the required access claim or not
  */
@@ -81,9 +87,9 @@ func HasPermission(reqToken string) PermissionStatus {
 	return ps
 }
 
-func WalletUserHasPermissionToMint(reqToken string) PermissionStatus {
+func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 	logger := utilities.NewCustomLogger()
-	var ps PermissionStatus
+	var ps WalletPermissionStatus
 	if len(reqToken) > 0 {
 		splitToken := strings.Split(reqToken, "Bearer ")
 		reqToken = splitToken[1]
