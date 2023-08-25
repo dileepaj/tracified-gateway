@@ -22,15 +22,17 @@ const queueCacheTime = 60 * 60 * 3
 
 var queueConnection *amqp.Connection
 
-var queueChannel *amqp.Channel
+var channels = make(map[string]*amqp.Channel)
+var consumerChannels = make(map[string]*amqp.Channel)
 
 var queueError error
 
 var queueConnectionOnce sync.Once
-var queueChannelOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
 var queuesConsumers = make(map[string]bool)
+
+var mu sync.Mutex
 
 func getQueueName(queueName string) string {
 	if strings.HasPrefix(queueName, queuePrefix) {
@@ -55,36 +57,62 @@ func GetQueueConnection() (*amqp.Connection, error) {
 	return queueConnection, queueError
 }
 
-func GetQueueChannel() (*amqp.Channel, error) {
-	if _, err := GetQueueConnection(); err != nil {
+func GetQueueChannel(queueName string) (*amqp.Channel, error) {
+	var err error
+	if _, err = GetQueueConnection(); err != nil {
 		log.Error(err)
 		return nil, err
 	}
 
-	queueChannelOnce.Do(func() {
-		ch, err := queueConnection.Channel()
+	ch, ok := channels[queueName]
 
-		if err != nil {
-			log.Error(err)
-		}
+	if ok {
+		return ch, nil
+	}
 
-		queueChannel = ch
-		queueError = err
+	ch, err = queueConnection.Channel()
+	mu.Lock()
+	channels[queueName] = ch
+	mu.Unlock()
 
-	})
+	return ch, err
+}
 
-	return queueChannel, queueError
+func GetConsumerQueueChannel(queueName string) (*amqp.Channel, error) {
+	var err error
+	if _, err = GetQueueConnection(); err != nil {
+		log.Error(err)
+		return nil, err
+	}
+
+	mu.Lock()
+	ch, ok := consumerChannels[queueName]
+	mu.Unlock()
+
+	if ok {
+		return ch, nil
+	}
+
+	ch, err = queueConnection.Channel()
+
+	mu.Lock()
+	consumerChannels[queueName] = ch
+	mu.Unlock()
+
+	return ch, err
 }
 
 func GetQueue(queueName string) (amqp.Queue, error) {
 	queueName = getQueueName(queueName)
-	ch, err := GetQueueChannel()
+	ch, err := GetQueueChannel(queueName)
 
 	if err != nil {
 		return amqp.Queue{}, err
 	}
 
+	mu.Lock()
 	q, ok := queues[queueName]
+	mu.Unlock()
 	if !ok {
 		q, err = ch.QueueDeclare(
 			queueName,
@@ -98,16 +126,18 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 			},
 		)
 		if err != nil {
-			log.Error(err)
+			log.Error("QueueDeclareError ", err)
 			return amqp.Queue{}, err
 		}
 		err = ch.Qos(1, 0, false)
 		if err != nil {
-			log.Error(err)
+			log.Error("Channel QOS: ", err)
 			return amqp.Queue{}, err
 		}
 
+		mu.Lock()
 		queues[queueName] = q
+		mu.Unlock()
 	}
 
 	return q, err
@@ -116,7 +146,7 @@ func GetQueue(queueName string) (amqp.Queue, error) {
 func PublishToQueue(queueName string, message string, args ...interface{}) error {
 	queueName = getQueueName(queueName)
 	q, _ := GetQueue(queueName)
-	ch, _ := GetQueueChannel()
+	ch, _ := GetQueueChannel(queueName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
@@ -156,12 +186,14 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 
 func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 	queueName = getQueueName(queueName)
+	mu.Lock()
 	_, ok := queuesConsumers[queueName]
+	mu.Unlock()
 	if ok {
 		return nil
 	}
 
-	ch, _ := GetQueueChannel()
+	ch, _ := GetConsumerQueueChannel(queueName)
 	q, _ := GetQueue(queueName)
 
 	messages, err := ch.Consume(
@@ -201,7 +233,9 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 		}
 	}()
 
+	mu.Lock()
 	queuesConsumers[queueName] = true
+	mu.Unlock()
 	return err
 }
 
