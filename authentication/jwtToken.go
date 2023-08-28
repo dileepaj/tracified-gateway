@@ -8,8 +8,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/dileepaj/tracified-gateway/commons"
-	"github.com/dileepaj/tracified-gateway/constants"
-	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/sirupsen/logrus"
 )
 
@@ -88,7 +86,6 @@ func HasPermission(reqToken string) PermissionStatus {
 }
 
 func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
-	logger := utilities.NewCustomLogger()
 	var ps WalletPermissionStatus
 	if len(reqToken) > 0 {
 		splitToken := strings.Split(reqToken, "Bearer ")
@@ -99,10 +96,10 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 		})
 		if err != nil {
 			if err.Error() == jwt.ErrSignatureInvalid.Error() {
-				logger.LogWriter(err.Error(), constants.ERROR)
+				logrus.Println(err.Error())
 				return ps
 			}
-			logger.LogWriter(err.Error(), constants.ERROR)
+			logrus.Println(err.Error())
 			return ps
 		}
 		for key, val := range claims {
@@ -115,7 +112,7 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 			if key == "permissions" {
 				v, ok := val.(map[string]interface{})["0"]
 				if !ok {
-					logger.LogWriter("Permissions not found", constants.ERROR)
+					logrus.Println("Permissions not found")
 				}
 				if v != nil {
 					switch reflect.TypeOf(v).Kind() {
@@ -128,14 +125,14 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 						}
 					}
 				} else {
-					logger.LogWriter("Permissions not found", constants.ERROR)
+					logrus.Println("Permissions not found")
 					ps.Status = false
 				}
 
 			}
 		}
 	} else {
-		logger.LogWriter("Bearer token not found", constants.ERROR)
+		logrus.Println("Bearer token not found")
 		return ps
 	}
 	return ps
