@@ -96,10 +96,10 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 		})
 		if err != nil {
 			if err.Error() == jwt.ErrSignatureInvalid.Error() {
-				logrus.Println(err.Error())
+				logrus.Error(err.Error())
 				return ps
 			}
-			logrus.Println(err.Error())
+			logrus.Error(err.Error())
 			return ps
 		}
 		for key, val := range claims {
@@ -112,7 +112,7 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 			if key == "permissions" {
 				v, ok := val.(map[string]interface{})["0"]
 				if !ok {
-					logrus.Println("Permissions not found")
+					logrus.Error("Permissions not found")
 				}
 				if v != nil {
 					switch reflect.TypeOf(v).Kind() {
@@ -125,14 +125,14 @@ func WalletUserHasPermissionToMint(reqToken string) WalletPermissionStatus {
 						}
 					}
 				} else {
-					logrus.Println("Permissions not found")
+					logrus.Error("Permissions not found")
 					ps.Status = false
 				}
 
 			}
 		}
 	} else {
-		logrus.Println("Bearer token not found")
+		logrus.Error("Bearer token not found")
 		return ps
 	}
 	return ps
