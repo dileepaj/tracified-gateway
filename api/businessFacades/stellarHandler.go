@@ -166,7 +166,6 @@ func MintWalletNFTStellar(w http.ResponseWriter, r *http.Request) {
 				Copies:                           TrustLineResponseNFT.Copies,
 				NFTArtistName:                    TrustLineResponseNFT.ArtistName,
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
-				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			MarketplaceNFTNFTcollectionObj = model.MarketPlaceNFT{
@@ -193,7 +192,6 @@ func MintWalletNFTStellar(w http.ResponseWriter, r *http.Request) {
 				PreviousOwnerNFTPK:               "TRACIFIED",
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.DistributorPublickKey,
 				SellingStatus:                    "NOTFORSALE",
-				Royalty:                          TrustLineResponseNFT.Royalty,
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
