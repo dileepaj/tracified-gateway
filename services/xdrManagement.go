@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"net/http"
+	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -39,33 +40,46 @@ func SubmitFOData(Response model.TransactionData) (string, error) {
 					log.Error("Error while read response " + err.Error())
 				}
 				var balances model.BalanceResponse
+
 				err = json.Unmarshal(body, &balances)
 				if err != nil {
 					log.Error("Error while json.Unmarshal(body, &balance) " + err.Error())
 				}
 
 				balance := balances.Balances[0].Balance
-
-				if balance < "10" {
+				floatValue, err := strconv.ParseFloat(balance, 64)
+				if floatValue < 10 {
 					hash, err := fosponsoring.FundAccount(Response.AccountIssuer)
 					if err != nil {
 						log.Error("Error while funding issuer " + err.Error())
 					}
 					logrus.Info("funded and hash is : ", hash)
-				}
-				var TransactionPayload = model.TransactionData{
-					FOUser:        Response.FOUser,
-					AccountIssuer: Response.AccountIssuer,
-					XDR:           Response.XDR,
-				}
-				xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
-				if err != nil {
-					log.Error(err)
+					var TransactionPayload = model.TransactionData{
+						FOUser:        Response.FOUser,
+						AccountIssuer: Response.AccountIssuer,
+						XDR:           Response.XDR,
+					}
+					xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
+					if err != nil {
+						log.Error(err)
+					} else {
+						logrus.Info("xdr base64 been passed to frontend : ", xdr)
+						return xdr, nil
+					}
 				} else {
-					logrus.Info("xdr base64 been passed to frontend : ", xdr)
-					return xdr, nil
+					var TransactionPayload = model.TransactionData{
+						FOUser:        Response.FOUser,
+						AccountIssuer: Response.AccountIssuer,
+						XDR:           Response.XDR,
+					}
+					xdr, err := fosponsoring.BuildSignedSponsoredXDR(TransactionPayload)
+					if err != nil {
+						log.Error(err)
+					} else {
+						logrus.Info("xdr base64 been passed to frontend : ", xdr)
+						return xdr, nil
+					}
 				}
-
 			} else {
 				return "", nil
 			}

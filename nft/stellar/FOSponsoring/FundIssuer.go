@@ -14,12 +14,12 @@ import (
 
 func FundAccount(FOIssuerPK string) (string, error) {
 
-	request := horizonclient.AccountRequest{AccountID: commons.GoDotEnvVariable("STELLARISSUERPUBLICKEYK")}
+	request := horizonclient.AccountRequest{AccountID: commons.GoDotEnvVariable("SPONSORERPK")}
 	issuerAccount, err := commons.GetHorizonClient().AccountDetail(request)
 	if err != nil {
 		return "", err
 	}
-	issuerSign, err := keypair.ParseFull(commons.GoDotEnvVariable("STELLARISSUERSECRETKEY"))
+	issuerSign, err := keypair.ParseFull(commons.GoDotEnvVariable("SPONSORERSK"))
 	if err != nil {
 		return "", err
 	}
