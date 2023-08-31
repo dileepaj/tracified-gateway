@@ -241,8 +241,9 @@ SubmitData - @desc Handles an incoming request and calls the dataBuilder
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	requestId := r.Header.Get("Custom-Request-Tag-Id")
 	var TDPs []model.TransactionCollectionBody
-
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.RECEIVED_FORM_BACKEND, requestId, configs.BenchmarkLogsStatus.OK)
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -273,6 +274,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	var response []apiModel.TDPOperationRequest
 	for i, TxnBody := range TDPs {
 		TDPs[i].Status = "pending"
+		TDPs[i].RequestId = requestId
 		// Convert the struct to a JSON string using encoding/json
 		jsonStr, err := json.Marshal(TDPs[i])
 		if err != nil {
@@ -281,6 +283,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		services.PublishToQueue(configs.QueueTransaction.Prefix+TxnBody.UserID, string(jsonStr), configs.QueueTransaction.Method)
+		utilities.BenchmarkLog("tdp-request", configs.BenchmarkLogsAction.PUBLISH_TO+configs.QueueTransaction.Prefix+TxnBody.UserID, requestId, configs.BenchmarkLogsStatus.OK)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
 	}
 	w.WriteHeader(http.StatusOK)

@@ -3,5 +3,5 @@
 local.env
 .env
 .idea/
-
+benchmarkLogs.txt
 tracified-gateway
