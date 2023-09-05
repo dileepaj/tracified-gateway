@@ -10,8 +10,8 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 	if poc.Nodes == nil {
 		poc.Nodes = make(map[string]*POCNode)
 	}
-	if poc.siblings == nil {
-		poc.siblings = make(map[string][]string)
+	if poc.Siblings == nil {
+		poc.Siblings = make(map[string][]string)
 	}
 
 	if poc.Level == 0 {
@@ -64,6 +64,7 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 		if err1 == nil {
 			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, gtxe.PreviousTxnHash)
 			}
 			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
 			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
@@ -98,6 +99,7 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 			// }
 			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pspgtxe.CurrentTxnHash) {
 				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pspgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, gtxe.PreviousTxnHash)
 			}
 		}
 		// poc.generatePOCV4WithMerkleTree()
@@ -111,6 +113,7 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 		if err1 == nil {
 			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, gtxe.PreviousTxnHash)
 			}
 			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
 			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
@@ -150,14 +153,16 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 			pgtxe, _ := p.GetTransactionCollection()
 			if !contains(poc.Nodes[mergeParent].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[mergeParent].Parents = append(poc.Nodes[mergeParent].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, hash)
 			}
-			if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
-				poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{Id: pgtxe.CurrentTxnHash}
-			}
-			if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent) {
-				poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent)
-			}
+			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{Id: pgtxe.CurrentTxnHash}
+			// }
+			// if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent) {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent)
+			// }
 		}
+		
 		for _, hash := range mergeHashes {
 			poc.LastTxnHash = hash
 			poc.generatePOCV4WithMerkleTree()
@@ -171,17 +176,18 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 			pgtxe, _ := p.GetTransactionCollection()
 			if !contains(poc.Nodes[mergeParent].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[mergeParent].Parents = append(poc.Nodes[mergeParent].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, hash)
 			}
-			if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
-				poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{Id: pgtxe.CurrentTxnHash}
-			}
-			if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent) {
-				poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent)
-			}
+			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{Id: pgtxe.CurrentTxnHash}
+			// }
+			// if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent) {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, mergeParent)
+			// }
 		}
 		for _, hash := range mergeHashes {
 			poc.LastTxnHash = hash
-			poc.generatePOCV4WithMerkleTree()
+			//poc.generatePOCV4WithMerkleTree()
 		}
 		break
 	case "9":
@@ -193,6 +199,7 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 		if err1 == nil {
 			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, gtxe.PreviousTxnHash)
 			}
 			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
 			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
@@ -217,19 +224,20 @@ func (poc *POCTreeV4) generatePOCV4WithMerkleTree() {
 		if err1 == nil {
 			if !contains(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash) {
 				poc.Nodes[gtxe.CurrentTxnHash].Parents = append(poc.Nodes[gtxe.CurrentTxnHash].Parents, pgtxe.CurrentTxnHash)
+				poc.BackLinkParents = append(poc.BackLinkParents, gtxe.PreviousTxnHash)
 			}
-			if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
-				poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
-					Id:         pgtxe.TxnHash,
-					Data:       *pgtxe,
-					TrustLinks: []string{pgtxe.TxnHash},
-				}
-			}
-			if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
-				poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
-			}
+			// if poc.Nodes[pgtxe.CurrentTxnHash] == nil {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash] = &POCNode{
+			// 		Id:         pgtxe.TxnHash,
+			// 		Data:       *pgtxe,
+			// 		TrustLinks: []string{pgtxe.TxnHash},
+			// 	}
+			// }
+			// if !contains(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash) {
+			// 	poc.Nodes[pgtxe.CurrentTxnHash].Children = append(poc.Nodes[pgtxe.CurrentTxnHash].Children, gtxe.CurrentTxnHash)
+			// }
 		}
-		poc.LastTxnHash = gtxe.PreviousTxnHash
+		//poc.LastTxnHash = gtxe.PreviousTxnHash
 		poc.generatePOCV4()
 		break
 	}
