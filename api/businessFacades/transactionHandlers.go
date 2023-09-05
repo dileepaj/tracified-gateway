@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -316,9 +317,15 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(result)
 		return
 	}
+	url := r.URL.String()
 	var response []apiModel.TDPOperationRequest
 	for i, TxnBody := range TDPs {
 		TDPs[i].Status = "pending"
+		// Check if the URL contains "/merge"
+		if strings.Contains(url, "/merge") {
+			// "/merge" is part of the URL
+			TDPs[i].MergeBlock = i
+		}
 		// Convert the struct to a JSON string using encoding/json
 		jsonStr, err := json.Marshal(TDPs[i])
 		if err != nil {
