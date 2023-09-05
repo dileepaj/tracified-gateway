@@ -8,6 +8,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/services"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/go-openapi/runtime/middleware"
@@ -48,6 +49,8 @@ func main() {
 
 	c.AddFunc("@every 30m", func() {
 		services.CheckCOCStatus()
+		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"))
+		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("SPONSORkey"))
 	})
 
 	c.AddFunc("@every 12h", func() {

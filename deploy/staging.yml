@@ -116,5 +116,7 @@
           FONEW_FLAG: "{{ lookup('env','FONEW_FLAG') }}"
           CACHE_CONNECTION: "{{ lookup('env','CACHE_CONNECTION') }}"
           JWT_DECODE_KEY: "{{ lookup('env','JWT_DECODE_KEY') }}"
+          STELLAR_KEY_LOW_BALANCE_BUFFER_AMOUNT : "{{ lookup('env','STELLAR_KEY_LOW_BALANCE_BUFFER_AMOUNT') }}"
+          STELLAR_BASE_RESERVE : "{{ lookup('env','STELLAR_BASE_RESERVE') }}"
 
 
