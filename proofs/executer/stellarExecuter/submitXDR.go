@@ -76,7 +76,6 @@ func (cd *ConcreteSubmitXDR) SubmitXDR(tType string) model.SubmitXDRResponse {
 		}
 	} else {
 		log.Info(time.Now().UTC().String()+" - TXNType: "+tType+" Hash: "+resp.Hash+" Ledger: ", resp.Ledger)
-		log.Info("Transaction performed in the blockchain. " + resp.Hash)
 		response.Error.Code = http.StatusOK
 		response.TXNID = resp.Hash
 		return response

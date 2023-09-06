@@ -236,60 +236,15 @@ func Transaction(w http.ResponseWriter, r *http.Request) {
 }
 
 /*
-SubmitGenesis @desc Handles an incoming request and calls the genesisBuilder
-@author - Azeem Ashraf
-@params - ResponseWriter,Request
-*/
-func SubmitGenesis(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-
-		return
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-
-		return
-	}
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSpecial(w, r)
-	// 	display.SubmitGenesis(w,r)
-
-	return
-}
-
-/*
 SubmitData - @desc Handles an incoming request and calls the dataBuilder
 @author - Azeem Ashraf
 @params - ResponseWriter,Request
 */
 func SubmitData(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	requestId := r.Header.Get("Custom-Request-Tag-Id")
 	var TDPs []model.TransactionCollectionBody
-
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.RECEIVED_FORM_BACKEND, requestId, configs.BenchmarkLogsStatus.OK)
 	if r.Header == nil {
 		w.WriteHeader(http.StatusBadRequest)
 		result := apiModel.SubmitXDRSuccess{
@@ -321,6 +276,7 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 	var response []apiModel.TDPOperationRequest
 	for i, TxnBody := range TDPs {
 		TDPs[i].Status = "pending"
+		TDPs[i].RequestId = requestId
 		// Check if the URL contains "/merge"
 		if strings.Contains(url, "/merge") {
 			// "/merge" is part of the URL
@@ -334,189 +290,11 @@ func SubmitData(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		services.PublishToQueue(configs.QueueTransaction.Prefix+TxnBody.UserID, string(jsonStr), configs.QueueTransaction.Method)
+		utilities.BenchmarkLog("tdp-request", configs.BenchmarkLogsAction.PUBLISH_TO+configs.QueueTransaction.Prefix+TxnBody.UserID, requestId, configs.BenchmarkLogsStatus.OK)
 		response = append(response, apiModel.TDPOperationRequest{i, TxnBody.MapIdentifier, TxnBody.TdpId, TxnBody.XDR, "Success"})
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
-	return
-}
-
-/*
-SubmitSplit - @desc Handles an incoming request and calls the splitBuilder
-@author - Azeem Ashraf
-@params - ResponseWriter,Request
-*/
-func SubmitSplit(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(TDP)
-
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSpecialSplit(w, r)
-
-	return
-}
-
-/*
-SubmitMerge - @desc Handles an incoming request and calls the mergeBuilder
-@author - Azeem Ashraf
-@params - ResponseWriter,Request
-*/
-func SubmitMerge(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return
-
-	}
-	logrus.Info(TDP)
-
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSpecialMerge(w, r)
-
-	return
-}
-
-/*
-SubmitTransformation - Needs to be Refurbished @desc Handles an incoming request and calls the TransformationBuilder
-@author - Azeem Ashraf
-@params - ResponseWriter,Request
-*/
-func SubmitTransformation(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(TDP)
-
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitMerge(w, r)
-
-	return
-}
-
-/*
-SubmitTransfer - Needs to be Refurbished @desc Handles an incoming request and calls the TransferBuilder
-@author - Azeem Ashraf
-@params - ResponseWriter,Request
-*/
-func SubmitTransfer(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	var TDP []model.TransactionCollectionBody
-
-	if r.Header == nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Header present!",
-		}
-		json.NewEncoder(w).Encode(result)
-		return
-	}
-
-	if r.Header.Get("Content-Type") == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "No Content-Type present!",
-		}
-		json.NewEncoder(w).Encode(result)
-
-		return
-	}
-
-	err := json.NewDecoder(r.Body).Decode(&TDP)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		result := apiModel.SubmitXDRSuccess{
-			Status: "Error while Decoding the body",
-		}
-		json.NewEncoder(w).Encode(result)
-		fmt.Println(err)
-		return
-	}
-	display := &builder.AbstractXDRSubmiter{TxnBody: TDP}
-	display.SubmitSpecialTransfer(w, r)
 	return
 }
 

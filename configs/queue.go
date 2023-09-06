@@ -18,7 +18,11 @@ var QueueTransaction = QueueConfig{
 	Prefix: "transaction.",
 }
 
-var Queues = map[string]QueueConfig{
-	"backlinks":    QueueBackLinks,
-	"transaction.": QueueTransaction,
+var Queues = map[string]func() QueueConfig{
+	"backlinks": func() QueueConfig {
+		return QueueBackLinks
+	},
+	"transaction.": func() QueueConfig {
+		return QueueTransaction
+	},
 }
