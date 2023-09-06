@@ -118,4 +118,8 @@
           JWT_DECODE_KEY: "{{ lookup('env','JWT_DECODE_KEY') }}"
           STELLAR_KEY_LOW_BALANCE_BUFFER_AMOUNT : "{{ lookup('env','STELLAR_KEY_LOW_BALANCE_BUFFER_AMOUNT') }}"
           STELLAR_BASE_RESERVE : "{{ lookup('env','STELLAR_BASE_RESERVE') }}"
-
+          NOTIFIER_EMAILS_FOR_LOW_BALANCE_WARNING : "{{ lookup('env','NOTIFIER_EMAILS_FOR_LOW_BALANCE_WARNING') }}"
+          MAIL_HOST : "{{ lookup('env','MAIL_HOST') }}"
+          MAIL_PORT : "{{ lookup('env','MAIL_PORT') }}"
+          MAIL_SENDER : "{{ lookup('env','MAIL_SENDER') }}"
+          MAIL_SENDER_APP_KEY : "{{ lookup('env','MAIL_SENDER_APP_KEY') }}"
