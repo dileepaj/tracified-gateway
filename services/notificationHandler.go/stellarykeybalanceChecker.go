@@ -196,6 +196,7 @@ func GetEmailList() []string {
 // the public key, account balance, and minimum balance. It returns the HTML template as a string.
 // The placeholders will be filled with actual values when sending an email.
 func GetEmailMessageTemplate(publicKey string, balance string, minimumBalance float64) string {
+	env := commons.GoDotEnvVariable("ENVIRONMENT")
 	// Define an HTML email template with placeholders for the provided values
 	template := `
 	<html>
@@ -216,7 +217,7 @@ func GetEmailMessageTemplate(publicKey string, balance string, minimumBalance fl
 	</head>
 	<body>
 		<div class="container">
-			<p>Tracified account: <span class="strong">` + publicKey + `</span> is low in balance (<span class="strong">` + balance + ` XLM</span>). Please fund it. The minimum balance for the account to be active is: <span class="strong">` + strconv.FormatFloat(minimumBalance, 'f', -1, 64) + ` XLM</span>.</p>
+			<p>` + env + ` Tracified account: <span class="strong">` + publicKey + `</span> is low in balance (<span class="strong">` + balance + ` XLM</span>). Please fund it. The minimum balance for the account to be active is: <span class="strong">` + strconv.FormatFloat(minimumBalance, 'f', -1, 64) + ` XLM</span>.</p>
 		</div>
 	</body>
 	</html>
