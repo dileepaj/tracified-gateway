@@ -518,6 +518,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
+				TenantID: TxnBody.TenantID,
 				TenantName: TxnBody.TenantNameBase64,
 				GeoLocation: TxnBody.GeoLocation,
 			}
@@ -755,6 +756,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
+				TenantID: TxnBody.TenantID,
 				TenantName: TxnBody.TenantNameBase64,
 				GeoLocation: TxnBody.GeoLocation,
 			}
@@ -990,6 +992,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
+				TenantID: TxnBody.TenantID,
 				TenantName: TxnBody.TenantNameBase64,
 				GeoLocation: TxnBody.GeoLocation,
 			}
@@ -1238,6 +1241,7 @@ func QueryTransactionsByKey(w http.ResponseWriter, r *http.Request) {
 				CurrentStage: commons.ValidateStrings(TxnBody.CurrentStage,TxnBody.StageID),
 				PreviousStage: TxnBody.PreviousStage,
 				CreatedAt: TxnBody.Timestamp,
+				TenantID: TxnBody.TenantID,
 				TenantName: TxnBody.TenantNameBase64,
 				GeoLocation: TxnBody.GeoLocation,
 			}
