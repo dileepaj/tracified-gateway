@@ -11,7 +11,7 @@ import (
 func DeleteExpertContract(contractName string) error {
 	logger := utilities.NewCustomLogger()
 	//delete the solidity file
-	contractFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts" + "/" + contractName + `.sol`
+	contractFilePath := "./assets/contracts/polygon/" + contractName + `.sol`
 	_, err := os.Stat(contractFilePath)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -27,7 +27,7 @@ func DeleteExpertContract(contractName string) error {
 	}
 
 	//delete the ABI file
-	abiFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts/polygonformulabuild" + "/" + contractName + "_sol_" + contractName + ".abi"
+	abiFilePath := "./assets/contracts/polygon/polygonformulabuild/" + contractName + "_sol_" + contractName + ".abi"
 	_, errAbi := os.Stat(abiFilePath)
 	if errAbi != nil {
 		if os.IsNotExist(errAbi) {
@@ -43,7 +43,7 @@ func DeleteExpertContract(contractName string) error {
 	}
 
 	//delete the BIN file
-	binFilePath := "protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts/polygonformulabuild" + "/" + contractName + "_sol_" + contractName + ".bin"
+	binFilePath := "./assets/contracts/polygon/polygonformulabuild/" + contractName + "_sol_" + contractName + ".bin"
 	_, errBin := os.Stat(binFilePath)
 	if errBin != nil {
 		if os.IsNotExist(errBin) {

@@ -13,7 +13,7 @@ import (
 func WriteFormulaContractToFile(contractName string, template string, formulaID string, transactionUUID string, formulaObj model.EthereumExpertFormula) error {
 	logger := utilities.NewCustomLogger()
 	object := dao.Connection{}
-	fo, errInOutput := os.Create("./protocols/polygon/polygonCodeGenerator/polygonExpertFormula/contracts" + "/" + contractName + `.sol`)
+	fo, errInOutput := os.Create("./assets/contracts/polygon/" + contractName + `.sol`)
 	if errInOutput != nil {
 		logger.LogWriter("Error when creating output file : "+errInOutput.Error(), constants.ERROR)
 		return errors.New("Error when creating output files : " + errInOutput.Error())

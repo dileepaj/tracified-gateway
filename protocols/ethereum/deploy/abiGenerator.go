@@ -20,33 +20,14 @@ func GenerateABI(contractName string, reqType string) (string, error) {
 	var cmdABIGen *exec.Cmd
 	var location string
 	abiString := ""
-	runningOs := commons.GoDotEnvVariable("RUNNING_OS")
 	if reqType == "EXPERT" {
-		if runningOs == "windows" {
-			cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o build")
-		} else if runningOs == "ubuntu" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "build")
-		} else if runningOs == "linux" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "build")
-		}
+		cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "build")
 		cmdABIGen.Dir = commons.GoDotEnvVariable("EXPERTCONTRACTLOCATION")
 	} else if reqType == "METRIC" {
-		if runningOs == "windows" {
-			cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o metricbuild")
-		} else if runningOs == "ubuntu" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "metricbuild")
-		} else if runningOs == "linux" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "metricbuild")
-		}
+		cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "metricbuild")
 		cmdABIGen.Dir = commons.GoDotEnvVariable("METRICCONTRACTLOCATION")
 	} else if reqType == "POLYGONEXPERT" {
-		if runningOs == "windows" {
-			cmdABIGen = exec.Command("cmd", "/C", "solcjs --abi "+contractName+".sol -o polygonformulabuild")
-		} else if runningOs == "ubuntu" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "polygonformulabuild")
-		} else if runningOs == "linux" {
-			cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "polygonformulabuild")
-		}
+		cmdABIGen = exec.Command("solcjs", "--abi", contractName+".sol", "-o", "polygonformulabuild")
 		cmdABIGen.Dir = "./assets/contracts/polygon"
 	} else {
 		logrus.Error("Invalid request type for ABI generator , TYPE : ", reqType)
