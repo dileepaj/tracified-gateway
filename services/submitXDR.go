@@ -14,6 +14,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/proofs/executer/stellarExecuter"
 	"github.com/dileepaj/tracified-gateway/proofs/retriever/stellarRetriever"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/rabbitmq/amqp091-go"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/clients/horizonclient"
@@ -41,6 +42,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		deliver.Nack(false, true)
 		return
 	}
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.CONSUMING_TRANSACTION_QUEUE, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
 	txnBody.PublicKey = txe.SourceAccount().ToAccountId().Address()
 	txnBody.SequenceNo = int64(txe.SeqNum())
 	stellarRetriever.MapXDROperations(&txnBody, txe.Operations())
@@ -49,14 +51,17 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		txnBody.Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations()[1].Body.ManageDataOp.DataValue), "&")
 	}
 	display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SENDING)
 	response := display.SubmitXDR(txnBody.TxnType)
 	if response.Error.Code != 200 || response.Error.Message != "" {
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.ERROR)
 		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
 			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 		deliver.Nack(false, true)
 		return
 	}
 	txnBody.FOUserTXNHash = response.TXNID
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 	logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
 		txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
 	deliver.Ack(false)
@@ -66,6 +71,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 		return
 	}
 	PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.PUBLISH_TO_BACKLINK, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
 	return
 }
 
@@ -79,6 +85,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		logrus.Error("Error Unmarshal @SubmitData " + err.Error())
 		return
 	}
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.CONSUMING_BACKLINK_QUEUE, result.RequestId, configs.BenchmarkLogsStatus.OK)
 	var txe xdr.TransactionEnvelope
 	// decode the XDR
 	err1 := xdr.SafeUnmarshalBase64(result.XDR, &txe)
@@ -137,15 +144,25 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			logrus.Println("Error while converting GatewayTXE to base64 " + err.Error())
 			break
 		}
+		var id apiModel.IdentifierModel
+		id.MapValue = result.Identifier
+		id.Identifier = result.MapIdentifier
+		err3 := object.InsertIdentifier(id)
+		if err3 != nil {
+			logrus.Error("identifier map failed" + err3.Error())
+		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_GENESIS, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_GENESIS, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_GENESIS, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
 		break
@@ -204,13 +221,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog("tdp-request-normal", configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog("tdp-request-normal", configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		}
+		utilities.BenchmarkLog("tdp-request-normal", configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
 		break
@@ -271,14 +291,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_TRANSFER, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
-
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_TRANSFER, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_TRANSFER, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 		result.TxnHash = response1.TXNID
 		result.Status = "done"
 		break
@@ -351,13 +373,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_PARENT, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_PARENT, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		} else {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_PARENT, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
 			if result.TxnType == "5" {
@@ -369,14 +394,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		// type 0 = Split Child
 		var UserSplitTxnHashes string
 		var PreviousTxn string
-		// SUBMIT THE FIRST XDR SIGNED BY THE USER
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		var SplitParentProfile string
 		var PreviousSplitProfile string
 		/*
@@ -435,13 +452,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_CHILD, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_CHILD, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		} else {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_SPLIT_CHILD, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
 			if result.TxnType == "5" {
@@ -523,14 +543,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE FIRST XDR SIGNED BY THE USER
 		UserMergeTxnHashes = result.FOUserTXNHash
-		// var PreviousTxn string
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
 		var PreviousTXNBuilder txnbuild.ManageData
@@ -626,13 +638,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_7, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_7, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		} else {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_7, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
 			var PreviousProfile string
@@ -717,15 +732,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 		}
 		UserMergeTxnHashes = result.FOUserTXNHash
-
-		// var PreviousTxn string
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		// var PreviousTxn string
 		var TypeTXNBuilder txnbuild.ManageData
 		var PreviousTXNBuilder txnbuild.ManageData
@@ -825,13 +831,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_8, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
 		response1 := display1.SubmitXDR("G" + result.TxnType)
 		if response1.Error.Code != 200 || response1.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_8, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.ERROR)
 			logrus.Error("Failed to submit backlinks the XDR ", " Error: ", response1.Error.Message, " Timestamp: ", result.Timestamp, " XDR: ",
 				result.XDR, "TXNType: ", result.TxnType, " Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 			deliver.Nack(false, true)
 			break
 		} else {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_MERGE_8, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
 			// UPDATE THE TRANSACTION COLLECTION WITH TXN HASH
 			result.TxnHash = response1.TXNID
 			var PreviousProfile string
@@ -865,14 +874,8 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		logrus.Error("Error while @InsertTransaction " + err1.Error())
 		deliver.Nack(false, true)
 		return
-	} else {
-		errRemoveFromTempOrphanList := object.RemoveFromTempOrphanList(result.PublicKey, result.SequenceNo)
-		if errRemoveFromTempOrphanList != nil {
-			logrus.Println("Error while @RemoveFromTempOrphanList " + err.Error())
-			deliver.Nack(false, true)
-			return
-		}
 	}
+	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.TDP_REQUEST_SUBMITTED, result.RequestId, configs.BenchmarkLogsStatus.COMPLETE)
 	logrus.Info("Stellar back-link TXN hash: ", result.TxnHash, " Timestamp: ", result.Timestamp, "TXNType: ", result.TxnType,
 		" Identifier: ", result.MapIdentifier, " Sequence No: ", result.SequenceNo, " PublicKey: ", result.PublicKey)
 	deliver.Ack(false)

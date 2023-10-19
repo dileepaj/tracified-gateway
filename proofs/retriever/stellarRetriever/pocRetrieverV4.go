@@ -18,7 +18,8 @@ type POCTreeV4 struct {
 	LastTxnHash string
 	Level int
 	Nodes map[string]*POCNode
-	siblings map[string][]string
+	Siblings map[string][]string
+	BackLinkParents []string
 }
 
 func (poc *POCTreeV4) ConstructPOC() {
@@ -31,8 +32,8 @@ func (poc *POCTreeV4) generatePOCV4() {
 	if poc.Nodes == nil {
 		poc.Nodes = make(map[string]*POCNode)
 	}
-	if poc.siblings == nil {
-		poc.siblings = make(map[string][]string)
+	if poc.Siblings == nil {
+		poc.Siblings = make(map[string][]string)
 	}
 
 	if poc.Level == 0 {
@@ -121,11 +122,11 @@ func (poc *POCTreeV4) generatePOCV4() {
 			break
 		case "6":
 			// maintain siblings globally
-			_, exists := poc.siblings[gtxe.PreviousTxnHash]
+			_, exists := poc.Siblings[gtxe.PreviousTxnHash]
 			if !exists {
-				poc.siblings[gtxe.PreviousTxnHash] = []string{gtxe.CurrentTxnHash}
-			} else if !contains(poc.siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash) {
-				poc.siblings[gtxe.PreviousTxnHash] = append(poc.siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash)
+				poc.Siblings[gtxe.PreviousTxnHash] = []string{gtxe.CurrentTxnHash}
+			} else if !contains(poc.Siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash) {
+				poc.Siblings[gtxe.PreviousTxnHash] = append(poc.Siblings[gtxe.PreviousTxnHash], gtxe.CurrentTxnHash)
 			}
 			sp := ConcreteStellarTransaction{Txnhash: gtxe.PreviousTxnHash}
 			// backlinks build transaction hash
@@ -303,7 +304,7 @@ func (poc *POCTreeV4) generatePOCV4() {
 
 
 func (poc *POCTreeV4) updateSiblings() {
-	for _, v := range poc.siblings {
+	for _, v := range poc.Siblings {
 		if len(v) < 2 {
 			continue
 		}
