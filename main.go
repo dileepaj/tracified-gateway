@@ -48,7 +48,6 @@ func main() {
 	)
 
 	c.AddFunc("@every 30m", func() {
-		services.CheckCOCStatus()
 		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"))
 		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("SPONSORERPK"))
 	})
