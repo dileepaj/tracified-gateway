@@ -2,19 +2,17 @@ package services
 
 import (
 	"context"
-	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/services/cache"
+	log "github.com/sirupsen/logrus"
 )
 
 const queuePrefix = "gateway."

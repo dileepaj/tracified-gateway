@@ -17,6 +17,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/proofs/builder"
 	"github.com/dileepaj/tracified-gateway/proofs/deprecatedBuilder"
 	"github.com/dileepaj/tracified-gateway/services"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	log "github.com/sirupsen/logrus"
