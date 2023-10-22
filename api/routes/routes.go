@@ -660,4 +660,10 @@ var routes = Routes{
 		businessFacades.NewCheckPOEV3, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
 
 	},
+	Route{
+		"BreakTrustline",
+		"POST",
+		"/nft/breaktrustline",
+		businessFacades.BreakTrustline, //Calls the BrealTrustline in the StellarHandler
+	},
 }

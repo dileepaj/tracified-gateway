@@ -677,3 +677,21 @@ func GetSponsorTrustXDR(w http.ResponseWriter, r *http.Request) {
 	}
 
 }
+
+func BreakTrustline(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var TransactionData model.TransactionDataBreakTrustline
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&TransactionData)
+	if err != nil {
+		log.Println(err)
+	}
+
+	hash, err := stellar.BreakTrustline(TransactionData)
+	if err != nil {
+
+	}
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(hash)
+}
