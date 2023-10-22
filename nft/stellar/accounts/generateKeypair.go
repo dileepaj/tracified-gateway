@@ -8,7 +8,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/stellar/go/clients/horizonclient"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 )
 
@@ -38,7 +37,7 @@ func FundAccount(buyerPK string) (string, error) {
 		log.Fatal(err)
 		return "", err
 	}
-	signedTx, err := tx.Sign(network.TestNetworkPassphrase, issuerSign)
+	signedTx, err := tx.Sign(commons.GetStellarNetwork(), issuerSign)
 	if err != nil {
 		return "", err
 	}

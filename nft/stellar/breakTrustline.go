@@ -5,7 +5,6 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/keypair"
-	"github.com/stellar/go/network"
 	"github.com/stellar/go/txnbuild"
 	"github.com/stellar/go/xdr"
 )
@@ -30,7 +29,7 @@ func BreakTrustline(payload model.TransactionDataBreakTrustline) (string, error)
 		logrus.Error("Failed to parse into keypair", errpair)
 	}
 
-	hashXDR, errhash := txe.Hash(network.TestNetworkPassphrase)
+	hashXDR, errhash := txe.Hash(commons.GetStellarNetwork())
 	if errhash != nil {
 		logrus.Error(errhash)
 	}
