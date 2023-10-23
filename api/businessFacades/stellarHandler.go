@@ -688,9 +688,9 @@ func BreakTrustline(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 
-	hash, err := stellar.BreakTrustline(TransactionData)
-	if err != nil {
-
+	hash, errhash := stellar.BreakTrustline(TransactionData)
+	if errhash != nil {
+		log.Println(errhash)
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(hash)

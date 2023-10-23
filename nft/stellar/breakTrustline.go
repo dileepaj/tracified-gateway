@@ -27,16 +27,19 @@ func BreakTrustline(payload model.TransactionDataBreakTrustline) (string, error)
 	additionalSigner, errpair := keypair.Parse(myStellarSeed) //decryptSK
 	if errpair != nil {
 		logrus.Error("Failed to parse into keypair", errpair)
+		return "", errpair
 	}
 
 	hashXDR, errhash := txe.Hash(commons.GetStellarNetwork())
 	if errhash != nil {
 		logrus.Error(errhash)
+		return "", errhash
 	}
 
 	signer, errsigner := additionalSigner.SignDecorated(hashXDR[:])
 	if errsigner != nil {
 		logrus.Error(errsigner)
+		return "", errsigner
 	}
 
 	hint := additionalSigner.Hint()
@@ -56,6 +59,7 @@ func BreakTrustline(payload model.TransactionDataBreakTrustline) (string, error)
 	respn, errsubmitting := commons.GetHorizonClient().SubmitTransaction(txesignex)
 	if errsubmitting != nil {
 		logrus.Error("Error submitting transaction:", errsubmitting)
+		return "", errsubmitting
 	}
 	return respn.Hash, nil
 
