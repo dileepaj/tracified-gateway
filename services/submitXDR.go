@@ -144,13 +144,6 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			logrus.Println("Error while converting GatewayTXE to base64 " + err.Error())
 			break
 		}
-		var id apiModel.IdentifierModel
-		id.MapValue = result.Identifier
-		id.Identifier = result.MapIdentifier
-		err3 := object.InsertIdentifier(id)
-		if err3 != nil {
-			logrus.Error("identifier map failed" + err3.Error())
-		}
 		// SUBMIT THE GATEWAY'S SIGNED XDR
 		display1 := stellarExecuter.ConcreteSubmitXDR{XDR: txeB64}
 		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST_GENESIS, configs.BenchmarkLogsAction.BACKLINK_XDR_SUBMITTING_TO_BLOCKCHAIN, result.RequestId, configs.BenchmarkLogsStatus.SENDING)
@@ -868,6 +861,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			}
 			break
 		}
+	}
+	id := apiModel.IdentifierModel{
+		MapValue : result.Identifier,
+		Identifier  :  result.MapIdentifier,
+		Type: result.TxnType,
+		ProductId: result.ProductID,
+	}
+	err3 := object.InsertIdentifier(id)
+	if err3 != nil {
+		logrus.Error("identifier map failed" + err3.Error())
 	}
 	errInsertTransaction := object.InsertTransaction(result)
 	if errInsertTransaction != nil {

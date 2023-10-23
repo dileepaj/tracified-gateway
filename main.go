@@ -71,9 +71,9 @@ func main() {
 	sh := middleware.SwaggerUI(opts, nil)
 	router.Handle("/docs", sh)
 	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
-	//initial log file when server starts
+	// initial log file when server starts
 	utilities.CreateLogFile()
-	//create logger
+	// create logger
 	logger := utilities.NewCustomLogger()
 	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", 1)
 

@@ -215,20 +215,37 @@ func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 }
 
 func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
-	session, err := cd.connect()
-	if err != nil {
-		log.Println("Error while getting session " + err.Error())
-	}
-	defer session.EndSession(context.TODO())
+    session, err := cd.connect()
+    if err != nil {
+        log.Println("Error while getting session " + err.Error())
+        return err
+    }
+    defer session.EndSession(context.TODO())
 
-	c := session.Client().Database(dbName).Collection("IdentifierMap")
-	_, err = c.InsertOne(context.TODO(), id)
+    c := session.Client().Database(dbName).Collection("IdentifierMap")
 
-	if err != nil {
-		log.Println("Error while inserting to TempOrphan " + err.Error())
-	}
-	return err
+    // Construct the filter
+    filter := bson.M{
+        "MapValue":  id.Identifier,
+        "ProductId": id.ProductId,
+    }
+
+    // Check if a document with the specified conditions exists
+    if err := c.FindOne(context.TODO(), filter).Err(); err == nil {
+        return nil // Document with matching conditions already exists, so we return without inserting.
+    }
+
+    // Insert the new data
+    _, err = c.InsertOne(context.TODO(), id)
+    if err != nil {
+        log.Println("Error while inserting to IdentifierMap " + err.Error())
+        return err
+    }
+
+    return nil
 }
+
+
 
 func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
 	session, err := cd.connect()
