@@ -686,12 +686,22 @@ func BreakTrustline(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&TransactionData)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	hash, errhash := stellar.BreakTrustline(TransactionData)
 	if errhash != nil {
 		log.Println(errhash)
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.SubmitXDRSuccess{
+			Status: "Error when submitting break trust line",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(hash)
+	result := model.Hash{
+		Hash: hash,
+	}
+	json.NewEncoder(w).Encode(result)
 }
