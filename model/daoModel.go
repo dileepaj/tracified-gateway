@@ -63,6 +63,7 @@ type TransactionCollectionBody struct {
 	UserID               string
 	FOUserTXNHash        string
 	RequestId            string
+	Version              string
 }
 
 type ProfileCollectionBody struct {

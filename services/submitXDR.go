@@ -50,42 +50,68 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	if txnBody.TxnType == "5" {
 		txnBody.Identifier = strings.TrimLeft(fmt.Sprintf("%s", txe.Operations()[1].Body.ManageDataOp.DataValue), "&")
 	}
+	if txnBody.Version == "" {
+		display := stellarExecuter.ConcreteSubmitXDR{XDR: txnBody.XDR}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SENDING)
+		response := display.SubmitXDR(txnBody.TxnType)
+		if response.Error.Code != 200 || response.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.ERROR)
+			logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
+				txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+			deliver.Nack(false, true)
+			return
+		}
+		txnBody.FOUserTXNHash = response.TXNID
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
+		logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
+			txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+		deliver.Ack(false)
+		jsonStr, err := json.Marshal(txnBody)
+		if err != nil {
+			logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
+			return
+		}
+		PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.PUBLISH_TO_BACKLINK, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
+		return
 
-	var datax = model.TransactionData{
-		FOUser:        txnBody.AppAccount,
-		XDR:           txnBody.XDR,
-		AccountIssuer: txnBody.PublicKey,
-	}
-	responsexdr, errx := SubmitFOData(datax)
-	if errx != nil {
-		logrus.Error("response.Error.Code 400 for SubmitXDR", errx)
+	} else {
+		var datax = model.TransactionData{
+			FOUser:        txnBody.AppAccount,
+			XDR:           txnBody.XDR,
+			AccountIssuer: txnBody.PublicKey,
+		}
+		responsexdr, errx := SubmitFOData(datax)
+		if errx != nil {
+			logrus.Error("response.Error.Code 400 for SubmitXDR", errx)
+			return
+		}
+
+		display := stellarExecuter.ConcreteSubmitXDR{XDR: responsexdr}
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SENDING)
+		response := display.SubmitXDR(txnBody.TxnType)
+		if response.Error.Code != 200 || response.Error.Message != "" {
+			utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.ERROR)
+			logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
+				txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+			deliver.Nack(false, true)
+			return
+		}
+
+		txnBody.FOUserTXNHash = response.TXNID
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
+		logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
+			txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
+		deliver.Ack(false)
+		jsonStr, err := json.Marshal(txnBody)
+		if err != nil {
+			logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
+			return
+		}
+		PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
+		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.PUBLISH_TO_BACKLINK, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
 		return
 	}
-
-	display := stellarExecuter.ConcreteSubmitXDR{XDR: responsexdr}
-	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SENDING)
-	response := display.SubmitXDR(txnBody.TxnType)
-	if response.Error.Code != 200 || response.Error.Message != "" {
-		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.ERROR)
-		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
-			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
-		deliver.Nack(false, true)
-		return
-	}
-
-	txnBody.FOUserTXNHash = response.TXNID
-	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SUCCESS)
-	logrus.Info("Stellar FO user created TXN hash: ", response.TXNID, " Timestamp: ", txnBody.Timestamp, "TXNType: ", txnBody.TxnType, " Identifier: ",
-		txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
-	deliver.Ack(false)
-	jsonStr, err := json.Marshal(txnBody)
-	if err != nil {
-		logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
-		return
-	}
-	PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
-	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.PUBLISH_TO_BACKLINK, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
-	return
 }
 
 func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
