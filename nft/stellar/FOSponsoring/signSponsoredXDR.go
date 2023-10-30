@@ -1,8 +1,6 @@
 package fosponsoring
 
 import (
-	"log"
-
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
@@ -22,7 +20,7 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 		return data
 	}).Await()
 	if errkey != nil {
-		log.Println(errkey)
+		logrus.Error(errkey)
 		return "", errkey
 	} else {
 		Keys := data.([]model.TransactionDataKeys)
@@ -44,17 +42,17 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 
 		additionalSigner, errpair := keypair.Parse(myStellarSeed) //decryptSK
 		if errpair != nil {
-			logrus.Error("Failed to parse into keypair", errpair)
+			return "", errpair
 		}
 
 		hashXDR, errhash := txe.Hash(commons.GetStellarNetwork())
 		if errhash != nil {
-			logrus.Error(errhash)
+			return "", errhash
 		}
 
 		signer, errsigner := additionalSigner.SignDecorated(hashXDR[:])
 		if errsigner != nil {
-			logrus.Error(errsigner)
+			return "", errsigner
 		}
 
 		hint := additionalSigner.Hint()
@@ -69,13 +67,11 @@ func BuildSignedSponsoredXDR(payload model.TransactionData) (string, error) {
 			return "", errx
 		}
 
-		txesignex.ToXDR()
-
-		respn, errsubmitting := commons.GetHorizonClient().SubmitTransaction(txesignex)
-		if errsubmitting != nil {
-			logrus.Error("Error submitting transaction:", errsubmitting)
+		bs64, err64 := txesignex.Base64()
+		if err64 != nil {
+			return "", err64
 		}
-		return respn.Hash, nil
+		return bs64, nil
 	}
 
 }
