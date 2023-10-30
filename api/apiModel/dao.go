@@ -56,6 +56,7 @@ type IdentifierModel struct {
 	MapValue   string
 	Identifier string
 	Type       string
+	ProductId  string
 }
 
 type TDPOperationRequest struct {
