@@ -32,7 +32,7 @@ func DeployContract(abi string, bin string) (string, string, string, error) {
 	}
 
 	//load ECDSA private key
-	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
+	privateKey, errWhenGettingECDSAKey := crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUM_SEC_KEY"))
 	if errWhenGettingECDSAKey != nil {
 		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when getting ECDSA key , ERROR : " + errWhenGettingECDSAKey.Error())

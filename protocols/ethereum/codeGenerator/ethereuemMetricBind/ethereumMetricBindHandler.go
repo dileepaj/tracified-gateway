@@ -49,13 +49,13 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 		TransactionHash:   "",
 		TransactionCost:   "",
 		TransactionUUID:   "",
-		TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
+		TransactionSender: commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"),
 		User:              metricBindJson.User,
 		ErrorMessage:      "",
 		Status:            116,
 		Type:              "METADATA",
 		FormulaID:         "",
-		ActualStatus: 	   101,	// SMART_CONTRACT_GENERATION_STARTED
+		ActualStatus:      101, // SMART_CONTRACT_GENERATION_STARTED
 	}
 
 	// get metric map id
@@ -115,8 +115,8 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 		errWhenDeployingMetaDataSmartContract := metadataWriters.MetricMetadataContractDeployer(metaDataObj, metricMapIDString, ethMetricObjForMetaData)
 		if errWhenDeployingMetaDataSmartContract != nil {
 			ethMetricObjForMetaData.ErrorMessage = errWhenDeployingMetaDataSmartContract.Error()
-			ethMetricObjForMetaData.Status = 119 // FAILED
-			ethMetricObjForMetaData.ActualStatus = 111	// DEPLOYMENT_FAILED
+			ethMetricObjForMetaData.Status = 119       // FAILED
+			ethMetricObjForMetaData.ActualStatus = 111 // DEPLOYMENT_FAILED
 			// update the metric object in the database
 			errWhenUpdatingMetricObj := object.UpdateSelectedEthMetricFields(ethMetricObjForMetaData.MetricID, ethMetricObjForMetaData.TransactionUUID, ethMetricObjForMetaData)
 			if errWhenUpdatingMetricObj != nil {
@@ -128,7 +128,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 			logrus.Info("Error when deploying metadata metric contract : ", errWhenDeployingMetaDataSmartContract)
 			commons.JSONErrorReturn(w, r, errWhenDeployingMetaDataSmartContract.Error(), 500, "Error when deploying metadata metric contract : ")
 			return
-		} 
+		}
 	}
 
 	// get the status of the metric metadata contract after deploying(/redeploying) the contract
@@ -170,13 +170,13 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						TransactionHash:   "",
 						TransactionCost:   "",
 						TransactionUUID:   "",
-						TransactionSender: commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
+						TransactionSender: commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"),
 						User:              metricBindJson.User,
 						ErrorMessage:      "",
 						Status:            116,
 						Type:              "ACTIVITY",
 						FormulaID:         activities[i].MetricFormula.MetricExpertFormula.ID,
-						ActualStatus:      101,	// SMART_CONTRACT_GENERATION_STARTED
+						ActualStatus:      101, // SMART_CONTRACT_GENERATION_STARTED
 					}
 					//handle UUID
 					if formulaStatus == 0 {
@@ -211,8 +211,8 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						previousStatus, _, errWhenGettingPreviousStatus := GetMetricSmartContractStatusForFormula(metricBindJson.Metric.ID, "ACTIVITY", activities[i-1].MetricFormula.MetricExpertFormula.ID)
 						if errWhenGettingPreviousStatus != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenGettingPreviousStatus.Error()
-							ethMetricObjForFormula.Status = 119	// FAILED
-							ethMetricObjForFormula.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+							ethMetricObjForFormula.Status = 119       // FAILED
+							ethMetricObjForFormula.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 							if formulaStatus == 0 {
 								//update collection
 								errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
@@ -226,11 +226,11 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 							pendingTransaction := model.PendingContracts{
 								TransactionHash: "",
 								ContractAddress: "",
-								Status         : 119,	// FAILED
-								CurrentIndex   : 0,
-								ErrorMessage   : ethMetricObjForFormula.ErrorMessage,
-								ContractType   : "ETHMETRICBIND",
-								Identifier     : ethMetricObjForFormula.TransactionUUID,							
+								Status:          119, // FAILED
+								CurrentIndex:    0,
+								ErrorMessage:    ethMetricObjForFormula.ErrorMessage,
+								ContractType:    "ETHMETRICBIND",
+								Identifier:      ethMetricObjForFormula.TransactionUUID,
 							}
 							errorWheninvalidating := dbCollectionHandler.InvalidateMetric(pendingTransaction, ethMetricObjForFormula.Status, ethMetricObjForFormula.TransactionUUID)
 							if errorWheninvalidating != nil {
@@ -254,8 +254,8 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						formulaMapID, errWhenGettingFormulaMapId := GetFormulaMapId(activities[i].MetricFormula.MetricExpertFormula.ID)
 						if errWhenGettingFormulaMapId != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenGettingFormulaMapId.Error()
-							ethMetricObjForFormula.Status = 119	// FAILED
-							ethMetricObjForFormula.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+							ethMetricObjForFormula.Status = 119       // FAILED
+							ethMetricObjForFormula.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 							//update collection
 							errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 							if errWhenUpdatingFormulaMetricObj != nil {
@@ -267,11 +267,11 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 							pendingTransaction := model.PendingContracts{
 								TransactionHash: "",
 								ContractAddress: "",
-								Status         : 119,	// FAILED
-								CurrentIndex   : 0,
-								ErrorMessage   : ethMetricObjForFormula.ErrorMessage,
-								ContractType   : "ETHMETRICBIND",
-								Identifier     : ethMetricObjForFormula.TransactionUUID,							
+								Status:          119, // FAILED
+								CurrentIndex:    0,
+								ErrorMessage:    ethMetricObjForFormula.ErrorMessage,
+								ContractType:    "ETHMETRICBIND",
+								Identifier:      ethMetricObjForFormula.TransactionUUID,
 							}
 							errorWheninvalidating := dbCollectionHandler.InvalidateMetric(pendingTransaction, ethMetricObjForFormula.Status, ethMetricObjForFormula.TransactionUUID)
 							if errorWheninvalidating != nil {
@@ -288,7 +288,7 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 						errWhenDeployingActivityContract := activityWriters.ActivityContractDeployer(metricMapIDString, formulaMapIDString, metricBindJson.Metric.ID, activities[i], metricBindJson.Metric.Name, metricBindJson.Metric, metricBindJson.User, ethMetricObjForFormula)
 						if errWhenDeployingActivityContract != nil {
 							ethMetricObjForFormula.ErrorMessage = errWhenDeployingActivityContract.Error()
-							ethMetricObjForFormula.Status = 119	// FAILED
+							ethMetricObjForFormula.Status = 119 // FAILED
 							//update collection
 							errWhenUpdatingFormulaMetricObj := object.UpdateEthereumMetricStatus(ethMetricObjForFormula.MetricID, ethMetricObjForFormula.TransactionUUID, ethMetricObjForFormula)
 							if errWhenUpdatingFormulaMetricObj != nil {
@@ -300,11 +300,11 @@ func SmartContractHandlerForMetric(w http.ResponseWriter, r *http.Request, metri
 							pendingTransaction := model.PendingContracts{
 								TransactionHash: "",
 								ContractAddress: "",
-								Status         : 119,	// FAILED
-								CurrentIndex   : 0,
-								ErrorMessage   : ethMetricObjForFormula.ErrorMessage,
-								ContractType   : "ETHMETRICBIND",
-								Identifier     : ethMetricObjForFormula.TransactionUUID,							
+								Status:          119, // FAILED
+								CurrentIndex:    0,
+								ErrorMessage:    ethMetricObjForFormula.ErrorMessage,
+								ContractType:    "ETHMETRICBIND",
+								Identifier:      ethMetricObjForFormula.TransactionUUID,
 							}
 							errorWheninvalidating := dbCollectionHandler.InvalidateMetric(pendingTransaction, ethMetricObjForFormula.Status, ethMetricObjForFormula.TransactionUUID)
 							if errorWheninvalidating != nil {

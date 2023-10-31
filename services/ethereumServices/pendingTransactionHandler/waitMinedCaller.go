@@ -24,7 +24,7 @@ func CallWaitMined(client *ethclient.Client, tx *types.Transaction) (int64, uint
 		return -1, 0, errors.New("Error in getting receipt: Error: " + errInGettingReceipt.Error())
 	} else {
 		if receipt.Status == 0 {
-			errorMessageFromStatus, errorInCallingTransactionStatus := GetErrorOfFailedTransaction(tx.Hash().Hex())
+			errorMessageFromStatus, errorInCallingTransactionStatus := GetErrorOfFailedTransaction(tx.Hash().Hex(), 1)
 			if errorInCallingTransactionStatus != nil {
 				logrus.Error("Transaction failed.")
 				logrus.Error("Error when getting the error for the transaction failure: Error: " + errorInCallingTransactionStatus.Error())

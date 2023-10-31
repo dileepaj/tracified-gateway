@@ -27,10 +27,10 @@ func GetEthMetricByUUID(identifier string) (model.EthereumMetricBind, error) {
 	}
 }
 
-func GetEthFormulaByUUID(identifier string) (model.EthereumExpertFormula, error) {
+func GetEthFormulaByUUID(identifier string, collection string) (model.EthereumExpertFormula, error) {
 	object := dao.Connection{}
 
-	formula, errWhenRetrievingTheFormula := object.GetEthFormulaBinAndAbiByIdentifier(identifier).Then(func(data interface{}) interface{} {
+	formula, errWhenRetrievingTheFormula := object.GetEthFormulaBinAndAbiByIdentifier(identifier, collection).Then(func(data interface{}) interface{} {
 		return data
 	}).Await()
 	if errWhenRetrievingTheFormula != nil {

@@ -61,6 +61,9 @@ func main() {
 		services.QueueScheduleWorkers()
 	})
 
+	c.AddFunc("@every 60m", func() {
+		services.CheckPolygonContractStatus()
+	})
 	c.Start()
 	router := routes.NewRouter()
 	// rabbit mq server

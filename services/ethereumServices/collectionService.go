@@ -8,7 +8,7 @@ import (
 
 // define the interface
 type CollectionServiceStrategy interface {
-	AbstractCollectionService() (error)
+	AbstractCollectionService() error
 }
 
 // create context class
@@ -22,7 +22,7 @@ func (context *CollectionServiceContext) SetCollectionServiceStrategy(strategy C
 }
 
 // create a method to execute the strategy
-func (context *CollectionServiceContext) ExecuteCollectionService() (error) {
+func (context *CollectionServiceContext) ExecuteCollectionService() error {
 	return context.collectionServiceStrategy.AbstractCollectionService()
 }
 
@@ -31,7 +31,8 @@ type SocialImpactMainCollectionUpdate struct {
 	PendingContract model.PendingContracts
 	Status          int
 }
-func (collectionUpdateObject *SocialImpactMainCollectionUpdate) AbstractCollectionService() (error) {
+
+func (collectionUpdateObject *SocialImpactMainCollectionUpdate) AbstractCollectionService() error {
 	// update the collection with the new status
 	errorInCallingCollectionService := dbCollectionHandler.UpdateCollectionsWithNewStatus(collectionUpdateObject.PendingContract, collectionUpdateObject.Status)
 	if errorInCallingCollectionService != nil {

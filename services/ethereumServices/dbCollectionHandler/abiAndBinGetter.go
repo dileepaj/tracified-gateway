@@ -12,7 +12,7 @@ func GetAbiAndBin(contractType string, identifier string) (string, string, error
 	object := dao.Connection{}
 
 	if contractType == "ETHEXPERTFORMULA" {
-		expertObject, errInRetrieving := object.GetEthFormulaBinAndAbiByIdentifier(identifier).Then(func(data interface{}) interface{} {
+		expertObject, errInRetrieving := object.GetEthFormulaBinAndAbiByIdentifier(identifier, "EthereumExpertFormula").Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
 		if errInRetrieving != nil {
@@ -36,6 +36,19 @@ func GetAbiAndBin(contractType string, identifier string) (string, string, error
 			return metric.ABIstring, metric.BINstring, nil
 		} else {
 			return "", "", errors.New("no metric found to get the abi and bin")
+		}
+	} else if contractType == "POLYGONEXPERTFORMULA" {
+		expertPolygonObject, errInRetrieving := object.GetEthFormulaBinAndAbiByIdentifier(identifier, "PolygonExpertFormula").Then(func(data interface{}) interface{} {
+			return data
+		}).Await()
+		if errInRetrieving != nil {
+			return "", "", errInRetrieving
+		}
+		if expertPolygonObject != nil {
+			expert := expertPolygonObject.(model.EthereumExpertFormula)
+			return expert.ABIstring, expert.BINstring, nil
+		} else {
+			return "", "", errors.New("no expert formula found to get the abi and bin")
 		}
 	} else {
 		return "", "", errors.New("no contract type found to get the abi and bin")

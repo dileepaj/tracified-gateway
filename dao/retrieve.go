@@ -10,8 +10,10 @@ import (
 	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/model"
 	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
+	"github.com/dileepaj/tracified-gateway/utilities"
 
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -2817,19 +2819,19 @@ func (cd *Connection) GetEthMetricStatusForFormula(metricID string, contractType
 	return p
 }
 
-// Get the Ethereum contract status
-func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
+//Get the Ethereum contract status
+func (cd *Connection) GetPendingContractsByStatus(status int, collection string) *promise.Promise {
 	result := []model.PendingContracts{}
 
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
 		if err != nil {
-			notificationhandler.InformDBConnectionIssue("get Ethereum pending contracts by status", err.Error())
+			notificationhandler.InformDBConnectionIssue("get pending contracts by status", err.Error())
 			reject(err)
 		}
 
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("EthereumPendingTransactions")
+		c := session.Client().Database(dbName).Collection(collection)
 		cursor, err1 := c.Find(context.TODO(), bson.M{"status": status})
 
 		if err1 != nil {
@@ -2848,7 +2850,7 @@ func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 
 }
 
-func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *promise.Promise {
+func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string, collection string) *promise.Promise {
 	result := model.EthereumExpertFormula{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
 		session, err := cd.connect()
@@ -2858,7 +2860,7 @@ func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *pro
 			reject(err)
 		}
 		defer session.EndSession(context.TODO())
-		c := session.Client().Database(dbName).Collection("EthereumExpertFormula")
+		c := session.Client().Database(dbName).Collection(collection)
 		err1 := c.FindOne(context.TODO(), bson.M{"transactionuuid": identifier}).Decode(&result)
 		if err1 != nil {
 			logrus.Info("Error while getting Ethereum formula contract abi and bin by uuid from db " + err1.Error())
@@ -3213,3 +3215,27 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 	return p
 }
 
+//Get the polygon fomrula contract status
+func (cd *Connection) GetPolygonFormulaStatus(formulaID string) *promise.Promise {
+	var polygonFormulaMap model.EthereumExpertFormula
+	logger := utilities.NewCustomLogger()
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			logger.LogWriter("Error when connecting to DB "+err.Error(), constants.ERROR)
+			notificationhandler.InformDBConnectionIssue("get Ethereum formula status by formula ID", err.Error())
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("PolygonExpertFormula")
+		err = c.FindOne(context.TODO(), bson.M{"formulaid": formulaID}).Decode(&polygonFormulaMap)
+		if err != nil {
+			logger.LogWriter("Error when fetching contract status from DB "+err.Error(), constants.ERROR)
+			reject(err)
+		} else {
+			resolve(polygonFormulaMap)
+		}
+	})
+	return p
+}

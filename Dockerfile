@@ -1,5 +1,8 @@
 FROM golang:1.18-alpine
-RUN apk add --update cmake gcc g++ git  make  tar wget python3
+RUN apk add --update cmake gcc g++ git  make  tar wget python3 nodejs npm
+
+# Install solcjs globally
+RUN npm install -g solc@0.8.17+commit.8df45f5f.Emscripten.clang
 
 # Set destination for COPY
 RUN mkdir -p /go/src/github.com/dileepaj/tracified-gateway/

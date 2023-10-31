@@ -53,7 +53,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		logrus.Info("Deploy status : ", deployStatus)
 	}
 
-	if deployStatus == 118 {	// SUCCESS
+	if deployStatus == 118 { // SUCCESS
 		logrus.Info("Contract for formula " + formulaJSON.MetricExpertFormula.Name + " has been added to the blockchain")
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.SuccessResponseExpertFormula{
@@ -63,7 +63,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 		json.NewEncoder(w).Encode(response)
 		return
-	} else if deployStatus == 116 {	// QUEUE
+	} else if deployStatus == 116 { // QUEUE
 		logrus.Info("Requested formula is in the queue, please try again")
 		w.WriteHeader(http.StatusBadRequest)
 		response := model.SuccessResponseExpertFormula{
@@ -73,7 +73,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 		json.NewEncoder(w).Encode(response)
 		return
-	} else if deployStatus == 0 || deployStatus == 119 {	// NIL or FAILED
+	} else if deployStatus == 0 || deployStatus == 119 { // NIL or FAILED
 		if deployStatus == 119 {
 			logrus.Info("Requested formula is in the failed status, trying to redeploy")
 		} else {
@@ -90,10 +90,10 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			TransactionCost:     "",
 			TransactionUUID:     "",
 			GOstring:            "",
-			TransactionSender:   commons.GoDotEnvVariable("ETHEREUMPUBKEY"),
+			TransactionSender:   commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"),
 			Verify:              formulaJSON.Verify,
 			ErrorMessage:        "",
-			ActualStatus: 		 101, // SMART_CONTRACT_GENERATION_STARTED
+			ActualStatus:        101, // SMART_CONTRACT_GENERATION_STARTED
 		}
 
 		if deployStatus == 0 {
@@ -114,7 +114,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			}
 			formulaIDmap := model.EthFormulaIDMap{
 				FormulaID: formulaJSON.MetricExpertFormula.ID,
-				MapID:    data.SequenceValue,
+				MapID:     data.SequenceValue,
 			}
 			errorWhenInsertingToFormulaIDMap := object.InsertEthFormulaIDMap(formulaIDmap)
 			if errorWhenInsertingToFormulaIDMap != nil {
@@ -137,7 +137,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errWhenBuildingGeneralCodeSnippet != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenBuildingGeneralCodeSnippet.Error()
-			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+			ethFormulaObj.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -145,7 +145,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == 119 {	// FAILED
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -160,14 +160,14 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		}
 
 		contractBody = generalValues.ResultVariable + generalValues.MetaDataStructure + generalValues.ValueDataStructure + generalValues.VariableStructure + generalValues.SemanticConstantStructure + generalValues.ReferredConstant + generalValues.MetadataDeclaration
-		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject 
+		contractBody = contractBody + generalValues.ResultDeclaration + generalValues.CalculationObject
 
 		//call the value builder and get the string for the variable initialization and setter
 		variableValues, setterNames, errInGeneratingValues := ValueCodeGenerator(formulaJSON)
 		if errInGeneratingValues != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInGeneratingValues.Error()
-			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+			ethFormulaObj.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -175,7 +175,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == 119 {	// FAILED
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -195,7 +195,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errInGettingExecutionTemplate != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInGettingExecutionTemplate.Error()
-			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+			ethFormulaObj.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -203,7 +203,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == 119 {	// FAILED
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -222,7 +222,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errInExecutionTemplateString != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInExecutionTemplateString.Error()
-			ethFormulaObj.ActualStatus = 102	// SMART_CONTRACT_GENERATION_FAILED
+			ethFormulaObj.ActualStatus = 102 // SMART_CONTRACT_GENERATION_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -269,7 +269,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		b64Template := base64.StdEncoding.EncodeToString([]byte(template))
 
 		ethFormulaObj.TemplateString = b64Template
-		ethFormulaObj.ActualStatus = 103	// SMART_CONTRACT_GENERATION_COMPLETED
+		ethFormulaObj.ActualStatus = 103 // SMART_CONTRACT_GENERATION_COMPLETED
 		errorWhenUpdatingFormula1 := object.UpdateSelectedEthFormulaFields(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 		if errorWhenUpdatingFormula1 != nil {
 			logrus.Error("Error while updating formula details to the DB after generating smart contract " + errorWhenUpdatingFormula1.Error())
@@ -282,7 +282,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errInOutput != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInOutput.Error()
-			ethFormulaObj.ActualStatus = 104	// WRITING_CONTRACT_TO_FILE_FAILED
+			ethFormulaObj.ActualStatus = 104 // WRITING_CONTRACT_TO_FILE_FAILED
 			//call the DB insert method
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
@@ -308,7 +308,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errInWritingOutput != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errInWritingOutput.Error()
-			ethFormulaObj.ActualStatus = 104	// WRITING_CONTRACT_TO_FILE_FAILED
+			ethFormulaObj.ActualStatus = 104 // WRITING_CONTRACT_TO_FILE_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -329,7 +329,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 
-		ethFormulaObj.ActualStatus = 105	// WRITING_CONTRACT_TO_FILE_COMPLETED
+		ethFormulaObj.ActualStatus = 105 // WRITING_CONTRACT_TO_FILE_COMPLETED
 		errorWhenUpdatingFormula2 := object.UpdateSelectedEthFormulaFields(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 		if errorWhenUpdatingFormula2 != nil {
 			logrus.Error("Error while updating formula details to the DB after writing the contract to file " + errorWhenUpdatingFormula2.Error())
@@ -342,7 +342,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 		if errWhenGeneratingABI != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenGeneratingABI.Error()
-			ethFormulaObj.ActualStatus = 106	// GENERATING_ABI_FAILED
+			ethFormulaObj.ActualStatus = 106 // GENERATING_ABI_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -350,7 +350,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == 119 {	// FAILED
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -363,20 +363,20 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 		ethFormulaObj.ABIstring = abiString
-		ethFormulaObj.ActualStatus = 107	// GENERATING_ABI_COMPLETED
+		ethFormulaObj.ActualStatus = 107 // GENERATING_ABI_COMPLETED
 		errorWhenUpdatingFormula3 := object.UpdateSelectedEthFormulaFields(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 		if errorWhenUpdatingFormula3 != nil {
 			logrus.Error("Error while updating formula details to the DB after getting abi " + errorWhenUpdatingFormula3.Error())
 			commons.JSONErrorReturn(w, r, errorWhenUpdatingFormula3.Error(), http.StatusInternalServerError, "Error while updating formula details to the DB after getting abi ")
 			return
 		}
-		
+
 		//generate the BIN file
 		binString, errWhenGeneratingBinFile := deploy.GenerateBIN(contractName, reqType)
 		if errWhenGeneratingBinFile != nil {
 			ethFormulaObj.Status = 119 // FAILED
 			ethFormulaObj.ErrorMessage = errWhenGeneratingBinFile.Error()
-			ethFormulaObj.ActualStatus = 108	// GENERATING_BIN_FAILED
+			ethFormulaObj.ActualStatus = 108 // GENERATING_BIN_FAILED
 			if deployStatus == 0 {
 				errWhenInsertingFormulaToDB := object.InsertToEthFormulaDetails(ethFormulaObj)
 				if errWhenInsertingFormulaToDB != nil {
@@ -384,7 +384,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 					commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 					return
 				}
-			} else if deployStatus == 119 {	// FAILED
+			} else if deployStatus == 119 { // FAILED
 				errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 				if errWhenUpdatingFormulaToDB != nil {
 					logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())
@@ -397,7 +397,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 			return
 		}
 		ethFormulaObj.BINstring = binString
-		ethFormulaObj.ActualStatus = 109	// GENERATING_BIN_COMPLETED
+		ethFormulaObj.ActualStatus = 109 // GENERATING_BIN_COMPLETED
 		errorWhenUpdatingFormula4 := object.UpdateSelectedEthFormulaFields(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 		if errorWhenUpdatingFormula4 != nil {
 			logrus.Error("Error while updating formula details to the DB after getting bin " + errorWhenUpdatingFormula4.Error())
@@ -465,7 +465,7 @@ func SmartContractGeneratorForFormula(w http.ResponseWriter, r *http.Request, fo
 				commons.JSONErrorReturn(w, r, errWhenInsertingFormulaToDB.Error(), http.StatusInternalServerError, "Error while inserting formula details to the DB ")
 				return
 			}
-		} else if deployStatus == 119 {	// FAILED
+		} else if deployStatus == 119 { // FAILED
 			errWhenUpdatingFormulaToDB := object.UpdateEthereumFormulaStatus(ethFormulaObj.FormulaID, ethFormulaObj.TransactionUUID, ethFormulaObj)
 			if errWhenUpdatingFormulaToDB != nil {
 				logrus.Error("Error while updating formula details to the DB " + errWhenUpdatingFormulaToDB.Error())

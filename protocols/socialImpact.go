@@ -7,6 +7,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/model"
 	ethereuemmetricbind "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereuemMetricBind"
 	ethereumExpertFormula "github.com/dileepaj/tracified-gateway/protocols/ethereum/codeGenerator/ethereumExpertFormula"
+	polygonexpertformula "github.com/dileepaj/tracified-gateway/protocols/polygon/polygonCodeGenerator/polygonExpertFormula"
 	expertFormula "github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/expertFormula"
 	"github.com/dileepaj/tracified-gateway/protocols/stellarprotocols/metricBinding"
 	"github.com/sirupsen/logrus"
@@ -35,6 +36,8 @@ func (socialImpact *AbstractSocialImpact) SocialImpactExpertFormula(w http.Respo
 		expertFormula.StellarExpertFormulaBuilder(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount, socialImpact.VariableCount, socialImpact.ExpertId)
 	} else if socialImpact.Blockchain == "ETHEREUM" {
 		ethereumExpertFormula.SmartContractGeneratorForFormula(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount)
+	} else if socialImpact.Blockchain == "POLYGON" {
+		polygonexpertformula.PolygonExpertFormulaContractGenerator(w, r, socialImpact.FormulaJSON, socialImpact.FieldCount)
 	} else {
 		logrus.Error("Blockchain type issue")
 		w.WriteHeader(http.StatusBadRequest)

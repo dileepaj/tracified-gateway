@@ -45,7 +45,7 @@ func (cd *Connection) RemoveFromTempOrphanList(Publickey string, SequenceNo int6
 	return err
 }
 
-// remove proof presentation protocol by proof name
+//remove proof presentation protocol by proof name
 func (cd *Connection) DeleteProofPresentationProtocolByProofName(proofName string) error {
 	session, err := cd.connect()
 	if err != nil {

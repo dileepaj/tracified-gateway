@@ -15,7 +15,7 @@ import (
 func CheckTransaction(tx string) (bool, error) {
 	isInBlockchain := false
 
-	url := commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "api?module=account&action=txlist&address=" + commons.GoDotEnvVariable("ETHEREUMPUBKEY") + "&startblock=0&endblock=latest+1&page=1&offset=1&sort=desc&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY")
+	url := commons.GoDotEnvVariable("ETHERSCANAPITESTNET") + "api?module=account&action=txlist&address=" + commons.GoDotEnvVariable("ETHEREUM_PUB_KEY") + "&startblock=0&endblock=latest+1&page=1&offset=1&sort=desc&apikey=" + commons.GoDotEnvVariable("ETHERSCANAPIKEY")
 	logrus.Info("Getting the latest transaction from the address : " + url)
 
 	result, errWhenCallingUrl := http.Get(url)
@@ -23,7 +23,7 @@ func CheckTransaction(tx string) (bool, error) {
 		logrus.Error("Error when calling the url to get the last transaction : ", errWhenCallingUrl.Error())
 		return false, errors.New("Error when calling the url to get the last transaction  : " + errWhenCallingUrl.Error())
 	}
-	
+
 	if result.StatusCode != 200 {
 		logrus.Error("Getting last transaction response status code : ", result.StatusCode)
 		return false, errors.New("Getting last transaction response status code : " + strconv.Itoa(result.StatusCode))

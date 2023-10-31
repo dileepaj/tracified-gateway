@@ -12,7 +12,8 @@ import (
 )
 
 //Load the client and private and public keys
-func LoadClientAndKey() (*ethclient.Client, *ecdsa.PrivateKey, common.Address, error) {
+//1- Ethereum, 2-Polygon
+func LoadClientAndKey(blockchainType int) (*ethclient.Client, *ecdsa.PrivateKey, common.Address, error) {
 	var client *ethclient.Client
 	var privateKey *ecdsa.PrivateKey
 	var fromAddress common.Address
@@ -20,15 +21,24 @@ func LoadClientAndKey() (*ethclient.Client, *ecdsa.PrivateKey, common.Address, e
 
 	logrus.Info("Loading the Client and Keys")
 
-	//dial infura client
-	client, errWhenDialingEthClient = ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
-	if errWhenDialingEthClient != nil {
-		logrus.Error("Error when dialing the Ethereum client : " + errWhenDialingEthClient.Error())
-		return client, privateKey, fromAddress, errWhenDialingEthClient
+	if blockchainType == 1 {
+		//dial infura client
+		client, errWhenDialingEthClient = ethclient.Dial(commons.GoDotEnvVariable("ETHEREUMTESTNETLINK"))
+		if errWhenDialingEthClient != nil {
+			logrus.Error("Error when dialing the Ethereum client : " + errWhenDialingEthClient.Error())
+			return client, privateKey, fromAddress, errWhenDialingEthClient
+		}
+	} else if blockchainType == 2 {
+		//dial alchemy client
+		client, errWhenDialingEthClient = ethclient.Dial(commons.GoDotEnvVariable("POLYGON_ALCHEMY_API_LINK") + commons.GoDotEnvVariable("POLYGON_ALCHEMY_API_KEY"))
+		if errWhenDialingEthClient != nil {
+			logrus.Error("Error when dialing the Polygon client : " + errWhenDialingEthClient.Error())
+			return client, privateKey, fromAddress, errWhenDialingEthClient
+		}
 	}
 
 	//load ECDSA private key
-	privateKey, errWhenGettingECDSAKey = crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUMSECKEY"))
+	privateKey, errWhenGettingECDSAKey = crypto.HexToECDSA(commons.GoDotEnvVariable("ETHEREUM_SEC_KEY"))
 	if errWhenGettingECDSAKey != nil {
 		logrus.Error("Error when getting ECDSA key " + errWhenGettingECDSAKey.Error())
 		return client, privateKey, fromAddress, errWhenGettingECDSAKey

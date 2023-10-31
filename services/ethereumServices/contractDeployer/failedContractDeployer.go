@@ -42,7 +42,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 	}
 
 	//load client and the keys
-	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey(1)
 	if errWhenLoadingClientAndKey != nil {
 		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
@@ -64,19 +64,19 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Value = big.NewInt(0) // in wei
 
-	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
+	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACT_DEPLOY_LIMIT"))
 	if errInTryConvert != nil {
 		logrus.Error("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 	}
 
-	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASPRICECAP"))
+	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_PRICE_CAP"))
 	if errInGasPriceCapConcert != nil {
 		logrus.Error("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
 	}
 
-	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
+	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_LIMIT_CAP"))
 	if errInGasLimitCapConcert != nil {
 		logrus.Error("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
 		return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
@@ -127,7 +127,7 @@ func RedeployFailedContracts(failedContract model.PendingContracts) (string, str
 					gasLimit = gasLimit + int(gasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-					errorInSendingEmail := RequestFunds()
+					errorInSendingEmail := RequestFunds(1)
 					if errorInSendingEmail != nil {
 						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
 						return contractAddress, transactionHash, transactionCost, big.NewInt(int64(nonce)), predictedGasPrice, gasLimit, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())

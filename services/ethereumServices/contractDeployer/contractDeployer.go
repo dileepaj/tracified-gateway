@@ -37,7 +37,6 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 
 	object := dao.Connection{}
 
-
 	var expertFormulaObj model.EthereumExpertFormula
 	var metricBindObj model.EthereumMetricBind
 
@@ -62,7 +61,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	}
 
 	//load client and the keys
-	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey()
+	client, privateKey, fromAddress, errWhenLoadingClientAndKey := generalservices.LoadClientAndKey(1)
 	if errWhenLoadingClientAndKey != nil {
 		logrus.Error("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when loading the client and the key : " + errWhenLoadingClientAndKey.Error())
@@ -83,19 +82,19 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 	auth := bind.NewKeyedTransactor(privateKey)
 	auth.Value = big.NewInt(0) // in wei
 
-	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACTDEPLOYLIMIT"))
+	tryoutCap, errInTryConvert := strconv.Atoi(commons.GoDotEnvVariable("CONTRACT_DEPLOY_LIMIT"))
 	if errInTryConvert != nil {
 		logrus.Error("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the tryout limit , ERROR : " + errInTryConvert.Error())
 	}
 
-	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASLIMITCAP"))
+	gasLimitCap, errInGasLimitCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_LIMIT_CAP"))
 	if errInGasLimitCapConcert != nil {
 		logrus.Error("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas limit cap , ERROR : " + errInGasLimitCapConcert.Error())
 	}
 
-	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GASPRICECAP"))
+	gasPriceCap, errInGasPriceCapConcert := strconv.Atoi(commons.GoDotEnvVariable("GAS_PRICE_CAP"))
 	if errInGasPriceCapConcert != nil {
 		logrus.Error("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
 		return contractAddress, transactionHash, transactionCost, errors.New("Error when converting the gas price cap , ERROR : " + errInGasPriceCapConcert.Error())
@@ -109,7 +108,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 			//if the first iteration take the initial gas limit and gas price
 			if i == 0 {
 				//get the initial gas limit
-				gasLimit, errInGettingGasLimit := gasServices.EstimateGasLimit(commons.GoDotEnvVariable("ETHEREUMPUBKEY"), "", "", "", "", "", "", bin)
+				gasLimit, errInGettingGasLimit := gasServices.EstimateGasLimit(commons.GoDotEnvVariable("ETHEREUM_PUB_KEY"), "", "", "", "", "", "", bin)
 				if errInGettingGasLimit != nil {
 					logrus.Error("Error when getting gas limit " + errInGettingGasLimit.Error())
 					return contractAddress, transactionHash, transactionCost, errors.New("Error when getting gas limit, ERROR : " + errInGettingGasLimit.Error())
@@ -148,7 +147,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					predictedGasLimit = predictedGasLimit + int(predictedGasLimit*10/100)
 				} else if deploymentError == "insufficient funds for gas * price + value" {
 					//send email to increase the account balance
-					errorInSendingEmail := RequestFunds()
+					errorInSendingEmail := RequestFunds(1)
 					if errorInSendingEmail != nil {
 						logrus.Error("Error when sending email " + errorInSendingEmail.Error())
 						return contractAddress, transactionHash, transactionCost, errors.New("Error when sending email , ERROR : " + errorInSendingEmail.Error())
@@ -193,7 +192,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 					pendingContractObj := model.PendingContracts{
 						TransactionHash: "",
 						ContractAddress: "",
-						Status:          119,	//FAILED
+						Status:          119, //FAILED
 						CurrentIndex:    0,
 						ErrorMessage:    deploymentError,
 						ContractType:    contractType,
@@ -216,7 +215,7 @@ func EthereumContractDeployerService(bin string, abi string, contractIdentifier 
 				pendingTransaction := model.PendingContracts{
 					TransactionHash: tx.Hash().Hex(),
 					ContractAddress: address.Hex(),
-					Status:          117,	//PENDING
+					Status:          117, //PENDING
 					CurrentIndex:    0,
 					ErrorMessage:    "",
 					ContractType:    contractType,
