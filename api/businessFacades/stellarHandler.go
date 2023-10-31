@@ -12,6 +12,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
+	fosponsoring "github.com/dileepaj/tracified-gateway/nft/stellar/FOSponsoring"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -686,12 +687,34 @@ func BreakTrustline(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&TransactionData)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
-	hash, err := stellar.BreakTrustline(TransactionData)
-	if err != nil {
-
+	hash, errhash := stellar.BreakTrustline(TransactionData)
+	if errhash != nil {
+		log.Println(errhash)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(hash)
+}
+
+func SubmitMarketXDR(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var Response model.MarketXDR
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&Response)
+	tx, err := fosponsoring.SubmittingXDRs(Response.XDR, Response.Type)
+	if err != nil || tx == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Message: "Can not submit XDR"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	result := model.Hash{
+		Hash: tx,
+	}
+	json.NewEncoder(w).Encode(result)
 }

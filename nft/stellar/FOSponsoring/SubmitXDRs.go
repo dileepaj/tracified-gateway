@@ -9,19 +9,22 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func ActivateFOUser(xdrs string) (string, error) {
+func SubmittingXDRs(xdrs string, status int) (string, error) {
 
 	transactionx, err1 := txnbuild.TransactionFromXDR(xdrs)
 	if err1 != nil {
 		return "", err1
 	}
 
+	var additionalSigners keypair.KP
+
 	txes, vals := transactionx.Transaction()
 	logrus.Info("value to show the GT can be packed is ", vals)
 
-	additionalSigners, err2 := keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
-	if err2 != nil {
-		logrus.Error(err2)
+	if status == 0 {
+		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
+	} else if status == 2 || status == 3 {
+		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
 	}
 
 	hashXDRs, err3 := txes.Hash(network.TestNetworkPassphrase)

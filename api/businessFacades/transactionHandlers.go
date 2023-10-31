@@ -923,7 +923,7 @@ func ActivateFOUser(w http.ResponseWriter, r *http.Request) {
 		decoder := json.NewDecoder(r.Body)
 		decoder.DisallowUnknownFields()
 		err := decoder.Decode(&Response)
-		tx, err := fosponsoring.ActivateFOUser(Response.XDR)
+		tx, err := fosponsoring.SubmittingXDRs(Response.XDR, 0)
 		if err != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			response := model.Error{Message: "Can not activate user"}

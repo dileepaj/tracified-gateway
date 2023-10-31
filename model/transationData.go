@@ -35,3 +35,8 @@ type TransactionDataBreakTrustline struct {
 	XDR           string `json:"xdr"`
 	AccountIssuer string `json:"accountIssuer"`
 }
+
+type MarketXDR struct {
+	XDR  string `json:"xdr"`
+	Type int    `json:"type"`
+}
