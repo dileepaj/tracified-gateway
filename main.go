@@ -6,7 +6,9 @@ import (
 
 	"github.com/dileepaj/tracified-gateway/api/routes"
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/services"
+	notificationhandler "github.com/dileepaj/tracified-gateway/services/notificationHandler.go"
 	"github.com/dileepaj/tracified-gateway/services/rabbitmq"
 	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/go-openapi/runtime/middleware"
@@ -28,9 +30,14 @@ func main() {
 
 	// getEnvironment()
 	port := getPort()
-	headersOk := handlers.AllowedHeaders([]string{"Content-Type"})
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With", "Content-Type", "Authorization", "Token"})
 	originsOk := handlers.AllowedOrigins([]string{"*"})
 	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"})
+
+	// Register services, this will be used to schedule workers
+	// Added here to avoid circular import, refactor if there is a better way
+	configs.QueueBackLinks.Method = services.SubmitBacklinksDataToStellar
+	configs.QueueTransaction.Method = services.SubmitUserDataToStellar
 
 	// Initialize the cron scheduler with Delay a job's execution if the previous run hasn't completed yet
 	c := cron.New(
@@ -41,7 +48,8 @@ func main() {
 	)
 
 	c.AddFunc("@every 30m", func() {
-		services.CheckCOCStatus()
+		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("NFTSTELLARISSUERPUBLICKEYK"))
+		notificationhandler.CheckStellarAccountBalance(commons.GoDotEnvVariable("SPONSORERPK"))
 	})
 
 	c.AddFunc("@every 12h", func() {
@@ -49,8 +57,8 @@ func main() {
 		services.CheckOrganizationStatus()
 	})
 
-	c.AddFunc("@every 1m", func() {
-		services.CheckTempOrphan()
+	c.AddFunc("@every 30s", func() {
+		services.QueueScheduleWorkers()
 	})
 
 	c.Start()
@@ -63,9 +71,9 @@ func main() {
 	sh := middleware.SwaggerUI(opts, nil)
 	router.Handle("/docs", sh)
 	router.Handle("/swagger.yaml", http.FileServer(http.Dir("./")))
-	//initial log file when server starts
+	// initial log file when server starts
 	utilities.CreateLogFile()
-	//create logger
+	// create logger
 	logger := utilities.NewCustomLogger()
 	logger.LogWriter("Gateway Started @port "+port+" with "+envName+" environment", 1)
 

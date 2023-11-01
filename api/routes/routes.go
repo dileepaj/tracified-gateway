@@ -103,7 +103,7 @@ var routes = Routes{
 		"SubmitTransformation",
 		"POST",
 		"/transaction/transformation",
-		businessFacades.SubmitTransformation, // Calls the Functional SubmitTransformation for Gateway Version 3
+		businessFacades.SubmitData, // Calls the Functional SubmitTransformation for Gateway Version 3
 	},
 	Route{
 		"SubmitMerge",
@@ -436,6 +436,12 @@ var routes = Routes{
 		businessFacades.MintNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
 	},
 	Route{
+		"MintNFTStellarAndAddToDB",
+		"POST",
+		"/nft/wallet/mint-stellar",
+		businessFacades.MintWalletNFTStellar, //Calls the MintNFTStellar in the nftHandler to mint in Stellar
+	},
+	Route{
 		"MintNFTSolanaAndAddToDB",
 		"POST",
 		"/nft/mintSolana",
@@ -646,12 +652,18 @@ var routes = Routes{
 		"GET",
 		"/activate",
 		businessFacades.ActivateFOUser, //Calls the ActivateFoUser in the StellarHandler
-  },
-		Route{
+	},
+	Route{
 		"POC",
 		"GET",
 		"/tdpdata/txnhash",
 		businessFacades.NewCheckPOEV3, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
 
+	},
+	Route{
+		"BreakTrustline",
+		"POST",
+		"/nft/breaktrustline",
+		businessFacades.BreakTrustline, //Calls the BrealTrustline in the StellarHandler
 	},
 }

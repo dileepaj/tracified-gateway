@@ -30,3 +30,8 @@ type AccountResponse struct {
 type ActivateXDR struct {
 	XDR string `json:"xdr"`
 }
+
+type TransactionDataBreakTrustline struct {
+	XDR           string `json:"xdr"`
+	AccountIssuer string `json:"accountIssuer"`
+}

@@ -190,6 +190,9 @@ func mapDataOperations(txe *model.TransactionCollectionBody, dataType string, da
 		case "batchname": 
 			txe.RealIdentifier = dataValue
 			break
+		case "tenantid": 
+			txe.TenantID = dataValue
+			break
 	}
 	return txe
 }

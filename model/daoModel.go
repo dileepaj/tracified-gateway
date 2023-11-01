@@ -60,8 +60,9 @@ type TransactionCollectionBody struct {
 	GeoLocation          string
 	Timestamp            string
 	TenantNameBase64     string
-	UserID				 string
-	FOUserTXNHash 			 string
+	UserID               string
+	FOUserTXNHash        string
+	RequestId            string
 }
 
 type ProfileCollectionBody struct {
@@ -174,7 +175,7 @@ type POGResponse struct {
 	FeePaid        string
 	ProductName    string
 	ProductId      string
-	CreatedAt 	   string
+	CreatedAt      string
 }
 
 type POEResponse struct {
@@ -582,11 +583,11 @@ type PendingNFTS struct {
 	Version       string
 }
 type NewPOEResponse struct {
-	TDPData			string
-	Identifier     	string
-	TDPIdentifier   string
-	Txnhash        	string
-	TdpId      		string
-	MapIdentifier   string
-	ProfileID       string
+	TDPData       string
+	Identifier    string
+	TDPIdentifier string
+	Txnhash       string
+	TdpId         string
+	MapIdentifier string
+	ProfileID     string
 }
