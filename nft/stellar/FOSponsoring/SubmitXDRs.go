@@ -2,6 +2,7 @@ package fosponsoring
 
 import (
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/sirupsen/logrus"
 	"github.com/stellar/go/keypair"
 	"github.com/stellar/go/network"
@@ -21,9 +22,10 @@ func SubmittingXDRs(xdrs string, status int) (string, error) {
 	txes, vals := transactionx.Transaction()
 	logrus.Info("value to show the GT can be packed is ", vals)
 
-	if status == 0 {
-		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
-	} else if status == 2 || status == 3 {
+	switch status {
+	case constants.MARKETPLACE_SELL:
+		fallthrough
+	case constants.MARKETPLACE_BUY:
 		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
 	}
 

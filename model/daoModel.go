@@ -571,7 +571,7 @@ type XDRRuri struct {
 }
 
 type Hash struct {
-	Hash string
+	Hash string `json:"hash"`
 }
 
 type PendingNFTS struct {
