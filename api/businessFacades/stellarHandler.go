@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -705,16 +706,30 @@ func SubmitMarketXDR(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&Response)
-	tx, err := fosponsoring.SubmittingXDRs(Response.XDR, Response.Type)
-	if err != nil || tx == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		response := model.Error{Message: "Can not submit XDR"}
-		json.NewEncoder(w).Encode(response)
+	if err != nil {
 		return
 	}
-	w.WriteHeader(http.StatusOK)
-	result := model.Hash{
-		Hash: tx,
+	tx, account, errs := fosponsoring.SubmittingXDRs(Response.XDR, Response.Type)
+	if errs != nil || tx == "" {
+		errorMessage := errs.Error()
+		if strings.Contains(errorMessage, "op_src_no_trust") {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Transaction failed, the NFT has already been purchased"}
+			json.NewEncoder(w).Encode(response)
+			return
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Transaction failed, something went"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		result := model.Hash{
+			Hash:    tx,
+			Account: account,
+		}
+		json.NewEncoder(w).Encode(result)
 	}
-	json.NewEncoder(w).Encode(result)
 }

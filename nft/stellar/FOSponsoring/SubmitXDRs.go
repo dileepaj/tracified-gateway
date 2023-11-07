@@ -10,11 +10,11 @@ import (
 	"github.com/stellar/go/xdr"
 )
 
-func SubmittingXDRs(xdrs string, status int) (string, error) {
+func SubmittingXDRs(xdrs string, status int) (string, string, error) {
 
 	transactionx, err1 := txnbuild.TransactionFromXDR(xdrs)
 	if err1 != nil {
-		return "", err1
+		return "", "", err1
 	}
 
 	var additionalSigners keypair.KP
@@ -22,21 +22,27 @@ func SubmittingXDRs(xdrs string, status int) (string, error) {
 	txes, vals := transactionx.Transaction()
 	logrus.Info("value to show the GT can be packed is ", vals)
 
+	account := txes.SourceAccount().AccountID
+
 	switch status {
 	case constants.MARKETPLACE_SELL:
 		fallthrough
 	case constants.MARKETPLACE_BUY:
+		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
+	case constants.ACTIVATE_ACCOUNT:
 		additionalSigners, _ = keypair.Parse(commons.GoDotEnvVariable("SPONSORERSK")) //decryptSK
 	}
 
 	hashXDRs, err3 := txes.Hash(network.TestNetworkPassphrase)
 	if err3 != nil {
 		logrus.Error(err3)
+		return "", "", err3
 	}
 
 	signers, err4 := additionalSigners.SignDecorated(hashXDRs[:])
 	if err4 != nil {
 		logrus.Error(err4)
+		return "", "", err4
 	}
 
 	hints := additionalSigners.Hint()
@@ -48,19 +54,20 @@ func SubmittingXDRs(xdrs string, status int) (string, error) {
 
 	txesignexs, err5 := txes.AddSignatureDecorated(decoratedSignatures)
 	if err5 != nil {
-		return "", err5
+		return "", "", err5
 	}
 
 	txesignexs.ToXDR()
 	bs64xdrs, errsignex := txesignexs.Base64()
 	if errsignex != nil {
-		return "", errsignex
+		return "", "", errsignex
 	}
 	logrus.Info("xdr signed base 64: ", bs64xdrs)
 
 	respns, errsubmitting := commons.GetHorizonClient().SubmitTransaction(txesignexs)
 	if errsubmitting != nil {
 		logrus.Error("Error submitting transaction:", errsubmitting)
+		return "", "", errsubmitting
 	}
-	return respns.Hash, nil
+	return respns.Hash, account, nil
 }
