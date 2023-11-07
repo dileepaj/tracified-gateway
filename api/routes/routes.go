@@ -666,4 +666,10 @@ var routes = Routes{
 		"/nft/breaktrustline",
 		businessFacades.BreakTrustline, //Calls the BrealTrustline in the StellarHandler
 	},
+	Route{
+		"SubmitMarketXDR",
+		"POST",
+		"/marketxdr",
+		businessFacades.SubmitMarketXDR, //Calls the ActivateFoUser in the StellarHandler
+	},
 }
