@@ -2509,6 +2509,7 @@ func (cd *Connection) ValidateTrustNetworkUser(email string, password string) *p
 	})
 	return p
 }
+
 func (cd *Connection) GetTrustNetworkUserResetPassword(email string, password []byte) *promise.Promise {
 	result := []model.TrustNetWorkUser{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -2532,6 +2533,7 @@ func (cd *Connection) GetTrustNetworkUserResetPassword(email string, password []
 	})
 	return p
 }
+
 func (cd *Connection) GetAllTrustNetworkUsers() *promise.Promise {
 	result := []model.LoggedInTrustNetworkUser{}
 	p := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -2845,7 +2847,6 @@ func (cd *Connection) GetPendingContractsByStatus(status int) *promise.Promise {
 	})
 
 	return p
-
 }
 
 func (cd *Connection) GetEthFormulaBinAndAbiByIdentifier(identifier string) *promise.Promise {
@@ -2965,7 +2966,6 @@ func (cd *Connection) GetPendingContractByIdentifier(identifier string) *promise
 	})
 
 	return p
-
 }
 
 /*
@@ -3016,7 +3016,7 @@ func (cd *Connection) GetLastTransactionbyIdentifierAndTenantId(identifier, tena
 		defer session.EndSession(context.TODO())
 		c := session.Client().Database(dbName).Collection("Transactions")
 
-		var cursor, err1 = c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
+		cursor, err1 := c.Find(context.TODO(), bson.M{"identifier": identifier, "tenantid": tenantId})
 
 		if err1 != nil {
 			reject(err1)
@@ -3058,6 +3058,7 @@ func (cd *Connection) GetNFTById1Id2Id3Id4(blockchain string, nftidentifier stri
 
 	return p
 }
+
 func (cd *Connection) GetQueueData(ImageBase64 string, blockchain string, version string) *promise.Promise {
 	result := model.PendingNFTS{}
 	promise := promise.New(func(resolve func(interface{}), reject func(error)) {
@@ -3213,3 +3214,49 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetTransactionsForExpertFormulaId(formulaId string) *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		// Establish a database session
+		session, err := cd.connect()
+		if err != nil {
+			log.Error("Error while connecting to the database: " + err.Error())
+			reject(err)
+			return
+		}
+		defer session.EndSession(context.TODO())
+
+		c := session.Client().Database(dbName).Collection("ExpertFormula")
+
+		filter := bson.M{"formulaid": formulaId}
+		projection := bson.M{"metricexpertformula": 0, "verify":0, "xdr":0,  "executiontemplate":0,  "transactiontime":0,  "transactioncost":0,  "errormessage":0,  "sequenceno":0,  "status":0, }
+		opts := options.FindOptions{
+			Projection: projection,
+		}
+		
+		// Find and decode ExpertFormula
+		var result []model.ResponseFormulaStore
+		cursor, err := c.Find(context.TODO(), filter, &opts)
+		if err != nil {
+			log.Error("Error while querying ExpertFormula: " + err.Error())
+			reject(err)
+			return
+		}
+
+		err = cursor.All(context.TODO(), &result)
+		if err != nil {
+			log.Error("Error while decoding ExpertFormula: " + err.Error())
+			reject(err)
+			return
+		}
+
+		// Check if any ExpertFormula were found
+		if len(result) == 0 {
+			log.Warn("No ExpertFormula found for formulaid: " + formulaId)
+		}
+
+		// Resolve with the result
+		resolve(result)
+	})
+
+	return p
+}

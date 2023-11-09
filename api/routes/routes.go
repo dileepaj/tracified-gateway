@@ -666,4 +666,10 @@ var routes = Routes{
 		"/nft/breaktrustline",
 		businessFacades.BreakTrustline, //Calls the BrealTrustline in the StellarHandler
 	},
+	Route{
+		"SocialImpact",
+		"GET",
+		"/expertformula/{formulaId}",
+		businessFacades.ExpertFormula, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
+	},
 }
