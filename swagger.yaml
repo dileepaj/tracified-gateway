@@ -1277,6 +1277,28 @@ paths:
               schema:
                 $ref: "#/components/schemas/SubmitXDRSuccess"
 
+  /expertformula/{formulaid}:
+    get:
+      tags:
+        - socialimpact
+      description: Get expert formula by formulaId
+      parameters:
+        - name: formulaid
+          in: path
+          description: formula id
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Retrieval success
+        204:
+          description: Not Found in Gateway DataStore
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SubmitXDRSuccess"
+
   /socialimapact/buildformula:
     post:
       tags:
