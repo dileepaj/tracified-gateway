@@ -3,6 +3,7 @@ package businessFacades
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
@@ -12,6 +13,7 @@ import (
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/nft/stellar"
+	fosponsoring "github.com/dileepaj/tracified-gateway/nft/stellar/FOSponsoring"
 	"github.com/dileepaj/tracified-gateway/nft/stellar/accounts"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -686,12 +688,48 @@ func BreakTrustline(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(&TransactionData)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
-	hash, err := stellar.BreakTrustline(TransactionData)
-	if err != nil {
-
+	hash, errhash := stellar.BreakTrustline(TransactionData)
+	if errhash != nil {
+		log.Println(errhash)
+		return
 	}
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(hash)
+}
+
+func SubmitMarketXDR(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var Response model.MarketXDR
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&Response)
+	if err != nil {
+		return
+	}
+	tx, account, errs := fosponsoring.SubmittingXDRs(Response.XDR, Response.Type)
+	if errs != nil || tx == "" {
+		errorMessage := errs.Error()
+		if strings.Contains(errorMessage, "op_src_no_trust") {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Transaction failed, the NFT has already been purchased"}
+			json.NewEncoder(w).Encode(response)
+			return
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Transaction failed, something went"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+	} else {
+		w.WriteHeader(http.StatusOK)
+		result := model.Hash{
+			Hash:    tx,
+			Account: account,
+		}
+		json.NewEncoder(w).Encode(result)
+	}
 }

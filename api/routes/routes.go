@@ -667,9 +667,15 @@ var routes = Routes{
 		businessFacades.BreakTrustline, //Calls the BrealTrustline in the StellarHandler
 	},
 	Route{
+		"SubmitMarketXDR",
+		"POST",
+		"/marketxdr",
+		businessFacades.SubmitMarketXDR, //Calls the ActivateFoUser in the StellarHandler
+	},
+	Route{
 		"SocialImpact",
 		"GET",
 		"/expertformula/{formulaId}",
-		businessFacades.ExpertFormula, // Calls the Deprecated POC for Gateway Version 1, Should call the new CheckPOCV3
+		businessFacades.ExpertFormula,  //Calls the BrealTrustline in the StellarHandler
 	},
 }
