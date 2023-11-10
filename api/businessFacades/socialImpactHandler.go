@@ -7,9 +7,13 @@ import (
 	"github.com/dileepaj/tracified-gateway/authentication"
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
+	"github.com/dileepaj/tracified-gateway/constants"
+	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/dileepaj/tracified-gateway/protocols"
+	"github.com/dileepaj/tracified-gateway/utilities"
 	"github.com/dileepaj/tracified-gateway/validations"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 )
 
@@ -112,4 +116,31 @@ func BindMetric(w http.ResponseWriter, r *http.Request) {
 		}
 		metricBuilder.SocialImpactMetricBinding(w, r)
 	}
+}
+
+func ExpertFormula(w http.ResponseWriter, r *http.Request){
+	logger := utilities.NewCustomLogger()
+	w.Header().Set("Content-Type", "application/json")
+	
+	object := dao.Connection{}
+
+	vars := mux.Vars(r)
+
+	data, err := object.GetTransactionsForExpertFormulaId(vars["formulaId"]).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	if err != nil {
+		w.WriteHeader(http.StatusNotFound)
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusNotFound, Message: "Unable to connect gateway data store"})
+		logger.LogWriter("Unable to connect gateway data store : "+err.Error(), constants.ERROR)
+		return
+	}
+	if data == nil {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	// expert formula related transactions
+	transactions := data.([]model.ResponseFormulaStore)
+	json.NewEncoder(w).Encode(transactions)
+	return
 }

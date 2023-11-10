@@ -241,6 +241,7 @@ func GetTrustNetworkUserEndorsmentCount(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(userEndorsmentCountTracker)
 }
+
 func GetAllTrustNetworkUsers(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	dbcon := dao.Connection{}
@@ -321,6 +322,7 @@ func UpdatePassword(w http.ResponseWriter, r *http.Request) {
 	response := model.SuccessResponse{Message: "Updated Password"}
 	json.NewEncoder(w).Encode(response)
 }
+
 func Resetpassword(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var ResetPasswordRequest model.ResetPsswordRequest

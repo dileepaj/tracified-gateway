@@ -672,4 +672,10 @@ var routes = Routes{
 		"/marketxdr",
 		businessFacades.SubmitMarketXDR, //Calls the ActivateFoUser in the StellarHandler
 	},
+	Route{
+		"SocialImpact",
+		"GET",
+		"/expertformula/{formulaId}",
+		businessFacades.ExpertFormula,  //Calls the BrealTrustline in the StellarHandler
+	},
 }

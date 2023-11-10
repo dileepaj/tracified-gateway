@@ -824,3 +824,21 @@ type PendingContracts struct {
 	GasPrice        *big.Int
 	GasLimit        int
 }
+
+type ResponseFormulaStore struct {
+	FormulaID           string
+	FormulaMapID        uint64
+	VariableCount       int
+	ExecutionTemplate   ResponseExecutionTemplate
+	TotalNoOfManageData int
+	NoOfManageDataInTxn int
+	Memo                []byte
+	TxnHash             string
+	TxnSenderPK         string
+	Timestamp           string
+	TxnUUID             string
+}
+
+type ResponseExecutionTemplate struct {
+	S_CodeLine        string
+}
