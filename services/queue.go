@@ -2,12 +2,13 @@ package services
 
 import (
 	"context"
-	amqp "github.com/rabbitmq/amqp091-go"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
@@ -30,7 +31,6 @@ var queueError error
 var queueConnectionOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
-var queuesConsumers = make(map[string]bool)
 
 var mu sync.Mutex
 
@@ -42,9 +42,14 @@ func getQueueName(queueName string) string {
 	return queuePrefix + queueName
 }
 
+func createQueueConnection() (*amqp.Connection, error) {
+	conn, err := amqp.Dial(commons.GoDotEnvVariable("RABBITMQ_SERVER_URI"))
+	return conn, err
+}
+
 func GetQueueConnection() (*amqp.Connection, error) {
 	queueConnectionOnce.Do(func() {
-		conn, err := amqp.Dial(commons.GoDotEnvVariable("RABBITMQ_SERVER_URI"))
+		conn, err := createQueueConnection()
 
 		queueConnection = conn
 		queueError = err
@@ -186,14 +191,12 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 
 func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 	queueName = getQueueName(queueName)
-	mu.Lock()
-	_, ok := queuesConsumers[queueName]
-	mu.Unlock()
-	if ok {
+	ch, _ := GetConsumerQueueChannel(queueName)
+
+	if !ch.IsClosed() {
 		return nil
 	}
 
-	ch, _ := GetConsumerQueueChannel(queueName)
 	q, _ := GetQueue(queueName)
 
 	messages, err := ch.Consume(
@@ -233,9 +236,6 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 		}
 	}()
 
-	mu.Lock()
-	queuesConsumers[queueName] = true
-	mu.Unlock()
 	return err
 }
 
@@ -247,10 +247,6 @@ func QueueScheduleWorkers() {
 
 	for _, name := range queueNames {
 		queueName := getQueueName(name)
-		_, ok := queuesConsumers[queueName]
-		if ok {
-			continue
-		}
 
 		for n, queue := range configs.Queues {
 			n = getQueueName(n)
