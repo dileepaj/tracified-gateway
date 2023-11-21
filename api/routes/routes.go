@@ -672,4 +672,10 @@ var routes = Routes{
 		"/marketxdr",
 		businessFacades.SubmitMarketXDR, //Calls the ActivateFoUser in the StellarHandler
 	},
+	Route{
+		"initCOCTransferRequest",
+		"POST",
+		"/coc-transfer",
+		businessFacades.COCTransferRequestInit,
+	},
 }

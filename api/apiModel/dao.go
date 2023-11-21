@@ -60,9 +60,16 @@ type IdentifierModel struct {
 }
 
 type TDPOperationRequest struct {
-	Index int
+	Index      int
 	Identifier string
-	TDPID string
-	XDR string
-	Status string
+	TDPID      string
+	XDR        string
+	Status     string
+}
+
+type CommonBadResponse struct {
+	Message string
+}
+type CommonSuccessMessage struct {
+	Message string
 }
