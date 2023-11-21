@@ -31,6 +31,7 @@ var queueError error
 var queueConnectionOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
+var queuesConsumers = make(map[string]bool)
 
 var mu sync.Mutex
 
@@ -56,9 +57,20 @@ func GetQueueConnection() (*amqp.Connection, error) {
 
 	})
 
+	if queueConnection.IsClosed() {
+		mu.Lock()
+		conn, err := createQueueConnection()
+
+		queueConnection = conn
+		queueError = err
+
+		mu.Unlock()
+	}
+
 	if queueError != nil {
 		log.Error(queueError)
 	}
+
 	return queueConnection, queueError
 }
 
@@ -191,9 +203,12 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 
 func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 	queueName = getQueueName(queueName)
+	mu.Lock()
+	_, ok := queuesConsumers[queueName]
+	mu.Unlock()
 	ch, _ := GetConsumerQueueChannel(queueName)
 
-	if !ch.IsClosed() {
+	if ok && !ch.IsClosed() {
 		return nil
 	}
 
@@ -236,6 +251,9 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 		}
 	}()
 
+	mu.Lock()
+	queuesConsumers[queueName] = true
+	mu.Unlock()
 	return err
 }
 
