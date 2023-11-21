@@ -3213,3 +3213,33 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetCurrentCOCStatus(id primitive.ObjectID) *promise.Promise {
+	result := model.COCStateDBResponse{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("cocTransfers")
+		count, er := c.CountDocuments(context.TODO(), bson.M{"_id": id})
+
+		if er != nil {
+			// fmt.Println(er)
+			reject(er)
+		}
+
+		options := options.FindOne()
+		options.SetSkip(count - 1)
+		err1 := c.FindOne(context.TODO(), bson.M{"_id": id}, options).Decode(&result)
+		logrus.Println("DB result : ", result)
+		if err1 != nil {
+			reject(err1)
+		}
+
+		resolve(result)
+	})
+	return p
+}

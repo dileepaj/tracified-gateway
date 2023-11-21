@@ -913,7 +913,7 @@ func (cd *Connection) UpdateEthereumFormulaStatus(formulaID string, txnUUID stri
 		TransactionSender:   update.TransactionSender,
 		Verify:              update.Verify,
 		ErrorMessage:        update.ErrorMessage,
-		ActualStatus: 	     update.ActualStatus,
+		ActualStatus:        update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1002,7 +1002,7 @@ func (cd *Connection) UpdateEthereumMetricStatus(metricID string, txnUUID string
 		ValueIDs:          update.ValueIDs,
 		FormulaID:         update.FormulaID,
 		Type:              update.Type,
-		ActualStatus: 	   update.ActualStatus,
+		ActualStatus:      update.ActualStatus,
 	}
 
 	pByte, err := bson.Marshal(up)
@@ -1282,7 +1282,7 @@ func (cd *Connection) UpdateSelectedEthMetricFields(metricID string, txnUUID str
 	}
 	if metricObj.User.TenantID != "" {
 		updateFields = append(updateFields, bson.E{Key: "user.tenantID", Value: metricObj.User.TenantID})
-	}	
+	}
 	if metricObj.ActualStatus != 0 {
 		updateFields = append(updateFields, bson.E{Key: "actualstatus", Value: metricObj.ActualStatus})
 	}
@@ -1375,6 +1375,23 @@ func (cd *Connection) UpdateSelectedEthFormulaFields(formulaID string, txnUUID s
 	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
 	if errWhenUpdate != nil {
 		logrus.Error("Error when updating ethereum formula fields in DB : " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}
+
+func (cd *Connection) UpdateCOCState(data model.UpdateCOCState) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("cocTransfers")
+	filter := bson.D{{Key: "_id", Value: data.Id}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "cocstatus", Value: data.COCStatus}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error Updating COC status: " + errWhenUpdate.Error())
 		return errWhenUpdate
 	}
 	return nil

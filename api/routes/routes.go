@@ -678,4 +678,10 @@ var routes = Routes{
 		"/coc-transfer",
 		businessFacades.COCTransferRequestInit,
 	},
+	Route{
+		"UpdateCOCTransferRequestState",
+		"PUT",
+		"/coc-transfer",
+		businessFacades.UpdateCOCTransferStatus,
+	},
 }
