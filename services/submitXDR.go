@@ -83,6 +83,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	err := json.Unmarshal(deliver.Body, &result)
 	if err != nil {
 		logrus.Error("Error Unmarshal @SubmitData " + err.Error())
+		deliver.Nack(false, true)
 		return
 	}
 	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.CONSUMING_BACKLINK_QUEUE, result.RequestId, configs.BenchmarkLogsStatus.OK)
@@ -91,6 +92,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	err1 := xdr.SafeUnmarshalBase64(result.XDR, &txe)
 	if err1 != nil {
 		logrus.Error("Error SafeUnmarshalBase64 @SubmitData " + err.Error())
+		deliver.Nack(false, true)
 		return
 	}
 	publicKey := constants.PublicKey
