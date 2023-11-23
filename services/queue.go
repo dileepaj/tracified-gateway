@@ -31,7 +31,6 @@ var queueError error
 var queueConnectionOnce sync.Once
 
 var queues = make(map[string]amqp.Queue)
-var queuesConsumers = make(map[string]bool)
 
 var mu sync.Mutex
 
@@ -95,28 +94,30 @@ func GetQueueChannel(queueName string) (*amqp.Channel, error) {
 	return ch, err
 }
 
-func GetConsumerQueueChannel(queueName string) (*amqp.Channel, error) {
+func GetConsumerQueueChannel(queueName string) (*amqp.Channel, bool, error) {
 	var err error
+	isNew := false
 	if _, err = GetQueueConnection(); err != nil {
 		log.Error(err)
-		return nil, err
+		return nil, isNew, err
 	}
 
 	mu.Lock()
 	ch, ok := consumerChannels[queueName]
 	mu.Unlock()
 
-	if ok {
-		return ch, nil
+	if ok && !ch.IsClosed() {
+		return ch, isNew, nil
 	}
 
 	ch, err = queueConnection.Channel()
+	isNew = true
 
 	mu.Lock()
 	consumerChannels[queueName] = ch
 	mu.Unlock()
 
-	return ch, err
+	return ch, isNew, err
 }
 
 func GetQueue(queueName string) (amqp.Queue, error) {
@@ -203,12 +204,9 @@ func PublishToQueue(queueName string, message string, args ...interface{}) error
 
 func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 	queueName = getQueueName(queueName)
-	mu.Lock()
-	_, ok := queuesConsumers[queueName]
-	mu.Unlock()
-	ch, _ := GetConsumerQueueChannel(queueName)
+	ch, isNew, _ := GetConsumerQueueChannel(queueName)
 
-	if ok && !ch.IsClosed() {
+	if !isNew && !ch.IsClosed() {
 		return nil
 	}
 
@@ -251,9 +249,6 @@ func RegisterWorker(queueName string, cmd func(delivery amqp.Delivery)) error {
 		}
 	}()
 
-	mu.Lock()
-	queuesConsumers[queueName] = true
-	mu.Unlock()
 	return err
 }
 
