@@ -83,7 +83,7 @@ func GetQueueChannel(queueName string) (*amqp.Channel, error) {
 
 	ch, ok := channels[queueName]
 
-	if ok {
+	if ok && !ch.IsClosed() {
 		return ch, nil
 	}
 
