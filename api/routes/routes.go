@@ -690,4 +690,10 @@ var routes = Routes{
 		"/coc-transfer",
 		businessFacades.GetCOCTransferRequestbyPublicKeyandStatus,
 	},
+	Route{
+		"UpdateCOCCurrentOwner",
+		"PUT",
+		"/coc-transfer/owner",
+		businessFacades.UpdateCurrentOwnerOfCOC,
+	},
 }

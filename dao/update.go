@@ -1396,3 +1396,20 @@ func (cd *Connection) UpdateCOCState(data model.UpdateCOCState) error {
 	}
 	return nil
 }
+
+func (cd *Connection) UpdateCOCOwner(data model.UpdateCOCOwner) error {
+	session, err := cd.connect()
+	if err != nil {
+		fmt.Println("Error while connecting to DB " + err.Error())
+		return err
+	}
+	c := session.Client().Database(dbName).Collection("cocTransfers")
+	filter := bson.D{{Key: "_id", Value: data.Id}}
+	update := bson.D{{Key: "$set", Value: bson.D{{Key: "currentcocowner", Value: data.NewOwner}}}}
+	_, errWhenUpdate := c.UpdateOne(context.TODO(), filter, update)
+	if errWhenUpdate != nil {
+		logrus.Error("Error Updating COC status: " + errWhenUpdate.Error())
+		return errWhenUpdate
+	}
+	return nil
+}

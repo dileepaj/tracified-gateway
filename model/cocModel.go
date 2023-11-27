@@ -25,6 +25,18 @@ type COCStateDBResponse struct {
 	COCStatus uint8  `json:"cocstatus" bson:"cocstatus" `
 }
 
+type UpdateCOCOwner struct {
+	Id              primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	CurrentCOCOwner string             `json:"currentcocowner" bson:"currentcocowner"`
+	NewOwner        string             `json:"newowner" bson:"newowner"`
+}
+
+type COCPreviousOwner struct {
+	Id              primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	CurrentCOCOwner string             `json:"currentcocowner" bson:"currentcocowner"`
+	COCStatus       uint8              `json:"cocstatus" bson:"cocstatus" `
+}
+
 const (
 	COC_TRANSFER_ENABLED  = 1
 	COC_TRANSFER_ACCPETED = 2

@@ -146,3 +146,47 @@ func GetCOCTransferRequestbyPublicKeyandStatus(w http.ResponseWriter, r *http.Re
 	json.NewEncoder(w).Encode(result)
 	return
 }
+func UpdateCurrentOwnerOfCOC(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	var cocUpdateOwner model.UpdateCOCOwner
+	err := json.NewDecoder(r.Body).Decode(&cocUpdateOwner)
+	if err != nil {
+		logrus.Error("Error decoding data from payload : ", err)
+		w.WriteHeader(http.StatusBadRequest)
+		result := apiModel.CommonBadResponse{
+			Message: "Error while Decoding the body",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	repo := dao.Connection{}
+	rst, _ := repo.GetCOCPreviousCurrentOwner(cocUpdateOwner).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	DBResult, err1 := rst.(model.COCPreviousOwner)
+	if !err1 {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Code: 400, Message: "COC Transfer request or COC owner does not exist"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	if DBResult.COCStatus == 4 {
+		updateerr := repo.UpdateCOCOwner(cocUpdateOwner)
+		if updateerr != nil {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Code: 400, Message: "Unable to update owner"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		result := apiModel.CommonSuccessMessage{
+			Message: "New Owner Updated Successfully"}
+		json.NewEncoder(w).Encode(result)
+		return
+	} else {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Code: 400, Message: "Unable to update owner COC transfer not made yet"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+}
