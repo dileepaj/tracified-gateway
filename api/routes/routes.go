@@ -684,4 +684,10 @@ var routes = Routes{
 		"/coc-transfer",
 		businessFacades.UpdateCOCTransferStatus,
 	},
+	Route{
+		"GetCOCRequstByPublicKey",
+		"GET",
+		"/coc-transfer",
+		businessFacades.GetCOCTransferRequestbyPublicKeyandStatus,
+	},
 }

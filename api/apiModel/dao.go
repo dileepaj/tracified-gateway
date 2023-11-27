@@ -73,3 +73,7 @@ type CommonBadResponse struct {
 type CommonSuccessMessage struct {
 	Message string
 }
+
+type COCTransferResponse struct {
+	Response []model.COCState
+}

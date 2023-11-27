@@ -3243,3 +3243,54 @@ func (cd *Connection) GetCurrentCOCStatus(id primitive.ObjectID) *promise.Promis
 	})
 	return p
 }
+func (cd *Connection) GetCOCTransfersbyPublickKeyandStatus(publicKey string, userType int, status int) *promise.Promise {
+	result := []model.COCState{}
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("cocTransfers")
+		count, err := c.CountDocuments(context.TODO(), bson.M{"cocrequestedpublickey": publicKey})
+		logrus.Println("document count: ", count)
+		if err != nil {
+			// fmt.Println(er)
+			reject(err)
+		}
+		if userType == model.COC_USERTYPE_SENDER {
+			options := options.FindOne()
+			options.SetSkip(count - 1)
+			cursor, err1 := c.Find(context.TODO(), bson.M{"senderpublickkey": publicKey, "cocstatus": status})
+
+			if err1 != nil {
+				reject(err1)
+			}
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			}
+
+			resolve(result)
+		} else if userType == model.COC_USERTYPE_RECIVER {
+			options := options.FindOne()
+			options.SetSkip(count - 1)
+			cursor, err1 := c.Find(context.TODO(), bson.M{"reciverpublickkey": publicKey, "cocstatus": status})
+
+			if err1 != nil {
+				reject(err1)
+			}
+			err2 := cursor.All(context.TODO(), &result)
+			if err2 != nil || len(result) == 0 {
+				reject(err2)
+			}
+
+			resolve(result)
+		} else {
+			reject(err)
+		}
+
+	})
+	return p
+}

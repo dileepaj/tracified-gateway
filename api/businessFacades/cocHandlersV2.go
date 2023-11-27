@@ -106,3 +106,43 @@ func UpdateCOCTransferStatus(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(result)
 	return
 }
+
+func GetCOCTransferRequestbyPublicKeyandStatus(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json;charset=UTF-8")
+	publickey := r.URL.Query().Get("pubkey")
+	if publickey == "" {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusBadRequest, Message: "Publickey  missing"})
+		return
+	}
+
+	struserType := r.URL.Query().Get("usertype")
+	userType, userTypeErr := strconv.Atoi(struserType)
+	if userTypeErr != nil || userType < 1 || userType > 2 || struserType == "" {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusBadRequest, Message: "Invalid User Type"})
+		return
+	}
+	strcocStaus := r.URL.Query().Get("coctype")
+	cocStatus, converErr := strconv.Atoi(strcocStaus)
+	if converErr != nil || cocStatus < 1 || cocStatus > 4 || strcocStaus == "" {
+		json.NewEncoder(w).Encode(model.Error{Code: http.StatusBadRequest, Message: "Invalid COC Status"})
+		return
+	}
+	logrus.Println("Publickkey:" + publickey)
+	logrus.Println("status:", cocStatus)
+	repo := dao.Connection{}
+	rst, _ := repo.GetCOCTransfersbyPublickKeyandStatus(publickey, userType, cocStatus).Then(func(data interface{}) interface{} {
+		return data
+	}).Await()
+	DBResult, err1 := rst.([]model.COCState)
+	if !err1 {
+		w.WriteHeader(http.StatusBadRequest)
+		response := model.Error{Code: 400, Message: "Unable to get Data"}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+	w.WriteHeader(http.StatusOK)
+	result := apiModel.COCTransferResponse{
+		Response: DBResult}
+	json.NewEncoder(w).Encode(result)
+	return
+}
