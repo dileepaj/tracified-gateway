@@ -7,12 +7,16 @@ type COCState struct {
 	IssuerPublicKey   string             `json:"issuerpublickey" bson:"issuerpublickey"`
 	SenderPublicKey   string             `json:"senderpublickkey" bson:"senderpublickkey"`
 	COCAssetName      string             `json:"cocassetname" bson:"cocassetname"`
-	ReciverPublickKey string             `json:"reciverpublickkey" bson:"reciverpublickkey"`
+	ReceiverPublicKey string             `json:"receiverpublickey" bson:"receiverpublickey"`
 	CurrentCOCOwner   string             `json:"currentcocowner" bson:"currentcocowner"`
 	COCStatus         uint8              `json:"cocstatus" bson:"cocstatus" `
 	Timestamp         string             `json:"timestamp" bson:"timestamp"`
 	TenantID          string             `json:"tenantid" bson:"tenantid"`
 	TransferAmount    uint64             `json:"transferamount" bson:"transferamount"`
+	AssetType         string             `json:"assettype" bson:"assettype"`
+	BatchName         string             `json:"batchname" bson:"batchname"`
+	ProductName       string             `json:"productname" bson:"productname"`
+	COCTxn            string 			 `json:"coctxn" bson:"coctxn"`
 }
 
 type UpdateCOCState struct {
