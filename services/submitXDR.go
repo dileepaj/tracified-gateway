@@ -54,6 +54,7 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.SENDING)
 	response := display.SubmitXDR(txnBody.TxnType)
 	if response.Error.Code != 200 || response.Error.Message != "" {
+		logrus.Error(response)
 		utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.FO_USER_XDR_SUBMITTING_TO_BLOCKCHAIN, txnBody.RequestId, configs.BenchmarkLogsStatus.ERROR)
 		logrus.Error("Failed to submit the XDR ", " Error: ", response.Error.Message, " Timestamp: ", txnBody.Timestamp, " XDR: ",
 			txnBody.XDR, "TXNType: ", txnBody.TxnType, " Identifier: ", txnBody.MapIdentifier, " Sequence No: ", txnBody.SequenceNo, " PublicKey: ", txnBody.PublicKey)
@@ -68,7 +69,6 @@ func SubmitUserDataToStellar(deliver amqp091.Delivery) {
 	jsonStr, err := json.Marshal(txnBody)
 	if err != nil {
 		logrus.Error("Error in convert the struct to a JSON string using encoding/json:", err)
-		return
 	}
 	PublishToQueue(configs.QueueBackLinks.Name, string(jsonStr), configs.QueueBackLinks.Method)
 	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.PUBLISH_TO_BACKLINK, txnBody.RequestId, configs.BenchmarkLogsStatus.OK)
