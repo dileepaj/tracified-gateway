@@ -714,12 +714,12 @@ func SubmitMarketXDR(w http.ResponseWriter, r *http.Request) {
 		errorMessage := errs.Error()
 		if strings.Contains(errorMessage, "op_src_no_trust") {
 			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Transaction failed, the NFT has already been purchased"}
+			response := model.Error{Message: "Transaction failed, the NFT has already been purchased."}
 			json.NewEncoder(w).Encode(response)
 			return
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Transaction failed, something went"}
+			response := model.Error{Message: "Transaction failed, something went wrong."}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
