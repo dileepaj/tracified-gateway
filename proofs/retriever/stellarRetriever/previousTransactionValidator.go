@@ -3,7 +3,9 @@ package stellarRetriever
 import (
 	"encoding/json"
 	"io/ioutil"
+
 	// "github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"net/http"
@@ -24,7 +26,7 @@ type ConcretePrevious struct {
 func (db *ConcretePrevious) RetrievePrevious8Transactions(txn string) (model.RetrievePrevious, error) {
 
 	db.Count++
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + txn + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + txn + "/operations?limit=30")
 	if err != nil {
 		db.Err = err
 	} else {

@@ -37,7 +37,7 @@ func (stxn *ConcreteStellarTransaction) RetrieveTransaction() (*model.StellarTra
 }
 
 func (stxn *ConcreteStellarTransaction) RetrieveOperations() (*model.StellarOperations, error) {
-	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + stxn.Txnhash + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions/" + stxn.Txnhash + "/operations?limit=30")
 	if err != nil {
 		return nil, err
 	}

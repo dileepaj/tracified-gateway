@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	// "fmt"
 	"io/ioutil"
+
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 
 	"net/http"
@@ -41,7 +43,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 	var temp model.Current
 
 	// output := make([]string, 20)
-	result, err := http.Get("https://horizon.stellar.org/transactions/" + db.POCStruct.Txn + "/operations")
+	result, err := http.Get(commons.GetHorizonClient().HorizonURL + "transactions" + db.POCStruct.Txn + "/operations?limit=30")
 	if err != nil {
 		Rerr.Code = result.StatusCode
 		Rerr.Message = "The HTTP request failed for RetrievePOC"
@@ -85,7 +87,7 @@ func (db *ConcretePOC) RetrievePOC() model.RetrievePOC {
 			if transactionType == "6" {
 				if keys[3] != (PublicKeyPOC{}) {
 					mergeID = Base64DecEnc("Decode", keys[3].Value)
-					result, err := http.Get("https://horizon.stellar.org/transactions/" + mergeID + "/operations")
+					result, err := http.Get("https://horizon.stellar.org/transactions/" + mergeID + "/operations" + "?limit=30")
 					if err != nil {
 						Rerr.Code = result.StatusCode
 						Rerr.Message = "The HTTP request failed for Merge ID"

@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/sirupsen/logrus"
 )
@@ -17,7 +18,7 @@ des - calling the stellar endpoint to get the transaction details using the txn 
 
 func AccecingManageData(hash string) {
 	//! acessing the manage data in blockchain and convert byte to bit string
-	url := "https://horizon-testnet.stellar.org/transactions/" + hash + "/operations"
+	url := commons.GetHorizonClient().HorizonURL + "transactions/" + hash + "/operations?limit=30"
 	result, err := http.Get(url)
 	if err != nil {
 		logrus.Error("Unable to reach Stellar network", url)
