@@ -347,9 +347,11 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		var UserSplitTxnHashes string
 		var PreviousTxn string
 		// ParentIdentifier = Identifier
-		pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(result.Identifier, result.TenantID).Then(func(data interface{}) interface{} {
+		fmt.Println("identifier: ", result.FromIdentifier1, result.TenantID)
+		pData, errAsnc := object.GetLastTransactionbyIdentifierAndTenantId(result.FromIdentifier1, result.TenantID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
+		fmt.Println("pData: ", pData)
 		if pData == nil || errAsnc != nil {
 			logrus.Error("Error @GetLastTransactionbyIdentifier @SubmitSplit ")
 			// ASSIGN PREVIOUS MANAGE DATA BUILDER - THIS WILL BE THE CASE TO ANY SPLIT CHILD
@@ -429,7 +431,7 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			break
 		}
 	case "6":
-		// type 0 = Split Child
+		// type 6 = Split Child
 		var UserSplitTxnHashes string
 		var PreviousTxn string
 		var SplitParentProfile string
@@ -438,9 +440,11 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 			When constructing a backlink transaction(put from gateway) for a split, it is important to exclude the split-parent transaction as its previous transaction.
 			Instead, you should obtain the most recent transaction that is specific to the identifier and disregard the split-parent transaction.
 		*/
+		fmt.Println("------------split child id: ", result.FromIdentifier1)
 		backlinkData, err := object.GetLastTransactionbyIdentifierNotSplitParent(result.FromIdentifier1, result.TenantID).Then(func(data interface{}) interface{} {
 			return data
 		}).Await()
+		fmt.Println("backlinkData :", backlinkData)
 		if backlinkData == nil || err != nil {
 			logrus.Info("Can not find transaction form database ", "build Split")
 		} else {
