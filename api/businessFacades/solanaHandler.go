@@ -178,3 +178,30 @@ func TransferNFTS(w http.ResponseWriter, r *http.Request) {
 
 	}
 }
+
+func UpdateNFTs(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	var MarketplaceNFT model.UpdateableNFT
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	err := decoder.Decode(&MarketplaceNFT)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println(MarketplaceNFT)
+	if MarketplaceNFT.MinterPK != "" {
+		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
+		updateTXNX, err := solana.UpdateNFT(WALLETSECRET, MarketplaceNFT.MinterPK, MarketplaceNFT.NftContentName, MarketplaceNFT.NftURL, "UNFT")
+		if err == nil {
+			w.WriteHeader(http.StatusOK)
+			json.NewEncoder(w).Encode(updateTXNX)
+			return
+		} else {
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "Something went wrong"}
+			json.NewEncoder(w).Encode(response)
+			return
+		}
+
+	}
+}

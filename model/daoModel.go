@@ -592,3 +592,9 @@ type NewPOEResponse struct {
 	MapIdentifier string
 	ProfileID     string
 }
+
+type UpdateableNFT struct {
+	MinterPK       string
+	NftURL         string
+	NftContentName string
+}
