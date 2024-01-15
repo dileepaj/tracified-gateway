@@ -386,6 +386,9 @@ type NFTSolana struct {
 	ArtistName    string
 	ArtistLink    string
 	Royalty       string
+	BatchId       string
+	ProductId     string
+	TenantId      string
 }
 
 type NFTWithTransactionSolana struct {
@@ -408,6 +411,10 @@ type NFTWithTransactionSolana struct {
 	Copies                           string
 	InitialDistributorPK             string
 	Royalty                          string
+	BatchId                          string
+	ProductId                        string
+	TenantId                         string
+	Version                          string
 }
 
 type NFTTransfer struct {
@@ -443,6 +450,9 @@ type MarketPlaceNFT struct {
 	PreviousOwnerNFTPK               string
 	CurrentOwnerNFTPK                string
 	Royalty                          string
+	BatchId                          string
+	ProductId                        string
+	TenantId                         string
 }
 
 type NFTContracts struct {
@@ -594,7 +604,11 @@ type NewPOEResponse struct {
 }
 
 type UpdateableNFT struct {
-	MinterPK       string
-	NftURL         string
-	NftContentName string
+	BatchId   string
+	ProductId string
+	TenantId  string
+	Version   string
+	SvgHash   string
+	TxnHash   string
+	MinterPK  string
 }

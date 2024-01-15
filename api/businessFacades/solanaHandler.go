@@ -2,7 +2,9 @@ package businessFacades
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/dileepaj/tracified-gateway/commons"
@@ -58,6 +60,10 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
 				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
 				Royalty:                          TrustLineResponseNFT.Royalty,
+				BatchId:                          TrustLineResponseNFT.BatchId,
+				ProductId:                        TrustLineResponseNFT.ProductId,
+				TenantId:                         TrustLineResponseNFT.TenantId,
+				Version:                          "1",
 			}
 
 			MarketplaceNFTcollectionObj = model.MarketPlaceNFT{
@@ -85,6 +91,9 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.OwnerPK,
 				SellingStatus:                    "NOTFORSALE",
 				Royalty:                          TrustLineResponseNFT.Royalty,
+				BatchId:                          TrustLineResponseNFT.BatchId,
+				ProductId:                        TrustLineResponseNFT.ProductId,
+				TenantId:                         TrustLineResponseNFT.TenantId,
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{
@@ -182,6 +191,8 @@ func TransferNFTS(w http.ResponseWriter, r *http.Request) {
 func UpdateNFTs(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	var MarketplaceNFT model.UpdateableNFT
+
+	object := dao.Connection{}
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
 	err := decoder.Decode(&MarketplaceNFT)
@@ -189,16 +200,87 @@ func UpdateNFTs(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	log.Println(MarketplaceNFT)
-	if MarketplaceNFT.MinterPK != "" {
-		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
-		updateTXNX, err := solana.UpdateNFT(WALLETSECRET, MarketplaceNFT.MinterPK, MarketplaceNFT.NftContentName, MarketplaceNFT.NftURL, "UNFT")
-		if err == nil {
-			w.WriteHeader(http.StatusOK)
-			json.NewEncoder(w).Encode(updateTXNX)
-			return
+	if MarketplaceNFT.BatchId != "" && MarketplaceNFT.TenantId != "" {
+		var result model.NFTWithTransactionSolana
+		p := object.GetExistingSolanaNFT(MarketplaceNFT.BatchId, MarketplaceNFT.ProductId, MarketplaceNFT.TenantId)
+		p.Then(func(data interface{}) interface{} {
+			result = data.(model.NFTWithTransactionSolana)
+			return nil
+		}).Catch(func(error error) error {
+			log.Error("Error while GetTransactionForTdpIdSequence " + error.Error())
+			w.WriteHeader(http.StatusBadRequest)
+			response := model.Error{Message: "TDPID NOT FOUND IN DATASTORE"}
+			json.NewEncoder(w).Encode(response)
+			fmt.Println(response)
+			return error
+		}).Await()
+
+		if result.MinterPK != "" {
+			var stringver string
+			var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
+			updateTXNX, err := solana.UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, MarketplaceNFT.SvgHash, "UNFT")
+			if err == nil {
+				ver, errAtoi := strconv.Atoi(result.Version)
+				if errAtoi != nil {
+					w.WriteHeader(http.StatusBadRequest)
+					response := model.Error{Message: "Couldnt convert and get version"}
+					json.NewEncoder(w).Encode(response)
+					return
+				}
+				ver++
+				stringver = strconv.Itoa(ver)
+				updatednft := model.UpdateableNFT{
+					BatchId:   MarketplaceNFT.BatchId,
+					ProductId: MarketplaceNFT.ProductId,
+					TenantId:  MarketplaceNFT.TenantId,
+					SvgHash:   MarketplaceNFT.SvgHash,
+					Version:   stringver,
+					TxnHash:   updateTXNX,
+					MinterPK:  result.MinterPK,
+				}
+				errversion := object.InsertSolanaNFTVersions(updatednft) //this might turn into an update function
+				if errversion == nil {
+					errupdate := object.UpdateNFTSolana(updatednft)
+					if errupdate != nil {
+						w.WriteHeader(http.StatusBadRequest)
+						response := model.Error{Message: "Update of records was not successful"}
+						json.NewEncoder(w).Encode(response)
+						return
+					}
+					// url := constants.NFTBackend + "/update/solana/meta/" + result.MinterPK + `/` + updateTXNX
+					// req, er := http.NewRequest("PUT", url, nil)
+					// if er != nil {
+					// 	log.Error("Error while create new request using http " + er.Error())
+					// }
+					// client := &http.Client{}
+					// resq, er := client.Do(req)
+					// if er != nil {
+					// 	log.Error("Error while getting response " + er.Error())
+					// 	w.WriteHeader(http.StatusBadRequest)
+					// 	response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
+					// 	json.NewEncoder(w).Encode(response)
+					// 	return
+					// }
+					// fmt.Println("Response : ", resq)
+				} else {
+					w.WriteHeader(http.StatusBadRequest)
+					response := model.Error{Message: "Couldnt create a version record in the gateway"}
+					json.NewEncoder(w).Encode(response)
+					return
+				}
+
+				w.WriteHeader(http.StatusOK)
+				json.NewEncoder(w).Encode(updateTXNX)
+				return
+			} else {
+				w.WriteHeader(http.StatusBadRequest)
+				response := model.Error{Message: "Something went wrong"}
+				json.NewEncoder(w).Encode(response)
+				return
+			}
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
-			response := model.Error{Message: "Something went wrong"}
+			response := model.Error{Message: "No NFT for Batch minted previously!"}
 			json.NewEncoder(w).Encode(response)
 			return
 		}
