@@ -7,6 +7,8 @@ import (
 	"strings"
 
 	"github.com/dileepaj/tracified-gateway/api/apiModel"
+	"github.com/dileepaj/tracified-gateway/nft/solana"
+
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/configs"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -865,10 +867,10 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		}
 	}
 	id := apiModel.IdentifierModel{
-		MapValue : result.Identifier,
-		Identifier  :  result.MapIdentifier,
-		Type: result.TxnType,
-		ProductId: result.ProductID,
+		MapValue:   result.Identifier,
+		Identifier: result.MapIdentifier,
+		Type:       result.TxnType,
+		ProductId:  result.ProductID,
 	}
 	err3 := object.InsertIdentifier(id)
 	if err3 != nil {
@@ -879,6 +881,36 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 		logrus.Error("Error while @InsertTransaction " + err1.Error())
 		deliver.Nack(false, true)
 		return
+	}
+	tenantList := strings.Split(commons.GoDotEnvVariable("TENANT_LIST"), ",")
+
+	if result.TxnType == "2" && commons.ContainsString(tenantList, result.TenantID) {
+
+		// encodedString := base64.StdEncoding.EncodeToString([]byte(marketplaceNFT.BatchId))
+		// url := constants.NFTBackend + `/nft/timeline/html/hash/` + marketplaceNFT.ProductID + `/` + encodedString
+		// logrus.Info("url",url)
+
+		// responseBody, err := commons.MakeGetRequest(url)
+		// if err != nil {
+		// 	logrus.Error("Error:", err)
+		// 	return
+		// }
+		// var timelineHtml model.HTMLTimelineHashGenerationResponse
+		// err = json.Unmarshal(responseBody, &timelineHtml)
+		// if err != nil {
+		// 	logrus.Error("Can not update Solana meta data " + err.Error())
+		// } else {
+		// 	// acees to the response data to take hash
+		// }
+			marketplaceNFT := model.UpdateableNFT{
+				BatchId:   result.MapIdentifier,
+				ProductId: result.ProductID,
+				TenantId:  result.TenantID,
+			}
+			errUpdatenft := solana.UpdateNFTs(marketplaceNFT)
+			if errUpdatenft != nil {
+				logrus.Error("Can not update Solana meta data " + err.Error())
+			}
 	}
 	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.TDP_REQUEST_SUBMITTED, result.RequestId, configs.BenchmarkLogsStatus.COMPLETE)
 	logrus.Info("Stellar back-link TXN hash: ", result.TxnHash, " Timestamp: ", result.Timestamp, "TXNType: ", result.TxnType,

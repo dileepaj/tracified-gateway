@@ -672,10 +672,4 @@ var routes = Routes{
 		"/marketxdr",
 		businessFacades.SubmitMarketXDR, //Calls the ActivateFoUser in the StellarHandler
 	},
-	Route{
-		"Update NFTS",
-		"POST",
-		"/updatesolananft",
-		businessFacades.UpdateNFTs, //Calls the MintNFTSolana in the nftHandler to mint in Solana
-	},
 }

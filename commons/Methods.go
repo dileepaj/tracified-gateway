@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
+	"io/ioutil"
 	"net/http"
 
 	"github.com/dileepaj/tracified-gateway/model"
@@ -47,4 +48,31 @@ func ConvertBase64StringToHash256(s string) string {
 	h := sha256.New()
 	h.Write(decodedKey)
 	return hex.EncodeToString(h.Sum(nil))
+}
+
+func MakeGetRequest(url string) ([]byte, error) {
+	// Make GET request
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+
+	// Read the response body
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+// ContainsString checks if a given string is present in the array.
+func ContainsString(array []string, target string) bool {
+	for _, value := range array {
+		if value == target {
+			return true
+		}
+	}
+	return false
 }
