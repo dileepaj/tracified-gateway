@@ -885,32 +885,16 @@ func SubmitBacklinksDataToStellar(deliver amqp091.Delivery) {
 	tenantList := strings.Split(commons.GoDotEnvVariable("TENANT_LIST"), ",")
 
 	if result.TxnType == "2" && commons.ContainsString(tenantList, result.TenantID) {
-
-		// encodedString := base64.StdEncoding.EncodeToString([]byte(marketplaceNFT.BatchId))
-		// url := constants.NFTBackend + `/nft/timeline/html/hash/` + marketplaceNFT.ProductID + `/` + encodedString
-		// logrus.Info("url",url)
-
-		// responseBody, err := commons.MakeGetRequest(url)
-		// if err != nil {
-		// 	logrus.Error("Error:", err)
-		// 	return
-		// }
-		// var timelineHtml model.HTMLTimelineHashGenerationResponse
-		// err = json.Unmarshal(responseBody, &timelineHtml)
-		// if err != nil {
-		// 	logrus.Error("Can not update Solana meta data " + err.Error())
-		// } else {
-		// 	// acees to the response data to take hash
-		// }
-			marketplaceNFT := model.UpdateableNFT{
-				BatchId:   result.MapIdentifier,
-				ProductId: result.ProductID,
-				TenantId:  result.TenantID,
-			}
-			errUpdatenft := solana.UpdateNFTs(marketplaceNFT)
-			if errUpdatenft != nil {
-				logrus.Error("Can not update Solana meta data " + err.Error())
-			}
+		//see for existing nft
+		marketplaceNFT := model.UpdateableNFT{
+			BatchId:   result.MapIdentifier,
+			ProductId: result.ProductID,
+			TenantId:  result.TenantID,
+		}
+		errUpdatenft := solana.UpdateNFTs(marketplaceNFT)
+		if errUpdatenft != nil {
+			logrus.Error("Can not update Solana meta data3 " + errUpdatenft.Error())
+		}
 	}
 	utilities.BenchmarkLog(configs.BenchmarkLogsTag.TDP_REQUEST, configs.BenchmarkLogsAction.TDP_REQUEST_SUBMITTED, result.RequestId, configs.BenchmarkLogsStatus.COMPLETE)
 	logrus.Info("Stellar back-link TXN hash: ", result.TxnHash, " Timestamp: ", result.Timestamp, "TXNType: ", result.TxnType,

@@ -2,11 +2,15 @@ package solana
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"strconv"
 
 	"github.com/dileepaj/tracified-gateway/commons"
+	"github.com/dileepaj/tracified-gateway/constants"
 	"github.com/dileepaj/tracified-gateway/dao"
 	"github.com/dileepaj/tracified-gateway/model"
 	"github.com/gagliardetto/solana-go"
@@ -20,7 +24,6 @@ import (
 	"github.com/portto/solana-go-sdk/types"
 	"github.com/sirupsen/logrus"
 )
-
 
 func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 	object := dao.Connection{}
@@ -38,9 +41,26 @@ func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 		}).Await()
 
 		if result.MinterPK != "" {
+			encodedString := base64.StdEncoding.EncodeToString([]byte(marketplaceNFT.BatchId))
+			url := constants.NFTBackend + `/nft/timeline/html/hash/` + marketplaceNFT.ProductId + `/` + encodedString
+			logrus.Info("url", url)
+
+			responseBody, err := commons.MakeGetRequest(url)
+			if err != nil {
+				logrus.Error("Error:", err)
+				return err
+			}
+			var timelineHtml model.HTMLTimelineHashGenerationResponse
+			err = json.Unmarshal(responseBody, &timelineHtml)
+			if err != nil {
+				logrus.Error("Cannot unmarshal response" + err.Error())
+				return err
+			}
+			fmt.Println("---------timelineHtml ", timelineHtml)
+			fmt.Println("---------hash ", timelineHtml.TimelineHtmlHash)
 			var stringver string
 			WALLETSECRET := (commons.GoDotEnvVariable("WALLETSECRET"))
-			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, marketplaceNFT.SvgHash, "UNFT")
+			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, timelineHtml.TimelineHtmlHash, "UNFT")
 			if err == nil {
 				ver, errAtoi := strconv.Atoi(result.Version)
 				if errAtoi != nil {
@@ -52,7 +72,7 @@ func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 					BatchId:   marketplaceNFT.BatchId,
 					ProductId: marketplaceNFT.ProductId,
 					TenantId:  marketplaceNFT.TenantId,
-					SvgHash:   marketplaceNFT.SvgHash,
+					SvgHash:   timelineHtml.TimelineHtmlHash,
 					Version:   stringver,
 					TxnHash:   updateTXNX,
 					MinterPK:  result.MinterPK,
@@ -61,40 +81,25 @@ func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 				if errversion == nil {
 					errupdate := object.UpdateNFTSolana(updatednft)
 					if errupdate != nil {
-						return  errupdate
+						return errupdate
 					}
-					// url := constants.NFTBackend + "/update/solana/meta/" + result.MinterPK + `/` + updateTXNX
-					// req, er := http.NewRequest("PUT", url, nil)
-					// if er != nil {
-					// 	log.Error("Error while create new request using http " + er.Error())
-					// }
-					// client := &http.Client{}
-					// resq, er := client.Do(req)
-					// if er != nil {
-					// 	log.Error("Error while getting response " + er.Error())
-					// 	w.WriteHeader(http.StatusBadRequest)
-					// 	response := model.Error{Message: "Connection to the Traceability DataStore was interupted " + er.Error()}
-					// 	json.NewEncoder(w).Encode(response)
-					// 	return
-					// }
-					// fmt.Println("Response : ", resq)
 				} else {
-					err:=errors.New("Couldnt create a version record in the gateway")
+					err := errors.New("Couldnt create a version record in the gateway")
 					return err
 				}
 
 				return nil
 			} else {
-				err:=errors.New("Something went wrong")
+				err := errors.New("Something went wrong")
 				return err
 			}
 		} else {
-			err:=errors.New("No NFT for Batch minted previously!")
+			err := errors.New("No NFT for Batch minted previously!")
 			return err
 		}
 
 	} else {
-		err:=errors.New("No NFT for Batch minted previously!")
+		err := errors.New("No NFT for Batch minted previously!")
 		return err
 	}
 }
