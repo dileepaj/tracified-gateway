@@ -2,12 +2,14 @@ package solana
 
 import (
 	"context"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"strconv"
+	"strings"
 
 	"github.com/dileepaj/tracified-gateway/commons"
 	"github.com/dileepaj/tracified-gateway/constants"
@@ -58,10 +60,15 @@ func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 			}
 
 			var hash string = timelineHtml.TimelineHtmlHash + "-" + result.ImageBase64
-			fmt.Println("new hash ", hash)
+			h := sha256.New()
+
+			h.Write([]byte(hash))
+
+			fmt.Printf("%x", h.Sum(nil))
+
 			var stringver string
 			WALLETSECRET := (commons.GoDotEnvVariable("WALLETSECRET"))
-			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, hash, "UNFT")
+			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, strings.ToUpper(fmt.Sprintf("%x", h.Sum(nil))), "UNFT")
 			if err == nil {
 				ver, errAtoi := strconv.Atoi(result.Version)
 				if errAtoi != nil {
