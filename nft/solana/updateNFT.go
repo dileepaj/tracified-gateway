@@ -56,11 +56,12 @@ func UpdateNFTs(marketplaceNFT model.UpdateableNFT) error {
 				logrus.Error("Cannot unmarshal response" + err.Error())
 				return err
 			}
-			fmt.Println("---------timelineHtml ", timelineHtml)
-			fmt.Println("---------hash ", timelineHtml.TimelineHtmlHash)
+
+			var hash string = timelineHtml.TimelineHtmlHash + "-" + result.ImageBase64
+			fmt.Println("new hash ", hash)
 			var stringver string
 			WALLETSECRET := (commons.GoDotEnvVariable("WALLETSECRET"))
-			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, timelineHtml.TimelineHtmlHash, "UNFT")
+			updateTXNX, err := UpdateNFT(WALLETSECRET, result.MinterPK, result.NftContentName, hash, "UNFT")
 			if err == nil {
 				ver, errAtoi := strconv.Atoi(result.Version)
 				if errAtoi != nil {

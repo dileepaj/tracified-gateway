@@ -124,5 +124,6 @@
           MAIL_SENDER : "{{ lookup('env','MAIL_SENDER') }}"
           MAIL_SENDER_APP_KEY : "{{ lookup('env','MAIL_SENDER_APP_KEY') }}"
           TENANT_LIST: "{{lookup('env','TENANT_LIST')}}"
+          NFTBACKEND: "{{lookup('env','NFTBACKEND')}}"
 
             
