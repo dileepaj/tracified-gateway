@@ -58,6 +58,10 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				NFTArtistURL:                     TrustLineResponseNFT.ArtistLink,
 				InitialDistributorPK:             common.PublicKey(*ownerPK).String(),
 				Royalty:                          TrustLineResponseNFT.Royalty,
+				BatchId:                          TrustLineResponseNFT.BatchId,
+				ProductId:                        TrustLineResponseNFT.ProductId,
+				TenantId:                         TrustLineResponseNFT.TenantId,
+				Version:                          "1",
 			}
 
 			MarketplaceNFTcollectionObj = model.MarketPlaceNFT{
@@ -85,6 +89,9 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 				CurrentOwnerNFTPK:                TrustLineResponseNFT.OwnerPK,
 				SellingStatus:                    "NOTFORSALE",
 				Royalty:                          TrustLineResponseNFT.Royalty,
+				BatchId:                          TrustLineResponseNFT.BatchId,
+				ProductId:                        TrustLineResponseNFT.ProductId,
+				TenantId:                         TrustLineResponseNFT.TenantId,
 			}
 
 			NFTCeactedResponse := model.NFTCreactedResponse{

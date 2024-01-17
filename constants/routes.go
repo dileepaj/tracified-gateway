@@ -15,3 +15,5 @@ var RawTDP = "/api/v2/dataPackets/raw?id="
 //BackendToken The Token used to Retrieve Raw TDP from Traceability DataStore
 //Will Expire in 03/19/2022 @ 12:31pm (UTC).
 var BackendToken = commons.GoDotEnvVariable("TRACIFIEDBACKENDTOKEN")
+
+var NFTBackend = commons.GoDotEnvVariable("NFTBACKEND")

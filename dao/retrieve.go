@@ -3213,3 +3213,25 @@ func (cd *Connection) GetTDPDetailsbyTXNhash(TxnHash string) *promise.Promise {
 	return p
 }
 
+func (cd *Connection) GetExistingSolanaNFT(BatchId string, ProductId string, TenantId string) *promise.Promise {
+	result := model.NFTWithTransactionSolana{}
+
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			reject(err)
+		}
+
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("NFTSolana")
+		err1 := c.FindOne(context.TODO(), bson.M{"batchid": BatchId, "productid": ProductId, "tenantid": TenantId}).Decode(&result)
+
+		if err1 != nil {
+			reject(err1)
+		} else {
+			resolve(result)
+		}
+	})
+
+	return p
+}

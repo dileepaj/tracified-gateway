@@ -215,37 +215,35 @@ func (cd *Connection) InsertProofProtocol(protocol model.ProofProtocol) error {
 }
 
 func (cd *Connection) InsertIdentifier(id apiModel.IdentifierModel) error {
-    session, err := cd.connect()
-    if err != nil {
-        log.Println("Error while getting session " + err.Error())
-        return err
-    }
-    defer session.EndSession(context.TODO())
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error while getting session " + err.Error())
+		return err
+	}
+	defer session.EndSession(context.TODO())
 
-    c := session.Client().Database(dbName).Collection("IdentifierMap")
+	c := session.Client().Database(dbName).Collection("IdentifierMap")
 
-    // Construct the filter
-    filter := bson.M{
-        "MapValue":  id.Identifier,
-        "ProductId": id.ProductId,
-    }
+	// Construct the filter
+	filter := bson.M{
+		"MapValue":  id.Identifier,
+		"ProductId": id.ProductId,
+	}
 
-    // Check if a document with the specified conditions exists
-    if err := c.FindOne(context.TODO(), filter).Err(); err == nil {
-        return nil // Document with matching conditions already exists, so we return without inserting.
-    }
+	// Check if a document with the specified conditions exists
+	if err := c.FindOne(context.TODO(), filter).Err(); err == nil {
+		return nil // Document with matching conditions already exists, so we return without inserting.
+	}
 
-    // Insert the new data
-    _, err = c.InsertOne(context.TODO(), id)
-    if err != nil {
-        log.Println("Error while inserting to IdentifierMap " + err.Error())
-        return err
-    }
+	// Insert the new data
+	_, err = c.InsertOne(context.TODO(), id)
+	if err != nil {
+		log.Println("Error while inserting to IdentifierMap " + err.Error())
+		return err
+	}
 
-    return nil
+	return nil
 }
-
-
 
 func (cd *Connection) InsertSolanaNFT(solanaNFT model.NFTWithTransactionSolana, marketPlaceNFT model.MarketPlaceNFT) (error, error) {
 	session, err := cd.connect()
@@ -739,6 +737,20 @@ func (cd *Connection) InsertIssuingAccountKeys(Keys model.TransactionDataKeys) e
 	_, err = c.InsertOne(context.TODO(), Keys)
 	if err != nil {
 		log.Println("Error when inserting data to NFTStellar DB " + err.Error())
+	}
+	return err
+}
+
+func (cd *Connection) InsertSolanaNFTVersions(nft model.UpdateableNFT) error {
+	session, err := cd.connect()
+	if err != nil {
+		log.Println("Error when connecting to DB " + err.Error())
+	}
+	defer session.EndSession(context.TODO())
+	c := session.Client().Database(dbName).Collection("SolanaVersions")
+	_, err = c.InsertOne(context.TODO(), nft)
+	if err != nil {
+		log.Println("Error when inserting data to SolanaVersions DB " + err.Error())
 	}
 	return err
 }
