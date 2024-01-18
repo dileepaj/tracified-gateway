@@ -32,7 +32,7 @@ func MintNFTSolana(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 	}
 	log.Println(TrustLineResponseNFT)
-	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" && TrustLineResponseNFT.Royalty != "" {
+	if TrustLineResponseNFT.OwnerPK != "" && TrustLineResponseNFT.Asset_code != "" && TrustLineResponseNFT.NFTURL != "" {
 		var WALLETSECRET = (commons.GoDotEnvVariable("WALLETSECRET"))
 
 		mintPK, ownerPK, mintedTxHash, ATA, err := solana.MintSolana(WALLETSECRET, TrustLineResponseNFT.Asset_code, TrustLineResponseNFT.NFTURL, TrustLineResponseNFT.Royalty, TrustLineResponseNFT.OwnerPK)
