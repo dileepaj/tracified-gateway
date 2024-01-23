@@ -3323,3 +3323,24 @@ func (cd *Connection) GetCOCPreviousCurrentOwner(data model.UpdateCOCOwner) *pro
 	})
 	return p
 }
+func (cd *Connection) CheckBatchExisitsInTransactions(batchName, productName, tenantID string) *promise.Promise {
+	p := promise.New(func(resolve func(interface{}), reject func(error)) {
+		session, err := cd.connect()
+		if err != nil {
+			// fmt.Println(err)
+			reject(err)
+		}
+		defer session.EndSession(context.TODO())
+		c := session.Client().Database(dbName).Collection("Transactions")
+		count, err := c.CountDocuments(context.TODO(), bson.M{"mapidentifier": batchName, "productname": productName, "tenantid": tenantID})
+		if err != nil {
+			reject(err)
+		}
+		if count >= 1 {
+			resolve(true)
+		} else {
+			resolve(false)
+		}
+	})
+	return p
+}

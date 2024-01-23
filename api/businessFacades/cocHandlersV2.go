@@ -36,6 +36,24 @@ func COCTransferRequestInit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	repo := dao.Connection{}
+	rstpromise := repo.CheckBatchExisitsInTransactions(cocstatus.BatchName, cocstatus.ProductName, cocstatus.TenantID)
+	rst, err := rstpromise.Await()
+	exist := rst.(bool)
+	if err != nil {
+		logrus.Error("Failed to check item availability", err.Error())
+		result := apiModel.CommonBadResponse{
+			Message: "Failed to check item availability",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
+	if !exist {
+		result := apiModel.CommonBadResponse{
+			Message: "Item not available",
+		}
+		json.NewEncoder(w).Encode(result)
+		return
+	}
 	saveErr := repo.InsertCOCStatus(cocstatus)
 	if saveErr != nil {
 		logrus.Error("failed to save COC transfer request", err)
